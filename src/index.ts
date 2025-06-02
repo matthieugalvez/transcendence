@@ -1,5 +1,5 @@
-import './styles.css'; // We'll style this later
-import logo from './assets/logo.png'; // This will cause a TypeScript error — we'll fix it soon
+import './styles.css';
+import logo from './assets/logo.png';
 
 function greet(name: string): void {
   const heading = document.createElement('h1');

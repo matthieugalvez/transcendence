@@ -28,3 +28,5 @@ npm run dev
 site will be accessible on localhost:5173
 
 (Vite is used for fast dev environment, we can not use it for the backend though as per discord #staff-pedagogy).
+
+The current project setup is just a basic setup to run the frontend independently using vite as a bundler (no framework).
