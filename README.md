@@ -47,7 +47,7 @@ http://localhost:3000/api/users
 
 A pong game using TypeScript, Tailwind CSS, Node.js, SQLite and Fastify.
 
-##You need to update NODE on your session before running:
+# You need to update NODE on your session before running:
 
 ```
 # Download and install nvm:
