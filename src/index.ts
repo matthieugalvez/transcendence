@@ -15,7 +15,6 @@ async function logNameToServer(name: string): Promise<void> {
     console.log('Server response:', data);
 
     if (data.success) {
-      // Show success message
       const successMsg = document.createElement('p');
       successMsg.textContent = `✅ ${data.message}`;
       successMsg.className = 'text-green-600 font-semibold mt-2';
@@ -24,7 +23,6 @@ async function logNameToServer(name: string): Promise<void> {
   } catch (error) {
     console.error('Error logging name:', error);
 
-    // Show error message
     const errorMsg = document.createElement('p');
     errorMsg.textContent = '❌ Failed to log name to server';
     errorMsg.className = 'text-red-600 font-semibold mt-2';
@@ -33,19 +31,15 @@ async function logNameToServer(name: string): Promise<void> {
 }
 
 function greet(): void {
-    // Set the page title
     document.title = 'My Vite App';
 
-    // Set body styling for centering
     document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
 
-    // Create the h1 from the HTML
     const viteHeading = document.createElement('h1');
     viteHeading.textContent = 'My Vite Application';
     viteHeading.className = 'text-blue-600 text-3xl font-bold mb-4 text-center';
     document.body.appendChild(viteHeading);
 
-    // Create name input section
     const inputContainer = document.createElement('div');
     inputContainer.className = 'text-center mb-6';
 
@@ -67,7 +61,6 @@ function greet(): void {
     inputContainer.appendChild(submitButton);
     document.body.appendChild(inputContainer);
 
-    // Create greeting display area
     const greetingDisplay = document.createElement('div');
     greetingDisplay.id = 'greeting-display';
     greetingDisplay.className = 'text-center mb-6';
@@ -80,7 +73,6 @@ function greet(): void {
     img.className = 'w-48 h-auto mx-auto mb-6';
     document.body.appendChild(img);
 
-    // Function to update greeting
     function updateGreeting() {
         const name = nameInput.value.trim();
         if (name) {
@@ -91,7 +83,6 @@ function greet(): void {
             greeting.className = 'text-green-600 text-2xl font-semibold mb-4 text-center';
             greetingDisplay.appendChild(greeting);
 
-            // Add button to log name to server
             const logButton = document.createElement('button');
             logButton.textContent = 'Log Name to Server';
             logButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-2';
@@ -102,7 +93,6 @@ function greet(): void {
         }
     }
 
-    // Event listeners
     submitButton.addEventListener('click', updateGreeting);
 
     nameInput.addEventListener('keypress', (e) => {
@@ -111,7 +101,6 @@ function greet(): void {
         }
     });
 
-    // Focus on input field
     nameInput.focus();
 }
 

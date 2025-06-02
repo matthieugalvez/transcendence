@@ -11,7 +11,6 @@ const dbPath = join(dataDir, 'transcendence.db')
 
 export const db = new sqlite3.Database(dbPath)
 
-// Initialize database tables
 export function initializeDatabase(): Promise<void> {
   return new Promise((resolve, reject) => {
     db.serialize(() => {
@@ -35,7 +34,6 @@ export function initializeDatabase(): Promise<void> {
   })
 }
 
-// Insert a new user name
 export function insertUser(name: string): Promise<{ id: number, name: string, logged_at: string }> {
   return new Promise((resolve, reject) => {
     const stmt = db.prepare('INSERT INTO users (name) VALUES (?)')
@@ -44,7 +42,6 @@ export function insertUser(name: string): Promise<{ id: number, name: string, lo
       if (err) {
         reject(err)
       } else {
-        // Get the inserted user
         db.get(
           'SELECT id, name, logged_at FROM users WHERE id = ?',
           [this.lastID],
@@ -63,7 +60,6 @@ export function insertUser(name: string): Promise<{ id: number, name: string, lo
   })
 }
 
-// Get all users
 export function getAllUsers(): Promise<Array<{ id: number, name: string, logged_at: string }>> {
   return new Promise((resolve, reject) => {
     db.all('SELECT * FROM users ORDER BY logged_at DESC', [], (err, rows: any[]) => {

@@ -11,10 +11,8 @@ const fastify = Fastify({
 })
 
 async function setupServer() {
-  // Initialize SQLite database
   await initializeDatabase()
 
-  // Register static files plugin for serving Vite build
   await fastify.register(import('@fastify/static'), {
     root: join(__dirname, '../dist'),
     prefix: '/',
@@ -41,7 +39,6 @@ async function setupServer() {
         })
       }
 
-      // Save to database
       const user = await insertUser(name.trim())
 
       console.log(`👋 Hello, ${name}! Saved to database with ID: ${user.id}`)
@@ -61,7 +58,6 @@ async function setupServer() {
     }
   })
 
-  // Get all users endpoint
   fastify.get('/api/users', async (request, reply) => {
     try {
       const users = await getAllUsers()
@@ -84,7 +80,6 @@ async function setupServer() {
     if (request.url.startsWith('/api')) {
       reply.code(404).send({ error: 'API endpoint not found' })
     } else {
-      // Serve index.html for SPA routing
       return reply.sendFile('index.html')
     }
   })
