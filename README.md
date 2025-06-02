@@ -59,7 +59,7 @@ or
 Go to:
 http://localhost:3000/api/users
 ```
-
+-->
 
 # Transcendence Pong Game
 
@@ -69,10 +69,13 @@ A pong game using TypeScript, Tailwind CSS, Node.js, SQLite and Fastify.
 
 ```bash
 npm install
-npm run dev:full  # Start both frontend and backend -->
+npm run dev:full  # Start both frontend and backend
 ```
 
+
 ## Docker Setup
+
+Pas necessairement correct pour le sujet mais c'etait pour se donner une idee.
 
 ### Run with Docker Compose
 ```bash
