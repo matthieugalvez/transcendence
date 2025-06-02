@@ -32,7 +32,7 @@ async function logNameToServer(name: string): Promise<void> {
   }
 }
 
-function greet(name: string): void {
+function greet(): void {
     // Set the page title
     document.title = 'My Vite App';
 
@@ -45,26 +45,77 @@ function greet(name: string): void {
     viteHeading.className = 'text-blue-600 text-3xl font-bold mb-4 text-center';
     document.body.appendChild(viteHeading);
 
-    const heading = document.createElement('h1');
-    heading.textContent = `Hello, ${name}!`;
-    heading.className = 'text-green-600 text-2xl font-semibold mt-4 text-center';
-    document.body.appendChild(heading);
+    // Create name input section
+    const inputContainer = document.createElement('div');
+    inputContainer.className = 'text-center mb-6';
 
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Enter your name:';
+    nameLabel.className = 'block text-gray-700 text-lg font-medium mb-2';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Your name here...';
+    nameInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2';
+
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Greet Me!';
+    submitButton.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+    inputContainer.appendChild(nameLabel);
+    inputContainer.appendChild(nameInput);
+    inputContainer.appendChild(submitButton);
+    document.body.appendChild(inputContainer);
+
+    // Create greeting display area
+    const greetingDisplay = document.createElement('div');
+    greetingDisplay.id = 'greeting-display';
+    greetingDisplay.className = 'text-center mb-6';
+    document.body.appendChild(greetingDisplay);
+
+    // Logo
     const img = document.createElement('img');
     img.src = logo;
     img.alt = 'Project Logo';
-    img.className = 'w-48 h-auto mt-4 mx-auto';
+    img.className = 'w-48 h-auto mx-auto mb-6';
     document.body.appendChild(img);
 
-    // Add button to log name to server
-    const logButton = document.createElement('button');
-    logButton.textContent = 'Log Name to Server';
-    logButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4';
-    logButton.addEventListener('click', () => logNameToServer(name));
-    document.body.appendChild(logButton);
+    // Function to update greeting
+    function updateGreeting() {
+        const name = nameInput.value.trim();
+        if (name) {
+            greetingDisplay.innerHTML = '';
+
+            const greeting = document.createElement('h1');
+            greeting.textContent = `Hello, ${name}!`;
+            greeting.className = 'text-green-600 text-2xl font-semibold mb-4 text-center';
+            greetingDisplay.appendChild(greeting);
+
+            // Add button to log name to server
+            const logButton = document.createElement('button');
+            logButton.textContent = 'Log Name to Server';
+            logButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-2';
+            logButton.addEventListener('click', () => logNameToServer(name));
+            greetingDisplay.appendChild(logButton);
+        } else {
+            alert('Please enter your name!');
+        }
+    }
+
+    // Event listeners
+    submitButton.addEventListener('click', updateGreeting);
+
+    nameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            updateGreeting();
+        }
+    });
+
+    // Focus on input field
+    nameInput.focus();
 }
 
-greet('TypeScript + Vite (pingpong)');
+greet();
 
 
 
