@@ -25,8 +25,15 @@ npm -v # Should print "11.3.0".
 Then run
 ```
 npm install
-npm run build
-npm run dev
+
+and
+
+
+npm run build // Compile dev build
+
+or
+
+npm run dev // Compile and run dev env/server (for hot reload etc..)
 ```
 
 site will be accessible on localhost:5173
