@@ -46,3 +46,16 @@ site will be accessible on localhost:5173
 
 (Vite is used for fast dev environment, and bundling (combining multiple file into fewer, optimizing the development) we can not use it for the backend though as per discord #staff-pedagogy).
 
+For the database:
+
+```
+For VSCode quickview:
+
+Install "SQLite Viewer" extension
+Right-click on transcendence.db → "Open with SQLite Viewer"
+
+or
+
+Go to:
+http://localhost:3000/api/users
+```

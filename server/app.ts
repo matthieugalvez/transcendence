@@ -1,6 +1,8 @@
 import Fastify from 'fastify'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { initializeDatabase, insertUser } from './database.js'
+import { db } from './database.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -10,29 +12,59 @@ const fastify = Fastify({
 })
 
 async function setupServer() {
+  // Initialize SQLite database
+  await initializeDatabase()
+
   // Register static files plugin for serving Vite build
   await fastify.register(import('@fastify/static'), {
     root: path.join(__dirname, '../dist'),
     prefix: '/',
   })
 
-  // Simple log name endpoint
+  // Simple log name endpoint - now saves to SQLite
   fastify.post('/api/logname', async (request, reply) => {
-    const { name } = request.body as { name: string }
+    try {
+      const { name } = request.body as { name: string }
 
-    console.log(`👋 Hello, ${name}!`)
+      if (!name || name.trim() === '') {
+        return reply.code(400).send({
+          success: false,
+          error: 'Name is required'
+        })
+      }
 
-    return {
-      success: true,
-      message: `Logged name: ${name}`,
-      timestamp: new Date().toISOString()
+      // Save to database
+      const user = await insertUser(name.trim())
+
+      console.log(`👋 Hello, ${name}! Saved to database with ID: ${user.id}`)
+
+      return {
+        success: true,
+        message: `Logged name: ${name}`,
+        user: user,
+        timestamp: new Date().toISOString()
+      }
+    } catch (error) {
+      console.error('Database error:', error)
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to save name to database'
+      })
     }
   })
 
-  // API Routes
-  fastify.get('/api/health', async (request, reply) => {
-    return { status: 'ok', timestamp: new Date().toISOString() }
+  //Endpoint for get and .json formatting from GET REQUEST
+  fastify.get('/api/users', async (request, reply) => {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM users ORDER BY logged_at DESC', [], (err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve({ users: rows, count: rows.length })
+      }
+    })
   })
+})
 
   // SPA fallback - serve index.html for all non-API routes
   fastify.setNotFoundHandler(async (request, reply) => {
