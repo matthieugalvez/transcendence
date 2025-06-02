@@ -1,5 +1,6 @@
 You need to update NODE on your session before running:
 
+```
 # Download and install nvm:
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
@@ -15,6 +16,7 @@ nvm current # Should print "v22.16.0".
 
 # Verify npm version:
 npm -v # Should print "10.9.2".
+```
 
 Then run
 ```
