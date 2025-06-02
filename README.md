@@ -72,6 +72,8 @@ npm -v # Should print "11.3.0".
 ```bash
 npm install
 npm run dev:full  # Start both frontend and backend
+
+- **Application**: http://localhost:5173
 ```
 
 
@@ -102,7 +104,8 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data transcendence
 
 ## Access the Application
 
-- **Application**: http://localhost:3000
+- **Application**: http://localhost:3000 -> Docker
+- **Application**: http://localhost:5173 -> Vite dev env
 - **API Health Check**: http://localhost:3000/api/health
 - **View Users**: http://localhost:3000/api/users
 
