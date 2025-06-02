@@ -1,6 +1,37 @@
 import './styles.css';
 import logo from './assets/logo.png';
 
+async function logNameToServer(name: string): Promise<void> {
+  try {
+    const response = await fetch('/api/logname', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name })
+    });
+
+    const data = await response.json();
+    console.log('Server response:', data);
+
+    if (data.success) {
+      // Show success message
+      const successMsg = document.createElement('p');
+      successMsg.textContent = `✅ ${data.message}`;
+      successMsg.className = 'text-green-600 font-semibold mt-2';
+      document.body.appendChild(successMsg);
+    }
+  } catch (error) {
+    console.error('Error logging name:', error);
+
+    // Show error message
+    const errorMsg = document.createElement('p');
+    errorMsg.textContent = '❌ Failed to log name to server';
+    errorMsg.className = 'text-red-600 font-semibold mt-2';
+    document.body.appendChild(errorMsg);
+  }
+}
+
 function greet(name: string): void {
     // Set the page title
     document.title = 'My Vite App';
@@ -23,11 +54,18 @@ function greet(name: string): void {
     img.src = logo;
     img.alt = 'Project Logo';
     img.className = 'w-48 h-auto mt-4 mx-auto';
-
     document.body.appendChild(img);
+
+    // Add button to log name to server
+    const logButton = document.createElement('button');
+    logButton.textContent = 'Log Name to Server';
+    logButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4';
+    logButton.addEventListener('click', () => logNameToServer(name));
+    document.body.appendChild(logButton);
 }
 
 greet('TypeScript + Vite (pingpong)');
+
 
 
 //  <-- //Transcendence looking page idk comment above and uncomment below to see -->!

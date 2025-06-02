@@ -28,12 +28,18 @@ npm install
 
 and
 
+npm run dev:full // Start the backend and frontend at the same time
+
 
 npm run build // Compile dev build
 
 or
 
-npm run dev // Compile and run dev env/server (for hot reload etc..)
+npm run dev // Run dev frontend
+
+or
+
+npm run server:dev //Run Fastify backend server
 ```
 
 site will be accessible on localhost:5173
