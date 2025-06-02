@@ -44,5 +44,5 @@ npm run server:dev //Run Fastify backend server
 
 site will be accessible on localhost:5173
 
-(Vite is used for fast dev environment, we can not use it for the backend though as per discord #staff-pedagogy).
+(Vite is used for fast dev environment, and bundling (combining multiple file into fewer, optimizing the development) we can not use it for the backend though as per discord #staff-pedagogy).
 
