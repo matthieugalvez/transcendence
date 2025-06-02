@@ -16,4 +16,4 @@ function greet(name: string): void {
 	document.body.appendChild(img);
 }
 
-greet('TypeScript + Vite (pingpong whatev)');
+greet('TypeScript + Vite (pingpong)');
