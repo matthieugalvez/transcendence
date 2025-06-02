@@ -11,6 +11,7 @@ function greet(name: string): void {
   img.src = logo;
   img.alt = 'Project Logo';
   img.style.width = 'w-48 h-auto mt-4';
+	img.className = 'w-48 h-auto mt-4';
 
   document.body.appendChild(img);
 }
