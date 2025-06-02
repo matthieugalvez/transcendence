@@ -26,6 +26,7 @@ Then run
 ```
 npm install
 npm run build
+npm setup:tailwind
 npm run dev
 ```
 
