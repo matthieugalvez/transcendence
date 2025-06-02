@@ -7,9 +7,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "outDir": "./dist",
-    "allowImportingTsExtensions": false,
-    "noEmit": false
+    "outDir": "./dist-server",
+    "rootDir": "./server",
+    "declaration": false,
+    "sourceMap": false
   },
-  "include": ["src", "server"]
+  "include": ["server/**/*"]
 }

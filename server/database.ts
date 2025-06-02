@@ -1,12 +1,14 @@
 import sqlite3 from 'sqlite3'
-import path from 'path'
+import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = dirname(__filename)
 
-// Create database connection
-const dbPath = path.join(__dirname, 'transcendence.db')
+// Use persistent data directory in Docker, fallback to local for development
+const dataDir = process.env.NODE_ENV === 'production' ? '/app/data' : __dirname
+const dbPath = join(dataDir, 'transcendence.db')
+
 export const db = new sqlite3.Database(dbPath)
 
 // Initialize database tables
@@ -25,7 +27,7 @@ export function initializeDatabase(): Promise<void> {
           console.error('Error creating users table:', err)
           reject(err)
         } else {
-          console.log('✅ Database initialized successfully')
+          console.log(`✅ Database initialized successfully at: ${dbPath}`)
           resolve()
         }
       })
@@ -58,5 +60,18 @@ export function insertUser(name: string): Promise<{ id: number, name: string, lo
     })
 
     stmt.finalize()
+  })
+}
+
+// Get all users
+export function getAllUsers(): Promise<Array<{ id: number, name: string, logged_at: string }>> {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM users ORDER BY logged_at DESC', [], (err, rows: any[]) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows)
+      }
+    })
   })
 }

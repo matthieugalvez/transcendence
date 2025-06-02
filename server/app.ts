@@ -1,11 +1,10 @@
 import Fastify from 'fastify'
-import path from 'path'
+import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { initializeDatabase, insertUser } from './database.js'
-import { db } from './database.js'
+import { initializeDatabase, insertUser, getAllUsers } from './database.js'
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = dirname(__filename)
 
 const fastify = Fastify({
   logger: true
@@ -17,8 +16,17 @@ async function setupServer() {
 
   // Register static files plugin for serving Vite build
   await fastify.register(import('@fastify/static'), {
-    root: path.join(__dirname, '../dist'),
+    root: join(__dirname, '../dist'),
     prefix: '/',
+  })
+
+  // Health check for docker
+  fastify.get('/api/health', async (request, reply) => {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    }
   })
 
   // Simple log name endpoint - now saves to SQLite
@@ -53,18 +61,23 @@ async function setupServer() {
     }
   })
 
-  //Endpoint for get and .json formatting from GET REQUEST
+  // Get all users endpoint
   fastify.get('/api/users', async (request, reply) => {
-  return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM users ORDER BY logged_at DESC', [], (err, rows) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve({ users: rows, count: rows.length })
+    try {
+      const users = await getAllUsers()
+      return {
+        success: true,
+        users: users,
+        count: users.length
       }
-    })
+    } catch (error) {
+      console.error('Database error:', error)
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to fetch users from database'
+      })
+    }
   })
-})
 
   // SPA fallback - serve index.html for all non-API routes
   fastify.setNotFoundHandler(async (request, reply) => {

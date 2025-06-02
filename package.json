@@ -28,14 +28,14 @@
 		"postcss": "^8.5.4",
 		"autoprefixer": "^10.4.21",
 		"concurrently": "^9.1.2",
-		"tsx": "4.19.4"
+		"tsx": "^4.19.4"
 	},
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
 		"server:dev": "tsx server/app.ts",
-		"server:build": "tsc server/app.ts --outDir dist-server --target ES2022 --module ESNext --moduleResolution node",
+		"server:build": "tsc --project tsconfig.server.json",
 		"server:start": "node dist-server/app.js",
 		"dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
 		"build:full": "npm run build && npm run server:build"

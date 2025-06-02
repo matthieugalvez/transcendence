@@ -1,4 +1,4 @@
-
+<!--
 The current project setup is just a basic setup to run the frontend independently using vite as a bundler (no framework). https://vite.dev/guide/#overview
 
 
@@ -59,3 +59,49 @@ or
 Go to:
 http://localhost:3000/api/users
 ```
+
+
+# Transcendence Pong Game
+
+A pong game using TypeScript, Tailwind CSS, Node.js, SQLite and Fastify.
+
+## Development Setup
+
+```bash
+npm install
+npm run dev:full  # Start both frontend and backend -->
+```
+
+## Docker Setup
+
+### Run with Docker Compose
+```bash
+# Build and start the application
+docker compose up --build
+
+# Run in background
+docker compose up -d
+
+# Stop the application
+docker compose down
+```
+
+### Manual Docker commands
+```bash
+# Build the image
+docker build -t transcendence .
+
+# Run the container
+docker run -p 3000:3000 -v $(pwd)/data:/app/data transcendence
+```
+
+## Access the Application
+
+- **Application**: http://localhost:3000
+- **API Health Check**: http://localhost:3000/api/health
+- **View Users**: http://localhost:3000/api/users
+
+## Database
+
+- SQLite database persists in `./data/transcendence.db`
+- Database is automatically created on first run -->
