@@ -16,7 +16,12 @@ nvm current # Should print "v22.16.0".
 # Verify npm version:
 npm -v # Should print "10.9.2".
 
-Then run npm run build && npm run dev
+Then run
+```
+npm install
+npm run build
+npm run dev
+```
 
 site will be accessible on localhost:5173
 
