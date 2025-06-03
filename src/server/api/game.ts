@@ -14,7 +14,7 @@ export default async function gameRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Future endpoints for your Pong game:
+  // Example de points api possible pour le jeu:
   // POST /api/game/start
   // POST /api/game/move
   // GET /api/game/:id

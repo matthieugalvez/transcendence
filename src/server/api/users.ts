@@ -2,13 +2,14 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { insertUser, getAllUsers } from '../configs/database.js'
 
 
+// Definition juste pour "conteneraiser le code" et l'assigner a la bonne isntance fastify dans app.ts
 
 export default async function userRoutes(fastify: FastifyInstance) {
   // POST /api/signup - Create new user
   // Repond aux requetes POST envoyes a /api/signup du coup quand on clique sur le bouton dans index.ts
   // On envoie une requete POST avec les infos de nom/password dans le body, ici on les recuperes et on stock dans la db
-  // Et on renvoie le message de succes/erreur au client/front.
-  
+  // Et on renvoie le message de succes/erreur au client/front (chaque RETURN est la reponse envoye au front)
+
   fastify.post('/api/signup', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { name, password } = request.body as { name: string, password: string }
@@ -27,6 +28,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
         })
       }
 
+	// Insere l'utilisateur dans la DB
       const user = await insertUser(name.trim(), password.trim())
 
       console.log(`👋 Hello, ${name}! Saved to database with ID: ${user.id}`)
@@ -59,6 +61,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
   })
 
   // GET /api/users - Get all users (debug only)
+  // Recupere tous les utilisateurs
   fastify.get('/api/users', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const users = await getAllUsers()
