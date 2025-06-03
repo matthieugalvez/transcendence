@@ -8,7 +8,7 @@ build-docker:
 clean:
 	rm -rf node_modules
 	rm -rf package-lock.json
-	rm -rf dist-front
+	rm -rf dist
 	rm -rf dist-back
 	rm -rf ./src/server/configs/transcendence.db
 
