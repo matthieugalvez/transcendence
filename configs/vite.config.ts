@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 
 export default defineConfig({
-  root: 'src',
+  root: './src/client',
   plugins: [tailwindcss()],
   server: {
     proxy: {
@@ -15,13 +15,13 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../dist',
+    outDir: './dist',
     emptyOutDir: true,
     sourcemap: true,
     minify: 'esbuild',
     assetsDir: 'assets',
     rollupOptions: {
-      input: path.resolve(__dirname, 'src/index.html'),
+      input: path.resolve(__dirname, './src/client/index.html'),
       output: {
         assetFileNames: 'assets/[name]-[hash][extname]'
       }
@@ -29,7 +29,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(__dirname, './src'),
     }
   },
   define: {

@@ -5,13 +5,13 @@ FROM node:24-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY ../package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy source code
-COPY . .
+COPY ../src ./src
 
 # Build the frontend
 RUN npm run build
