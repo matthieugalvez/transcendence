@@ -11,6 +11,7 @@ dist-back/
 build/
 data/
 *.tsbuildinfo
+*.db
 
 # Environment variables
 .env
