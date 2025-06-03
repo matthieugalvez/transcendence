@@ -1,5 +1,5 @@
 # Use Node.js 24 LTS
-FROM node:24-alpine
+FROM node:24.1.0-alpine
 
 # Set working directory
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY ../package*.json ./
 RUN npm install
 
 # Copy source code
-COPY ../src ./src
+COPY ../ .
 
 # Build the frontend
 RUN npm run build

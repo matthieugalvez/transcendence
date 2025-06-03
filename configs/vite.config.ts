@@ -15,13 +15,13 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: './dist',
+    outDir: '../dist',
     emptyOutDir: true,
     sourcemap: true,
     minify: 'esbuild',
     assetsDir: 'assets',
     rollupOptions: {
-      input: path.resolve(__dirname, './src/client/index.html'),
+      input: path.resolve(__dirname, '../src/client/index.html'),
       output: {
         assetFileNames: 'assets/[name]-[hash][extname]'
       }
