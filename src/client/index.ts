@@ -1,110 +1,146 @@
 import './styles.css';
 import logo from '../assets/logo.png';
 
-async function logNameToServer(name: string): Promise<void> {
-  try {
-    const response = await fetch('/api/logname', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name })
-    });
+let nameInput: HTMLInputElement;
+let passwordInput: HTMLInputElement;
+let submitButton: HTMLButtonElement;
 
-    const data = await response.json();
-    console.log('Server response:', data);
-
-    if (data.success) {
-      const successMsg = document.createElement('p');
-      successMsg.textContent = `✅ ${data.message}`;
-      successMsg.className = 'text-green-600 font-semibold mt-2';
-      document.body.appendChild(successMsg);
-    }
-  } catch (error) {
-    console.error('Error logging name:', error);
-
-    const errorMsg = document.createElement('p');
-    errorMsg.textContent = '❌ Failed to log name to server';
-    errorMsg.className = 'text-red-600 font-semibold mt-2';
-    document.body.appendChild(errorMsg);
-  }
-}
-
-function greet(): void {
-    document.title = 'My Vite App';
+function renderIndex() : void {
+	document.title = 'Transcendence';
 
     document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
 
-    const viteHeading = document.createElement('h1');
-    viteHeading.textContent = 'My Vite Application';
-    viteHeading.className = 'text-blue-600 text-3xl font-bold mb-4 text-center';
-    document.body.appendChild(viteHeading);
-
-    const inputContainer = document.createElement('div');
-    inputContainer.className = 'text-center mb-6';
-
-    const nameLabel = document.createElement('label');
-    nameLabel.textContent = 'Enter your name:';
-    nameLabel.className = 'block text-gray-700 text-lg font-medium mb-2';
-
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Your name here...';
-    nameInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2';
-
-    const submitButton = document.createElement('button');
-    submitButton.textContent = 'Greet Me!';
-    submitButton.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
-
-    inputContainer.appendChild(nameLabel);
-    inputContainer.appendChild(nameInput);
-    inputContainer.appendChild(submitButton);
-    document.body.appendChild(inputContainer);
-
-    const greetingDisplay = document.createElement('div');
-    greetingDisplay.id = 'greeting-display';
-    greetingDisplay.className = 'text-center mb-6';
-    document.body.appendChild(greetingDisplay);
-
-    // Logo
+	// Logo
     const img = document.createElement('img');
     img.src = logo;
     img.alt = 'Project Logo';
     img.className = 'w-48 h-auto mx-auto mb-6';
     document.body.appendChild(img);
 
-    function updateGreeting() {
-        const name = nameInput.value.trim();
-        if (name) {
-            greetingDisplay.innerHTML = '';
+	// On cree nos elements (div dans laquelle sont les label et boutons)
+    const pageTitle = document.createElement('h1');
+    pageTitle.textContent = 'Transcendence';
+    pageTitle.className = 'text-blue-600 text-3xl font-bold mb-4 text-center';
+    document.body.appendChild(pageTitle);
 
-            const greeting = document.createElement('h1');
-            greeting.textContent = `Hello, ${name}!`;
-            greeting.className = 'text-green-600 text-2xl font-semibold mb-4 text-center';
-            greetingDisplay.appendChild(greeting);
+    const inputContainer = document.createElement('div');
+    inputContainer.className = 'text-center mb-6';
 
-            const logButton = document.createElement('button');
-            logButton.textContent = 'Log Name to Server';
-            logButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-2';
-            logButton.addEventListener('click', () => logNameToServer(name));
-            greetingDisplay.appendChild(logButton);
-        } else {
-            alert('Please enter your name!');
-        }
-    }
+ 	const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Enter your name:';
+    nameLabel.className = 'block text-gray-700 text-lg font-medium mb-2';
 
-    submitButton.addEventListener('click', updateGreeting);
+    nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Name';
+    nameInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2 mb-4 block w-64 mx-auto';
 
+    const passwordLabel = document.createElement('label');
+    passwordLabel.textContent = 'Enter your password:';
+    passwordLabel.className = 'block text-gray-700 text-lg font-medium mb-2';
+
+    passwordInput = document.createElement('input');
+    passwordInput.type = 'password';
+    passwordInput.placeholder = 'Password';
+    passwordInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2 mb-4 block w-64 mx-auto';
+
+    submitButton = document.createElement('button');
+    submitButton.textContent = 'Signup!';
+    submitButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+	//On rajoute tout dans le inputContainer (Qui est en fait juste une div)
+    inputContainer.appendChild(nameLabel);
+    inputContainer.appendChild(nameInput);
+    inputContainer.appendChild(passwordLabel);
+    inputContainer.appendChild(passwordInput);
+    inputContainer.appendChild(submitButton);
+    document.body.appendChild(inputContainer);
+
+	const signupMsgDisplay = document.createElement('div');
+    signupMsgDisplay.id = 'signup-msg-display';
+    signupMsgDisplay.className = 'text-center mb-6';
+    document.body.appendChild(signupMsgDisplay);
+
+}
+
+//Fonction wrapper qui rend la page, et check les entrees click ou enter key.
+function signup(): void {
+
+	renderIndex();
+
+
+	function onSubmitClick() {
+	const name = nameInput.value.trim();
+	const password = passwordInput.value.trim();
+
+	signupUser(name, password);
+
+	}
+
+    submitButton.addEventListener('click', onSubmitClick);
+
+	// Gestion de ENTER
     nameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            updateGreeting();
+            onSubmitClick();
         }
     });
 
+	passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            onSubmitClick();
+        }
+    });
+
+	//selectionne automatiquement nameInput par defaut.
     nameInput.focus();
 }
 
-greet();
+//Prend la string et renvoie du texte rouge ou vert selon succes ou error!
+
+function showMessage(text: string, type: 'success' | 'error'): void {
+
+	const signupMsgDisplay = document.getElementById('signup-msg-display');
+	if (!signupMsgDisplay) return;
+
+	signupMsgDisplay.innerHTML = '';
+
+	const message = document.createElement('p');
+	message.textContent = text;
+	message.className = type === 'success' ? 'text-green-600 font-semibold mt-2' : 'text-red-600 font-semibold mt-2';
+	signupMsgDisplay.appendChild(message);
+}
+
+//Ici on envoie une requete post a /api/signup qui va donc appeller le backend(fastify pour executer les fonctions propre a /api/signup!)
+
+async function signupUser(name: string, password: string): Promise<void> {
+  try {
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, password })
+    });
+
+    const apiResponseData = await response.json();
+    console.log('Server response:', apiResponseData);
+
+    if (apiResponseData.success) {
+      showMessage(`✅ ${apiResponseData.message}`, 'success');
+    } else {
+      showMessage(`❌ ${apiResponseData.error || 'Registration failed'}`, 'error');
+    }
+
+  } catch (error) {
+    console.error('Error logging name:', error);
+    showMessage('❌ Error connecting to server', 'error');
+  }
+}
+
+//Appel a la fonction pour executer tout le code plus haut
+
+signup();
 
 
 
