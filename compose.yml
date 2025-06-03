@@ -1,6 +1,8 @@
 services:
   transcendence:
-    build: ./configs
+    build:
+      context: .
+      dockerfile: configs/Dockerfile
     ports:
       - "3000:3000"
     volumes:

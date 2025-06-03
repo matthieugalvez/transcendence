@@ -11,5 +11,3 @@ export function renderHomePage() {
     pageTitle.className = 'text-green-600 text-3xl font-bold mb-4 text-center';
     document.body.appendChild(pageTitle);
 }
-
-renderHomePage();

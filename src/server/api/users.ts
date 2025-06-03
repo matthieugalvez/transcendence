@@ -46,7 +46,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     } catch (error) {
       console.error('Database error:', error)
 
-      if (error.message && error.message.includes('UNIQUE constraint failed')) {
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
         return reply.code(409).send({
           success: false,
           error: 'Username already exists'

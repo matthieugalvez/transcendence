@@ -5,12 +5,11 @@
 
 class SimpleRouter {
   private routes: Map<string, () => void> = new Map();
-  private currentRoute: string = '/'; // -> spa ne change pas l'adresse
 
   constructor() {
-    // window.addEventListener('popstate', () => {
-    //   this.handleRoute(window.location.pathname);
-    // });
+    window.addEventListener('popstate', () => {
+      this.handleRoute(window.location.pathname);
+    });
   }
 
   register(path: string, handler: () => void) {
@@ -18,13 +17,9 @@ class SimpleRouter {
   }
 
   navigate(path: string) {
-    // window.history.pushState({}, '', path); -> non SPA change l'adresse
-	this.currentRoute = path;
+    window.history.pushState({}, '', path);
+	// this.currentRoute = path;
     this.handleRoute(path);
-  }
-
-getCurrentRoute(): string {
-    return this.currentRoute;
   }
 
   private handleRoute(path: string) {

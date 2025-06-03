@@ -2,9 +2,9 @@
 // C'est un peu temporaire je pense qu'il faut le mettre dans le back peut etre.
 
 
-import { router } from './configs/simplerouter.ts';
-import { renderHomePage  } from './pages/HomePage.ts';
-import { signup } from './pages/Signup.ts'
+import { router } from './configs/simplerouter';
+import { renderHomePage  } from './pages/HomePage';
+import { signup } from './pages/Signup'
 
 // donc / redirige vers signup et /home vers renderHomePage
 

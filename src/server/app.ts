@@ -5,8 +5,8 @@ import { initializeDatabase } from './configs/database.js'
 
 // Import API route modules
 import healthRoutes from './api/health.js'
-import userRoutes from './api/users.js'
-import gameRoutes from './api/game.js'
+import userRoutes from './api/users'
+import gameRoutes from './api/game'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
