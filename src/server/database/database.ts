@@ -1,83 +1,74 @@
-import sqlite3 from 'sqlite3'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
+import { FastifyInstance } from 'fastify'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+// Create a global Prisma client instance
+export const prisma = new PrismaClient()
 
-// Use persistent data directory in Docker, fallback to local for development
-const dataDir = process.env.NODE_ENV === 'production' ? '/app/data' : __dirname
-const dbPath = join(dataDir, 'transcendence.db')
+// Plugin to register Prisma with Fastify
+export async function registerDb(fastify: FastifyInstance) {
+  // Add Prisma to Fastify instance
+  fastify.decorate('prisma', prisma)
 
-export const db = new sqlite3.Database(dbPath)
+  // Connect to database
+  await prisma.$connect()
+  console.log('✅ Database connected via Prisma')
 
-//Initialize database - user name cannot be the same.
-export function initializeDatabase(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL UNIQUE,
-		  password_hash TEXT NOT NULL,
-          logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `, (err) => {
-        if (err) {
-          console.error('Error creating users table:', err)
-          reject(err)
-        } else {
-          console.log(`✅ Database initialized successfully at: ${dbPath}`)
-          resolve()
-        }
-      })
-    })
+  // Graceful shutdown
+  fastify.addHook('onClose', async () => {
+    await prisma.$disconnect()
+    console.log('📴 Database disconnected')
   })
 }
 
-// Ajoute l'user a la DB et hash le MDP
-export async function insertUser(name: string, password: string): Promise<{ id: number, name: string, password: string, logged_at: string }> {
+// Helper functions for user operations
+export async function createUser(name: string, password: string) {
+  const password_hash = await bcrypt.hash(password, 10)
 
-	try {
-		const passwordHash = await bcrypt.hash(password, 12); // *args2 = niveau d'encryption
-
-		return new Promise((resolve, reject) => {
-		const statement = db.prepare('INSERT INTO users (name, password_hash) VALUES (?, ?)')
-
-		statement.run([name, passwordHash], function(err) {
-		if (err) {
-			reject(err)
-		} else {
-			db.get(
-			'SELECT id, name, password_hash, logged_at FROM users WHERE id = ?',
-			[this.lastID],
-			(err, row: any) => {
-				if (err) {
-				reject(err)
-				} else {
-				resolve(row)
-				}
-			}
-			)
-		}
-		})
-		statement.finalize()
-	})
-	} catch (error) {
-		throw new Error('Failed to hash password')
-	}
+  return await prisma.user.create({
+    data: {
+      name: name.trim(),
+      password_hash
+    }
+  })
 }
 
-// Recupere tout de la table USER.
-export function getAllUsers(): Promise<Array<{ id: number, name: string, password: string, logged_at: string }>> {
-  return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM users ORDER BY logged_at DESC', [], (err, rows: any[]) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(rows)
-      }
-    })
+export async function getUserByName(name: string) {
+  return await prisma.user.findUnique({
+    where: { name }
+  })
+}
+
+export async function getAllUsers() {
+  return await prisma.user.findMany({
+    orderBy: { logged_at: 'desc' }
+  })
+}
+
+// Helper functions for game sessions
+export async function createGameSession(data: {
+  player1_id: number
+  player2_id: number
+  player1_score: number
+  player2_score: number
+  winner_id?: number
+  status?: string
+}) {
+  return await prisma.gameSession.create({
+    data,
+    include: {
+      player1: true,
+      player2: true
+    }
+  })
+}
+
+export async function getGameSessions() {
+  return await prisma.gameSession.findMany({
+    include: {
+      player1: { select: { id: true, name: true } },
+      player2: { select: { id: true, name: true } }
+    },
+    orderBy: { created_at: 'desc' }
   })
 }
