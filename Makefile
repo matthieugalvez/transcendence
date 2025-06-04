@@ -19,4 +19,6 @@ clean-docker: clean
 clean-db: clean clean-docker
 	rm -rf ./data
 
+re: clean-db build-dev
+
 #simple temp clean command for package setup
