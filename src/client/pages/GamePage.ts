@@ -1,7 +1,8 @@
 import { Paddle } from './game/paddle';
 import { Ball } from './game/ball';
 import { GameState, PlayerId } from './game/types';
-import { renderGame } from './game/renderGame';
+import { startPongInContainer } from './game/utils';
+// import { renderGame } from './game/renderGame';
 
 export class PongGame {
   private canvasWidth: number;
@@ -163,84 +164,19 @@ export class PongGame {
 }
 
 export function renderGamePage() {
-    document.title = 'Transcendance - Pong';
-    // 1) Container global centré
-    const container = document.createElement('div');
-    container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.appendChild(container);
+  document.title = 'Transcendance - Pong';
+  // 1) Container global centré
+  const container = document.createElement('div');
+  container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
+  document.body.appendChild(container);
 
-    // 2) Titre facultatif
-    const title = document.createElement('h1');
-    title.textContent = 'Ready to Pong?';
-    title.className = 'text-2xl font-bold mb-6';
-    container.appendChild(title);
-
-    // 3) Bouton “Start” au centre
-    const startButton = document.createElement('button');
-    startButton.textContent = 'Start';
-    startButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors mb-4';
-    container.appendChild(startButton);
-
-    // 4) Canvas (invisible au départ)
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.className = 'border'; // pour voir le contour
-    canvas.style.display = 'none';
-    container.appendChild(canvas);
-    const ctx = canvas.getContext('2d')!;
-    if (!ctx) throw new Error('Impossible de récupérer le context 2D');
-
-    // 5) Instancier la logique (mais ne pas démarrer)
-    const game = new PongGame(canvas.width, canvas.height);
-
-    // 6) Gestion du clavier
-    const keysPressed: { [key: string]: boolean } = {};
-    window.addEventListener('keydown', (e) => {
-    keysPressed[e.code] = true;
-    });
-    window.addEventListener('keyup', (e) => {
-    keysPressed[e.code] = false;
-    });
-
-    // 7) Boucle de mise à jour client (pour envoyer les commandes au jeu)
-    let lastTime = performance.now();
-    function clientLoop(time: number) {
-        const dt = (time - lastTime) / 1000; // (en secondes) dt = delta time = délai entre 2 frames
-        lastTime = time;
-        // Selon les touches enfoncées, on appelle movePaddle
-        // Exemple : "KeyW" et "KeyS" contrôlent le joueur 1, "ArrowUp"/"ArrowDown" pour le joueur 2
-        if (game.getState().isRunning) {
-            if (keysPressed['KeyW']) {
-                game.movePaddle(1, 'up', dt);
-            }
-            if (keysPressed['KeyS']) {
-                game.movePaddle(1, 'down', dt);
-            }
-            if (keysPressed['ArrowUp']) {
-                game.movePaddle(2, 'up', dt);
-            }
-            if (keysPressed['ArrowDown']) {
-                game.movePaddle(2, 'down', dt);
-            }
-            // 8) On met à jour la logique du jeu
-            game.update(dt);
-            // 9) On fait le rendu
-            renderGame(ctx, game.getState());
-        }
-        requestAnimationFrame(clientLoop);
-    }
-    // Lancer la boucle
-    requestAnimationFrame(clientLoop);
-    // 10) Au clic sur “Start” : masquer le bouton, afficher le canvas, puis démarrer le jeu
-    startButton.addEventListener('click', () => {
-        startButton.style.display = 'none';
-        canvas.style.display = 'block';
-        game.start();
-    });
+  // On confie tout à notre utilitaire en lui passant deux alias par défaut
+  // startPongInContainer(container, 'Player 1 vs Player 2', 'Player 1', 'Player 2');
+  startPongInContainer(
+                container,
+                'Player 1 vs Player 2',
+                'Player 1',
+                'Player 2',
+                (winnerAlias:string) => void {}
+  );
 }
-
-    // // 8) Démarrer le jeu au clic ou directement
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     game.start();
-    // });

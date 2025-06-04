@@ -21,4 +21,14 @@ export function renderHomePage() {
     gameButton.addEventListener('click', () => {
         router.navigate('/game');
     });
+
+    gameButton = document.createElement('button');
+    gameButton.textContent = 'Tournament';
+    gameButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+    document.body.appendChild(gameButton);
+
+    // ajoute la nav vers /tournament
+    gameButton.addEventListener('click', () => {
+        router.navigate('/tournament');
+    });
 }

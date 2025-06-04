@@ -37,20 +37,4 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): voi
     const scoreText = `${state.score1}     ${state.score2}`;
     const textWidth = ctx.measureText(scoreText).width;
     ctx.fillText(scoreText, (ctx.canvas.width - textWidth) / 2, 80);
-
-    if (!state.isRunning) {
-        ctx.fillStyle = '#FFD700'; // jaune-or ou blanc, selon préférence
-        ctx.font = '50px Arial'; // taille du texte plus grand
-        const winnerText =
-        state.score1 > state.score2
-            ? 'Player 1 won!'
-            : 'Player 2 won!';
-        const wm = ctx.measureText(winnerText).width;
-        // On centre horizontalement et verticalement la phrase
-        ctx.fillText(
-        winnerText,
-        (ctx.canvas.width - wm) / 2,
-        ctx.canvas.height / 2
-        );
-    }
 }

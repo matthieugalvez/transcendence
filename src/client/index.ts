@@ -4,7 +4,8 @@
 
 import { router } from './configs/simplerouter';
 import { renderHomePage } from './pages/HomePage';
-import { renderGamePage } from './pages/GamePage.ts';
+import { renderGamePage } from './pages/GamePage';
+import { renderTournamentPage } from './pages/TournamentPage';
 import { signup } from './pages/Signup'
 
 // donc / redirige vers signup et /home vers renderHomePage
@@ -12,4 +13,5 @@ import { signup } from './pages/Signup'
 router.register('/', signup);
 router.register ('/home', renderHomePage);
 router.register ('/game', renderGamePage);
+router.register ('/tournament', renderTournamentPage);
 router.start();
