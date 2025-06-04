@@ -1,13 +1,13 @@
 import { createUser, getUserByName, verifyUser } from '../db'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import authSchema from '../validations/auth.schema'
-import { validateBody } from '../middlewares/validation.middleware'
+import ValidationMiddleware from '../middlewares/validation.middleware'
 
 export default async function authRoutes(fastify: FastifyInstance) {
 
   // Signup route with Zod validation
   fastify.post('/api/signup', {
-    preHandler: validateBody(authSchema.signup)
+    preHandler: ValidationMiddleware.validateBody(authSchema.signup)
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // No need to validate here anymore - preHandler does it
@@ -45,9 +45,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
   })
 
   // Login route with Zod validation
-  fastify.post('/api/login', {
-    preHandler: validateBody(authSchema.login)
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/api/login', {preHandler: ValidationMiddleware.validateBody(authSchema.login)},
+   async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // No need to validate here anymore - preHandler does it
       const { name, password } = request.body as { name: string, password: string }

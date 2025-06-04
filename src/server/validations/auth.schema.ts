@@ -5,7 +5,7 @@ const passwordSchema = z.string()
     .regex(/[A-Z]/, "Password must include at least one uppercase letter")
     .regex(/[a-z]/, "Password must include at least one lowercase letter")
     .regex(/[0-9]/, "Password must include at least one number")
-    .regex(/[@$!%*?&]/, "Password must include at least one special character");
+    .regex(/[@$!%*?&$#]/, "Password must include at least one special character");
 
 const usernameSchema = z.string()
     .min(3, "Username must be at least 3 characters long")
@@ -17,7 +17,7 @@ const usernameSchema = z.string()
 
 // Login schema - matches your current API (name + password)
 const login = z.object({
-    name: usernameSchema,
+    name: z.string().min(1, "Username is required\n"),
     password: z.string().min(1, "Password is required\n")
 });
 

@@ -1,12 +1,11 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { ZodError, ZodSchema } from "zod";
 
-export function validateBody(schema: ZodSchema) {
+class ValidationMiddleware {
+static  validateBody(schema: ZodSchema) {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            // Validate the request body
             schema.parse(request.body);
-            // Continue to the next handler
             return;
         } catch (error) {
             if (error instanceof ZodError) {
@@ -30,3 +29,6 @@ export function validateBody(schema: ZodSchema) {
         }
     };
 }
+}
+
+export default ValidationMiddleware;
