@@ -131,17 +131,20 @@ export function signup(): void {
 
 //Prend la string et renvoie du texte rouge ou vert selon succes ou error!
 
-function showMessage(text: string, type: 'success' | 'error'): void {
+function showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
+    const signupMsgDisplay = document.getElementById('signup-msg-display');
+    if (!signupMsgDisplay) return;
 
-	const signupMsgDisplay = document.getElementById('signup-msg-display');
-	if (!signupMsgDisplay) return;
+    signupMsgDisplay.innerHTML = '';
 
-	signupMsgDisplay.innerHTML = '';
-
-	const message = document.createElement('p');
-	message.textContent = text;
-	message.className = type === 'success' ? 'text-green-600 font-semibold mt-2' : 'text-red-600 font-semibold mt-2';
-	signupMsgDisplay.appendChild(message);
+    const message = document.createElement('div');
+    if (isHtml) {
+        message.innerHTML = text;
+    } else {
+        message.textContent = text;
+    }
+    message.className = type === 'success' ? 'text-green-600 font-semibold mt-2' : 'text-red-600 font-semibold mt-2';
+    signupMsgDisplay.appendChild(message);
 }
 
 //Ici on envoie une requete post a /api/signup qui va donc appeller le backend(fastify pour executer les fonctions propre a /api/signup!)
@@ -161,12 +164,25 @@ async function signupUser(name: string, password: string): Promise<void> {
 
     if (apiResponseData.success) {
       showMessage(`✅ ${apiResponseData.message}`, 'success');
-		//Success on route vers HomePage.ts apres 1500ms.
-	  setTimeout(() => {
-		router.navigate('/home');
-	  }, 500);
+      setTimeout(() => {
+        router.navigate('/home');
+      }, 500);
     } else {
-      showMessage(`❌ ${apiResponseData.error || 'Registration failed'}`, 'error');
+      // Handle validation errors with details
+      let errorMessage = apiResponseData.error || 'Registration failed';
+
+                 if (apiResponseData.details && apiResponseData.details.length > 0) {
+                const validationErrors = apiResponseData.details
+                    .map((detail: any) => `❌ ${detail.message}`)
+                    .join('<br>');
+                errorMessage = `<div class="text-left"><br>${validationErrors}</div>`;
+
+                // Use HTML formatting for validation errors
+                showMessage(`${errorMessage}`, 'error', true);
+                return;
+            }
+
+            showMessage(`❌ ${errorMessage}`, 'error');
     }
 
   } catch (error) {

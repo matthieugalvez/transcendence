@@ -8,34 +8,28 @@ const passwordSchema = z.string()
     .regex(/[@$!%*?&]/, "Password must include at least one special character");
 
 const usernameSchema = z.string()
-    .min(6, "Username must be at least 6 characters long")
+    .min(3, "Username must be at least 3 characters long")
     .max(20, "Username must not exceed 20 characters")
     .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, hyphens, and underscores")
     .refine((value) => !/^\d+$/.test(value), {
         message: "Username cannot be only numbers",
-    })
-    .refine((value) => !/[@$!%*?&]/.test(value), {
-        message: "Username cannot contain special characters like @$!%*?&",
     });
 
+// Login schema - matches your current API (name + password)
 const login = z.object({
-    email: z.string().trim().min(1, "Email is required").email("Invalid email format"),
-    password: z.string().min(1, "Password is required")
+    name: usernameSchema,
+    password: z.string().min(1, "Password is required\n")
 });
 
-const register = z.object({
-    username: usernameSchema,
-    email: z.string().email("Invalid email format"),
-    password: passwordSchema,
-    password_confirmation: z.string().min(1, "Password confirmation is required")
-}).refine((data) => data.password === data.password_confirmation, {
-    path: ["password_confirmation"],
-    message: "Passwords do not match"
+// Register/Signup schema - matches your current API (name + password)
+const signup = z.object({
+    name: usernameSchema,
+    password: passwordSchema
 });
 
 const authSchema = {
     login,
-    register
+    signup
 }
 
 export default authSchema;

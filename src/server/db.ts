@@ -67,7 +67,7 @@ export async function verifyUser(name: string, password: string) {
 
 export async function getAllUsers() {
   return await prisma.user.findMany({
-    orderBy: { logged_at: 'desc' }
+    orderBy: { created_at: 'desc' }  // Change from logged_at to created_at
   })
 }
 

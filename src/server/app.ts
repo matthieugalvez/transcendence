@@ -1,54 +1,51 @@
-import Fastify from 'fastify';
-import authRoutes from '@routes/auth.routes';
-import userRoutes from '@routes/user.routes';
-import appConfig from '@config/app.config';
-import { registerDb } from './database/database';
-import "tsconfig-paths/register"
-import "dotenv/config"
+import Fastify from 'fastify'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { registerDb } from './db'
 
-// Create Fastify instance
+// Import API route modules
+import healthRoutes from './routes/health'
+import userRoutes from './routes/users'
+import gameRoutes from './routes/game'
+import authRoutes from './routes/auth'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// Declaration de l'instance fastify
 const app = Fastify({
-    logger: true
-});
+  logger: true
+})
 
-// Setup server with all plugins and routes
+// Setup une instance fastify et recupere les endpoints API
 async function setupServer() {
-    // Register CORS
-    await app.register(import('@fastify/cors'), {
-        origin: [
-            'http://localhost:3000',
-            'https://mywebsite.com'
-        ],
-        methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
-        credentials: true
-    });
+  // Initialize Prisma database connection
+  await registerDb(app)
 
-    // Register cookie support
-    await app.register(import('@fastify/cookie'));
+  // Register static files
+  await app.register(import('@fastify/static'), {
+    root: join(__dirname, '../../dist'),
+    prefix: '/',
+  })
 
-    // Initialize database connection
-    await registerDb(app);
-
-    // Register routes with prefixes
-    await app.register(authRoutes, { prefix: '/api/auth' });
-    await app.register(userRoutes, { prefix: '/api/user' });
-	await app.register(healthRoutes, { prefix: '/api/health'})
+  // Enregistre les modules API(routes) sur cette instance de fastify
+  await app.register(healthRoutes)  // Health check routes
+  await app.register(userRoutes)    // User management routes
+  await app.register(gameRoutes)    // Game-related routes
+  await app.register(authRoutes)
 }
 
-// Start the server
+// Start le serveur
 const start = async () => {
-    try {
-        await setupServer();
-        const { port, host } = appConfig;
+  try {
+    await setupServer()
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 3000
+    await app.listen({ port, host: '0.0.0.0' })
+    console.log(`🚀 Server running on http://localhost:${port}`)
+  } catch (err) {
+    app.log.error(err)
+    process.exit(1)
+  }
+}
 
-        await app.listen({ port, host });
-        console.log(`🚀 Server running on http://${host}:${port}`);
-    } catch (err) {
-        app.log.error(err);
-        process.exit(1);
-    }
-};
-
-start();
-
-export default app;
+start()
