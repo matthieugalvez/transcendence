@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { insertUser, getAllUsers } from '../configs/database.js'
+import { insertUser, getAllUsers } from '../database/database.js'
 
 
 // Definition juste pour "conteneraiser le code" et l'assigner a la bonne isntance fastify dans app.ts
