@@ -1,11 +1,14 @@
 import '../styles.css';
 import logo from '../../assets/logo.png';
 import { router } from '../configs/simplerouter.ts';
+import { getUserByName } from '../../server/database/database';
 
 
 let nameInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;
-let submitButton: HTMLButtonElement;
+let signupButton: HTMLButtonElement;
+let loginButton: HTMLButtonElement;
+
 
 // Fonction "RENDER" a pour vocation d'avoir juste le html/css dedans en gros
 
@@ -48,16 +51,27 @@ function renderSignupPage() : void {
     passwordInput.placeholder = 'Password';
     passwordInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2 mb-4 block w-64 mx-auto';
 
-    submitButton = document.createElement('button');
-    submitButton.textContent = 'Signup!';
-    submitButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+	const buttonContainer = document.createElement('div');
+	buttonContainer.className = 'flex gap-10 justify-center'; // gap-4 adds space between buttons
+
+	loginButton = document.createElement('button');
+	loginButton.textContent = 'Login';
+	loginButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+	signupButton = document.createElement('button');
+	signupButton.textContent = 'Signup';
+	signupButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+	buttonContainer.appendChild(loginButton);
+    buttonContainer.appendChild(signupButton);
 
 	//On rajoute tout dans le inputContainer (Qui est en fait juste une div)
     inputContainer.appendChild(nameLabel);
     inputContainer.appendChild(nameInput);
     inputContainer.appendChild(passwordLabel);
     inputContainer.appendChild(passwordInput);
-    inputContainer.appendChild(submitButton);
+	inputContainer.appendChild(buttonContainer);
+
     document.body.appendChild(inputContainer);
 
 	const signupMsgDisplay = document.createElement('div');
@@ -74,7 +88,7 @@ export function signup(): void {
 	renderSignupPage();
 
 
-	function onSubmitClick() {
+	function onSignupClick() {
 	const name = nameInput.value.trim();
 	const password = passwordInput.value.trim();
 
@@ -82,20 +96,34 @@ export function signup(): void {
 
 	}
 
-    submitButton.addEventListener('click', onSubmitClick);
+	function onLoginClick() {
+	const name = nameInput.value.trim();
+	const password = passwordInput.value.trim();
+
+	loginUser(name, password);
+
+	}
+
+    signupButton.addEventListener('click', onSignupClick);
+	loginButton.addEventListener('click', onLoginClick);
 
 	// Gestion de ENTER
-    nameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            onSubmitClick();
-        }
-    });
+    // nameInput.addEventListener('keypress', (e) => {
+    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
+    //         onLoginClick();
+    //     } else {
+	// 		onSignupClick();
+	// 	}
+    // });
 
-	passwordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            onSubmitClick();
-        }
-    });
+	// passwordInput.addEventListener('keypress', (e) => {
+    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
+    //         onLoginClick();
+    //     } else {
+	// 		onSignupClick();
+	// 	}
+    // });
+
 
 	//selectionne automatiquement nameInput par defaut.
     nameInput.focus();
@@ -142,8 +170,55 @@ async function signupUser(name: string, password: string): Promise<void> {
     }
 
   } catch (error) {
-    console.error('Error logging name:', error);
+    console.error('Error signing up user:', error);
     showMessage('❌ Error connecting to server', 'error');
+  }
+}
+
+async function loginUser(name: string, password: string): Promise<void> {
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, password })
+    });
+
+    const apiResponseData = await response.json();
+    console.log('Server response:', apiResponseData);
+
+    if (apiResponseData.success) {
+      showMessage(`✅ ${apiResponseData.message}`, 'success');
+		//Success on route vers HomePage.ts apres 1500ms.
+	  setTimeout(() => {
+		router.navigate('/home');
+	  }, 500);
+    } else {
+      showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+    }
+
+  } catch (error) {
+    console.error('Error checking user:', error);
+    showMessage('❌ Error connecting to server', 'error');
+  }
+}
+
+async function ifUserExist(name: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/users/check/${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    const apiResponseData = await response.json();
+    return apiResponseData.exists === true;
+
+  } catch (error) {
+    console.error('Error checking if user exists:', error);
+    return false;
   }
 }
 
