@@ -20,7 +20,8 @@
 		"@types/bcrypt": "^5.0.2",
 		"bcrypt": "^6.0.0",
 		"fastify": "^5.3.3",
-		"sqlite3": "^5.1.7"
+		"sqlite3": "^5.1.7",
+		"@prisma/client": "^6.9.0"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.8",
@@ -31,16 +32,21 @@
 		"tailwindcss": "^4.1.8",
 		"tsx": "^4.19.4",
 		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
+		"vite": "^6.3.5",
+		"prisma": "^6.9.0"
 	},
 	"scripts": {
 		"dev": "vite --config ./configs/vite.config.ts",
 		"build": "vite --config ./configs/vite.config.ts build",
 		"preview": "vite preview",
-		"server:dev": "tsx src/server/app.ts",
-		"server:build": "npx tsc --project ./configs/tsconfig.server.json",
+		"server:dev": "npx prisma generate && tsx src/server/app.ts",
+		"server:build": "npx prisma generate && npx tsc --project ./configs/tsconfig.server.json",
 		"server:start": "node dist-back/app.js",
 		"dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
-		"build:full": "npm run build && npm run server:build"
+		"build:full": "npm run build && npm run server:build",
+		"db:migrate": "npx prisma migrate dev",
+        "db:studio": "npx prisma studio",
+        "db:generate": "npx prisma generate",
+        "db:reset": "npx prisma migrate reset"
 	}
 }

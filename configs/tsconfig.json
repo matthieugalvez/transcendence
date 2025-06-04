@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
+	"emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "module": "es2022",
+	"lib": ["ES2017"],
     "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
@@ -9,7 +12,8 @@
     "skipLibCheck": true,
     "outDir": "../dist-front",
     "allowImportingTsExtensions": false,
-    "noEmit": false
+    "noEmit": false,
+	"strictPropertyInitialization": false
   },
-  "include": ["src"]
+  "include": ["../src"]
 }
