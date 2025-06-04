@@ -13,7 +13,7 @@ data/
 *.tsbuildinfo
 *.db
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# # Environment variables
+# .env
+# .env.local
+# .env.*.local

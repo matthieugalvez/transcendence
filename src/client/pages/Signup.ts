@@ -1,7 +1,7 @@
 import '../styles.css';
-import logo from '../../assets/logo.png';
+import logo from '../../../assets/logo.png';
 import { router } from '../configs/simplerouter.ts';
-import { getUserByName } from '../../server/database/database';
+import { getUserByName } from '../../server/db';
 
 
 let nameInput: HTMLInputElement;

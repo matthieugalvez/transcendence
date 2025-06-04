@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { createUser, getUserByName, getAllUsers, verifyUser } from '../database/database'
+import { createUser, getUserByName, getAllUsers, verifyUser } from '../db'
 
 export default async function userRoutes(fastify: FastifyInstance) {
   // POST /api/signup - Create new user
