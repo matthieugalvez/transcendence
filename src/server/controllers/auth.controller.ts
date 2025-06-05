@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { UserService } from '../services/users.service'
+import { ResponseUtils as Send } from '../utils/response.utils'
 
 export class AuthController {
   static async signup(request: FastifyRequest, reply: FastifyReply) {
@@ -9,31 +10,23 @@ export class AuthController {
       // Check if user already exists
       const existingUser = await UserService.getUserByName(name)
       if (existingUser) {
-        return reply.code(409).send({
-          success: false,
-          error: 'Username already exists'
-        })
+        return Send.conflict(reply, 'Username already exists')
       }
 
       // Create new user
       const user = await UserService.createUser(name, password)
 
-      return reply.send({
-        success: true,
-        message: `Account created for: ${name}`,
-        user: {
-          id: user.id,
-          name: user.name,
-          created_at: user.created_at
-        },
-        timestamp: new Date().toISOString()
-      })
+      const userData = {
+        id: user.id,
+        name: user.name,
+        created_at: user.created_at
+      }
+
+      return Send.created(reply, userData, `Account created for: ${name}`)
+
     } catch (error) {
-      console.error('Database error:', error)
-      return reply.code(500).send({
-        success: false,
-        error: 'Failed to create account'
-      })
+      console.error('Signup error:', error)
+      return Send.internalError(reply, 'Failed to create account')
     }
   }
 
@@ -43,29 +36,21 @@ export class AuthController {
 
       const user = await UserService.verifyUser(name, password)
 
-      if (user) {
-        return reply.send({
-          success: true,
-          message: `Successful login for: ${name}`,
-          user: {
-            id: user.id,
-            name: user.name,
-            created_at: user.created_at
-          },
-          timestamp: new Date().toISOString()
-        })
-      } else {
-        return reply.code(401).send({
-          success: false,
-          error: 'Invalid username or password'
-        })
+      if (!user) {
+        return Send.unauthorized(reply, 'Invalid username or password')
       }
+
+      const userData = {
+        id: user.id,
+        name: user.name,
+        created_at: user.created_at
+      }
+
+      return Send.success(reply, userData, `Successful login for: ${name}`)
+
     } catch (error) {
-      console.error('Database error:', error)
-      return reply.code(500).send({
-        success: false,
-        error: 'Login failed'
-      })
+      console.error('Login error:', error)
+      return Send.internalError(reply, 'Login failed')
     }
   }
 }

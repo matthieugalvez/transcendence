@@ -1,12 +1,13 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { UserService } from '../services/users.service'
+import { ResponseUtils as Send } from '../utils/response.utils'
 
 export class UserController {
   static async getAllUsers(request: FastifyRequest, reply: FastifyReply) {
     try {
       const users = await UserService.getAllUsers()
-      return {
-        success: true,
+
+      const userData = {
         users: users.map(user => ({
           id: user.id,
           name: user.name,
@@ -14,12 +15,12 @@ export class UserController {
         })),
         count: users.length
       }
+
+      return Send.success(reply, userData, 'Users retrieved successfully')
+
     } catch (error) {
       console.error('Error fetching users:', error)
-      return reply.code(500).send({
-        success: false,
-        error: 'Failed to fetch users'
-      })
+      return Send.internalError(reply, 'Failed to fetch users')
     }
   }
 
@@ -29,16 +30,11 @@ export class UserController {
 
       const user = await UserService.getUserByName(decodeURIComponent(name))
 
-      return {
-        success: true,
-        exists: !!user
-      }
+      return Send.success(reply, { exists: !!user }, 'User check completed')
+
     } catch (error) {
       console.error('Error checking user existence:', error)
-      return reply.code(500).send({
-        success: false,
-        error: 'Failed to check user'
-      })
+      return Send.internalError(reply, 'Failed to check user')
     }
   }
 }
