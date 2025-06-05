@@ -1,11 +1,13 @@
 import '../styles.css';
-import logo from '../../assets/logo.png';
-import { router } from '../configs/simplerouter.ts';
+import logo from '../../../assets/logo.png';
+import { router } from '../configs/simplerouter';
 
 
 let nameInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;
-let submitButton: HTMLButtonElement;
+let signupButton: HTMLButtonElement;
+let loginButton: HTMLButtonElement;
+
 
 // Fonction "RENDER" a pour vocation d'avoir juste le html/css dedans en gros
 
@@ -48,16 +50,27 @@ function renderSignupPage() : void {
     passwordInput.placeholder = 'Password';
     passwordInput.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2 mb-4 block w-64 mx-auto';
 
-    submitButton = document.createElement('button');
-    submitButton.textContent = 'Signup!';
-    submitButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+	const buttonContainer = document.createElement('div');
+	buttonContainer.className = 'flex gap-10 justify-center'; // gap-4 adds space between buttons
+
+	loginButton = document.createElement('button');
+	loginButton.textContent = 'Login';
+	loginButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+	signupButton = document.createElement('button');
+	signupButton.textContent = 'Signup';
+	signupButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+
+	buttonContainer.appendChild(loginButton);
+    buttonContainer.appendChild(signupButton);
 
 	//On rajoute tout dans le inputContainer (Qui est en fait juste une div)
     inputContainer.appendChild(nameLabel);
     inputContainer.appendChild(nameInput);
     inputContainer.appendChild(passwordLabel);
     inputContainer.appendChild(passwordInput);
-    inputContainer.appendChild(submitButton);
+	inputContainer.appendChild(buttonContainer);
+
     document.body.appendChild(inputContainer);
 
 	const signupMsgDisplay = document.createElement('div');
@@ -74,7 +87,7 @@ export function signup(): void {
 	renderSignupPage();
 
 
-	function onSubmitClick() {
+	function onSignupClick() {
 	const name = nameInput.value.trim();
 	const password = passwordInput.value.trim();
 
@@ -82,20 +95,34 @@ export function signup(): void {
 
 	}
 
-    submitButton.addEventListener('click', onSubmitClick);
+	function onLoginClick() {
+	const name = nameInput.value.trim();
+	const password = passwordInput.value.trim();
+
+	loginUser(name, password);
+
+	}
+
+    signupButton.addEventListener('click', onSignupClick);
+	loginButton.addEventListener('click', onLoginClick);
 
 	// Gestion de ENTER
-    nameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            onSubmitClick();
-        }
-    });
+    // nameInput.addEventListener('keypress', (e) => {
+    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
+    //         onLoginClick();
+    //     } else {
+	// 		onSignupClick();
+	// 	}
+    // });
 
-	passwordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            onSubmitClick();
-        }
-    });
+	// passwordInput.addEventListener('keypress', (e) => {
+    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
+    //         onLoginClick();
+    //     } else {
+	// 		onSignupClick();
+	// 	}
+    // });
+
 
 	//selectionne automatiquement nameInput par defaut.
     nameInput.focus();
@@ -103,24 +130,69 @@ export function signup(): void {
 
 //Prend la string et renvoie du texte rouge ou vert selon succes ou error!
 
-function showMessage(text: string, type: 'success' | 'error'): void {
+function showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
+    const signupMsgDisplay = document.getElementById('signup-msg-display');
+    if (!signupMsgDisplay) return;
 
-	const signupMsgDisplay = document.getElementById('signup-msg-display');
-	if (!signupMsgDisplay) return;
+    signupMsgDisplay.innerHTML = '';
 
-	signupMsgDisplay.innerHTML = '';
-
-	const message = document.createElement('p');
-	message.textContent = text;
-	message.className = type === 'success' ? 'text-green-600 font-semibold mt-2' : 'text-red-600 font-semibold mt-2';
-	signupMsgDisplay.appendChild(message);
+    const message = document.createElement('div');
+    if (isHtml) {
+        message.innerHTML = text;
+    } else {
+        message.textContent = text;
+    }
+    message.className = type === 'success' ? 'text-green-600 font-semibold mt-2' : 'text-red-600 font-semibold mt-2';
+    signupMsgDisplay.appendChild(message);
 }
 
 //Ici on envoie une requete post a /api/signup qui va donc appeller le backend(fastify pour executer les fonctions propre a /api/signup!)
 
 async function signupUser(name: string, password: string): Promise<void> {
   try {
-    const response = await fetch('/api/signup', {
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, password })
+    });
+
+    const apiResponseData = await response.json();
+    console.log('Server response:', apiResponseData);
+
+    if (apiResponseData.success) {
+      showMessage(`✅ ${apiResponseData.message}`, 'success');
+      setTimeout(() => {
+        router.navigate('/home');
+      }, 500);
+    } else {
+      // Handle validation errors with details
+      let errorMessage = apiResponseData.error || 'Registration failed';
+
+                 if (apiResponseData.details && apiResponseData.details.length > 0) {
+                const validationErrors = apiResponseData.details
+                    .map((detail: any) => `❌ ${detail.message}`)
+                    .join('<br>');
+                errorMessage = `<div class="text-left"><br>${validationErrors}</div>`;
+
+                // Use HTML formatting for validation errors
+                showMessage(`${errorMessage}`, 'error', true);
+                return;
+            }
+
+            showMessage(`❌ ${errorMessage}`, 'error');
+    }
+
+  } catch (error) {
+    console.error('Error signing up user:', error);
+    showMessage('❌ Error connecting to server', 'error');
+  }
+}
+
+async function loginUser(name: string, password: string): Promise<void> {
+  try {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,12 +210,30 @@ async function signupUser(name: string, password: string): Promise<void> {
 		router.navigate('/home');
 	  }, 500);
     } else {
-      showMessage(`❌ ${apiResponseData.error || 'Registration failed'}`, 'error');
+      showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
     }
 
   } catch (error) {
-    console.error('Error logging name:', error);
+    console.error('Error checking user:', error);
     showMessage('❌ Error connecting to server', 'error');
+  }
+}
+
+async function ifUserExist(name: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/users/check/${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    const apiResponseData = await response.json();
+    return apiResponseData.exists === true;
+
+  } catch (error) {
+    console.error('Error checking if user exists:', error);
+    return false;
   }
 }
 

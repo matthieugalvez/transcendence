@@ -3,13 +3,12 @@
 
 
 import { router } from './configs/simplerouter';
-import { renderHomePage } from './pages/HomePage';
+import { renderHomePage  } from './pages/HomePage';
+import { signup } from './pages/Signup'
 import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
-import { signup } from './pages/Signup'
 
-// donc / redirige vers signup et /home vers renderHomePage
-
+// Register routes
 router.register('/', signup);
 router.register ('/home', renderHomePage);
 router.register ('/game', renderGamePage);

@@ -1,30 +1,33 @@
-# Use Node.js 24 LTS
-FROM node:24.1.0-alpine
+FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY ../package*.json ./
+# Copy package files first for better caching
+COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy prisma schema
+COPY prisma ./prisma/
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy source code
-COPY ../ .
+COPY . .
 
-# Build the frontend
-RUN npm run build
+# Build frontend and backend (needs devDependencies)
+RUN npm run build:full
 
-RUN npm run server:build
+# Remove devDependencies after build
+RUN npm prune --omit=dev
 
-RUN npm prune --production && npm cache clean --force
-
-# Create directory for SQLite database
+# Create data directory for SQLite
 RUN mkdir -p /app/data
 
 # Expose port
 EXPOSE 3000
 
-# Start the server
+# Start the application
 CMD ["npm", "run", "server:start"]

@@ -4,24 +4,22 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../transcendence.db"
+  url      = "file:./transcendence.db"
 }
 
 model User {
   id            Int           @id @default(autoincrement())
   name          String        @unique
   password_hash String
-  logged_at     DateTime      @default(now())
+  refreshToken  String?
+  created_at    DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   // Relations
   player1_sessions GameSession[] @relation("Player1Sessions")
   player2_sessions GameSession[] @relation("Player2Sessions")
 
   @@map("users")
-}
-
-model Leaderboard {
-	
 }
 
 model GameSession {
