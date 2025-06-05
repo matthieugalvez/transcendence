@@ -1,13 +1,11 @@
-// C'est l'equivalent de notre MAIN en gros, on recupere le code et on le route au bon endroit grace a simpler router.
-// C'est un peu temporaire je pense qu'il faut le mettre dans le back peut etre.
-
-
-import { router } from './configs/simplerouter';
-import { renderHomePage  } from './pages/HomePage';
+import './styles.css'
+import { router } from './configs/simplerouter'
 import { signup } from './pages/Signup'
+import { renderHomePage } from './pages/HomePage'
 
-// donc / redirige vers signup et /home vers renderHomePage
+// Register routes
+router.register('/', signup)
+router.register('/home', renderHomePage)
 
-router.register('/', signup);
-router.register ('/home', renderHomePage);
-router.start();
+// Start the router
+router.start()
