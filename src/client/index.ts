@@ -4,13 +4,16 @@
 
 import { router } from './configs/simplerouter';
 import { renderHomePage  } from './pages/HomePage';
-import { signup } from './pages/Signup'
+import { signup } from './pages/AuthPage'
 import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
+import renderTestPage from './pages/TestPage'
 
 // Register routes
 router.register('/', signup);
 router.register ('/home', renderHomePage);
 router.register ('/game', renderGamePage);
 router.register ('/tournament', renderTournamentPage);
+router.register('/testpage', renderTestPage);
+
 router.start();

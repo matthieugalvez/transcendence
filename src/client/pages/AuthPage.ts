@@ -106,25 +106,6 @@ export function signup(): void {
     signupButton.addEventListener('click', onSignupClick);
 	loginButton.addEventListener('click', onLoginClick);
 
-	// Gestion de ENTER
-    // nameInput.addEventListener('keypress', (e) => {
-    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
-    //         onLoginClick();
-    //     } else {
-	// 		onSignupClick();
-	// 	}
-    // });
-
-	// passwordInput.addEventListener('keypress', (e) => {
-    //     if (e.key === 'Enter' && ifUserExist(nameInput.value.trim())) {
-    //         onLoginClick();
-    //     } else {
-	// 		onSignupClick();
-	// 	}
-    // });
-
-
-	//selectionne automatiquement nameInput par defaut.
     nameInput.focus();
 }
 
@@ -218,26 +199,6 @@ async function loginUser(name: string, password: string): Promise<void> {
     showMessage('❌ Error connecting to server', 'error');
   }
 }
-
-async function ifUserExist(name: string): Promise<boolean> {
-  try {
-    const response = await fetch(`/api/users/check/${encodeURIComponent(name)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    const apiResponseData = await response.json();
-    return apiResponseData.exists === true;
-
-  } catch (error) {
-    console.error('Error checking if user exists:', error);
-    return false;
-  }
-}
-
-
 //Appel a la fonction pour executer tout le code plus haut
 
 //signup();
