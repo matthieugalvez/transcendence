@@ -2,50 +2,63 @@ import Fastify from 'fastify'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { registerDb } from './db'
-
-// Import API route modules
-import healthRoutes from './routes/health'
-import userRoutes from './routes/users'
-import gameRoutes from './routes/game'
-import authRoutes from './routes/auth'
+import { registerPlugins } from './config/plugins.config'
+import { registerRoutes } from './routes/router'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Declaration de l'instance fastify
+// Create Fastify instance
 const app = Fastify({
-  logger: true
+  logger: {
+    level: process.env.LOG_LEVEL || 'info'
+  }
 })
 
-// Setup une instance fastify et recupere les endpoints API
+// Server setup function
 async function setupServer() {
-  // Initialize Prisma database connection
-  await registerDb(app)
+  try {
+    console.log('🔧 Setting up server...')
 
-  // Register static files
-  await app.register(import('@fastify/static'), {
-    root: join(__dirname, '../../dist'),
-    prefix: '/',
-  })
+    // 1. Initialize database connection
+    await registerDb(app)
 
-  // Enregistre les modules API(routes) sur cette instance de fastify
-  await app.register(healthRoutes)  // Health check routes
-  await app.register(userRoutes)    // User management routes
-  await app.register(gameRoutes)    // Game-related routes
-  await app.register(authRoutes)
+    // 2. Register plugins (static files, CORS, etc.)
+    await registerPlugins(app, __dirname)
+
+    // 3. Register all routes
+    await registerRoutes(app)
+
+    console.log('✅ Server setup completed')
+  } catch (error) {
+    console.error('❌ Server setup failed:', error)
+    throw error
+  }
 }
 
-// Start le serveur
-const start = async () => {
+// Start server
+async function start() {
   try {
     await setupServer()
-    const port = process.env.PORT ? parseInt(process.env.PORT) : 3000
-    await app.listen({ port, host: '0.0.0.0' })
-    console.log(`🚀 Server running on http://localhost:${port}`)
-  } catch (err) {
-    app.log.error(err)
+
+    const port = Number(process.env.PORT) || 3000
+    const host = process.env.HOST || '0.0.0.0'
+
+    await app.listen({ port, host })
+    console.log(`🚀 Server running on http://${host}:${port}`)
+
+  } catch (error) {
+    app.log.error('Failed to start server:', error)
     process.exit(1)
   }
 }
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down gracefully...')
+  await app.close()
+  console.log('✅ Server closed')
+  process.exit(0)
+})
 
 start()

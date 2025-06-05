@@ -1,38 +1,44 @@
-import Send from "@utils/response.utils";
-import { prisma } from "database";
-import { FastifyRequest, FastifyReply } from "fastify";
-import { send } from "process";
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { UserService } from '../services/users.service'
 
-class UserController {
+export class UserController {
+  static async getAllUsers(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const users = await UserService.getAllUsers()
+      return {
+        success: true,
+        users: users.map(user => ({
+          id: user.id,
+          name: user.name,
+          created_at: user.created_at
+        })),
+        count: users.length
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to fetch users'
+      })
+    }
+  }
 
-    static getUser = async (req: Request, res: Response) => {
-        try {
-            const userId = (req as any).userId; // Extract userId from the authenticated request
+  static async checkUserExists(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { name } = request.params as { name: string }
 
-            // Fetch the user data from the database (Prisma in this case)
-            const user = await prisma.user.findUnique({
-                where: { id: userId },
-                select: {
-                    id: true,
-                    username: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    // Add other fields you want to return
-                }
-            });
+      const user = await UserService.getUserByName(decodeURIComponent(name))
 
-            // If the user is not found, return a 404 error
-            if (!user) {
-                return Send.notFound(res, {}, "User not found");
-            }
-
-            // Return the user data in the response
-            return Send.success(res, { user });
-        } catch (error) {
-            console.error("Error fetching user info:", error);
-            return Send.error(res, {}, "Internal server error");
-        }
-    };
+      return {
+        success: true,
+        exists: !!user
+      }
+    } catch (error) {
+      console.error('Error checking user existence:', error)
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to check user'
+      })
+    }
+  }
 }
-
-export default UserController;

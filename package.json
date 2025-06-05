@@ -16,19 +16,17 @@
 	},
 	"homepage": "https://github.com/erdelp/transcendence#readme",
 	"dependencies": {
+		"@fastify/cookie": "11.0.2",
+		"@fastify/cors": "^11.0.1",
+		"@fastify/jwt": "9.1.0",
 		"@fastify/static": "8.2.0",
+		"@prisma/client": "^6.9.0",
 		"@types/bcrypt": "^5.0.2",
 		"bcrypt": "^6.0.0",
 		"fastify": "^5.3.3",
-		"sqlite3": "^5.1.7",
-		"@prisma/client": "^6.9.0",
-		"cookie-parser": "^1.4.7",
-		"cors": "2.8.5",
-		"dotenv": "16.5.0",
 		"jsonwebtoken": "^9.0.2",
-		"zod": "^3.25.51",
-		"@fastify/cookie": "11.0.2",
-		"@fastify/cors": "11.0.1"
+		"sqlite3": "^5.1.7",
+		"zod": "^3.25.51"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.8",
@@ -36,12 +34,11 @@
 		"autoprefixer": "^10.4.21",
 		"concurrently": "^9.1.2",
 		"postcss": "^8.5.4",
+		"prisma": "^6.9.0",
 		"tailwindcss": "^4.1.8",
 		"tsx": "^4.19.4",
 		"typescript": "^5.8.3",
-		"vite": "^6.3.5",
-		"prisma": "^6.9.0",
-		"nodemon": "3.1.10"
+		"vite": "^6.3.5"
 	},
 	"scripts": {
 		"dev": "vite --config ./configs/vite.config.ts",
@@ -53,8 +50,8 @@
 		"dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
 		"build:full": "npm run build && npm run server:build",
 		"db:migrate": "npx prisma migrate dev",
-        "db:studio": "npx prisma studio",
-        "db:generate": "npx prisma generate",
-        "db:reset": "npx prisma migrate reset"
+		"db:studio": "npx prisma studio",
+		"db:generate": "npx prisma generate",
+		"db:reset": "npx prisma migrate reset"
 	}
 }

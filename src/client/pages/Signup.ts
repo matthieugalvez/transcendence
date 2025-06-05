@@ -1,7 +1,6 @@
 import '../styles.css';
 import logo from '../../../assets/logo.png';
-import { router } from '../configs/simplerouter.ts';
-import { getUserByName } from '../../server/db';
+import { router } from '../configs/simplerouter';
 
 
 let nameInput: HTMLInputElement;
@@ -151,7 +150,7 @@ function showMessage(text: string, type: 'success' | 'error', isHtml: boolean = 
 
 async function signupUser(name: string, password: string): Promise<void> {
   try {
-    const response = await fetch('/api/signup', {
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -193,7 +192,7 @@ async function signupUser(name: string, password: string): Promise<void> {
 
 async function loginUser(name: string, password: string): Promise<void> {
   try {
-    const response = await fetch('/api/login', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
