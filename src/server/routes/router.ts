@@ -15,7 +15,6 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(async function (fastify) {
     await fastify.register(authRoutes, { prefix: '/auth' })
     await fastify.register(userRoutes)
-    // await fastify.register(gameRoutes)
     await fastify.register(registerPongWebSocket, { prefix: '/game' });
   }, { prefix: '/api' })
 
