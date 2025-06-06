@@ -15,6 +15,10 @@ export default defineConfig({
       '/health': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+      },
+      '/ws/pong': {
+        target: 'ws://localhost:3000',
+        ws: true,
       }
     }
   },

@@ -1,9 +1,11 @@
-import Fastify from 'fastify'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { registerDb } from './db'
-import { registerPlugins } from './config/plugins.config'
-import { registerRoutes } from './routes/router'
+import Fastify from 'fastify';
+import fastifyWebsocket from '@fastify/websocket';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { registerDb } from './db';
+import { registerPlugins } from './config/plugins.config';
+import { registerRoutes } from './routes/router';
+import { registerPongWebSocket } from './routes/game.routes';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -14,6 +16,9 @@ const app = Fastify({
     level: process.env.LOG_LEVEL || 'info'
   }
 })
+
+// Register plugin websocket
+await app.register(fastifyWebsocket);
 
 // Server setup function
 async function setupServer() {
@@ -28,6 +33,9 @@ async function setupServer() {
 
     // 3. Register all routes
     await registerRoutes(app)
+
+    // 4. Add route WebSocket /ws/pong/:gameId
+    await registerPongWebSocket(app)
 
     console.log('✅ Server setup completed')
   } catch (error) {
