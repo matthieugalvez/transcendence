@@ -148,47 +148,26 @@ document.title = "Transcendence - Homepage";
             ${i === 0 ? '' : 'ml-[-15px]'}
         `;
         userpic.appendChild(img);
-    });
-    users.appendChild(userpic);
 
-    const userText = document.createElement('p');
-    userText.textContent = 'Users';
-    userText.className = 'text-base font-thin mt-0 pt-1 pl-2';
-    users.appendChild(userText);
 
-    // KEYWORDS
-    const keywords = document.createElement('div');
-    keywords.id = 'keywords';
-    keywords.className = `
-      font-['Orbitron'] pr-2 text-right text-white text-[1rem] leading-3 space-y-4
-    `;
-    ['Fun /01', 'Challenge /02', 'Competitive /03'].forEach(word => {
-        const h4 = document.createElement('h4');
-        h4.textContent = word;
-        h4.className = 'font-bold';
-        keywords.appendChild(h4);
     });
 
-    little.appendChild(users);
-    little.appendChild(keywords);
+    gameButton = document.createElement('button');
+    gameButton.textContent = 'Tournament';
+    gameButton.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+    document.body.appendChild(gameButton);
 
-    // CITATION
-    // const citation = document.createElement('div');
-    // citation.className = 'citation mx-auto mt-[150px] mb-4 px-12 py-4 w-fit';
-    // const h5 = document.createElement('h5');
-    // h5.textContent = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec auctor elit. onsectetur adipiscing elit.';
-    // h5.className = 'm-2 max-w-[340px] text-white text-[1.2rem] font-light';
-    // const points = document.createElement('h5');
-    // points.textContent = '..................................................';
-    // points.className = 'points m-2 max-w-[340px] text-white text-[1.2rem] font-light';
-    // citation.appendChild(h5);
-    // citation.appendChild(points);
+    // ajoute la nav vers /tournament
+    gameButton.addEventListener('click', () => {
+        router.navigate('/tournament');
+    });
 
-    // ASSEMBLAGE
-    bottomPage.appendChild(little);
-
-    // AJOUT AU BODY
-    document.body.appendChild(header);
-    document.body.appendChild(hero);
-    document.body.appendChild(bottomPage);
+  // Add a back button for navigation
+  const backButton = document.createElement('button');
+  backButton.textContent = 'Back to Login';
+  backButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors mt-4';
+  backButton.addEventListener('click', () => {
+    router.navigate('/');
+  });
+  document.body.appendChild(backButton);
 }
