@@ -46,8 +46,8 @@ document.title = "Transcendence - Homepage";
         hover:bg-[#7101b2] hover:scale-110 focus:outline-none
     `;
     btn.onclick = () => router.navigate('/signup');
-    nav.appendChild(login);
-    nav.appendChild(btn);
+    // nav.appendChild(login);
+    // nav.appendChild(btn);
     header.appendChild(nav);
 
   // —————————————————————————————————————————
@@ -57,7 +57,7 @@ document.title = "Transcendence - Homepage";
     hero.id = "accueil";
     hero.className = `
         text-center px-[2%] pb-[3%] pt-0
-        rounded-b-[40px] border-b-2 border-[#e0e0e0]
+        border-b-2 border-[#e0e0e0]
         bg-[#F6F4F2] bg-blend-multiply bg-[url('otis-redding.png')]
         relative
     `;
@@ -84,16 +84,19 @@ document.title = "Transcendence - Homepage";
   // —————————————————————————————————————————
   //  RAQUETTE
   // —————————————————————————————————————————
-    const paddle = document.createElement('img');
-    paddle.src = paddleImg;
-    paddle.alt = 'raquette ping pong';
-    paddle.className = `
-        absolute z-30 pointer-events-none
-        right-[28%] top-[-45%]
-        w-[700px] max-w-[47vw]
-        drop-shadow-[0_14px_24px_#63007399]
-    `;
-    bottomPage.appendChild(paddle);
+	const paddle = document.createElement('img');
+	paddle.src = paddleImg;
+	paddle.alt = 'raquette ping pong';
+	paddle.className = `
+		absolute z-30 cursor-pointer
+		right-[29%] top-[-40%]
+		w-[700px] max-w-[47vw]
+		drop-shadow-[0_14px_24px_#63007399]
+		transition-transform hover:scale-105
+	`;
+	paddle.onclick = () => router.navigate('/auth');
+
+	bottomPage.appendChild(paddle);
 
   // —————————————————————————————————————————
   //  STATS USER + KEYWORDS

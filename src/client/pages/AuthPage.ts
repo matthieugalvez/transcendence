@@ -11,7 +11,7 @@ let loginButton: HTMLButtonElement;
 /**
  * Main signup page function - orchestrates rendering and event handling
  */
-export function signup(): void {
+export function authPage(): void {
   // Render the page and get form elements
   const formElements = AuthRender.renderSignupPage();
 
