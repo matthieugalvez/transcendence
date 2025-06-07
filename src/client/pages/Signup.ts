@@ -14,6 +14,13 @@ let loginButton: HTMLButtonElement;
 function renderSignupPage() : void {
 	document.title = 'Transcendence';
 
+  // Pour fond blanc
+  document.body.style.background = "#fff";
+  document.body.style.backgroundImage = "";
+  document.body.style.backgroundSize = "";
+  document.body.style.backgroundBlendMode = "";
+
+
     document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
 
 	// Logo

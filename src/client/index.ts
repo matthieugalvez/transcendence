@@ -9,8 +9,24 @@ import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
 
 // Register routes
-router.register('/', signup);
-router.register ('/home', renderHomePage);
-router.register ('/game', renderGamePage);
-router.register ('/tournament', renderTournamentPage);
-router.start();
+// router.register ('/', renderHomePage);
+// router.register('/signup', signup);
+// router.register ('/home', renderHomePage);
+// router.register ('/game', renderGamePage);
+// router.register ('/tournament', renderTournamentPage);
+// router.start();
+
+function startSPA() {
+    router.register('/', renderHomePage);
+    router.register('/signup', signup);
+    router.register('/home', renderHomePage);
+    router.register('/game', renderGamePage);
+    router.register('/tournament', renderTournamentPage);
+    router.start();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startSPA);
+} else {
+    startSPA();
+}
