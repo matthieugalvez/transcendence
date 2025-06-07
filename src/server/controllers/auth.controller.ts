@@ -31,26 +31,29 @@ export class AuthController {
         { expiresIn: authConfig.refresh_secret_expires_in }
       )
 
+      // Store refresh token in database
+      await UserService.updateRefreshToken(user.id, refreshToken)
+
       console.log('🍪 Setting cookies for new user:', user.id);
       console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
 
-      // Set HttpOnly cookies with proper domain settings for development
+      // Set HttpOnly cookies
       reply.setCookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
-        domain: undefined, // Don't set domain for localhost
+        domain: undefined,
         path: '/',
-        maxAge: 15 * 60 * 1000 // 15 minutes in milliseconds
+        maxAge: 15 * 60 * 1000
       })
 
       reply.setCookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
-        domain: undefined, // Don't set domain for localhost
+        domain: undefined,
         path: '/',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        maxAge: 24 * 60 * 60 * 1000
       })
 
       const userData = {
@@ -66,8 +69,6 @@ export class AuthController {
       return Send.internalError(reply, 'Failed to create account')
     }
   }
-
-
 
   static async login(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -92,27 +93,30 @@ export class AuthController {
         { expiresIn: authConfig.refresh_secret_expires_in }
       )
 
+      // Store refresh token in database
+      await UserService.updateRefreshToken(user.id, refreshToken)
+
       console.log('🍪 Setting cookies for user:', user.id);
       console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
       console.log('🔄 RefreshToken being set:', refreshToken ? '***CREATED***' : 'FAILED');
 
-      // Set HttpOnly cookies with proper domain settings for development
+      // Set HttpOnly cookies
       reply.setCookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
-        domain: undefined, // Don't set domain for localhost
+        domain: undefined,
         path: '/',
-        maxAge: 15 * 60 * 1000 // 15 minutes in milliseconds
+        maxAge: 15 * 60 * 1000
       })
 
       reply.setCookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
-        domain: undefined, // Don't set domain for localhost
+        domain: undefined,
         path: '/',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        maxAge: 24 * 60 * 60 * 1000
       })
 
       const userData = {
@@ -131,32 +135,104 @@ export class AuthController {
 
   static async logout(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // Clear the JWT cookies by setting them to expire immediately
+      // Get user ID from auth middleware
+      const userId = (request as any).userId;
+
+      // Remove refresh token from database
+      if (userId) {
+        await UserService.updateRefreshToken(userId, null)
+      }
+
+      // Clear the JWT cookies
       reply.setCookie('accessToken', '', {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
         domain: undefined,
         path: '/',
-        maxAge: 0 // Expire immediately
+        maxAge: 0
       })
 
       reply.setCookie('refreshToken', '', {
         httpOnly: true,
-        secure: false, // Set to false for development (localhost)
+        secure: false,
         sameSite: 'lax',
         domain: undefined,
         path: '/',
-        maxAge: 0 // Expire immediately
+        maxAge: 0
       })
 
-      console.log('🍪 Cookies cleared for logout');
+      console.log('🍪 Cookies cleared and refresh token removed from database for user:', userId);
 
       return Send.success(reply, null, 'Logged out successfully');
 
     } catch (error) {
       console.error('Logout error:', error);
       return Send.internalError(reply, 'Logout failed');
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  static async refreshToken(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { refreshToken } = request.cookies as { refreshToken: string };
+
+      if (!refreshToken) {
+        return Send.unauthorized(reply, 'No refresh token provided');
+      }
+
+      // Verify refresh token
+      const decoded = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: number };
+
+      // Check if refresh token exists in database
+      const user = await UserService.getUserById(decoded.userId);
+      if (!user || user.refreshToken !== refreshToken) {
+        return Send.unauthorized(reply, 'Invalid refresh token');
+      }
+
+      // Generate new access token
+      const newAccessToken = jwt.sign(
+        { userId: user.id },
+        authConfig.secret,
+        { expiresIn: authConfig.secret_expires_in }
+      );
+
+      // Optionally rotate refresh token (recommended for security)
+      const newRefreshToken = jwt.sign(
+        { userId: user.id },
+        authConfig.refresh_secret,
+        { expiresIn: authConfig.refresh_secret_expires_in }
+      );
+
+      // Update refresh token in database
+      await UserService.updateRefreshToken(user.id, newRefreshToken);
+
+      // Set new cookies
+      reply.setCookie('accessToken', newAccessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        domain: undefined,
+        path: '/',
+        maxAge: 15 * 60 * 1000
+      });
+
+      reply.setCookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        domain: undefined,
+        path: '/',
+        maxAge: 24 * 60 * 60 * 1000
+      });
+
+      return Send.success(reply, null, 'Token refreshed successfully');
+
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return Send.unauthorized(reply, 'Invalid or expired refresh token');
     }
   }
 }

@@ -19,12 +19,25 @@ export class UserService {
     })
   }
 
-    static async getUserById(id: number) {
+  static async getUserById(id: number) {
     return await prisma.user.findUnique({
       where: { id }
     })
   }
 
+  /**
+   * Update refresh token for a user
+   */
+  static async updateRefreshToken(userId: number, refreshToken: string | null) {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken }
+    })
+  }
+
+  /**
+   * Verify user credentials and return user if valid
+   */
   static async verifyUser(name: string, password: string) {
     try {
       // Get the user by name
@@ -38,22 +51,41 @@ export class UserService {
       }
 
       // Compare passwords
-      const passwordMatch = await bcrypt.compare(password, user.password_hash)
+      const isValidPassword = await bcrypt.compare(password, user.password_hash)
 
-      if (passwordMatch) {
-        return user  // Return the user object
+      if (isValidPassword) {
+        return user
       } else {
-        return null  // Return null for invalid password
+        return null
       }
+
     } catch (error) {
       console.error('Error verifying user:', error)
       return null
     }
   }
 
+  /**
+   * Get all users (for admin purposes)
+   */
   static async getAllUsers() {
     return await prisma.user.findMany({
-      orderBy: { created_at: 'desc' }
+      select: {
+        id: true,
+        name: true,
+        created_at: true
+        // Don't return password_hash or refreshToken for security
+      }
+    })
+  }
+
+  /**
+   * Invalidate all refresh tokens for a user (useful for security)
+   */
+  static async invalidateAllTokens(userId: number) {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null }
     })
   }
 }
