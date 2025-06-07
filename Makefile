@@ -5,6 +5,8 @@ build-dev:
 	npm install uuid
 	npx prisma generate
 	npx prisma db push
+	npm run db:seed
+	npm run generate:jwt
 	npm run dev:full
 
 build-docker:

@@ -1,5 +1,5 @@
 import '../styles.css';
-import paddleImg from '../../../assets/logo.png';
+import paddleImg from '../assets/logo.png';
 import { router } from '../configs/simplerouter';
 
 export function renderNotFoundPage(): void {
@@ -24,7 +24,7 @@ export function renderNotFoundPage(): void {
     // 2) Ligne “4 – raquette – 4”
     const row = document.createElement('div');
     row.className = 'flex items-center justify-center';
-    
+
     // Premier "4"
     const fourLeft = document.createElement('span');
     fourLeft.textContent = '4';
@@ -35,9 +35,9 @@ export function renderNotFoundPage(): void {
 
     // Image de la raquette
     const paddle = document.createElement('img');
-    paddle.src = paddleImg;     
+    paddle.src = paddleImg;
     paddle.alt = 'Ping Pong Paddle';
-    paddle.className = 'w-100 h-auto drop-shadow-lg p-0'; 
+    paddle.className = 'w-100 h-auto drop-shadow-lg p-0';
     row.appendChild(paddle);
 
     // Deuxième "4"
@@ -69,7 +69,7 @@ export function renderNotFoundPage(): void {
     goHomeBtn.textContent = 'Go Home';
     goHomeBtn.className = `
         font-['Orbitron']
-        bg-blue-500 hover:bg-blue-700 text-white font-semibold 
+        bg-blue-500 hover:bg-blue-700 text-white font-semibold
         border-2 border-black
         py-2 px-12
         rounded-lg text-lg transition-colors

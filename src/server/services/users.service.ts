@@ -19,6 +19,12 @@ export class UserService {
     })
   }
 
+    static async getUserById(id: number) {
+    return await prisma.user.findUnique({
+      where: { id }
+    })
+  }
+
   static async verifyUser(name: string, password: string) {
     try {
       // Get the user by name

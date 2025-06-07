@@ -4,7 +4,6 @@ import { registerPongWebSocket } from './game.routes'
 // Import route modules
 import healthRoutes from './health.routes'
 import userRoutes from './users.routes'
-// import registerPongWebSocket from './game.routes'
 import authRoutes from './auth.routes'
 
 export async function registerRoutes(app: FastifyInstance) {
@@ -14,7 +13,7 @@ export async function registerRoutes(app: FastifyInstance) {
   // API routes with /api prefix
   await app.register(async function (fastify) {
     await fastify.register(authRoutes, { prefix: '/auth' })
-    await fastify.register(userRoutes)
+    await fastify.register(userRoutes, { prefix: '/users' }) // Add /users prefix
     await fastify.register(registerPongWebSocket, { prefix: '/game' });
   }, { prefix: '/api' })
 

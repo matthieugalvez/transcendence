@@ -37,4 +37,34 @@ export class UserController {
       return Send.internalError(reply, 'Failed to check user')
     }
   }
+
+static async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    // Get the user ID from the authentication middleware
+    const userId = (request as any).userId;
+
+    if (!userId) {
+      return Send.unauthorized(reply, 'Authentication required');
+    }
+
+    // Fix: Use getUserById instead of getUserByName
+    const user = await UserService.getUserById(userId);
+
+    if (!user) {
+      return Send.notFound(reply, 'User not found');
+    }
+
+    const userData = {
+      id: user.id,
+      name: user.name,
+      created_at: user.created_at
+    };
+
+    return Send.success(reply, userData, 'Current user retrieved successfully');
+
+  } catch (error) {
+    console.error('Get current user error:', error);
+    return Send.internalError(reply, 'Failed to get current user');
+  }
+}
 }

@@ -46,6 +46,7 @@
 		"dev": "vite --config ./configs/vite.config.ts",
 		"build": "vite --config ./configs/vite.config.ts build",
 		"preview": "vite preview",
+		"generate:jwt": "node -e \"console.log('AUTH_SECRET=' + require('crypto').randomBytes(32).toString('hex')); console.log('AUTH_REFRESH_SECRET=' + require('crypto').randomBytes(32).toString('hex'))\"",
 		"server:dev": "npx prisma generate && tsx watch src/server/app.ts",
 		"server:build": "npx prisma generate && npx tsc --project ./configs/tsconfig.server.json",
 		"server:start": "node dist-back/app.js",
@@ -54,6 +55,7 @@
 		"db:migrate": "npx prisma migrate dev",
 		"db:studio": "npx prisma studio",
 		"db:generate": "npx prisma generate",
-		"db:reset": "npx prisma migrate reset"
+		"db:reset": "npx prisma migrate reset",
+		"db:seed": "tsx prisma/seed.ts"
 	}
 }
