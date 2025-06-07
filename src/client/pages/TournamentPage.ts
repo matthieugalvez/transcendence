@@ -1,135 +1,101 @@
 import '../styles.css';
-import { PongGame } from './GamePage';
-import { renderGame } from './game/renderGame';
 import { startPongInContainer } from './game/utils';
+import {
+  createTournamentContainer,
+  appendTournamentTitle,
+  createAliasInputs,
+  createStartButton,
+  setupStartButtonLogic,
+  requestNewGameId,
+} from './game/tournament.utils';
 
 export function renderTournamentPage() {
-    document.title = 'Tournoi';
-    // 1) Container global centré
-    const container = document.createElement('div');
-    container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.appendChild(container);
+  document.title = 'Tournoi';
 
-    // 2) Titre
-    const title = document.createElement('h1');
-    title.textContent = 'Enter name to begin tournament:';
-    title.className = 'text-2xl font-bold mb-6';
-    container.appendChild(title);
+  // 1) création du conteneur + titre
+  const container = createTournamentContainer();
+  appendTournamentTitle(container, 'Enter name to begin tournament:');
 
-    // 3) Quatre champs de saisie d’alias
-    const inputs: HTMLInputElement[] = [];
-    for (let i = 1; i <= 4; i++) {
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.placeholder = `Joueur ${i}`;
-        inp.className =
-        'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4 w-64';
-        container.appendChild(inp);
-        inputs.push(inp);
+  // 2) création des 4 inputs pour les alias
+  const inputs = createAliasInputs(container, 4);
+
+  // 3) création du bouton "Start Tournament"
+  const startButton = createStartButton(container);
+
+  // 4) installation de la logique d’activation/affichage du bouton
+  setupStartButtonLogic(inputs, startButton);
+
+  // 5) quand on clique sur "Start Tournament", on lance la boucle des matchs
+  startButton.addEventListener('click', () => launchTournament(inputs));
+}
+
+async function launchTournament(inputs: HTMLInputElement[]) {
+  // 1) on récupère les 4 alias et on prépare la structure des matches
+  const alias4 = inputs.map((inp) => inp.value.trim());
+  const matchups: [string, string][] = [
+    [alias4[0], alias4[1]],
+    [alias4[2], alias4[3]],
+    ['', ''],
+  ];
+
+  // 2) on nettoie l’écran pour afficher les matchs
+  document.body.innerHTML = '';
+  const winners: string[] = [];
+
+  // 3) fonction récursive qui lance chaque match l’un après l’autre
+  async function playMatch(i: number) {
+    if (i >= matchups.length) {
+      // tournoi terminé : on affiche un message final
+      document.body.innerHTML = '';
+      const finalMsg = document.createElement('h2');
+      finalMsg.textContent = 'Tournoi terminé ! 🏆';
+      finalMsg.className = 'text-3xl font-bold text-center mt-8';
+      document.body.appendChild(finalMsg);
+      return;
+    }
+
+    // si on est à la finale (match index 2), on remplit les alias gagnants
+    if (i === 2) {
+      matchups[2][0] = winners[0];
+      matchups[2][1] = winners[1];
+    }
+
+    // 4) préparation du titre du match et du conteneur de jeu
+    const [leftAlias, rightAlias] = matchups[i];
+    const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
+
+    document.body.innerHTML = '';
+    const gameContainer = document.createElement('div');
+    gameContainer.className = 'flex flex-col items-center justify-center p-4';
+    document.body.appendChild(gameContainer);
+    
+    // 5) on demande un gameId au serveur pour créer la partie
+    let gameId: string;
+    try {
+      gameId = await requestNewGameId();
+    } catch (err) {
+      console.error(err);
+      const errMsg = document.createElement('p');
+      errMsg.textContent = 'Erreur serveur, réessayez plus tard';
+      errMsg.className = 'text-red-600';
+      document.body.appendChild(errMsg);
+      return;
     }
     
-    // 4) Bouton “Start” au centre (invisible tant que inscription pas faite)
-    const startButton = document.createElement('button');
-    startButton.textContent = 'Start Tournament';
-    startButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors mb-4';
-    startButton.disabled = true;
-    startButton.style.display = 'none';
-    container.appendChild(startButton);
-
-    // Fonction utilitaire pour vérifier si tous les inputs sont non vides
-    function checkAllFilled() {
-        const tousValides = inputs.every((inp) => inp.value.trim().length > 0);
-        if (tousValides) {
-            startButton.disabled = false;
-            startButton.style.display = 'block';
-        } else {
-            startButton.disabled = true;
-            startButton.style.display = 'none';
-        }
-    }
-    // On écoute chaque input pour débloquer le bouton dès que les 4 contiennent du texte
-    inputs.forEach((inp, index) => {
-        // Sur chaque saisie, on vérifie si tous sont remplis
-        inp.addEventListener('input', checkAllFilled);
-        // Si l’utilisateur appuie sur “Entrée” et qu’il y a quelque chose dans le champ
-        inp.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && inp.value.trim().length > 0) {
-            e.preventDefault(); // empêche tout comportement par défaut
-            // Si ce n’est pas le dernier champ, on se place dans le suivant
-            if (index < inputs.length - 1) {
-                inputs[index + 1].focus();
-            } else {
-                // Si c’est le dernier champ (4e), on déclenche le bouton si possible
-                checkAllFilled();
-                if (!startButton.disabled) {
-                startButton.click();
-                }
-            }
-            }
-        });
-        });
-
-    // 5) Quand on clique sur “Start Tournament”
-    startButton.addEventListener('click', () => {
-        // Récupérer et “trimmer” les 4 alias
-        const alias4 = inputs.map((inp) => inp.value.trim());
-
-        // Construire les matchs : [alias1 vs alias2], [alias3 vs alias4]
-        const matchups: [string, string][] = [
-        [alias4[0], alias4[1]],
-        [alias4[2], alias4[3]],
-        ['', ''], // finale : on connait pas encore qui jouera
-        ];
-
-        document.body.innerHTML = '';
-
-        // pour stocker tous les gagnants
-        const winners: string[] = [];
-
-        // Récursive pour lancer tournoi
-        let currentMatch = 0;
-        function launchMatch(i: number) {
-            // Si i >= matchups.length, on a fait tous les matchs
-            if (i >= matchups.length) {
-                document.body.innerHTML = '';
-                const finalMsg = document.createElement('h2');
-                finalMsg.textContent = 'Tournoi terminé ! 🏆';
-                finalMsg.className = 'text-3xl font-bold text-center mt-8';
-                document.body.appendChild(finalMsg);
-                return;
-            }
-
-            document.body.innerHTML = '';
-
-            // Créer un conteneur centré pour le canvas
-            const gameContainer = document.createElement('div');
-            gameContainer.className = 'flex flex-col items-center justify-center p-4';
-            document.body.appendChild(gameContainer);
-
-            // si finale on renseigne les joueurs
-            if (i == 2) {
-                matchups[2][0] = winners[0];
-                matchups[2][1] = winners[1];
-            }
-
-            // Récupérer les alias pour le match i
-            const [leftAlias, rightAlias] = matchups[i];
-            const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
-
-            startPongInContainer(
-                gameContainer,
-                matchTitle,
-                leftAlias,
-                rightAlias,
-                // callback onFinish = passer au match suivant
-                (winnerAlias:string) => {
-                setTimeout(() => {
-                    winners.push(winnerAlias);
-                    launchMatch(i + 1);
-                }, 4000); // On attend 4 secondez que l’utilisateur voie “X a gagné !”
-                }
-            );
-        }
-        launchMatch(0);
-    });
+    // 6) on lance le match : startPongInContainer se charge de la WS, du rendu, etc.
+    startPongInContainer(
+      gameContainer,
+      matchTitle,
+      leftAlias,
+      rightAlias,
+      (winnerAlias: string) => {
+        setTimeout(() => {
+          winners.push(winnerAlias);
+          playMatch(i + 1);
+        }, 4000); // laisser le temps de voir "X a gagné !" avant de passer au match suivant
+      },
+      gameId
+    );
+  }
+  await playMatch(0);
 }

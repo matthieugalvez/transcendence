@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+@font-face {
+    font-family: 'Roboto';
+    src: url(../../assets/fonts/Roboto-Regular.ttf);
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Canada-big';
+    src: url(../../assets/fonts/RadioCanadaBig-Bold.ttf);
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    src: url(../../assets/fonts/Orbitron-Regular.ttf);
+    font-weight: normal;
+    font-style: normal;
+}

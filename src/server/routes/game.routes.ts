@@ -1,18 +1,28 @@
-import { FastifyInstance } from 'fastify'
-import { GameController } from '../controllers/game.controller'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { GameInstance } from '../game/gameInstance';
+import { handleStartGame, handleMove } from '../utils/PongGame/handlePongHTTP.utils';
+import { handlePongWebSocket } from '../utils/PongGame/handlePongWebSocket.utils';
+import { handleGetGame } from '../utils/PongGame/handleGetGameState.utils';
 
-export default async function gameRoutes(fastify: FastifyInstance) {
-  // GET /game/status - Get game status (will be /api/game/status)
-  fastify.get('/game/status', GameController.getGameStatus)
+// On stocke toutes les parties actives dans cette Map
+export const gamesMap: Map<string, GameInstance> = new Map();
 
-  // Future game routes:
-  // POST /game/start - Start a new game (will be /api/game/start)
-  fastify.post('/game/start', GameController.startGame)
+export async function registerPongWebSocket(fastify: FastifyInstance) {
+  // 1) Route WebSocket
+  fastify.get(
+    '/ws/pong/:gameId',
+    { websocket: true },
+    (connection: any, req: any) => {
+      handlePongWebSocket(connection, req);
+    }
+  );
 
-  // GET /game/:id - Get game by ID (will be /api/game/:id)
-  fastify.get('/game/:id', GameController.getGame)
+  // 2) Route HTTP POST /api/game/start
+  fastify.post('/start', handleStartGame);
 
-  // POST /game/move - Make a game move
-  // POST /game/score - Update game score
-  // etc.
+  // 3) Route HTTP GET /api/game/:gameId
+  fastify.get('/:gameId', handleGetGame);
+
+  // 4) Route HTTP POST /api/game/move
+  fastify.post('/move', handleMove);
 }

@@ -10,10 +10,24 @@ import { renderTournamentPage } from './pages/TournamentPage';
 import renderTestPage from './pages/TestPage'
 
 // Register routes
-router.register('/', signup);
-router.register ('/home', renderHomePage);
-router.register ('/game', renderGamePage);
-router.register ('/tournament', renderTournamentPage);
-router.register('/testpage', renderTestPage);
+// router.register ('/', renderHomePage);
+// router.register('/signup', signup);
+// router.register ('/home', renderHomePage);
+// router.register ('/game', renderGamePage);
+// router.register ('/tournament', renderTournamentPage);
+// router.start();
 
-router.start();
+function startSPA() {
+    router.register('/', renderHomePage);
+    router.register('/signup', signup);
+    router.register('/home', renderHomePage);
+    router.register('/game', renderGamePage);
+    router.register('/tournament', renderTournamentPage);
+    router.start();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startSPA);
+} else {
+    startSPA();
+}
