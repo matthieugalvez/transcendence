@@ -5,18 +5,36 @@ import profil1 from '../assets/profilpic/profilpic1.png';
 import profil2 from '../assets/profilpic/profilpic2.png';
 import profil3 from '../assets/profilpic/proflipic3.png';
 import bgEffect from '../assets/effects/otis-redding.png';
+import { BackgroundComponent } from '../components/background.component';
+
 
 export function renderHomePage(): void {
 document.title = "Transcendence - Homepage";
     document.body.innerHTML = '';
 
+	  BackgroundComponent.applyNormalGradientLayout();
+
+
+	  // —————————————————————————————————————————
+  //  RESET ALL BODY STYLES FROM OTHER PAGES
+  // —————————————————————————————————————————
+//   document.body.style.backgroundColor = "#8217c1";
+//   document.body.style.backgroundImage = `url(${bgEffect})`;
+// //   document.body.style.backgroundSize = "60px";
+// //   document.body.style.backgroundBlendMode = "multiply";
+//   document.body.style.minHeight = ""; // Reset from auth page
+//   document.body.style.display = ""; // Reset flex from auth page
+//   document.body.style.alignItems = ""; // Reset center alignment
+//   document.body.style.justifyContent = ""; // Reset center justification
+//   document.body.className = ''; // Reset any classes
+
   // —————————————————————————————————————————
   //  BODY : fond fixe + motif
   // —————————————————————————————————————————
-  document.body.style.backgroundColor = "#8217c1";
-  document.body.style.backgroundImage = `url(${bgEffect})`;
-  document.body.style.backgroundSize = "60px";
-  document.body.style.backgroundBlendMode = "multiply";
+//   document.body.style.backgroundColor = "#8217c1";
+//   document.body.style.backgroundImage = `url(${bgEffect})`;
+//   document.body.style.backgroundSize = "60px";
+//   document.body.style.backgroundBlendMode = "multiply";
 
   // —————————————————————————————————————————
   //  NAVIGATION
@@ -89,8 +107,8 @@ document.title = "Transcendence - Homepage";
 	paddle.alt = 'raquette ping pong';
 	paddle.className = `
 		absolute z-30 cursor-pointer
-		right-[29%] top-[-40%]
-		w-[700px] max-w-[47vw]
+		right-[22%] top-[-48%]
+		w-[1600px] max-w-[60vw]
 		drop-shadow-[0_14px_24px_#63007399]
 		transition-transform hover:scale-105
 	`;

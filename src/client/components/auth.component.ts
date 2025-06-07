@@ -63,6 +63,32 @@ export class AuthComponent {
     }
   }
 
+static async logoutUser(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include cookies for authentication
+        // Remove Content-Type header since we're not sending JSON data
+      });
+
+      const apiResponseData = await response.json();
+      console.log('Logout response:', apiResponseData);
+
+      if (apiResponseData.success) {
+        CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+        return true;
+      } else {
+        CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
+        return false;
+      }
+
+    } catch (error) {
+      console.error('Error logging out:', error);
+      CommonComponent.showMessage('❌ Error connecting to server', 'error');
+      return false;
+    }
+  }
+
   /**
    * Handle authentication errors with validation details
    */

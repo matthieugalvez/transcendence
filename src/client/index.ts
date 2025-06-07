@@ -19,8 +19,8 @@ import { OnboardingPage } from './pages/OnboardingPage';
 
 function startSPA() {
     router.register('/', renderHomePage);
-    router.register('/auth', authPage);
-    router.register('/home', OnboardingPage);
+    router.register('/auth', async() => await authPage());
+    router.register('/home', async() => await OnboardingPage());
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
     router.start();

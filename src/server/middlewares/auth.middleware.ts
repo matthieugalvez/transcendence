@@ -1,5 +1,5 @@
-import authConfig from "./config/auth.config";
-import Send from "./utils/response.utils";
+import authConfig from "../config/auth.config";
+import { ResponseUtils as Send } from "../utils/response.utils";
 import { FastifyRequest, FastifyReply } from "fastify";
 import jwt from "jsonwebtoken";
 
@@ -18,17 +18,26 @@ class AuthMiddleware {
      * This middleware will verify the access token and attach the user information to the request object.
      */
     static authenticateUser = async (request: FastifyRequestWithCookies, reply: FastifyReply) => {
+        // DEBUG: Log all cookies
+        console.log('🍪 Auth middleware - All cookies:', request.cookies);
+        console.log('🔑 Auth middleware - accessToken:', request.cookies?.accessToken ? '***EXISTS***' : 'MISSING');
+
         // 1. Extract the access token from the HttpOnly cookie
         const token = request.cookies.accessToken;
 
         // If there's no access token, return an error
         if (!token) {
-            return Send.unauthorized(reply, null, "Access token missing");
+            console.log('❌ No access token found');
+            return Send.unauthorized(reply, "Access token missing");
         }
 
         try {
+            // DEBUG: Check if auth config is loaded
+            console.log('🔧 Auth config secret exists:', authConfig.secret ? '***EXISTS***' : 'MISSING');
+
             // 2. Verify the token using the secret from the auth config
             const decodedToken = jwt.verify(token, authConfig.secret) as DecodedToken;
+            console.log('✅ Token verified successfully, userId:', decodedToken.userId);
 
             // If the token is valid, attach user information to the request object
             (request as any).userId = decodedToken.userId;
@@ -37,8 +46,8 @@ class AuthMiddleware {
             return;
         } catch (error) {
             // If the token verification fails (invalid or expired token), return an error
-            console.error("Authentication failed:", error);
-            return Send.unauthorized(reply, null, "Invalid or expired access token");
+            console.error("❌ Authentication failed:", error);
+            return Send.unauthorized(reply, "Invalid or expired access token");
         }
     };
 
@@ -48,7 +57,7 @@ class AuthMiddleware {
 
         // If there's no refresh token, return an error
         if (!refreshToken) {
-            return Send.unauthorized(reply, null, "No refresh token provided");
+            return Send.unauthorized(reply, "No refresh token provided");
         }
 
         try {
@@ -63,7 +72,7 @@ class AuthMiddleware {
         } catch (error) {
             // Handle token verification errors (invalid or expired token)
             console.error("Refresh Token authentication failed:", error);
-            return Send.unauthorized(reply, null, "Invalid or expired refresh token");
+            return Send.unauthorized(reply, "Invalid or expired refresh token");
         }
     };
 

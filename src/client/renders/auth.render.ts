@@ -1,6 +1,9 @@
 import logo from '../assets/logo.png';
 import { CommonComponent } from '../components/common.component';
 
+import { BackgroundComponent } from '../components/background.component';
+
+
 export class AuthRender {
   /**
    * Render the complete signup/login page
@@ -11,57 +14,83 @@ export class AuthRender {
     signupButton: HTMLButtonElement;
     loginButton: HTMLButtonElement;
   } {
-    // Set document title and body styles
-    document.title = 'Transcendence';
-    document.body.style.background = "#fff";
-    document.body.style.backgroundImage = "";
-    document.body.style.backgroundSize = "";
-    document.body.style.backgroundBlendMode = "";
-    document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
-
-    // Clear existing content
+    // Set document title and body styles to match HomePage
+ document.title = 'Transcendence - Authentication';
     document.body.innerHTML = '';
 
+    // Apply centered gradient layout using BackgroundComponent
+    BackgroundComponent.applyCenteredGradientLayout();
+
+
+    // Main container with glassmorphism
+    const mainContainer = document.createElement('div');
+    mainContainer.className = `
+      bg-white/90 backdrop-blur-md
+      border-2 border-black
+      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+      max-w-md w-full mx-4
+    `.replace(/\s+/g, ' ').trim();
+
     // Create and append logo
-    this.createLogo();
+    this.createLogo(mainContainer);
 
     // Create and append page title
-    this.createPageTitle();
+    this.createPageTitle(mainContainer);
 
     // Create form elements
-    const formElements = this.createFormElements();
+    const formElements = this.createFormElements(mainContainer);
 
     // Create message display container
-    this.createMessageDisplay();
+    this.createMessageDisplay(mainContainer);
+
+    document.body.appendChild(mainContainer);
 
     return formElements;
   }
 
   /**
-   * Create and append logo to the page
+   * Create and append logo to the container
    */
-  private static createLogo(): void {
+  private static createLogo(container: HTMLElement): void {
     const img = document.createElement('img');
     img.src = logo;
     img.alt = 'Project Logo';
-    img.className = 'w-48 h-auto mx-auto mb-6';
-    document.body.appendChild(img);
+    img.className = 'w-32 h-auto mx-auto mb-4';
+    container.appendChild(img);
   }
 
   /**
    * Create and append page title
    */
-  private static createPageTitle(): void {
-    const pageTitle = document.createElement('h1');
-    pageTitle.textContent = 'Transcendence';
-    pageTitle.className = 'text-blue-600 text-3xl font-bold mb-4 text-center';
-    document.body.appendChild(pageTitle);
+  private static createPageTitle(container: HTMLElement): void {
+    const title = document.createElement('h1');
+    title.textContent = 'Enter the Game';
+    title.className = `
+      font-['Canada-big'] uppercase font-bold
+      text-3xl text-center mb-2
+      bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+      bg-clip-text text-transparent
+      select-none
+    `.replace(/\s+/g, ' ').trim();
+    title.style.letterSpacing = "0.1em";
+
+    // Subtitle
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Join the ultimate ping pong experience';
+    subtitle.className = `
+      font-['Orbitron'] text-center text-gray-600
+      text-sm font-medium mb-6
+    `.replace(/\s+/g, ' ').trim();
+    subtitle.style.letterSpacing = "0.05em";
+
+    container.appendChild(title);
+    container.appendChild(subtitle);
   }
 
   /**
    * Create form elements (inputs and buttons)
    */
-  private static createFormElements(): {
+  private static createFormElements(container: HTMLElement): {
     nameInput: HTMLInputElement;
     passwordInput: HTMLInputElement;
     signupButton: HTMLButtonElement;
@@ -70,21 +99,21 @@ export class AuthRender {
     const inputContainer = document.createElement('div');
     inputContainer.className = 'text-center mb-6';
 
-    // Name input and label
-    const nameLabel = CommonComponent.createLabel('Enter your name:');
-    const nameInput = CommonComponent.createInput('text', 'Name');
+    // Name input and label with gaming theme
+    const nameLabel = CommonComponent.createLabel('Nickname');
+    const nameInput = CommonComponent.createInput('text', 'Enter your nickname');
 
-    // Password input and label
-    const passwordLabel = CommonComponent.createLabel('Enter your password:');
-    const passwordInput = CommonComponent.createInput('password', 'Password');
+    // Password input and label with gaming theme
+    const passwordLabel = CommonComponent.createLabel('Password');
+    const passwordInput = CommonComponent.createInput('password', 'Enter your password');
 
     // Button container
     const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'flex gap-10 justify-center';
+    buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-    // Create buttons
-    const loginButton = CommonComponent.createButton('Login');
-    const signupButton = CommonComponent.createButton('Signup');
+    // Create buttons with gaming theme
+    const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue');
+    const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple');
 
     // Append buttons to container
     buttonContainer.appendChild(loginButton);
@@ -97,7 +126,7 @@ export class AuthRender {
     inputContainer.appendChild(passwordInput);
     inputContainer.appendChild(buttonContainer);
 
-    document.body.appendChild(inputContainer);
+    container.appendChild(inputContainer);
 
     return {
       nameInput,
@@ -110,10 +139,10 @@ export class AuthRender {
   /**
    * Create message display container
    */
-  private static createMessageDisplay(): void {
+  private static createMessageDisplay(container: HTMLElement): void {
     const signupMsgDisplay = document.createElement('div');
     signupMsgDisplay.id = 'signup-msg-display';
-    signupMsgDisplay.className = 'text-center mb-6';
-    document.body.appendChild(signupMsgDisplay);
+    signupMsgDisplay.className = 'text-center mt-4';
+    container.appendChild(signupMsgDisplay);
   }
 }

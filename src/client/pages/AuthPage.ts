@@ -2,6 +2,7 @@ import '../styles.css';
 import { router } from '../configs/simplerouter';
 import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
+import { UserService } from '../services/user.service';
 
 let nameInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;
@@ -9,9 +10,21 @@ let signupButton: HTMLButtonElement;
 let loginButton: HTMLButtonElement;
 
 /**
- * Main signup page function - orchestrates rendering and event handling
+ * Main auth page function - checks authentication and handles rendering
  */
-export function authPage(): void {
+export async function authPage(): Promise<void> {
+  // Check if user is already authenticated
+  try {
+    await UserService.getCurrentUser();
+    // If we get here, user is authenticated - redirect to onboarding
+    console.log('User already authenticated, redirecting to /home');
+    router.navigate('/home');
+    return;
+  } catch (error) {
+    // User is not authenticated, continue with auth page rendering
+    console.log('User not authenticated, showing auth page');
+  }
+
   // Render the page and get form elements
   const formElements = AuthRender.renderSignupPage();
 
@@ -34,7 +47,6 @@ function setupEventListeners(): void {
   // Button click handlers
   signupButton.addEventListener('click', onSignupClick);
   loginButton.addEventListener('click', onLoginClick);
-
 }
 
 /**

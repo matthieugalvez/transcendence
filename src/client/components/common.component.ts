@@ -2,7 +2,7 @@ export class CommonComponent {
   /**
    * Display a message to the user
    */
-  static showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
+ static showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
     const signupMsgDisplay = document.getElementById('signup-msg-display');
     if (!signupMsgDisplay) return;
 
@@ -15,9 +15,15 @@ export class CommonComponent {
       message.textContent = text;
     }
 
-    message.className = type === 'success'
-      ? 'text-green-600 font-semibold mt-2'
-      : 'text-red-600 font-semibold mt-2';
+    // Apply consistent typography to match your auth page
+    message.className = `
+      font-['Orbitron']
+      ${type === 'success' ? 'text-green-600' : 'text-red-600'}
+      font-semibold mt-2 text-center
+    `.replace(/\s+/g, ' ').trim();
+
+    // Apply consistent letter spacing
+    message.style.letterSpacing = "0.05em";
 
     signupMsgDisplay.appendChild(message);
   }
@@ -25,23 +31,42 @@ export class CommonComponent {
   /**
    * Create a styled label element
    */
-  static createLabel(text: string): HTMLLabelElement {
-    const label = document.createElement('label');
-    label.textContent = text;
-    label.className = 'block text-gray-700 text-lg font-medium mb-2';
-    return label;
-  }
+static createLabel(text: string): HTMLLabelElement {
+  const label = document.createElement('label');
+  label.textContent = text;
+  label.className = `
+    font-['Orbitron']
+    block text-lg font-semibold mb-2 text-gray-700
+  `.replace(/\s+/g, ' ').trim();
+
+  label.style.letterSpacing = "0.1em";
+
+  return label;
+}
 
   /**
    * Create a styled input element
    */
-  static createInput(type: string, placeholder: string): HTMLInputElement {
-    const input = document.createElement('input');
-    input.type = type;
-    input.placeholder = placeholder;
-    input.className = 'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2 mb-4 block w-64 mx-auto';
-    return input;
-  }
+static createInput(type: string, placeholder: string): HTMLInputElement {
+  const input = document.createElement('input');
+  input.type = type;
+  input.placeholder = placeholder;
+  input.className = `
+    font-['Orbitron']
+    border-2 border-black rounded-lg
+    px-4 py-3
+    text-lg font-medium
+    w-80 mx-auto block mb-4
+    bg-white
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+    shadow-[2.0px_3.0px_0.0px_rgba(0,0,0,0.6)]
+    transition-all duration-200
+  `.replace(/\s+/g, ' ').trim();
+
+  input.style.letterSpacing = "0.1em";
+
+  return input;
+}
 
   /**
    * Create a styled button element
@@ -52,6 +77,33 @@ export class CommonComponent {
     button.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
     return button;
   }
+
+static createStylizedButton(text: string, color: 'blue' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.textContent = text;
+
+  const colorClasses = {
+    blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
+    purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
+    gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
+	red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
+  };
+
+  button.className = `
+    font-['Orbitron']
+    ${colorClasses[color]} text-white font-semibold
+    border-2 border-black
+    py-2 px-12
+    rounded-lg text-lg transition-colors
+    focus:outline-none focus:ring-2
+    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    disabled:opacity-50 disabled:cursor-not-allowed
+  `.replace(/\s+/g, ' ').trim();
+
+  button.style.letterSpacing = "0.2em";
+
+  return button;
+}
 
   /**
    * Create a styled container div
