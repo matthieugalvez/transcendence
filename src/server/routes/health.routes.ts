@@ -1,10 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { HealthController } from '../controllers/health.controller'
 
-//Health check, si on s'y connecte l'API fonctionne
-// Repond aux requetes GET envoyes a /api/health
-
+// Health check should remain public for monitoring/load balancers
 export default async function healthRoutes(fastify: FastifyInstance) {
-  // GET /api/health - Health check endpoint
-  fastify.get('/health', HealthController.healthCheck) // no prehandler.
+  // GET /health - Health check endpoint (PUBLIC)
+  fastify.get('/health', HealthController.healthCheck)
 }

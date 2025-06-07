@@ -1,20 +1,12 @@
+import { ApiClient } from '../utils/apiclient.utils';
+
 export class UserService {
   /**
    * Get current authenticated user data
    */
   static async getCurrentUser(): Promise<{ id: number; name: string; created_at: string }> {
     try {
-      const response = await fetch('/api/users/me', {
-        method: 'GET',
-        credentials: 'include', // Include cookies for authentication
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const response = await ApiClient.authenticatedFetch('/api/users/me');
 
       const data = await response.json();
 
@@ -30,16 +22,11 @@ export class UserService {
   }
 
   /**
-   * Check if a user exists by name
+   * Check if a user exists by name (PROTECTED)
    */
   static async checkUserExists(name: string): Promise<boolean> {
     try {
-      const response = await fetch(`/api/users/check/${encodeURIComponent(name)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const response = await ApiClient.authenticatedFetch(`/api/users/check/${encodeURIComponent(name)}`);
 
       const data = await response.json();
       return data.success && data.data.exists === true;
@@ -50,20 +37,11 @@ export class UserService {
   }
 
   /**
-   * Get all users (if needed for leaderboards, etc.)
+   * Get all users (PROTECTED)
    */
   static async getAllUsers(): Promise<Array<{ id: number; name: string; created_at: string }>> {
     try {
-      const response = await fetch('/api/users', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const response = await ApiClient.authenticatedFetch('/api/users');
 
       const data = await response.json();
 
