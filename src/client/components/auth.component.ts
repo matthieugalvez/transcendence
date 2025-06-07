@@ -1,90 +1,58 @@
 import { CommonComponent } from './common.component';
+import { AuthService } from '../services/auth.service';
 
 export class AuthComponent {
   /**
-   * Signup user with API call
+   * Signup user with API call and UI feedback
    */
   static async signupUser(name: string, password: string): Promise<boolean> {
-    try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, password })
-      });
+    if (!AuthService.validateInput(name, password)) {
+      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+      return false;
+    }
 
-      const apiResponseData = await response.json();
-      console.log('Server response:', apiResponseData);
+    const apiResponseData = await AuthService.signupUser(name, password);
 
-      if (apiResponseData.success) {
-        CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-        return true;
-      } else {
-        this.handleAuthError(apiResponseData);
-        return false;
-      }
-
-    } catch (error) {
-      console.error('Error signing up user:', error);
-      CommonComponent.showMessage('❌ Error connecting to server', 'error');
+    if (apiResponseData.success) {
+      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+      return true;
+    } else {
+      this.handleAuthError(apiResponseData);
       return false;
     }
   }
 
   /**
-   * Login user with API call
+   * Login user with API call and UI feedback
    */
   static async loginUser(name: string, password: string): Promise<boolean> {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, password })
-      });
+    if (!AuthService.validateInput(name, password)) {
+      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+      return false;
+    }
 
-      const apiResponseData = await response.json();
-      console.log('Server response:', apiResponseData);
+    const apiResponseData = await AuthService.loginUser(name, password);
 
-      if (apiResponseData.success) {
-        CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-        return true;
-      } else {
-        CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
-        return false;
-      }
-
-    } catch (error) {
-      console.error('Error checking user:', error);
-      CommonComponent.showMessage('❌ Error connecting to server', 'error');
+    if (apiResponseData.success) {
+      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+      return true;
+    } else {
+      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
       return false;
     }
   }
 
-static async logoutUser(): Promise<boolean> {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include', // Include cookies for authentication
-        // Remove Content-Type header since we're not sending JSON data
-      });
+  /**
+   * Logout user with API call and UI feedback
+   */
+  static async logoutUser(): Promise<boolean> {
+    const apiResponseData = await AuthService.logoutUser();
 
-      const apiResponseData = await response.json();
-      console.log('Logout response:', apiResponseData);
-
-      if (apiResponseData.success) {
-        CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-        return true;
-      } else {
-        CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
-        return false;
-      }
-
-    } catch (error) {
-      console.error('Error logging out:', error);
-      CommonComponent.showMessage('❌ Error connecting to server', 'error');
+    if (apiResponseData.success) {
+      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+      return true;
+    } else {
+      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
       return false;
     }
   }
@@ -110,10 +78,10 @@ static async logoutUser(): Promise<boolean> {
   }
 
   /**
-   * Validate input fields
+   * Validate input fields with UI feedback
    */
   static validateInput(name: string, password: string): boolean {
-    if (!name.trim() || !password.trim()) {
+    if (!AuthService.validateInput(name, password)) {
       CommonComponent.showMessage('❌ Please fill in all fields', 'error');
       return false;
     }
