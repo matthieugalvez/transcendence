@@ -9,7 +9,7 @@ const passwordSchema = z.string()
 
 const usernameSchema = z.string()
     .min(3, "Username must be at least 3 characters long")
-    .max(20, "Username must not exceed 20 characters")
+    .max(16, "Username must not exceed 16 characters")
     .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, hyphens, and underscores")
     .refine((value) => !/^\d+$/.test(value), {
         message: "Username cannot be only numbers",
