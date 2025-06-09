@@ -3,38 +3,24 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
+import pongImg from '../assets/gameimg/pong-preview.jpg';
+import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
 
 
 export class OnboardingRender {
-  static async render(): Promise<void> {
-    document.title = 'Transcendence - Home';
-    document.body.innerHTML = '';
-
-    // Apply centered gradient layout using BackgroundComponent
+  static async renderInto(container: HTMLDivElement): Promise<void> {
+    // 1) loading dans container
+    const loader = this.createLoadingContainer();
+    container.appendChild(loader);
     BackgroundComponent.applyCenteredGradientLayout();
 
-    // Create loading container first
-    const loadingContainer = this.createLoadingContainer();
-    document.body.appendChild(loadingContainer);
-
     try {
-      // Fetch user data using UserService
-      const userData = await UserService.getCurrentUser();
-
-      // Remove loading container
-      loadingContainer.remove();
-
-      // Render the main content with user name
-      this.renderMainContent(userData.name);
-
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-
-      // Remove loading container
-      loadingContainer.remove();
-
-      // Show error or redirect to auth
-      this.handleAuthError();
+      const user = await UserService.getCurrentUser();
+      loader.remove();
+      this.renderMainContent(container, user.name);
+    } catch {
+      loader.remove();
+      this.handleAuthError(container);
     }
   }
 
@@ -58,7 +44,7 @@ export class OnboardingRender {
     return loadingContainer;
   }
 
-  private static renderMainContent(userName: string): void {
+  private static renderMainContent(container: HTMLDivElement, userName: string): void {
     // Main container with glassmorphism effect
     const mainContainer = document.createElement('div');
     mainContainer.className = `
@@ -68,84 +54,53 @@ export class OnboardingRender {
       max-w-lg w-full mx-4 text-center
     `.replace(/\s+/g, ' ').trim();
 
-    // Welcome title with user's name
-    const pageTitle = document.createElement('h1');
-    pageTitle.textContent = `Welcome ${userName}!`;
-    pageTitle.className = `
-      font-['Canada-big'] uppercase font-bold
-      text-4xl text-center mb-2
-      bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
-      bg-clip-text text-transparent
-      select-none
-    `.replace(/\s+/g, ' ').trim();
-    pageTitle.style.letterSpacing = "0.1em";
+    // Grid de cartes
+    const grid = document.createElement('div')
+    grid.className = `
+      flex flex-row gap-12 justify-center
+      relative z-10
+      font-['Orbitron']
+    `.trim();
 
-    // Subtitle
-    const subtitle = document.createElement('p');
-    subtitle.textContent = 'Choose your game mode';
-    subtitle.className = `
-      font-['Orbitron'] text-center text-gray-600
-      text-sm font-medium mb-8
-    `.replace(/\s+/g, ' ').trim();
-    subtitle.style.letterSpacing = "0.05em";
+    const games = [
+      { title: 'Pong',    route: '/game',       img: pongImg },
+      { title: 'Space Invaders',   route: '/spaceInvadersGame', img: spaceImg },
+    ] as const
 
-    // Button container
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'flex flex-col gap-4 justify-center';
+    games.forEach(({ title, route, img }) => {
+      const card = document.createElement('div')
+      card.className = `
+        flex flex-col items-center cursor-pointer
+        hover:scale-105 transition-transform
+      `.trim()
+      card.onclick = () => router.navigate(route)
 
-    // Play button
-    const playButton = CommonComponent.createStylizedButton('Play', 'blue');
-    playButton.addEventListener('click', () => {
-      router.navigate('/game');
-    });
-
-    // Tournament button
-    const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple');
-    tournamentButton.addEventListener('click', () => {
-      router.navigate('/tournament');
-    });
-
-    // Back to home button
-    const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
-    backButton.addEventListener('click', () => {
-      router.navigate('/');
-    });
-
-
-	    // Logout button
-    const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
-    logoutButton.addEventListener('click', async () => {
-      const success = await AuthComponent.logoutUser();
-      if (success) {
-        // Redirect to auth page after successful logout
-        setTimeout(() => {
-          router.navigate('/auth');
-        }, 1000);
+      // 1) Canvas
+      const canvas = document.createElement('canvas')
+      canvas.width = 320
+      canvas.height = 200
+      canvas.className = 'border-2 border-gray-300 rounded-lg'
+      const ctx = canvas.getContext('2d')!
+      const image = new Image()
+      image.src = img
+      image.onload = () => {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
       }
-    });
+      card.appendChild(canvas)
 
+      // 2) Titre sous le canvas
+      const label = document.createElement('p')
+      label.textContent = title
+      label.className = 'mt-4 font-bold text-xl text-white'
+      card.appendChild(label)
 
+      grid.appendChild(card)
+    })
 
-    // Add emoji decorations
-    const gameEmoji = document.createElement('div');
-    gameEmoji.textContent = '🏓';
-    gameEmoji.className = 'text-4xl mb-4';
-
-    // Assemble elements
-    buttonContainer.appendChild(playButton);
-    buttonContainer.appendChild(tournamentButton);
-    buttonContainer.appendChild(backButton);
-	buttonContainer.appendChild(logoutButton);
-
-    mainContainer.appendChild(gameEmoji);
-    mainContainer.appendChild(pageTitle);
-    mainContainer.appendChild(subtitle);
-    mainContainer.appendChild(buttonContainer);
-
-    document.body.appendChild(mainContainer);
+    container.appendChild(grid);
   }
 
-  private static handleAuthError(): void {
+  private static handleAuthError(container: HTMLDivElement): void {
     // Show error message and redirect to auth
     const errorContainer = document.createElement('div');
     errorContainer.className = `
@@ -164,9 +119,8 @@ export class OnboardingRender {
       router.navigate('/auth');
     });
 
-
     errorContainer.appendChild(errorText);
     errorContainer.appendChild(loginButton);
-    document.body.appendChild(errorContainer);
+    container.appendChild(errorContainer);
   }
 }

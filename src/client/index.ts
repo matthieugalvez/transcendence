@@ -7,7 +7,8 @@ import { renderHomePage  } from './pages/HomePage';
 import { authPage } from './pages/AuthPage'
 import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
-import { OnboardingPage } from './pages/OnboardingPage';
+import { RenderOnboardingPage } from './pages/OnboardingPage';
+// import { OnboardingPage, RenderOnboardingPage } from './pages/OnboardingPage';
 
 // Register routes
 // router.register ('/', renderHomePage);
@@ -20,7 +21,7 @@ import { OnboardingPage } from './pages/OnboardingPage';
 function startSPA() {
     router.register('/', renderHomePage);
     router.register('/auth', async() => await authPage());
-    router.register('/home', async() => await OnboardingPage());
+    router.register('/home', async() => await RenderOnboardingPage());
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
     router.start();

@@ -78,7 +78,7 @@ static createInput(type: string, placeholder: string): HTMLInputElement {
     return button;
   }
 
-static createStylizedButton(text: string, color: 'blue' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
+static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
   const button = document.createElement('button');
   button.textContent = text;
 

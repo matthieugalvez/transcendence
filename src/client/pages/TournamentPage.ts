@@ -8,10 +8,23 @@ import {
   setupStartButtonLogic,
   requestNewGameId,
 } from './game/tournament.utils';
+import { BackgroundComponent } from '../components/background.component';
+import { SidebarComponent } from "../components/sidebar.components";
+import { UserService } from '../services/user.service';
 
-export function renderTournamentPage() {
+export async function renderTournamentPage() {
   document.title = 'Tournoi';
 
+  // sidebar + bg gradient
+    const user = await UserService.getCurrentUser();
+    SidebarComponent.render({
+          userName: user.name,
+          showStats: true,
+          showBackHome: true
+    });
+    BackgroundComponent.applyNormalGradientLayout();
+
+  
   // 1) création du conteneur + titre
   const container = createTournamentContainer();
   appendTournamentTitle(container, 'Enter name to begin tournament:');

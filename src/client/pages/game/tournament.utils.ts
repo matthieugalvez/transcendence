@@ -1,7 +1,18 @@
 // Crée et retourne le conteneur principal centré
 export function createTournamentContainer(): HTMLDivElement {
   const container = document.createElement('div');
-  container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
+  container.className = `
+    ml-60
+    w-[calc(100%-15rem)]
+    min-h-screen 
+    flex
+      flex-col 
+      items-center 
+      justify-center 
+    p-8
+  `.replace(/\s+/g,' ').trim()
+  container.style.position = 'relative';
+  container.style.zIndex = '0';
   document.body.appendChild(container);
   return container;
 }
@@ -10,7 +21,11 @@ export function createTournamentContainer(): HTMLDivElement {
 export function appendTournamentTitle(container: HTMLDivElement, text: string): void {
   const title = document.createElement('h1');
   title.textContent = text;
-  title.className = 'text-2xl font-bold mb-6';
+  title.className = `
+    text-2xl text-white 
+    font-['Canada-big']
+    mb-6
+  `;
   container.appendChild(title);
 }
 
@@ -21,8 +36,12 @@ export function createAliasInputs(container: HTMLDivElement, count: number): HTM
     const inp = document.createElement('input');
     inp.type = 'text';
     inp.placeholder = `Joueur ${i}`;
-    inp.className =
-      'border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4 w-64';
+    inp.className = `
+      border border-gray-300 rounded-lg px-4 py-2
+      text-lg text-white font-['Orbitron']
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+      mb-4 w-64
+    `;
     container.appendChild(inp);
     inputs.push(inp);
   }
