@@ -1,12 +1,16 @@
 import '../styles.css';
+import { BackgroundComponent } from '../components/background.component';
 import { startPongInContainer } from './game/utils';
 
 export function renderGamePage() {
   document.title = 'Transcendance - Pong';
+  BackgroundComponent.applyNormalGradientLayout();
 
   // 1) Conteneur principal centré
   const container = document.createElement('div');
-  container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
+  container.className = 'min-h-screen flex flex-col items-center justify-center p-8';
+  container.style.position = 'relative';
+  container.style.zIndex = '0';
   document.body.appendChild(container);
 
   // 2) Générer un gameId unique (par exemple à partir de la date courante)

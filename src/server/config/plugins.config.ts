@@ -25,7 +25,8 @@ export async function registerPlugins(app: FastifyInstance, dirname: string) {
   // Add CORS if needed
   if (process.env.NODE_ENV !== 'production') {
     await app.register(import('@fastify/cors'), {
-      origin: true
+      origin: true,
+      credentials: true
     })
   }
 

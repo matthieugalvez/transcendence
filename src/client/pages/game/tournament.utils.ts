@@ -77,7 +77,12 @@ export function setupStartButtonLogic(
 
 // Renvoie un gameId en appelant POST /api/game/start
 export async function requestNewGameId(): Promise<string> {
-  const res = await fetch('/api/game/start', { method: 'POST' });
+  const res = await fetch('/api/game/start', { 
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
   const data = (await res.json()) as { success: boolean; gameId: string };
   if (!data.success) throw new Error('Impossible de démarrer la partie côté serveur');
   return data.gameId;

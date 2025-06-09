@@ -4,11 +4,13 @@ import { handleStartGame, handleMove } from '../utils/PongGame/handlePongHTTP.ut
 import { handlePongWebSocket } from '../utils/PongGame/handlePongWebSocket.utils';
 import { handleGetGame } from '../utils/PongGame/handleGetGameState.utils';
 import AuthMiddleware from '../middlewares/auth.middleware';
+import fastifyCookie from '@fastify/cookie'
 
 // On stocke toutes les parties actives dans cette Map
 export const gamesMap: Map<string, GameInstance> = new Map();
 
 export async function registerPongWebSocket(fastify: FastifyInstance) {
+  await fastify.register(fastifyCookie)
   // 1) Route WebSocket (consider adding auth validation here too)
   fastify.get(
     '/ws/pong/:gameId',

@@ -1,9 +1,11 @@
 import '../styles.css';
 import paddleImg from '../assets/logo.png';
+import { BackgroundComponent } from '../components/background.component';
 import { router } from '../configs/simplerouter';
 
 export function renderNotFoundPage(): void {
     document.title = '404 - Not found';
+    BackgroundComponent.applyNormalGradientLayout();
 
     // 1) Container principal fullscreen
     const container = document.createElement('div');
@@ -12,7 +14,7 @@ export function renderNotFoundPage(): void {
         flex flex-col
         z-50
     `;
-    container.style.background = "radial-gradient(ellipse at center,rgb(106, 61, 240) 5%,rgb(73, 2, 139) 100%)";
+    //container.style.background = "radial-gradient(ellipse at center,rgb(106, 61, 240) 5%,rgb(73, 2, 139) 100%)";
 
     // 1.1) div pour le 404 (70% de hauteur environ)
     const big404container = document.createElement('div');

@@ -3,9 +3,9 @@ import { GameInstance } from '../../game/gameInstance';
 import { gamesMap } from '../../routes/game.routes'
 
 /** Gere jeu via websocket (pour site web) */
-export function handlePongWebSocket(connection: any, req: any) {
-  const ws: WebSocket = connection.socket;
-  const { gameId } = req.params as { gameId: string };
+export function handlePongWebSocket(ws: WebSocket, gameId: string) {
+  // const ws: WebSocket = connection.socket;
+  // const { gameId } = req.params as { gameId: string };
 
   // 1.1 Récupérer ou créer l’instance GameInstance
   let game = gamesMap.get(gameId);
@@ -20,8 +20,11 @@ export function handlePongWebSocket(connection: any, req: any) {
   // 1.3 Quand on reçoit un message WS, on l’interprète comme un déplacement
   ws.on('message', (data: string) => {
     try {
-      const parsed = JSON.parse(data) as { playerId: number; action: 'up' | 'down' };
-      game!.onClientAction(parsed.playerId, parsed.action);
+      const { playerId, action } = JSON.parse(data) as { 
+        playerId: number;
+        action: 'up' | 'down'
+      };
+      game!.onClientAction(playerId, action);
     } catch (err) {
       console.error('WS message parse error:', err);
     }
