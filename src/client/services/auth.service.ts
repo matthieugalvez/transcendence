@@ -28,29 +28,26 @@ export class AuthService {
   /**
    * Login user with API call
    */
-  static async loginUser(name: string, password: string): Promise<{ success: boolean; message?: string; error?: string }> {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies for authentication
-        body: JSON.stringify({ name, password })
-      });
+static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+  try {
+    const body: any = { name, password };
+    if (twoFACode) body.twoFACode = twoFACode;
 
-      const apiResponseData = await response.json();
-      console.log('Login response:', apiResponseData);
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body)
+    });
 
-      return apiResponseData;
-    } catch (error) {
-      console.error('Error logging in user:', error);
-      return {
-        success: false,
-        error: 'Error connecting to server'
-      };
-    }
+    return await response.json();
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Error connecting to server'
+    };
   }
+}
 
   /**
    * Logout user with API call

@@ -3,6 +3,7 @@ import { UserService } from '../services/users.service'
 import { ResponseUtils as Send } from '../utils/response.utils'
 import jwt from 'jsonwebtoken'
 import authConfig from '../config/auth.config'
+import { AuthService } from '../services/auth.service'
 
 export class AuthController {
   static async signup(request: FastifyRequest, reply: FastifyReply) {
@@ -15,8 +16,12 @@ export class AuthController {
         return Send.conflict(reply, 'Username already exists')
       }
 
+
       // Create new user
-      const user = await UserService.createUser(name, password)
+      const user = await AuthService.createUser(name, password)
+
+      // Create new user
+
 
       // Generate JWT tokens
       const accessToken = jwt.sign(
@@ -32,7 +37,7 @@ export class AuthController {
       )
 
       // Store refresh token in database
-      await UserService.updateRefreshToken(user.id, refreshToken)
+      await AuthService.updateRefreshToken(user.id, refreshToken)
 
       console.log('🍪 Setting cookies for new user:', user.id);
       console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
@@ -72,13 +77,23 @@ export class AuthController {
 
   static async login(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const { name, password } = request.body as { name: string, password: string }
+      const { name, password, twoFACode } = request.body as { name: string, password: string, twoFACode: string }
 
-      const user = await UserService.verifyUser(name, password)
+      const user = await AuthService.verifyUser(name, password)
 
       if (!user) {
         return Send.unauthorized(reply, 'Invalid username or password')
       }
+
+	  if (user.twoFAEnabled) {
+		if(!twoFACode) {
+			return Send.unauthorized(reply, '2FA Code is missing');
+		}
+	  const is2FAValid = await AuthService.verify2FACode(user.id, twoFACode)
+	  if (!is2FAValid) {
+		return Send.unauthorized(reply, 'Invalid 2FA Code');
+	  }
+	}
 
       // Generate JWT tokens
       const accessToken = jwt.sign(
@@ -94,7 +109,7 @@ export class AuthController {
       )
 
       // Store refresh token in database
-      await UserService.updateRefreshToken(user.id, refreshToken)
+      await AuthService.updateRefreshToken(user.id, refreshToken)
 
       console.log('🍪 Setting cookies for user:', user.id);
       console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
@@ -140,7 +155,7 @@ export class AuthController {
 
       // Remove refresh token from database
       if (userId) {
-        await UserService.updateRefreshToken(userId, null)
+        await AuthService.updateRefreshToken(userId, null)
       }
 
       // Clear the JWT cookies
@@ -207,7 +222,7 @@ export class AuthController {
       );
 
       // Update refresh token in database
-      await UserService.updateRefreshToken(user.id, newRefreshToken);
+      await AuthService.updateRefreshToken(user.id, newRefreshToken);
 
       // Set new cookies
       reply.setCookie('accessToken', newAccessToken, {
@@ -235,4 +250,79 @@ export class AuthController {
       return Send.unauthorized(reply, 'Invalid or expired refresh token');
     }
   }
+
+// ...existing code...
+
+  /**
+   * Setup 2FA: generate secret and QR code for user
+   */
+  static async setup2FA(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = (request as any).userId;
+    console.log(userId);
+      if (!userId)
+		return Send.unauthorized(reply, 'Authentication required');
+
+      // Generate secret and QR code
+      const { secret, otpAuthUrl, qrCodeDataURL } = await AuthService.generate2FASecret(userId);
+
+      return Send.success(reply, { secret, otpAuthUrl, qrCodeDataURL }, '2FA setup initiated');
+    } catch (error) {
+      console.error('2FA setup error:', error);
+      return Send.internalError(reply, 'Failed to setup 2FA');
+    }
+  }
+
+  /**
+   * Verify 2FA code and enable 2FA for user
+   */
+  static async verify2FA(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = (request as any).userId;
+      const { token } = request.body as { token: string };
+      if (!userId) return Send.unauthorized(reply, 'Authentication required');
+      if (!token) return Send.badRequest(reply, '2FA token required');
+
+      const isValid = await AuthService.verify2FACode(userId, token);
+      if (!isValid)
+		return Send.unauthorized(reply, 'Invalid 2FA code');
+
+      await AuthService.enable2FA(userId);
+      return Send.success(reply, null, '2FA enabled successfully');
+    } catch (error) {
+      console.error('2FA verify error:', error);
+      return Send.internalError(reply, 'Failed to verify 2FA');
+    }
+  }
+
+  /**
+   * Disable 2FA for user
+   */
+  static async disable2FA(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = (request as any).userId;
+      if (!userId) return Send.unauthorized(reply, 'Authentication required');
+
+      await AuthService.disable2FA(userId);
+      return Send.success(reply, null, '2FA disabled successfully');
+    } catch (error) {
+      console.error('2FA disable error:', error);
+      return Send.internalError(reply, 'Failed to disable 2FA');
+    }
+  }
+
+//     static async enable2FA(request: FastifyRequest, reply: FastifyReply) {
+//     try {
+//       const userId = (request as any).userId;
+//       if (!userId) return Send.unauthorized(reply, 'Authentication required');
+
+//       await AuthService.enable2FA(userId);
+//       return Send.success(reply, null, '2FA enabled successfully');
+//     } catch (error) {
+//       console.error('2FA disable error:', error);
+//       return Send.internalError(reply, 'Failed to enable 2FA');
+//     }
+//   }
+
+// ...existing code...
 }

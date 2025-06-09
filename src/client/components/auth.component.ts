@@ -25,22 +25,22 @@ export class AuthComponent {
   /**
    * Login user with API call and UI feedback
    */
-  static async loginUser(name: string, password: string): Promise<boolean> {
-    if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-      return false;
-    }
-
-    const apiResponseData = await AuthService.loginUser(name, password);
-
-    if (apiResponseData.success) {
-      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-      return true;
-    } else {
-      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
-      return false;
-    }
+static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+  if (!AuthService.validateInput(name, password)) {
+    CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+    return false;
   }
+
+  const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
+
+  if (apiResponseData.success) {
+    CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+    return apiResponseData;
+  } else {
+    CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+    return apiResponseData;
+  }
+}
 
   /**
    * Logout user with API call and UI feedback
@@ -87,4 +87,55 @@ export class AuthComponent {
     }
     return true;
   }
+static async handle2FASetup() {
+  // 1. Call backend to get QR code and secret
+  const res = await fetch('/api/auth/2fa/setup', {
+    method: 'POST',
+    credentials: 'include'
+  });
+  const data = await res.json();
+  console.log('2FA Setup response:', data);
+  if (!data.success) {
+    CommonComponent.showMessage(`❌ ${data.error || 'Failed to start 2FA setup'}`, 'error');
+    return;
+  }
+
+  // 2. Show QR code as a link in an alert (or render in modal for better UX)
+  window.open(data.data.qrCodeDataURL, '_blank');
+
+  // 3. Prompt for code
+  const code = prompt('Enter the code from your authenticator app:');
+  if (!code) {
+    CommonComponent.showMessage('❌ You must enter a code to enable 2FA.', 'error');
+    return;
+  }
+
+  // 4. Handle verification
+  const verifyRes = await fetch('/api/auth/2fa/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ token: code })
+  });
+  const verifyData = await verifyRes.json();
+  if (verifyData.success) {
+    CommonComponent.showMessage('✅ 2FA enabled!', 'success');
+  } else {
+    CommonComponent.showMessage('❌ Invalid code. Try again.', 'error');
+  }
+}
+
+static async Disable2FA() {
+  const res = await fetch('/api/auth/2fa/disable', {
+    method: 'POST',
+    credentials: 'include'
+  });
+  const data = await res.json();
+  console.log('2FA Disable response:', data);
+  if (!data.success) {
+    CommonComponent.showMessage(`❌ ${data.error || 'Failed to disable 2FA'}`, 'error');
+    return;
+  }
+  CommonComponent.showMessage('✅ 2FA disabled!', 'success');
+}
 }

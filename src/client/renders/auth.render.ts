@@ -31,6 +31,7 @@ export class AuthRender {
       max-w-md w-full mx-4
     `.replace(/\s+/g, ' ').trim();
 
+
     // Create and append logo
     this.createLogo(mainContainer);
 

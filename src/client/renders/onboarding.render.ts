@@ -68,6 +68,11 @@ export class OnboardingRender {
       max-w-lg w-full mx-4 text-center
     `.replace(/\s+/g, ' ').trim();
 
+	const msgDisplay = document.createElement('div');
+	msgDisplay.id = 'signup-msg-display';
+	msgDisplay.className = 'text-center mt-4';
+
+
     // Welcome title with user's name
     const pageTitle = document.createElement('h1');
     pageTitle.textContent = `Welcome ${userName}!`;
@@ -112,6 +117,8 @@ export class OnboardingRender {
     });
 
 
+
+
 	    // Logout button
     const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
     logoutButton.addEventListener('click', async () => {
@@ -124,6 +131,17 @@ export class OnboardingRender {
       }
     });
 
+	const Enable2FAButton = CommonComponent.createStylizedButton('Enable2FA', 'blue');
+	Enable2FAButton.addEventListener('click', async () => {
+	await AuthComponent.handle2FASetup();
+	});
+
+	const Disable2FA = CommonComponent.createStylizedButton('Disable 2FA', 'red');
+	Disable2FA.addEventListener('click', async () => {
+	await AuthComponent.Disable2FA();
+	});
+
+
 
 
     // Add emoji decorations
@@ -135,6 +153,8 @@ export class OnboardingRender {
     buttonContainer.appendChild(playButton);
     buttonContainer.appendChild(tournamentButton);
     buttonContainer.appendChild(backButton);
+	buttonContainer.appendChild(Enable2FAButton);
+	buttonContainer.appendChild(Disable2FA);
 	buttonContainer.appendChild(logoutButton);
 
     mainContainer.appendChild(gameEmoji);
@@ -142,6 +162,7 @@ export class OnboardingRender {
     mainContainer.appendChild(subtitle);
     mainContainer.appendChild(buttonContainer);
 
+	mainContainer.appendChild(msgDisplay);
     document.body.appendChild(mainContainer);
   }
 

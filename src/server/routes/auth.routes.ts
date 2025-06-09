@@ -29,4 +29,20 @@ export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post('/refresh', {
     preHandler: AuthMiddleware.refreshTokenValidation
   }, AuthController.refreshToken)
+
+  fastify.post('/2fa/setup', {
+    preHandler: AuthMiddleware.authenticateUser
+  }, AuthController.setup2FA);
+
+  fastify.post('/2fa/verify', {
+    preHandler: AuthMiddleware.authenticateUser
+  }, AuthController.verify2FA);
+
+  fastify.post('/2fa/disable', {
+    preHandler: AuthMiddleware.authenticateUser
+  }, AuthController.disable2FA);
+
+//   fastify.post('/2fa/enable', {
+//   preHandler: AuthMiddleware.authenticateUser
+//   }, AuthController.enable2FA);
 }

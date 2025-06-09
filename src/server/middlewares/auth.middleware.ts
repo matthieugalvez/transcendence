@@ -3,6 +3,7 @@ import { ResponseUtils as Send } from "../utils/response.utils";
 import { FastifyRequest, FastifyReply } from "fastify";
 import jwt from "jsonwebtoken";
 import { UserService } from "../services/users.service";
+import { AuthService } from "../services/auth.service";
 
 export interface DecodedToken {
     userId: number;
