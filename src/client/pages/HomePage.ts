@@ -16,38 +16,38 @@ export function renderHomePage(): void {
   // —————————————————————————————————————————
   //  NAVIGATION
   // —————————————————————————————————————————
-  const header = document.createElement('header');
-  header.className = 'w-full flex justify-end pt-6 pr-12 bg-[#F6F4F2]';
-  header.style.backgroundImage = `url(${bgEffect})`;
-  header.style.backgroundBlendMode = 'multiply';
+  // const header = document.createElement('header');
+  // header.className = 'w-full flex justify-end pt-6 pr-12 bg-[#F6F4F2]';
+  // header.style.backgroundImage = `url(${bgEffect})`;
+  // header.style.backgroundBlendMode = 'multiply';
 
-  const nav = document.createElement('nav');
-  nav.className = 'flex items-center gap-5 text-[1.2rem] overflow-visible';
+  // const nav = document.createElement('nav');
+  // nav.className = 'flex items-center gap-5 text-[1.2rem] overflow-visible';
 
-  const login = document.createElement('p');
-  login.textContent = 'Login';
-  login.className = `
-    font-['Orbitron']
-    cursor-pointer hover:text-[#942b99] transition-colors
-  `;
-  login.onclick = () => router.navigate('/auth'); // Fixed: changed from /signup to /auth
+  // const login = document.createElement('p');
+  // login.textContent = 'Login';
+  // login.className = `
+  //   font-['Orbitron']
+  //   cursor-pointer hover:text-[#942b99] transition-colors
+  // `;
+  // login.onclick = () => router.navigate('/auth'); // Fixed: changed from /signup to /auth
 
-  const btn = document.createElement('button');
-  btn.textContent = 'Sign in →';
-  btn.className = `
-    font-['Orbitron']
-    ml-6 border border-black rounded py-2 px-6 text-[1.1rem]
-    bg-[#942b99] text-white
-    cursor-pointer transition-transform transition-colors
-    hover:bg-[#7101b2] hover:scale-110 focus:outline-none
-  `;
-  btn.onclick = () => router.navigate('/auth'); // Fixed: changed from /signup to /auth
+  // const btn = document.createElement('button');
+  // btn.textContent = 'Sign in →';
+  // btn.className = `
+  //   font-['Orbitron']
+  //   ml-6 border border-black rounded py-2 px-6 text-[1.1rem]
+  //   bg-[#942b99] text-white
+  //   cursor-pointer transition-transform transition-colors
+  //   hover:bg-[#7101b2] hover:scale-110 focus:outline-none
+  // `;
+  // btn.onclick = () => router.navigate('/auth'); // Fixed: changed from /signup to /auth
 
-  // Fixed: Uncommented these lines to actually add the nav elements
-  nav.appendChild(login);
-  nav.appendChild(btn);
-  header.appendChild(nav);
-  document.body.appendChild(header); // Fixed: Added this line
+  // // Fixed: Uncommented these lines to actually add the nav elements
+  // nav.appendChild(login);
+  // nav.appendChild(btn);
+  // header.appendChild(nav);
+  // document.body.appendChild(header); // Fixed: Added this line
 
   // —————————————————————————————————————————
   //  HERO
@@ -56,6 +56,7 @@ export function renderHomePage(): void {
   hero.id = "accueil";
   hero.className = `
     text-center px-[2%] pb-[3%] pt-0
+    rounded-b-[40px]
     border-b-2 border-[#e0e0e0]
     bg-[#F6F4F2] bg-blend-multiply bg-[url('otis-redding.png')]
     relative
@@ -67,7 +68,7 @@ export function renderHomePage(): void {
   h1.textContent = 'Transcendence.';
   h1.className = `
     font-['Canada-big']
-    uppercase font-bold pt-5 mx-auto text-[9.5rem] max-w-[1400px] leading-[1]
+    uppercase font-bold pt-10 mx-auto text-[clamp(1.8rem,9.7vw,16rem)] leading-[1] w-[90%]
     bg-gradient-to-r from-[#7101b2] to-[#ffae45f2] bg-clip-text text-transparent
     leading-[1.1]
     select-none
@@ -89,7 +90,7 @@ export function renderHomePage(): void {
   paddle.alt = 'raquette ping pong';
   paddle.className = `
     absolute z-30 cursor-pointer
-    right-[22%] top-[-48%]
+    right-[22%] top-[-45%]
     w-[1600px] max-w-[60vw]
     drop-shadow-[0_14px_24px_#63007399]
     transition-transform hover:scale-105
@@ -209,5 +210,5 @@ export function renderHomePage(): void {
 //   buttonContainer.appendChild(loginButton);
 
   // Add container to body
-  document.body.appendChild(buttonContainer);
+  // document.body.appendChild(buttonContainer);
 }

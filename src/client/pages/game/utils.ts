@@ -114,7 +114,7 @@ export function startPongInContainer(
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 600;
-    canvas.className = 'border';
+    canvas.className = 'border-4 border-blue-500 rounded-md';
     container.appendChild(canvas);
 
     const ctx = canvas.getContext('2d')!;

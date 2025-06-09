@@ -1,5 +1,27 @@
 import { GameState } from './types';
 
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
 export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): void {
     // 1) Effacer tout le canvas
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -20,11 +42,12 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): voi
 
     // 4) Dessiner les paddles
     ctx.fillStyle = '#fff';
+    const rad = 5;
     const { x: x1, y: y1, width: w1, height: h1 } = state.paddle1;
-    ctx.fillRect(x1, y1, w1, h1);
+    drawRoundedRect(ctx, x1, y1, w1, h1, rad);
 
     const { x: x2, y: y2, width: w2, height: h2 } = state.paddle2;
-    ctx.fillRect(x2, y2, w2, h2);
+    drawRoundedRect(ctx, x2, y2, w2, h2, rad);
 
     // 5) Dessiner la balle
     ctx.beginPath();
