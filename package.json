@@ -37,9 +37,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.29",
     "@types/uuid": "^10.0.0",
-    "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.2",
-    "postcss": "^8.5.4",
     "prisma": "^6.9.0",
     "tailwindcss": "^4.1.8",
     "tsx": "^4.19.4",
@@ -68,11 +66,7 @@
   "overrides": {
     "glob": "^10.3.10",
     "rimraf": "^5.0.5",
-    "inflight": false,
-    "@npmcli/move-file": false,
-    "npmlog": false,
-    "are-we-there-yet": false,
-    "gauge": false
+    "node-gyp": "^11.2.0"
   },
   "engines": {
     "node": ">=18.0.0",
