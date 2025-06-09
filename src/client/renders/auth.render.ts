@@ -112,7 +112,6 @@ export class AuthRender {
 		const buttonContainer = document.createElement('div');
 		buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-		// Create buttons with gaming theme
 		const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue');
 		const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple');
 
@@ -254,19 +253,19 @@ export class AuthRender {
 
 			// Modal
 			const modal = CommonComponent.createContainer(`
-		bg-white/90 backdrop-blur-md
-		border-2 border-black
-		rounded-xl p-12 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-		max-w-md w-full mx-1 text-center
-		`);
+				bg-white/90 backdrop-blur-md
+				border-2 border-black
+				rounded-xl p-12 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+				max-w-md w-full mx-1 text-center
+				`);
 
 			const title = CommonComponent.createHeading('Enable Two-Factor Authentication', 2, `
-        font-['Canada-big'] uppercase font-bold
-        text-xl text-center mb-2
-        bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
-        bg-clip-text text-transparent
-        select-none
-      `);
+				font-['Canada-big'] uppercase font-bold
+				text-xl text-center mb-2
+				bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+				bg-clip-text text-transparent
+				select-none
+			`);
 			title.style.letterSpacing = "0.1em";
 			modal.appendChild(title);
 

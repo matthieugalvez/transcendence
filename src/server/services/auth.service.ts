@@ -76,8 +76,8 @@ export class AuthService {
 		if (!user) throw new Error('User not found');
 
 		if (user.twoFAEnabled) {
-        	throw new Error('2FA is already enabled for this user');
-    	}
+			throw new Error('2FA is already enabled for this user');
+		}
 
 		const issuer = 'Transcendence';
 		const label = `${issuer}:${user.name}`;

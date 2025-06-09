@@ -6,6 +6,7 @@ import { AuthComponent } from '../components/auth.component';
 
 
 export class OnboardingRender {
+	
 	static async render(): Promise<void> {
 		document.title = 'Transcendence - Home';
 		document.body.innerHTML = '';
