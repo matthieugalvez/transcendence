@@ -98,11 +98,11 @@ static async loginUser(name: string, password: string, twoFACode?: string): Prom
 	}
 
 	// 2. Show QR code as a link in an alert (or render in modal for better UX)
-const code = await AuthRender.show2FASetupModal(data.data.qrCodeDataURL, data.data.secret);
-  if (!code) {
-    CommonComponent.showMessage('❌ You must enter a code to enable 2FA.', 'error');
-    return;
-  }
+	const code = await AuthRender.show2FASetupModal(data.data.qrCodeDataURL, data.data.secret);
+	if (!code) {
+		CommonComponent.showMessage('❌ You must enter a code to enable 2FA.', 'error');
+		return;
+	}
 
 	// 4. Handle verification
 	const verifyData = await AuthService.verify2FA(code);

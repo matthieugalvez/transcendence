@@ -17,7 +17,6 @@ export class CommonComponent {
 
     // Apply consistent typography to match your auth page
     message.className = `
-      font-['Orbitron']
       ${type === 'success' ? 'text-green-600' : 'text-red-600'}
       font-semibold mt-2 text-center
     `.replace(/\s+/g, ' ').trim();

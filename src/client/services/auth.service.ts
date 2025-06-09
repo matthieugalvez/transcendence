@@ -83,28 +83,40 @@ export class AuthService {
 	}
 
 	static async setup2FA(): Promise<any> {
-		const res = await fetch('/api/auth/2fa/setup', {
-			method: 'POST',
-			credentials: 'include'
-		});
-		return res.json();
+		try {
+			const res = await fetch('/api/auth/2fa/setup', {
+				method: 'POST',
+				credentials: 'include'
+			});
+			return await res.json();
+		} catch (error) {
+			return { success: false, error: 'Error connecting to server' };
+		}
 	}
 
 	static async verify2FA(code: string): Promise<any> {
-		const res = await fetch('/api/auth/2fa/verify', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-			body: JSON.stringify({ token: code })
-		});
-		return res.json();
+		try {
+			const res = await fetch('/api/auth/2fa/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({ token: code })
+			});
+			return await res.json();
+		} catch (error) {
+			return { success: false, error: 'Error connecting to server' };
+		}
 	}
 
 	static async disable2FA(): Promise<any> {
-		const res = await fetch('/api/auth/2fa/disable', {
-			method: 'POST',
-			credentials: 'include'
-		});
-		return res.json();
+		try {
+			const res = await fetch('/api/auth/2fa/disable', {
+				method: 'POST',
+				credentials: 'include'
+			});
+			return await res.json();
+		} catch (error) {
+			return { success: false, error: 'Error connecting to server' };
+		}
 	}
 }
