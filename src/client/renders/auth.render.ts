@@ -137,8 +137,6 @@ export class AuthRender {
     };
   }
 
-  
-
   /**
    * Create message display container
    */
@@ -148,4 +146,195 @@ export class AuthRender {
     signupMsgDisplay.className = 'text-center mt-4';
     container.appendChild(signupMsgDisplay);
   }
+
+  // Place this outside your functions in AuthPage.ts
+
+static show2FAModal(): Promise<string | null> {
+  return new Promise((resolve) => {
+    // Create overlay with blur
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.35)';
+    overlay.style.backdropFilter = 'blur(6px)'; // Add blur effect
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.zIndex = '1000';
+
+    // Create modal container using CommonComponent
+const modal = CommonComponent.createContainer(`
+  bg-white/90 backdrop-blur-md
+  border-2 border-black
+  rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+  max-w-md w-full mx-4 text-center
+`);
+
+    // Title
+    const title = CommonComponent.createHeading('Two-Factor Authentication', 2, `
+      font-['Canada-big'] uppercase font-bold
+      text-xl text-center mb-2
+      bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+      bg-clip-text text-transparent
+      select-none
+    `);
+    title.style.letterSpacing = "0.1em";
+    modal.appendChild(title);
+
+    // Input
+    const input = CommonComponent.createInput('text', 'Enter your 2FA code');
+    input.id = 'twofa-code-input';
+    input.style.marginTop = '1rem';
+    modal.appendChild(input);
+
+    // Error message
+    const msg = document.createElement('div');
+    msg.id = 'twofa-modal-msg';
+    msg.className = 'text-red-600 font-semibold mt-2 text-center';
+    modal.appendChild(msg);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'flex gap-4 justify-center mt-6';
+
+    const submitButton = CommonComponent.createStylizedButton('Submit', 'blue');
+    const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+    buttonContainer.appendChild(submitButton);
+    buttonContainer.appendChild(cancelButton);
+    modal.appendChild(buttonContainer);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Event listeners
+    submitButton.addEventListener('click', () => {
+      const code = input.value.trim();
+      if (!code) {
+        msg.textContent = 'Please enter your 2FA code.';
+        return;
+      }
+      document.body.removeChild(overlay);
+      resolve(code);
+    });
+
+    cancelButton.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      resolve(null);
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+        resolve(null);
+      }
+    });
+
+    input.focus();
+  });
+}
+
+  static show2FASetupModal(qrCodeDataURL: string, secret: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      // Overlay with blur
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100vw';
+      overlay.style.height = '100vh';
+      overlay.style.background = 'rgba(0,0,0,0.35)';
+      overlay.style.backdropFilter = 'blur(6px)';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.zIndex = '1000';
+
+      // Modal
+		const modal = CommonComponent.createContainer(`
+		bg-white/90 backdrop-blur-md
+		border-2 border-black
+		rounded-xl p-12 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+		max-w-md w-full mx-1 text-center
+		`);
+
+      const title = CommonComponent.createHeading('Enable Two-Factor Authentication', 2, `
+        font-['Canada-big'] uppercase font-bold
+        text-xl text-center mb-2
+        bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+        bg-clip-text text-transparent
+        select-none
+      `);
+      title.style.letterSpacing = "0.1em";
+      modal.appendChild(title);
+
+      // QR code
+      const qrImg = document.createElement('img');
+      qrImg.src = qrCodeDataURL;
+      qrImg.alt = '2FA QR Code';
+      qrImg.style.width = '160px';
+      qrImg.style.height = '160px';
+      qrImg.style.margin = '1rem auto';
+      modal.appendChild(qrImg);
+
+    //   // Secret (optional)
+    //   const secretDiv = document.createElement('div');
+    //   secretDiv.textContent = `Secret: ${secret}`;
+    //   secretDiv.className = 'text-xs text-gray-700 mt-2 mb-2 select-all';
+    //   modal.appendChild(secretDiv);
+
+      // Input
+      const input = CommonComponent.createInput('text', 'Enter your 2FA Code');
+      input.id = 'twofa-setup-code-input';
+      input.style.marginTop = '1rem';
+      modal.appendChild(input);
+
+      // Error message
+      const msg = document.createElement('div');
+      msg.id = 'twofa-setup-msg';
+      msg.className = 'text-red-600 font-semibold mt-2 text-center';
+      modal.appendChild(msg);
+
+      // Buttons
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'flex gap-4 justify-center mt-6';
+
+      const submitButton = CommonComponent.createStylizedButton('Verify', 'blue');
+      const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+      buttonContainer.appendChild(submitButton);
+      buttonContainer.appendChild(cancelButton);
+      modal.appendChild(buttonContainer);
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      submitButton.addEventListener('click', () => {
+        const code = input.value.trim();
+        if (!code) {
+          msg.textContent = 'You must enter a code to enable 2FA.';
+          return;
+        }
+        document.body.removeChild(overlay);
+        resolve(code);
+      });
+
+      cancelButton.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        resolve(null);
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          resolve(null);
+        }
+      });
+
+      input.focus();
+    });
+  }
+
+
 }

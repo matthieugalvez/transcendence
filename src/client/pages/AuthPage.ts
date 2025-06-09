@@ -81,33 +81,29 @@ async function onSignupClick(): Promise<void> {
  * Handle login button click - includes navigation logic
  */
 
-async function onLoginClick(): Promise<void> {
-  const name = nameInput.value.trim();
-  const password = passwordInput.value.trim();
+	async function onLoginClick(): Promise<void> {
+	const name = nameInput.value.trim();
+	const password = passwordInput.value.trim();
 
-  if (!AuthComponent.validateInput(name, password)) {
-    return;
-  }
+	if (!AuthComponent.validateInput(name, password)) {
+		return;
+	}
 
-  // Try login without 2FA code first
-  let loginResponse = await AuthComponent.loginUser(name, password);
+	// Try login without 2FA code first
+	let loginResponse = await AuthComponent.loginUser(name, password);
 
-  // If 2FA is required, prompt for code and retry
-  if (loginResponse && loginResponse.error === '2FA Code is missing') {
-    const twoFACode = prompt('Enter your 2FA code:');
-    if (!twoFACode) return;
+	// If 2FA is required, prompt for code and retry
+	if (loginResponse && loginResponse.error === '2FA Code is missing') {
+		const twoFACode = await AuthRender.show2FAModal();
+		if (!twoFACode) return;
 
-    // Retry login with 2FA code
-    loginResponse = await AuthComponent.loginUser(name, password, twoFACode);
-  }
+		// Retry login with 2FA code
+		loginResponse = await AuthComponent.loginUser(name, password, twoFACode);
+	}
 
-  if (loginResponse && loginResponse.success) {
-    setTimeout(() => {
-      router.navigate('/home');
-    }, 500);
-  } else if (loginResponse && loginResponse.error) {
-    // Show error message under the login button or as a toast
-    // You can use your CommonComponent.showMessage here if you want
-    alert(loginResponse.error);
-  }
+	if (loginResponse && loginResponse.success) {
+		setTimeout(() => {
+		router.navigate('/home');
+		}, 500);
+	} 
 }

@@ -42,7 +42,4 @@ export default async function authRoutes(fastify: FastifyInstance) {
     preHandler: AuthMiddleware.authenticateUser
   }, AuthController.disable2FA);
 
-//   fastify.post('/2fa/enable', {
-//   preHandler: AuthMiddleware.authenticateUser
-//   }, AuthController.enable2FA);
 }

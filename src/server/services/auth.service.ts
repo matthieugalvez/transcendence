@@ -72,7 +72,15 @@ export class AuthService {
   //api/2fa/setup
 
   static async generate2FASecret(userId: number) {
-	const secret = speakeasy.generateSecret();
+	const user = await prisma.user.findUnique({ where: { id: userId } });
+	if (!user) throw new Error('User not found');
+
+	const issuer = 'Transcendence';
+	const label = `${issuer}:${user.name}`;
+	const secret = speakeasy.generateSecret({
+		name: label,
+		issuer: issuer,
+	});
 	await prisma.user.update({
 		where: {id:userId},
 		data: {twoFASecret: secret.base32}
