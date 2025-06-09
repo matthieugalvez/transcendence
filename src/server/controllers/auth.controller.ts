@@ -93,6 +93,8 @@ export class AuthController {
 	  if (!is2FAValid) {
 		return Send.unauthorized(reply, 'Invalid 2FA Code');
 	  }
+	  await AuthService.enable2FA(user.id);
+	  //Send.success(reply, null, '2FA enabled successfully');
 	}
 
       // Generate JWT tokens
@@ -256,22 +258,23 @@ export class AuthController {
   /**
    * Setup 2FA: generate secret and QR code for user
    */
-  static async setup2FA(request: FastifyRequest, reply: FastifyReply) {
+static async setup2FA(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = (request as any).userId;
-    console.log(userId);
-      if (!userId)
-		return Send.unauthorized(reply, 'Authentication required');
+        const userId = (request as any).userId;
+        if (!userId)
+            return Send.unauthorized(reply, 'Authentication required');
 
-      // Generate secret and QR code
-      const { secret, otpAuthUrl, qrCodeDataURL } = await AuthService.generate2FASecret(userId);
-
-      return Send.success(reply, { secret, otpAuthUrl, qrCodeDataURL }, '2FA setup initiated');
+        try {
+            const { secret, otpAuthUrl, qrCodeDataURL } = await AuthService.generate2FASecret(userId);
+            return Send.success(reply, { secret, otpAuthUrl, qrCodeDataURL }, '2FA setup initiated');
+        } catch (err: any) {
+            return Send.badRequest(reply, err.message || '2FA setup failed');
+        }
     } catch (error) {
-      console.error('2FA setup error:', error);
-      return Send.internalError(reply, 'Failed to setup 2FA');
+        console.error('2FA setup error:', error);
+        return Send.internalError(reply, 'Failed to setup 2FA');
     }
-  }
+}
 
   /**
    * Verify 2FA code and enable 2FA for user

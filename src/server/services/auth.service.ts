@@ -75,6 +75,10 @@ export class AuthService {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user) throw new Error('User not found');
 
+		if (user.twoFAEnabled) {
+        	throw new Error('2FA is already enabled for this user');
+    	}
+
 		const issuer = 'Transcendence';
 		const label = `${issuer}:${user.name}`;
 		const secret = speakeasy.generateSecret({
