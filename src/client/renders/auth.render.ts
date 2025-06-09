@@ -137,6 +137,8 @@ export class AuthRender {
     };
   }
 
+  
+
   /**
    * Create message display container
    */
