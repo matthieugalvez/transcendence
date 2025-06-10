@@ -15,7 +15,7 @@ export class AuthRender {
     loginButton: HTMLButtonElement;
   } {
     // Set document title and body styles to match HomePage
- document.title = 'Transcendence - Authentication';
+ document.title = 'Transcendence - Authentication'; // i18n var: Authpage_title
     document.body.innerHTML = '';
 
     // Apply centered gradient layout using BackgroundComponent
@@ -64,7 +64,7 @@ export class AuthRender {
    */
   private static createPageTitle(container: HTMLElement): void {
     const title = document.createElement('h1');
-    title.textContent = 'Enter the Game';
+    title.textContent = 'Enter the Game'; // i18n var: Authpage_box_title
     title.className = `
       font-['Canada-big'] uppercase font-bold
       text-3xl text-center mb-2
@@ -76,7 +76,7 @@ export class AuthRender {
 
     // Subtitle
     const subtitle = document.createElement('p');
-    subtitle.textContent = 'Join the ultimate ping pong experience';
+    subtitle.textContent = 'Join the ultimate ping pong experience'; // i18n var: Authpage_box_subtitle
     subtitle.className = `
       font-['Orbitron'] text-center text-gray-600
       text-sm font-medium mb-6
@@ -100,20 +100,20 @@ export class AuthRender {
     inputContainer.className = 'text-center mb-6';
 
     // Name input and label with gaming theme
-    const nameLabel = CommonComponent.createLabel('Nickname');
-    const nameInput = CommonComponent.createInput('text', 'Enter your nickname');
+    const nameLabel = CommonComponent.createLabel('Nickname'); // i18n var: Authpage_name_label
+    const nameInput = CommonComponent.createInput('text', 'Enter your nickname'); // i18n var: Authpage_name_input
 
     // Password input and label with gaming theme
-    const passwordLabel = CommonComponent.createLabel('Password');
-    const passwordInput = CommonComponent.createInput('password', 'Enter your password');
+    const passwordLabel = CommonComponent.createLabel('Password'); // i18n var: Authpage_password_label
+    const passwordInput = CommonComponent.createInput('password', 'Enter your password'); // i18n var: Authpage_password_label
 
     // Button container
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
     // Create buttons with gaming theme
-    const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue');
-    const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple');
+    const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue'); // i18n var: Authpage_login_button
+    const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple'); // i18n var: Authpage_signup_button
 
     // Append buttons to container
     buttonContainer.appendChild(loginButton);

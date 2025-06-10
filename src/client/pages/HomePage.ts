@@ -8,8 +8,8 @@ import bgEffect from '../assets/effects/otis-redding.png';
 import { BackgroundComponent } from '../components/background.component';
 
 export function renderHomePage(): void {
-  document.title = "Transcendence - Homepage";
-  document.body.innerHTML = '';
+	document.title = "Transcendence - Homepage"; // i18n var: Homepage_title
+	document.body.innerHTML = '';
 
   BackgroundComponent.applyNormalGradientLayout();
 
@@ -134,7 +134,7 @@ export function renderHomePage(): void {
   });
 
   const userText = document.createElement('p');
-  userText.textContent = '1000+ Players';
+  userText.textContent = '1000+ Players'; // i18n var: Homepage_player_count
   userText.className = 'text-sm font-medium ml-3';
 
   users.appendChild(userpic);
@@ -143,15 +143,13 @@ export function renderHomePage(): void {
   // —————————————————————————————————————————
   //  KEYWORDS/STATS
   // —————————————————————————————————————————
-  const keywords = document.createElement('div');
-  keywords.className = 'flex flex-col items-end text-right';
+	const	keywords = document.createElement('div');
+	keywords.className = 'flex flex-col items-end text-right';
 
-  const keywordText = document.createElement('p');
-  keywordText.innerHTML = `
-    <span class="block text-lg font-bold">Fast-Paced</span>
-    <span class="block text-lg font-bold">Competitive</span>
-    <span class="block text-lg font-bold">Multiplayer</span>
-  `;
+	const	keywordText = document.createElement('p');
+	keywordText.innerHTML = `
+		<span class="block text-lg font-bold">Fast-Paced<br>Competitive<br>Multiplayer</span>` // i18n var: Homepage_description
+	;
   keywords.appendChild(keywordText);
 
   little.appendChild(users);

@@ -7,7 +7,7 @@ export class AuthComponent {
    */
   static async signupUser(name: string, password: string): Promise<boolean> {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
       return false;
     }
 
@@ -27,7 +27,7 @@ export class AuthComponent {
    */
   static async loginUser(name: string, password: string): Promise<boolean> {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
       return false;
     }
 
@@ -37,7 +37,7 @@ export class AuthComponent {
       CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
       return true;
     } else {
-      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error'); // i18n var: Authpage_error_login_failed
       return false;
     }
   }
@@ -52,7 +52,7 @@ export class AuthComponent {
       CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
       return true;
     } else {
-      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
+      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error'); // i18n var: Authpage_error_login_failed
       return false;
     }
   }
@@ -61,7 +61,7 @@ export class AuthComponent {
    * Handle authentication errors with validation details
    */
   private static handleAuthError(apiResponseData: any): void {
-    let errorMessage = apiResponseData.error || 'Registration failed';
+    let errorMessage = apiResponseData.error || 'Registration failed'; // i18n var: Authpage_error_registration_failed
 
     if (apiResponseData.details && apiResponseData.details.length > 0) {
       const validationErrors = apiResponseData.details
@@ -82,7 +82,7 @@ export class AuthComponent {
    */
   static validateInput(name: string, password: string): boolean {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
       return false;
     }
     return true;

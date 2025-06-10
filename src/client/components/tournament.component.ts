@@ -10,7 +10,7 @@ export class TournamentComponent {
     // Check if all names are filled
     for (const name of playerNames) {
       if (!name.trim()) {
-        alert('Please enter names for all 4 players');
+        alert('Please enter names for all 4 players'); // i18n var: Tournamentpage_error_empty_name
         return false;
       }
     }
@@ -18,7 +18,7 @@ export class TournamentComponent {
     // Check for duplicate names
     const uniqueNames = new Set(playerNames);
     if (uniqueNames.size !== playerNames.length) {
-      alert('All players must have different names');
+      alert('All players must have different names'); // i18n var: Tournamentpage_error_different_name
       return false;
     }
 
@@ -53,7 +53,7 @@ export class TournamentComponent {
       }
 
       const [leftAlias, rightAlias] = matchups[i];
-      const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
+      const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`; // i18n var: Tournamentpage_match
 
       // Render match container
       const gameContainer = TournamentRender.renderTournamentMatch(matchTitle);
@@ -65,7 +65,7 @@ export class TournamentComponent {
         // Display the game ID for the match
         const gameIdElement = document.createElement('div');
         gameIdElement.className = 'text-sm text-gray-600 mb-4 text-center';
-        gameIdElement.textContent = `Game ID: ${gameId}`;
+        gameIdElement.textContent = `Game ID: ${gameId}`; // i18n var: Tournamentpage_gameID
         gameContainer.appendChild(gameIdElement);
 
         // Start the match
@@ -86,7 +86,7 @@ export class TournamentComponent {
       } catch (error) {
         console.error('Error starting tournament match:', error);
         const errMsg = document.createElement('p');
-        errMsg.textContent = 'Erreur serveur, réessayez plus tard';
+        errMsg.textContent = 'Server error, please try again later'; // i18n var: Tournamentpage_error_server
         errMsg.className = 'text-red-600';
         document.body.appendChild(errMsg);
         return;

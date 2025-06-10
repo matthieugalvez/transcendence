@@ -3,7 +3,7 @@ import { BackgroundComponent } from '../components/background.component';
 import { startPongInContainer } from './game/utils';
 
 export function renderGamePage() {
-  document.title = 'Transcendance - Pong';
+  document.title = 'Transcendence - Pong';
   BackgroundComponent.applyNormalGradientLayout();
 
   // 1) Conteneur principal centré
@@ -19,14 +19,13 @@ export function renderGamePage() {
   // 3) Appeler l’utilitaire pour ouvrir la WebSocket et démarrer le rendu
   startPongInContainer(
     container,
-    'Player 1 vs Player 2',
     'Player 1',
     'Player 2',
     (winnerAlias: string) => {
       // Ici on efface et on affiche le message final
       container.innerHTML = '';
       const msg = document.createElement('h2');
-      msg.textContent = `Le gagnant est : ${winnerAlias} !`;
+      msg.textContent = `The winner is : ${winnerAlias} !`; //i18n var: Gamepage_winner
       msg.className = 'text-3xl font-bold text-center mt-8';
       container.appendChild(msg);
     },

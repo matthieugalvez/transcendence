@@ -53,7 +53,7 @@ export function renderNotFoundPage(): void {
 
     // 3) Sous-texte explicatif
     const subtitle = document.createElement('p');
-    subtitle.textContent = `We're sorry, the page you're looking for couldn't be found.`;
+    subtitle.textContent = `We're sorry, the page you're looking for couldn't be found.`; // i18n var: 404_error_message
     subtitle.className = `
         font-['Orbitron']
         text-gray-200 text-lg mt-2 text-center
@@ -68,7 +68,7 @@ export function renderNotFoundPage(): void {
     btnContainer.className = 'mt-8 flex justify-center';
 
     const goHomeBtn = document.createElement('button');
-    goHomeBtn.textContent = 'Go Home';
+    goHomeBtn.textContent = 'Go Home'; // i18n var: 404_backhome_button
     goHomeBtn.className = `
         font-['Orbitron']
         bg-blue-500 hover:bg-blue-700 text-white font-semibold

@@ -86,7 +86,7 @@ function startClientLoop(
  * Affiche "<winnerAlias> a gagné !" au centre du canvas.
  */
 export function renderWinner(ctx: CanvasRenderingContext2D, winnerAlias: string) {
-  const text = `${winnerAlias} a gagné !`;
+  const text = `${winnerAlias} won!`; // i18n var: Ingamepage_winner
   ctx.fillStyle = '#FFD700';
   ctx.font = '50px Arial';
   const wm = ctx.measureText(text).width;
@@ -98,7 +98,6 @@ export function renderWinner(ctx: CanvasRenderingContext2D, winnerAlias: string)
  */
 export function startPongInContainer(
     container: HTMLDivElement,
-    matchTitle: string,
     leftPlayer: string,
     rightPlayer: string,
     onFinish: FinishCallback,
@@ -106,7 +105,7 @@ export function startPongInContainer(
 ) {
     // 1) Titre du match
     const title = document.createElement('h2');
-    title.textContent = matchTitle;
+    title.textContent = `${leftPlayer} vs ${rightPlayer}`;
     title.className = 'text-2xl font-semibold text-center mt-8 mb-4';
     container.appendChild(title);
 

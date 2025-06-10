@@ -7,7 +7,7 @@ import { AuthComponent } from '../components/auth.component';
 
 export class OnboardingRender {
   static async render(): Promise<void> {
-    document.title = 'Transcendence - Home';
+    document.title = 'Transcendence - Home'; // i18n var: Onboardingpage_title
     document.body.innerHTML = '';
 
     // Apply centered gradient layout using BackgroundComponent
@@ -28,7 +28,7 @@ export class OnboardingRender {
       this.renderMainContent(userData.name);
 
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      console.error('Failed to fetch user data:', error); // i18n var: Onboardingpage_error_fetch_data
 
       // Remove loading container
       loadingContainer.remove();
@@ -48,7 +48,7 @@ export class OnboardingRender {
     `.replace(/\s+/g, ' ').trim();
 
     const loadingText = document.createElement('p');
-    loadingText.textContent = 'Loading...';
+    loadingText.textContent = 'Loading...'; // i18n var: Onboardingpage_loading
     loadingText.className = `
       font-['Orbitron'] text-center text-gray-600
       text-lg font-medium
@@ -70,7 +70,7 @@ export class OnboardingRender {
 
     // Welcome title with user's name
     const pageTitle = document.createElement('h1');
-    pageTitle.textContent = `Welcome ${userName}!`;
+    pageTitle.textContent = `Welcome ${userName}!`; // i18n var: Onboardingpage_welcome
     pageTitle.className = `
       font-['Canada-big'] uppercase font-bold
       text-4xl text-center mb-2
@@ -82,7 +82,7 @@ export class OnboardingRender {
 
     // Subtitle
     const subtitle = document.createElement('p');
-    subtitle.textContent = 'Choose your game mode';
+    subtitle.textContent = 'Choose your game mode'; // i18n var: Onboardingpage_box_subtitle
     subtitle.className = `
       font-['Orbitron'] text-center text-gray-600
       text-sm font-medium mb-8
@@ -94,26 +94,26 @@ export class OnboardingRender {
     buttonContainer.className = 'flex flex-col gap-4 justify-center';
 
     // Play button
-    const playButton = CommonComponent.createStylizedButton('Play', 'blue');
+    const playButton = CommonComponent.createStylizedButton('Play', 'blue'); // i18n var: Onboardingpage_play_button
     playButton.addEventListener('click', () => {
       router.navigate('/game');
     });
 
     // Tournament button
-    const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple');
+    const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple'); // i18n var: Onboardingpage_tournament_button
     tournamentButton.addEventListener('click', () => {
       router.navigate('/tournament');
     });
 
     // Back to home button
-    const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
+    const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray'); // i18n var: Onboardingpage_backhome_button
     backButton.addEventListener('click', () => {
       router.navigate('/');
     });
 
 
 	    // Logout button
-    const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
+    const logoutButton = CommonComponent.createStylizedButton('Logout', 'red'); // i18n var: Onboardingpage_logout_button
     logoutButton.addEventListener('click', async () => {
       const success = await AuthComponent.logoutUser();
       if (success) {
@@ -156,10 +156,10 @@ export class OnboardingRender {
     `.replace(/\s+/g, ' ').trim();
 
     const errorText = document.createElement('p');
-    errorText.textContent = 'Authentication required';
+    errorText.textContent = 'Authentication required'; // i18n var: Onboardingpage_error_authrequired
     errorText.className = 'text-red-600 font-semibold mb-4';
 
-    const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
+    const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue'); // i18n var: Onboarding_login_button
     loginButton.addEventListener('click', () => {
       router.navigate('/auth');
     });

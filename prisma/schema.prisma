@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  name          String        @unique
-  password_hash String
-  refreshToken  String?
-  created_at    DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id			Int			@id	@default(autoincrement())
+  name			String		@unique
+  password_hash	String
+  refreshToken	String?
+  language		String		@default("eng")
+  created_at	DateTime	@default(now())
+  updatedAt		DateTime	@updatedAt
 
   // Relations
   player1_sessions GameSession[] @relation("Player1Sessions")
