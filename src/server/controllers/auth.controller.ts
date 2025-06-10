@@ -4,6 +4,7 @@ import { ResponseUtils as Send } from '../utils/response.utils'
 import jwt from 'jsonwebtoken'
 import authConfig from '../config/auth.config'
 import { AuthService } from '../services/auth.service'
+import OAuth2 , { OAuthNamespace } from "@fastify/oauth2";
 
 export class AuthController {
 	static async signup(request: FastifyRequest, reply: FastifyReply) {
@@ -315,18 +316,13 @@ export class AuthController {
 		}
 	}
 
-	//     static async enable2FA(request: FastifyRequest, reply: FastifyReply) {
-	//     try {
-	//       const userId = (request as any).userId;
-	//       if (!userId) return Send.unauthorized(reply, 'Authentication required');
 
-	//       await AuthService.enable2FA(userId);
-	//       return Send.success(reply, null, '2FA enabled successfully');
-	//     } catch (error) {
-	//       console.error('2FA disable error:', error);
-	//       return Send.internalError(reply, 'Failed to enable 2FA');
-	//     }
-	//   }
+	// GOOGLE
 
-	// ...existing code...
+	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
+		return Send.success(reply, null, 'Google signin endpoint');
+	}
+
+
+
 }

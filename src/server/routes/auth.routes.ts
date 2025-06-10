@@ -3,11 +3,9 @@ import authSchema from '../validations/auth.schema'
 import ValidationMiddleware from '../middlewares/validation.middleware'
 import { AuthController } from '../controllers/auth.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
-import cookie from '@fastify/cookie'
 
 export default async function authRoutes(fastify: FastifyInstance) {
 	// Register cookie plugin
-	await fastify.register(cookie)
 
 	// PUBLIC ROUTES
 	fastify.post('/signup', {
@@ -42,4 +40,17 @@ export default async function authRoutes(fastify: FastifyInstance) {
 		preHandler: AuthMiddleware.authenticateUser
 	}, AuthController.disable2FA);
 
+	fastify.post('/google', {
+        preHandler: AuthMiddleware.authenticateUser
+    }, AuthController.googleSignin);
+
 }
+
+
+// export async function googleRoutes(fastify: FastifyInstance) {
+// fastify.get('/oauth2/google/callback', async (request, reply) => {
+//     const token = await fastify.googleOAuth2Options.getAccessTokenFromAuthorizationCodeFlow(request);
+//     // ...handle user info, session, etc.
+// });
+// }
+

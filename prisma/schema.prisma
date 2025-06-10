@@ -19,6 +19,10 @@ model User {
   twoFASecret	String? // base 32 secret for TOTP
   twoFAEnabled	Boolean		@default(false)
 
+  // Google OAuth
+
+  isOAuthUser	Boolean		@default(false)
+
   // Relations
   player1_sessions GameSession[] @relation("Player1Sessions")
   player2_sessions GameSession[] @relation("Player2Sessions")

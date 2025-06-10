@@ -3,6 +3,7 @@ import { CommonComponent } from '../components/common.component';
 
 import { BackgroundComponent } from '../components/background.component';
 import { AuthService } from '../services/auth.service';
+import { GoogleService} from '../services/google.service'
 
 
 export class AuthRender {
@@ -115,6 +116,7 @@ export class AuthRender {
 
 		const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue');
 		const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple');
+		const googleButton = CommonComponent.createStylizedButton('GOOGLE SIGNIN', 'blue');
 
 		// Append buttons to container
 		buttonContainer.appendChild(loginButton);
@@ -126,6 +128,12 @@ export class AuthRender {
 		inputContainer.appendChild(passwordLabel);
 		inputContainer.appendChild(passwordInput);
 		inputContainer.appendChild(buttonContainer);
+		inputContainer.appendChild(googleButton);
+
+		googleButton.addEventListener('click', () => {
+				console.log('Clicked on google signin');
+				GoogleService.signin;
+		});
 
 		container.appendChild(inputContainer);
 
