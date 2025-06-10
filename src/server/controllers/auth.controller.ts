@@ -86,9 +86,6 @@ export class AuthController {
 			}
 
 			if (user.twoFAEnabled) {
-				// if (!twoFACode) {
-				// 	return Send.unauthorized(reply, '2FA Code is missing');
-				// }
 				const is2FAValid = await AuthService.verify2FACode(user.id, twoFACode)
 				if (!is2FAValid) {
 					return Send.unauthorized(reply, 'Invalid 2FA Code');

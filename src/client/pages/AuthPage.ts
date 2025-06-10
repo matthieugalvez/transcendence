@@ -3,6 +3,7 @@ import { router } from '../configs/simplerouter';
 import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
 import { ApiClient } from '../utils/apiclient.utils';
+import { CommonComponent } from '../components/common.component';
 
 let nameInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;
@@ -86,28 +87,31 @@ async function onLoginClick(): Promise<void> {
 
     let loginResponse = await AuthComponent.loginUser(name, password);
 
-    // Only open 2FA modal if the backend says 2FA is required
     if (
         loginResponse &&
         (loginResponse.error === '2FA Code is missing' || loginResponse.error === 'Invalid 2FA Code')
     ) {
-        // Only show "2FA Code is missing" as initial error, never "Invalid 2FA Code"
         let initialError = loginResponse.error === '2FA Code is missing' ? loginResponse.error : undefined;
         await AuthRender.show2FAModal(async (code, setError) => {
             const response = await AuthComponent.loginUser(name, password, code);
             if (response && response.success) {
+                CommonComponent.showMessage('✅ ' + (response.message || 'Login successful'), 'success');
                 setTimeout(() => {
                     router.navigate('/home');
                 }, 500);
                 return true; // Close modal
             } else if (response && response.error) {
-                setError(response.error); // Show backend error in modal
-                return false; // Keep modal open
+                setError(response.error);
+                return false;
             }
             return false;
         }, initialError);
+    } else if (loginResponse && loginResponse.success) {
+        CommonComponent.showMessage('✅ ' + (loginResponse.message || 'Login successful'), 'success');
+        setTimeout(() => {
+            router.navigate('/home');
+        }, 500);
     } else if (loginResponse && loginResponse.error) {
-        // Show error on page for invalid credentials or other errors
         CommonComponent.showMessage(`❌ ${loginResponse.error}`, 'error');
     }
 }

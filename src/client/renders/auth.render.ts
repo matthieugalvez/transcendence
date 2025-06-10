@@ -175,6 +175,7 @@ export class AuthRender {
       rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
       max-w-md w-full mx-4 text-center
     `);
+	modal.id = 'twofa-modal';
 
 			// Title
 			const title = CommonComponent.createHeading('Two-Factor Authentication', 2, `

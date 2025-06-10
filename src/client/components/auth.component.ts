@@ -26,30 +26,34 @@ export class AuthComponent {
 	/**
 	 * Login user with API call and UI feedback
 	 */
-	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
-		if (!AuthService.validateInput(name, password)) {
-			// Only show if modal is not open
-			if (!document.getElementById('twofa-modal-msg')) {
-				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-			}
-			return false;
-		}
+static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+    if (!AuthService.validateInput(name, password)) {
+        // Only show if modal is not open
+        if (!document.getElementById('twofa-modal-msg')) {
+            CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+        }
+        return false;
+    }
 
-		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
+    const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
 
-		if (apiResponseData.success) {
-			if (!document.getElementById('twofa-modal-msg')) {
-				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-			}
-			return apiResponseData;
-		} else {
-			// Only show if modal is not open
-			if (!document.getElementById('twofa-modal-msg')) {
-				CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
-			}
-			return apiResponseData;
-		}
-	}
+    if (apiResponseData.success) {
+        if (!document.getElementById('twofa-modal')) {
+            CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+        }
+        return apiResponseData;
+    } else {
+        // Only show non-2FA errors on the main page
+        const twoFAErrors = ['2FA Code is missing', 'Invalid 2FA Code'];
+        if (
+            !document.getElementById('twofa-modal') &&
+            !twoFAErrors.includes(apiResponseData.error)
+        ) {
+            CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+        }
+        return apiResponseData;
+    }
+}
 
 	/**
 	 * Logout user with API call and UI feedback
