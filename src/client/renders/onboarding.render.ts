@@ -111,7 +111,6 @@ export class OnboardingRender {
       router.navigate('/');
     });
 
-
 	    // Logout button
     const logoutButton = CommonComponent.createStylizedButton('Logout', 'red'); // i18n var: Onboardingpage_logout_button
     logoutButton.addEventListener('click', async () => {
@@ -124,7 +123,20 @@ export class OnboardingRender {
       }
     });
 
-
+    const languageInput = CommonComponent.createInput('language', 'Select a language'); // i18n var: Onboardingpage_language_button
+    languageInput.addEventListener('keypress', async function(event) {
+		if (event.key == "Enter")
+			{
+  				const language = languageInput.value.trim();
+				const success = await AuthComponent.languageUser(language);
+			  if (success) {
+				// Redirect to auth page after successful language
+				setTimeout(() => {
+				  router.navigate('/game');
+				}, 1000);
+			  }
+			}
+    });
 
     // Add emoji decorations
     const gameEmoji = document.createElement('div');
@@ -136,6 +148,7 @@ export class OnboardingRender {
     buttonContainer.appendChild(tournamentButton);
     buttonContainer.appendChild(backButton);
 	buttonContainer.appendChild(logoutButton);
+	buttonContainer.appendChild(languageInput);
 
     mainContainer.appendChild(gameEmoji);
     mainContainer.appendChild(pageTitle);

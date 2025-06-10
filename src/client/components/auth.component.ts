@@ -57,6 +57,18 @@ export class AuthComponent {
     }
   }
 
+  static async languageUser(language: string): Promise<boolean> {
+    const apiResponseData = await AuthService.languageUser(language);
+
+    if (apiResponseData.success) {
+      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+      return true;
+    } else {
+      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'language failed'}`, 'error'); // i18n var: Authpage_error_language_failed
+      return false;
+    }
+  }
+
   /**
    * Handle authentication errors with validation details
    */

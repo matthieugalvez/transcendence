@@ -75,6 +75,30 @@ export class AuthService {
     }
   }
 
+  static async languageUser(language: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const response = await fetch('/api/users/me/:language', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for authentication
+        body: JSON.stringify({ language })
+      });
+
+      const apiResponseData = await response.json();
+      console.log('language response:', apiResponseData);
+
+      return apiResponseData;
+    } catch (error) {
+      console.error('Error language:', error);
+      return {
+        success: false,
+        error: 'Error connecting to server'
+      };
+    }
+  }
+
   /**
    * Validate input fields
    */

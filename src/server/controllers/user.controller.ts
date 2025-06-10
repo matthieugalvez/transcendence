@@ -57,6 +57,7 @@ static async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
     const userData = {
       id: user.id,
       name: user.name,
+		language: user.language,
       created_at: user.created_at
     };
 
@@ -67,4 +68,19 @@ static async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
     return Send.internalError(reply, 'Failed to get current user');
   }
 }
+
+	static async	setUserLanguage(request: FastifyRequest, reply: FastifyReply) {
+		const { language } = request.body as { language: string };
+		const userId = (request as any).userId;
+		try {
+			if (userId) {
+				await UserService.setUserLanguage(userId, language);
+			}
+			return Send.success(reply, `User language changed to ${language}`);
+		}
+		catch (error) {
+			console.error(`Could not change language for ${userId.name}`, error);
+			return Send.internalError(reply, 'Failed to change language');
+		}
+	}
 }

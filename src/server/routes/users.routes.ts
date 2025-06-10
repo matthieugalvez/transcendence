@@ -20,4 +20,8 @@ export default async function userDataRoutes(fastify: FastifyInstance) {
   fastify.get('/me', {
     preHandler: AuthMiddleware.authenticateUser
   }, UserController.getCurrentUser)
+
+	fastify.post('/me/:language', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, UserController.setUserLanguage)
 }
