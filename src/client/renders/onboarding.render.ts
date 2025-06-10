@@ -6,7 +6,7 @@ import { AuthComponent } from '../components/auth.component';
 
 
 export class OnboardingRender {
-	
+
 	static async render(): Promise<void> {
 		document.title = 'Transcendence - Home';
 		document.body.innerHTML = '';
@@ -117,9 +117,6 @@ export class OnboardingRender {
 			router.navigate('/');
 		});
 
-
-
-
 		// Logout button
 		const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
 		logoutButton.addEventListener('click', async () => {
@@ -132,6 +129,7 @@ export class OnboardingRender {
 			}
 		});
 
+		// 2FA Settings buttons.
 		const Enable2FAButton = CommonComponent.createStylizedButton('Enable2FA', 'blue');
 		Enable2FAButton.addEventListener('click', async () => {
 			await AuthComponent.handle2FASetup();
@@ -139,11 +137,8 @@ export class OnboardingRender {
 
 		const Disable2FA = CommonComponent.createStylizedButton('Disable 2FA', 'red');
 		Disable2FA.addEventListener('click', async () => {
-			await AuthComponent.Disable2FA();
+			await AuthComponent.disable2FA();
 		});
-
-
-
 
 		// Add emoji decorations
 		const gameEmoji = document.createElement('div');

@@ -2,6 +2,7 @@ import logo from '../assets/logo.png';
 import { CommonComponent } from '../components/common.component';
 
 import { BackgroundComponent } from '../components/background.component';
+import { AuthService } from '../services/auth.service';
 
 
 export class AuthRender {
@@ -148,7 +149,10 @@ export class AuthRender {
 
 	// Place this outside your functions in AuthPage.ts
 
-	static show2FAModal(): Promise<string | null> {
+	static show2FAModal(
+		onVerify: (code: string, setError: (msg: string) => void) => Promise<boolean>,
+		initialErrorMsg?: string
+	): Promise<void> {
 		return new Promise((resolve) => {
 			// Create overlay with blur
 			const overlay = document.createElement('div');
@@ -158,7 +162,7 @@ export class AuthRender {
 			overlay.style.width = '100vw';
 			overlay.style.height = '100vh';
 			overlay.style.background = 'rgba(0,0,0,0.35)';
-			overlay.style.backdropFilter = 'blur(6px)'; // Add blur effect
+			overlay.style.backdropFilter = 'blur(6px)';
 			overlay.style.display = 'flex';
 			overlay.style.justifyContent = 'center';
 			overlay.style.alignItems = 'center';
@@ -166,11 +170,11 @@ export class AuthRender {
 
 			// Create modal container using CommonComponent
 			const modal = CommonComponent.createContainer(`
-  bg-white/90 backdrop-blur-md
-  border-2 border-black
-  rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-  max-w-md w-full mx-4 text-center
-`);
+      bg-white/90 backdrop-blur-md
+      border-2 border-black
+      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+      max-w-md w-full mx-4 text-center
+    `);
 
 			// Title
 			const title = CommonComponent.createHeading('Two-Factor Authentication', 2, `
@@ -193,6 +197,7 @@ export class AuthRender {
 			const msg = document.createElement('div');
 			msg.id = 'twofa-modal-msg';
 			msg.className = 'text-red-600 font-semibold mt-2 text-center';
+			if (initialErrorMsg) msg.textContent = initialErrorMsg;
 			modal.appendChild(msg);
 
 			// Buttons
@@ -208,26 +213,30 @@ export class AuthRender {
 			overlay.appendChild(modal);
 			document.body.appendChild(overlay);
 
-			// Event listeners
-			submitButton.addEventListener('click', () => {
+			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
 					msg.textContent = 'Please enter your 2FA code.';
 					return;
 				}
-				document.body.removeChild(overlay);
-				resolve(code);
+				const shouldClose = await onVerify(code, (err) => { msg.textContent = `❌ ${err}`; });
+				if (shouldClose) {
+					document.body.removeChild(overlay);
+					resolve();
+				} else {
+					input.value = '';
+				}
 			});
 
 			cancelButton.addEventListener('click', () => {
 				document.body.removeChild(overlay);
-				resolve(null);
+				resolve();
 			});
 
 			overlay.addEventListener('click', (e) => {
 				if (e.target === overlay) {
 					document.body.removeChild(overlay);
-					resolve(null);
+					resolve();
 				}
 			});
 
@@ -235,7 +244,8 @@ export class AuthRender {
 		});
 	}
 
-	static show2FASetupModal(qrCodeDataURL: string, secret: string): Promise<string | null> {
+
+	static show2FASetupModal(qrCodeDataURL: string, secret: string, errorMsg?: string): Promise<string | null> {
 		return new Promise((resolve) => {
 			// Overlay with blur
 			const overlay = document.createElement('div');
@@ -253,19 +263,19 @@ export class AuthRender {
 
 			// Modal
 			const modal = CommonComponent.createContainer(`
-				bg-white/90 backdrop-blur-md
-				border-2 border-black
-				rounded-xl p-12 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-				max-w-md w-full mx-1 text-center
-				`);
+      bg-white/90 backdrop-blur-md
+      border-2 border-black
+      rounded-xl p-12 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+      max-w-md w-full mx-1 text-center
+    `);
 
 			const title = CommonComponent.createHeading('Enable Two-Factor Authentication', 2, `
-				font-['Canada-big'] uppercase font-bold
-				text-xl text-center mb-2
-				bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
-				bg-clip-text text-transparent
-				select-none
-			`);
+      font-['Canada-big'] uppercase font-bold
+      text-xl text-center mb-2
+      bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+      bg-clip-text text-transparent
+      select-none
+    `);
 			title.style.letterSpacing = "0.1em";
 			modal.appendChild(title);
 
@@ -278,12 +288,6 @@ export class AuthRender {
 			qrImg.style.margin = '1rem auto';
 			modal.appendChild(qrImg);
 
-			//   // Secret (optional)
-			//   const secretDiv = document.createElement('div');
-			//   secretDiv.textContent = `Secret: ${secret}`;
-			//   secretDiv.className = 'text-xs text-gray-700 mt-2 mb-2 select-all';
-			//   modal.appendChild(secretDiv);
-
 			// Input
 			const input = CommonComponent.createInput('text', 'Enter your 2FA Code');
 			input.id = 'twofa-setup-code-input';
@@ -293,7 +297,8 @@ export class AuthRender {
 			// Error message
 			const msg = document.createElement('div');
 			msg.id = 'twofa-setup-msg';
-			msg.className = 'text-red-600 font-semibold mt-2 text-center';
+			msg.className = 'text-red-600 font-semibold mt-8 text-center';
+			if (errorMsg) msg.textContent = errorMsg;
 			modal.appendChild(msg);
 
 			// Buttons
@@ -309,14 +314,21 @@ export class AuthRender {
 			overlay.appendChild(modal);
 			document.body.appendChild(overlay);
 
-			submitButton.addEventListener('click', () => {
+			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
-					msg.textContent = 'You must enter a code to enable 2FA.';
+					msg.textContent = '❌ You must enter a code to enable 2FA.';
 					return;
 				}
-				document.body.removeChild(overlay);
-				resolve(code);
+				// Call backend to verify code
+				const verifyData = await AuthService.verify2FA(code);
+				if (verifyData.success) {
+					document.body.removeChild(overlay);
+					resolve(code);
+				} else {
+					msg.textContent = `❌ ${verifyData.error}` || '❌ Invalid code. Try again.';
+					input.value = '';
+				}
 			});
 
 			cancelButton.addEventListener('click', () => {
@@ -334,6 +346,5 @@ export class AuthRender {
 			input.focus();
 		});
 	}
-
 
 }

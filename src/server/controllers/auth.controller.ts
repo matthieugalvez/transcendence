@@ -306,8 +306,12 @@ export class AuthController {
 			const userId = (request as any).userId;
 			if (!userId) return Send.unauthorized(reply, 'Authentication required');
 
-			await AuthService.disable2FA(userId);
-			return Send.success(reply, null, '2FA disabled successfully');
+			try {
+				await AuthService.disable2FA(userId);
+				return Send.success(reply, null, '2FA disabled successfully');
+			} catch (err: any) {
+				return Send.badRequest(reply, err.message || 'Failed to disable 2FA');
+			}
 		} catch (error) {
 			console.error('2FA disable error:', error);
 			return Send.internalError(reply, 'Failed to disable 2FA');

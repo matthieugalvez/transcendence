@@ -117,6 +117,11 @@ export class AuthService {
 	}
 
 	static async disable2FA(userId: number) {
+		const user = await prisma.user.findUnique({ where: { id: userId } });
+		if (!user) throw new Error('User not found');
+		if (!user.twoFAEnabled) {
+			throw new Error('2FA is not enabled for this user');
+		}
 		await prisma.user.update({
 			where: { id: userId },
 			data: { twoFAEnabled: false }

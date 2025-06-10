@@ -28,17 +28,25 @@ export class AuthComponent {
 	 */
 	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
 		if (!AuthService.validateInput(name, password)) {
-			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			// Only show if modal is not open
+			if (!document.getElementById('twofa-modal-msg')) {
+				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			}
 			return false;
 		}
 
 		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
 
 		if (apiResponseData.success) {
-			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			if (!document.getElementById('twofa-modal-msg')) {
+				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			}
 			return apiResponseData;
 		} else {
-			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+			// Only show if modal is not open
+			if (!document.getElementById('twofa-modal-msg')) {
+				CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+			}
 			return apiResponseData;
 		}
 	}
@@ -88,38 +96,39 @@ export class AuthComponent {
 		}
 		return true;
 	}
+
 	static async handle2FASetup() {
-		// 1. Call backend to get QR code and secret
 		const data = await AuthService.setup2FA();
-		console.log('2FA Setup response:', data);
 		if (!data.success) {
 			CommonComponent.showMessage(`❌ ${data.error || 'Failed to start 2FA setup'}`, 'error');
 			return;
 		}
 
-		// 2. Show QR code as a link in an alert (or render in modal for better UX)
-		const code = await AuthRender.show2FASetupModal(data.data.qrCodeDataURL, data.data.secret);
-		if (!code) {
-			CommonComponent.showMessage('❌ You must enter a code to enable 2FA.', 'error');
-			return;
-		}
-
-		// 4. Handle verification
-		const verifyData = await AuthService.verify2FA(code);
-		if (verifyData.success) {
-			CommonComponent.showMessage('✅ 2FA enabled!', 'success');
-		} else {
-			CommonComponent.showMessage('❌ Invalid code. Try again.', 'error');
+		let errorMsg: string | undefined = undefined;
+		while (true) {
+			const code = await AuthRender.show2FASetupModal(data.data.qrCodeDataURL, data.data.secret, errorMsg);
+			if (!code) {
+				// User cancelled
+				return;
+			}
+			const verifyData = await AuthService.verify2FA(code);
+			if (verifyData.success) {
+				CommonComponent.showMessage('✅ 2FA enabled!', 'success');
+				break;
+			} else {
+				errorMsg = verifyData.error || '❌ Invalid code. Try again.';
+			}
 		}
 	}
 
-	static async Disable2FA() {
-		const data = await AuthService.disable2FA();
-		console.log('2FA Disable response:', data);
-		if (!data.success) {
-			CommonComponent.showMessage(`❌ ${data.error || 'Failed to disable 2FA'}`, 'error');
-			return;
+	static async disable2FA(): Promise<boolean> {
+		const apiResponseData = await AuthService.disable2FA();
+		if (apiResponseData.success) {
+			CommonComponent.showMessage('✅ 2FA disabled!', 'success');
+			return true;
+		} else {
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Failed to disable 2FA'}`, 'error');
+			return false;
 		}
-		CommonComponent.showMessage('✅ 2FA disabled!', 'success');
 	}
 }
