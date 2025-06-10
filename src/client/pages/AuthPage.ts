@@ -77,29 +77,29 @@ async function onSignupClick(): Promise<void> {
 }
 
 async function onLoginClick(): Promise<void> {
-  const name = nameInput.value.trim();
-  const password = passwordInput.value.trim();
+	const name = nameInput.value.trim();
+	const password = passwordInput.value.trim();
 
-  if (!AuthComponent.validateInput(name, password)) {
-    return;
-  }
+	if (!AuthComponent.validateInput(name, password)) {
+		return;
+	}
 
-  let loginResponse = await AuthComponent.loginUser(name, password);
+	let loginResponse = await AuthComponent.loginUser(name, password);
 
-let initialError = loginResponse.error === 'Invalid 2FA Code' ? loginResponse.error : undefined;
-await AuthRender.show2FAModal(async (code, setError) => {
-  const response = await AuthComponent.loginUser(name, password, code);
-  if (response && response.success) {
-    setTimeout(() => {
-      router.navigate('/home');
-    }, 500);
-    return true; // Close modal
-  } else if (response && response.error) {
-    setError(response.error); // Show backend error in modal
-    return false; // Keep modal open
-  }
-  return false;
-}, initialError);
+	let initialError = loginResponse.error === 'Invalid 2FA Code' ? loginResponse.error : undefined;
+	await AuthRender.show2FAModal(async (code, setError) => {
+		const response = await AuthComponent.loginUser(name, password, code);
+		if (response && response.success) {
+			setTimeout(() => {
+				router.navigate('/home');
+			}, 500);
+			return true; // Close modal
+		} else if (response && response.error) {
+			setError(response.error); // Show backend error in modal
+			return false; // Keep modal open
+		}
+		return false;
+	}, initialError);
 }
 
 
