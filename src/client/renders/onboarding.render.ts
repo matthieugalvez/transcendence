@@ -6,15 +6,15 @@ import { AuthComponent } from '../components/auth.component';
 
 
 export class OnboardingRender {
-  static async render(): Promise<void> {
-    document.title = 'Transcendence - Home'; // i18n var: Onboardingpage_title
-    document.body.innerHTML = '';
+  static async render(language_obj: object): Promise<void> {
+	document.title = `${language_obj['Onboardingpage_title']}`
+	document.body.innerHTML = '';
 
     // Apply centered gradient layout using BackgroundComponent
     BackgroundComponent.applyCenteredGradientLayout();
 
     // Create loading container first
-    const loadingContainer = this.createLoadingContainer();
+    const loadingContainer = this.createLoadingContainer(language_obj);
     document.body.appendChild(loadingContainer);
 
     try {
@@ -25,20 +25,20 @@ export class OnboardingRender {
       loadingContainer.remove();
 
       // Render the main content with user name
-      this.renderMainContent(userData.name);
+      this.renderMainContent(userData.name, language_obj);
 
     } catch (error) {
-      console.error('Failed to fetch user data:', error); // i18n var: Onboardingpage_error_fetch_data
+      console.error(`${language_obj['Onboardingpage_error_fetch_data']}`, error);
 
       // Remove loading container
       loadingContainer.remove();
 
       // Show error or redirect to auth
-      this.handleAuthError();
+      this.handleAuthError(language_obj);
     }
   }
 
-  private static createLoadingContainer(): HTMLDivElement {
+  private static createLoadingContainer(language_obj: object): HTMLDivElement {
     const loadingContainer = document.createElement('div');
     loadingContainer.className = `
       bg-white/90 backdrop-blur-md
@@ -48,7 +48,7 @@ export class OnboardingRender {
     `.replace(/\s+/g, ' ').trim();
 
     const loadingText = document.createElement('p');
-    loadingText.textContent = 'Loading...'; // i18n var: Onboardingpage_loading
+    loadingText.textContent = `${language_obj['Onboardingpage_loading']}`;
     loadingText.className = `
       font-['Orbitron'] text-center text-gray-600
       text-lg font-medium
@@ -58,7 +58,7 @@ export class OnboardingRender {
     return loadingContainer;
   }
 
-  private static renderMainContent(userName: string): void {
+  private static renderMainContent(userName: string, language_obj: object): void {
     // Main container with glassmorphism effect
     const mainContainer = document.createElement('div');
     mainContainer.className = `
@@ -70,7 +70,7 @@ export class OnboardingRender {
 
     // Welcome title with user's name
     const pageTitle = document.createElement('h1');
-    pageTitle.textContent = `Welcome ${userName}!`; // i18n var: Onboardingpage_welcome
+    pageTitle.textContent = `${language_obj['Onboardingpage_welcome']} ${userName}!`;
     pageTitle.className = `
       font-['Canada-big'] uppercase font-bold
       text-4xl text-center mb-2
@@ -82,7 +82,7 @@ export class OnboardingRender {
 
     // Subtitle
     const subtitle = document.createElement('p');
-    subtitle.textContent = 'Choose your game mode'; // i18n var: Onboardingpage_box_subtitle
+    subtitle.textContent = `${language_obj['Onboardingpage_box_subtitle']}`;
     subtitle.className = `
       font-['Orbitron'] text-center text-gray-600
       text-sm font-medium mb-8
@@ -94,25 +94,25 @@ export class OnboardingRender {
     buttonContainer.className = 'flex flex-col gap-4 justify-center';
 
     // Play button
-    const playButton = CommonComponent.createStylizedButton('Play', 'blue'); // i18n var: Onboardingpage_play_button
+    const playButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_play_button']}`, 'blue');
     playButton.addEventListener('click', () => {
       router.navigate('/game');
     });
 
     // Tournament button
-    const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple'); // i18n var: Onboardingpage_tournament_button
+    const tournamentButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_tournament_button']}`, 'purple');
     tournamentButton.addEventListener('click', () => {
       router.navigate('/tournament');
     });
 
     // Back to home button
-    const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray'); // i18n var: Onboardingpage_backhome_button
+    const backButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_backhome_button']}`, 'gray');
     backButton.addEventListener('click', () => {
       router.navigate('/');
     });
 
 	    // Logout button
-    const logoutButton = CommonComponent.createStylizedButton('Logout', 'red'); // i18n var: Onboardingpage_logout_button
+    const logoutButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_logout_button']}`, 'red');
     logoutButton.addEventListener('click', async () => {
       const success = await AuthComponent.logoutUser();
       if (success) {
@@ -123,9 +123,19 @@ export class OnboardingRender {
       }
     });
 
-    const languageButton = CommonComponent.createStylizedButton('set language to english', 'red'); // i18n var: Onboardingpage_language_button
-    languageButton.addEventListener('click', async () => {
+    const EnglishLanguageButton = CommonComponent.createStylizedButton('set language to english', 'red');
+    EnglishLanguageButton.addEventListener('click', async () => {
 		const language = 'eng';
+		const success = await AuthComponent.SetLanguageUser(language);
+		if (success.error) {
+				CommonComponent.showMessage('Failed to change language', 'error');
+			}
+		location.reload();
+    });
+
+    const FrenchLanguageButton = CommonComponent.createStylizedButton('set language to french', 'blue');
+    FrenchLanguageButton.addEventListener('click', async () => {
+		const language = 'fr';
 		const success = await AuthComponent.SetLanguageUser(language);
 		if (success.error) {
 				CommonComponent.showMessage('Failed to change language', 'error');
@@ -143,7 +153,8 @@ export class OnboardingRender {
     buttonContainer.appendChild(tournamentButton);
     buttonContainer.appendChild(backButton);
 	buttonContainer.appendChild(logoutButton);
-	buttonContainer.appendChild(languageButton);
+	buttonContainer.appendChild(EnglishLanguageButton);
+	buttonContainer.appendChild(FrenchLanguageButton);
 
     mainContainer.appendChild(gameEmoji);
     mainContainer.appendChild(pageTitle);
@@ -153,7 +164,7 @@ export class OnboardingRender {
     document.body.appendChild(mainContainer);
   }
 
-  private static handleAuthError(): void {
+  private static handleAuthError(language_obj: object): void {
     // Show error message and redirect to auth
     const errorContainer = document.createElement('div');
     errorContainer.className = `
@@ -164,10 +175,10 @@ export class OnboardingRender {
     `.replace(/\s+/g, ' ').trim();
 
     const errorText = document.createElement('p');
-    errorText.textContent = 'Authentication required'; // i18n var: Onboardingpage_error_authrequired
+    errorText.textContent = `${language_obj['Onboardingpage_error_authrequired']}`;
     errorText.className = 'text-red-600 font-semibold mb-4';
 
-    const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue'); // i18n var: Onboarding_login_button
+    const loginButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_login_button']}`, 'blue');
     loginButton.addEventListener('click', () => {
       router.navigate('/auth');
     });

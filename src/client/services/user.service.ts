@@ -10,11 +10,12 @@ export class UserService {
         credentials: 'include', // Include cookies for authentication
       });
 
-      const apiResponseData = await response.json();
-      console.log('language file response:', apiResponseData);
-
-      return apiResponseData;
-    } catch (error) {
+		const	apiResponse = await response.json();
+		console.log('language file response:', apiResponse);
+		const	ResponseData = apiResponse.data;
+		return	ResponseData;
+    }
+	catch (error) {
       console.error('Error language file:', error);
       return {
         success: false,
