@@ -15,6 +15,10 @@ model User {
   created_at    DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  //2FA
+  twoFASecret	String? // base 32 secret for TOTP
+  twoFAEnabled	Boolean		@default(false)
+
   // Relations
   player1_sessions GameSession[] @relation("Player1Sessions")
   player2_sessions GameSession[] @relation("Player2Sessions")
