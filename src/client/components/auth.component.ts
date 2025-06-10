@@ -57,8 +57,8 @@ export class AuthComponent {
     }
   }
 
-  static async languageUser(language: string): Promise<boolean> {
-    const apiResponseData = await AuthService.languageUser(language);
+  static async SetLanguageUser(language: string): Promise<boolean> {
+    const apiResponseData = await AuthService.SetLanguageUser(language);
 
     if (apiResponseData.success) {
       CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');

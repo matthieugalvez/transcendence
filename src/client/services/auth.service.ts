@@ -75,7 +75,7 @@ export class AuthService {
     }
   }
 
-  static async languageUser(language: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  static async SetLanguageUser(language: string): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       const response = await fetch('/api/users/me/:language', {
         method: 'POST',

@@ -1,6 +1,28 @@
 import { ApiClient } from '../utils/apiclient.utils';
 
 export class UserService {
+
+  static async GetLanguageFile(): Promise<{ success: boolean; message?: string; error?: string }> {
+
+    try {
+      const response = await fetch('/api/users/me/:language', {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+      });
+
+      const apiResponseData = await response.json();
+      console.log('language file response:', apiResponseData);
+
+      return apiResponseData;
+    } catch (error) {
+      console.error('Error language file:', error);
+      return {
+        success: false,
+        error: 'Error connecting to server'
+      };
+    }
+  }
+
   /**
    * Get current authenticated user data
    */

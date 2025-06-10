@@ -123,19 +123,14 @@ export class OnboardingRender {
       }
     });
 
-    const languageInput = CommonComponent.createInput('language', 'Select a language'); // i18n var: Onboardingpage_language_button
-    languageInput.addEventListener('keypress', async function(event) {
-		if (event.key == "Enter")
-			{
-  				const language = languageInput.value.trim();
-				const success = await AuthComponent.languageUser(language);
-			  if (success) {
-				// Redirect to auth page after successful language
-				setTimeout(() => {
-				  router.navigate('/game');
-				}, 1000);
-			  }
+    const languageButton = CommonComponent.createStylizedButton('set language to english', 'red'); // i18n var: Onboardingpage_language_button
+    languageButton.addEventListener('click', async () => {
+		const language = 'eng';
+		const success = await AuthComponent.SetLanguageUser(language);
+		if (success.error) {
+				CommonComponent.showMessage('Failed to change language', 'error');
 			}
+		location.reload();
     });
 
     // Add emoji decorations
@@ -148,7 +143,7 @@ export class OnboardingRender {
     buttonContainer.appendChild(tournamentButton);
     buttonContainer.appendChild(backButton);
 	buttonContainer.appendChild(logoutButton);
-	buttonContainer.appendChild(languageInput);
+	buttonContainer.appendChild(languageButton);
 
     mainContainer.appendChild(gameEmoji);
     mainContainer.appendChild(pageTitle);

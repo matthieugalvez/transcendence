@@ -92,14 +92,7 @@ export class UserService {
   static async setUserLanguage(userId: number, new_language: string) {
     return await prisma.user.update({
       where: { id: userId },
-      data: { language:  new_language}
+      data: { language:  new_language }
     })
   }
-
-	static async	getUserLanguage(userId: number) {
-		return await prisma.user.findUnique({
-			where: { id: userId },
-			data: { language }
-		})
-	}
 }

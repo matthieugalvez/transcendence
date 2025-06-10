@@ -24,4 +24,8 @@ export default async function userDataRoutes(fastify: FastifyInstance) {
 	fastify.post('/me/:language', {
 		preHandler: AuthMiddleware.authenticateUser
 	}, UserController.setUserLanguage)
+
+	fastify.get('/me/:language', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, UserController.getLanguageFile)
 }
