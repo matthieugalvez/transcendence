@@ -1,6 +1,7 @@
 import { AuthRender } from '../renders/auth.render';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
+import { BackgroundComponent } from '../components/background.component';
 
 export async function oauth2FAPage(): Promise<void> {
     console.log('🔐 OAuth 2FA page loaded');
@@ -16,10 +17,10 @@ export async function oauth2FAPage(): Promise<void> {
     document.body.innerHTML = '';
 
     // Create a simple background container
-    const container = CommonComponent.createContainer('min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 to-blue-900');
+    const container = BackgroundComponent.applyNormalGradientLayout();
    // const loadingText = CommonComponent.createText('Completing Google Sign-In...', 'text-white text-lg');
     //container.appendChild(loadingText);
-    document.body.appendChild(container);
+    //document.body.appendChild(container);
 
     // Show the existing 2FA modal
     try {

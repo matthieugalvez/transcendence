@@ -148,9 +148,9 @@ export class AuthRender {
 	}
 
 	private static createGoogleSigninButton(): HTMLButtonElement {
-    const googleButton = document.createElement('button');
-    googleButton.type = 'button';
-    googleButton.className = `
+		const googleButton = document.createElement('button');
+		googleButton.type = 'button';
+		googleButton.className = `
         flex items-center justify-center gap-4 w-full mt-5 px-4 py-6
         bg-white border border-gray-300 rounded-lg
         hover:bg-gray-50 hover:shadow-md
@@ -159,9 +159,9 @@ export class AuthRender {
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
     `.replace(/\s+/g, ' ').trim();
 
-    // Google logo SVG
-    const googleIcon = document.createElement('div');
-    googleIcon.innerHTML = `
+		// Google logo SVG
+		const googleIcon = document.createElement('div');
+		googleIcon.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -170,20 +170,20 @@ export class AuthRender {
         </svg>
     `;
 
-    const buttonText = document.createElement('span');
-    buttonText.textContent = 'Sign in with Google';
+		const buttonText = document.createElement('span');
+		buttonText.textContent = 'Sign in with Google';
 
-    googleButton.appendChild(googleIcon);
-    googleButton.appendChild(buttonText);
+		googleButton.appendChild(googleIcon);
+		googleButton.appendChild(buttonText);
 
-    // Add click event
-    googleButton.addEventListener('click', () => {
-        console.log('Clicked on Google signin');
-        GoogleService.signin();
-    });
+		// Add click event
+		googleButton.addEventListener('click', () => {
+			console.log('Clicked on Google signin');
+			GoogleService.signin();
+		});
 
-    return googleButton;
-}
+		return googleButton;
+	}
 
 	/**
 	 * Create message display container
@@ -262,6 +262,13 @@ export class AuthRender {
 			overlay.appendChild(modal);
 			document.body.appendChild(overlay);
 
+			input.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') {
+					submitButton.click();
+				}
+			});
+
+
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
@@ -281,6 +288,7 @@ export class AuthRender {
 				document.body.removeChild(overlay);
 				resolve();
 			});
+
 
 			overlay.addEventListener('click', (e) => {
 				if (e.target === overlay) {
