@@ -2,12 +2,11 @@ import { router } from '../configs/simplerouter';
 import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
-import { AuthComponent } from '../components/auth.component';
 import pongImg from '../assets/gameimg/screen-pongGame.png';
 import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
 
 
-export class OnboardingRender {
+export class HomeRender {
   static async renderInto(container: HTMLDivElement): Promise<void> {
     // 1) loading dans container
     const loader = this.createLoadingContainer();

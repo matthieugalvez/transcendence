@@ -151,3 +151,8 @@
   filter: blur(1.5px);
   transition: filter 0.2s;
 }
+
+body {
+  background: linear-gradient(120deg, #7101b2 0%, #8217c1 50%, #ffae45f2 100%);
+  transition: background 0.3s;
+}

@@ -3,11 +3,11 @@
 
 
 import { router } from './configs/simplerouter';
-import { renderHomePage  } from './pages/HomePage';
+import { renderIndexPage  } from './pages/IndexPage';
 import { authPage } from './pages/AuthPage'
 import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
-import { RenderOnboardingPage } from './pages/OnboardingPage';
+import { RenderHomePage } from './pages/HomePage';
 // import { OnboardingPage, RenderOnboardingPage } from './pages/OnboardingPage';
 
 // Register routes
@@ -19,9 +19,9 @@ import { RenderOnboardingPage } from './pages/OnboardingPage';
 // router.start();
 
 function startSPA() {
-    router.register('/', renderHomePage);
+    router.register('/', renderIndexPage);
     router.register('/auth', async() => await authPage());
-    router.register('/home', async() => await RenderOnboardingPage());
+    router.register('/home', async() => await RenderHomePage());
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
     router.start();

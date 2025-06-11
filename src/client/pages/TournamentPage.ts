@@ -101,12 +101,6 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
 
   // 3) fonction récursive qui lance chaque match l’un après l’autre
   async function playMatch(i: number) {
-    // si on est à la finale (match index 2), on remplit les alias gagnants
-    // if (i === 2) {
-    //   matchups[2][0] = winners[0];
-    //   matchups[2][1] = winners[1];
-    // }
-
     // 4) préparation du titre du match et du conteneur de jeu
     const [leftAlias, rightAlias] = matchups[i];
     const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
