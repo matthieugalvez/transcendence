@@ -52,7 +52,7 @@ export async function oauth2FAPage(): Promise<void> {
                 setError('Network error occurred. Please try again.');
                 return false;
             }
-        }, 'Please enter your 2FA code to complete Google Sign-In');
+        })
     } catch (error) {
         console.error('🔐 Error showing 2FA modal:', error);
         // If modal fails, redirect back to auth

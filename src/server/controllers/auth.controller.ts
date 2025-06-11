@@ -217,7 +217,7 @@ export class AuthController {
 				{ expiresIn: authConfig.secret_expires_in }
 			);
 
-			// Optionally rotate refresh token (recommended for security)
+			// Rotate refresh token
 			const newRefreshToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.refresh_secret,
@@ -227,7 +227,7 @@ export class AuthController {
 			// Update refresh token in database
 			await AuthService.updateRefreshToken(user.id, newRefreshToken);
 
-			// Set new cookies - FIX: Use the correct variable names
+			// Set new cookies
 			reply.setCookie('accessToken', newAccessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
@@ -254,11 +254,8 @@ export class AuthController {
 		}
 	}
 
-	// ...existing code...
+	// Setup 2FA: generate secret and QR code for user
 
-	/**
-	 * Setup 2FA: generate secret and QR code for user
-	 */
 	static async setup2FA(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const userId = (request as any).userId;
@@ -277,9 +274,7 @@ export class AuthController {
 		}
 	}
 
-	/**
-	 * Verify 2FA code and enable 2FA for user
-	 */
+	// Verify 2FA code and enable 2FA for user
 	static async verify2FA(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const userId = (request as any).userId;
@@ -299,9 +294,8 @@ export class AuthController {
 		}
 	}
 
-	/**
-	 * Disable 2FA for user
-	 */
+
+	// Disable 2FA For current user.
 	static async disable2FA(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const userId = (request as any).userId;
@@ -322,19 +316,24 @@ export class AuthController {
 
 	// GOOGLE
 
+	// "Google Callback" gere l'appel a GoogleOAuth2 verifie les tokens d'env obtenu sur Google Console
+	// Verifie que les interactions de redirections sont en lien avec ce qui a ete declarer sur Google Console
+	// Log l'user et genere un token si le callback a reussi
+	// Si l'user n'existe pas on le cree en lui donnant son email comme username (A changer)
+
 	static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			console.log('🔍 Google OAuth callback received');
-			console.log('🔍 Request URL:', request.url);
-			console.log('🔍 Request query:', request.query);
+			// console.log('🔍 Request URL:', request.url);
+			// console.log('🔍 Request query:', request.query);
 
 			const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-			console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
+			// console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
 
-			// 🚨 CRITICAL DEBUG: Log the actual token structure
-			console.log('🔍 Raw token object:', token);
-			console.log('🔍 Token type:', typeof token);
-			console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
+			// // 🚨 CRITICAL DEBUG: Log the actual token structure
+			// console.log('🔍 Raw token object:', token);
+			// console.log('🔍 Token type:', typeof token);
+			// console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
 
 			// Try all possible access token locations
 			const possibleTokens = {
@@ -345,16 +344,16 @@ export class AuthController {
 				'entire token as string': typeof token === 'string' ? token : null
 			};
 
-			console.log('🔍 Possible token locations:', possibleTokens);
+			// console.log('🔍 Possible token locations:', possibleTokens);
 
-			// Find the actual access token
+			// Find the actual access token (apparemment google renvoie des trucs differents parfois donc c'est bizarre)
 			const googleAccessToken = token?.access_token ||
 				token?.accessToken ||
 				token?.token?.access_token ||
 				(typeof token === 'string' ? token : null);
 
-			console.log('🔍 Google access token found:', !!googleAccessToken);
-			console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
+			// console.log('🔍 Google access token found:', !!googleAccessToken);
+			// console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
 
 			if (!googleAccessToken) {
 				console.error('❌ No Google access token found in token object');
@@ -389,7 +388,10 @@ export class AuthController {
 				console.log('✅ Found existing user:', user.id);
 			}
 
-			// 2FA Ici
+			// 2FA pour le signin on cree un token d'access temporaire pour ensuite acceder a la page OAuth2FA (ou on recupere en fait les infos de l'utilisateur avec un premier login)
+			// Comme pour le login local.
+			// L'idee de faire comme ca c'est de pas permettre a qqn sans 2FA d'acceder a l'api, mais a voir si il y a pas une faille de secu ici
+			// Vu que le token temporaire est valable 1min.
 
 			 if (user.twoFAEnabled) {
             console.log('🔐 User has 2FA enabled, creating temporary session');
@@ -398,7 +400,7 @@ export class AuthController {
             const tempToken = jwt.sign(
                 { userId: user.id, purpose: '2fa_pending_oauth' },
                 authConfig.secret,
-                { expiresIn: '5m' } // 5 minutes to complete 2FA
+                { expiresIn: '1m' } // 1 minutes to complete 2FA
             );
 
             // Set temporary cookie and redirect to 2FA verification page
@@ -407,7 +409,7 @@ export class AuthController {
                 secure: false,
                 sameSite: 'lax',
                 path: '/',
-                maxAge: 5 * 60 * 1000 // 5 minutes
+                maxAge: 1 * 60 * 1000 // 1 minutes
             });
 
             console.log('🔐 Redirecting to OAuth 2FA page');

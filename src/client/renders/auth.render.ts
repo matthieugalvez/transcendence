@@ -151,7 +151,7 @@ export class AuthRender {
     const googleButton = document.createElement('button');
     googleButton.type = 'button';
     googleButton.className = `
-        flex items-center justify-center gap-3 w-full mt-4 px-4 py-3
+        flex items-center justify-center gap-4 w-full mt-5 px-4 py-6
         bg-white border border-gray-300 rounded-lg
         hover:bg-gray-50 hover:shadow-md
         transition-all duration-200
