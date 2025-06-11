@@ -40,10 +40,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
 		preHandler: AuthMiddleware.authenticateUser
 	}, AuthController.disable2FA);
 
-	fastify.post('/google', {
-        preHandler: AuthMiddleware.authenticateUser
-    }, AuthController.googleSignin);
+    fastify.get('/oauth2/google/callback', AuthController.googleCallback);
 
+    // Optional: manual Google signin endpoint (if you want to trigger it via API)
+    fastify.get('/google/signin', AuthController.googleSignin);
 }
 
 

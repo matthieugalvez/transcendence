@@ -2,37 +2,15 @@ import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import OAuth2, {OAuth2Namespace} from "@fastify/oauth2";
 
 export const googleOAuth2Options = {
-    // Namespace
     name: 'GoogleOAuth2',
-    // Scopes
     scope: ['profile', 'email'],
     credentials: {
         client: {
-            // Put in your client id here
-            id: "<CLIENT_ID>",
-            // Put in your client secret here
-            secret: "<CLIENT_SECRET>"
+            id: process.env.GOOGLE_CLIENT_ID || "<CLIENT_ID>",
+            secret: process.env.GOOGLE_CLIENT_SECRET || "<CLIENT_SECRET>"
         },
-        // @fastify/oauth2 google provider
         auth: OAuth2.GOOGLE_CONFIGURATION
     },
-    // This option will create a new root with the GET method to log in through Google.
-    // Make sure you don't have any other routes in this path with the GET method.
-    startRedirectPath: '/oauth2/google',
-    // Here you specify the Google callback route.
-    // All logics will be checked after the success login or failure login in this path.
-    callbackUri: `http://localhost:3000/oauth2/google/callback`,
-
-    generateStateFunction: (request: FastifyRequest, reply: FastifyReply) => {
-        // @ts-ignore
-        return request.query.state
-    },
-    checkStateFunction: (request: FastifyRequest, callback: any) => {
-        // @ts-ignore
-        if (request.query.state) {
-            callback()
-            return;
-        }
-        callback(new Error('Invalid state'))
-    }
-};
+    startRedirectPath: '/api/auth/oauth2/google',
+    callbackUri: `${process.env.BASE_URL || 'http://localhost:3000'}/api/auth/oauth2/google/callback`,
+}

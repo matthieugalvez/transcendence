@@ -6,7 +6,14 @@ import cookie from '@fastify/cookie'; // Add this import
 
 export async function registerPlugins(app: FastifyInstance, dirname: string) {
   // Register cookie plugin globally
-  await app.register(cookie)
+    await app.register(cookie, {
+    secret: process.env.COOKIE_SECRET || 'your-cookie-secret', // Add cookie secret
+    parseOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // Changed from 'strict' for OAuth2 flow
+    }
+  })
 
   // Register static files
   await app.register(import('@fastify/static'), {

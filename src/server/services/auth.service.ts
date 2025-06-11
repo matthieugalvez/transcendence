@@ -124,10 +124,24 @@ export class AuthService {
 		}
 		await prisma.user.update({
 			where: { id: userId },
-			data: { twoFAEnabled: false,
+			data: {
+				twoFAEnabled: false,
 				twoFASecret: null,
-			 }
+			}
 		});
+	}
+
+	static async createGoogleUser(email: string, displayName: string) {
+		// Create user without password since they login via Google
+		const user = await prisma.user.create({
+			data: {
+				name: email, // Use email as username
+				displayName: displayName || email,
+				password_hash: '', // Empty for OAuth users
+				provider: 'google'
+			}
+		});
+		return user;
 	}
 
 

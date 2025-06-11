@@ -4,7 +4,7 @@ import { ResponseUtils as Send } from '../utils/response.utils'
 import jwt from 'jsonwebtoken'
 import authConfig from '../config/auth.config'
 import { AuthService } from '../services/auth.service'
-import OAuth2 , { OAuthNamespace } from "@fastify/oauth2";
+import OAuth2, { OAuthNamespace } from "@fastify/oauth2";
 
 export class AuthController {
 	static async signup(request: FastifyRequest, reply: FastifyReply) {
@@ -46,8 +46,8 @@ export class AuthController {
 			// Set HttpOnly cookies
 			reply.setCookie('accessToken', accessToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 15 * 60 * 1000
@@ -55,8 +55,8 @@ export class AuthController {
 
 			reply.setCookie('refreshToken', refreshToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 24 * 60 * 60 * 1000
@@ -87,6 +87,9 @@ export class AuthController {
 			}
 
 			if (user.twoFAEnabled) {
+				// if (!twoFACode) {
+				// 	return Send.unauthorized(reply, '2FA Code is missing');
+				// }
 				const is2FAValid = await AuthService.verify2FACode(user.id, twoFACode)
 				if (!is2FAValid) {
 					return Send.unauthorized(reply, 'Invalid 2FA Code');
@@ -118,8 +121,8 @@ export class AuthController {
 			// Set HttpOnly cookies
 			reply.setCookie('accessToken', accessToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 15 * 60 * 1000
@@ -127,8 +130,8 @@ export class AuthController {
 
 			reply.setCookie('refreshToken', refreshToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 24 * 60 * 60 * 1000
@@ -158,23 +161,23 @@ export class AuthController {
 				await AuthService.updateRefreshToken(userId, null)
 			}
 
-			// Clear the JWT cookies
+			// Clear the JWT cookies by setting them with past expiration
 			reply.setCookie('accessToken', '', {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
-				maxAge: 0
+				maxAge: 0 // This clears the cookie
 			})
 
 			reply.setCookie('refreshToken', '', {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
-				maxAge: 0
+				maxAge: 0 // This clears the cookie
 			})
 
 			console.log('🍪 Cookies cleared and refresh token removed from database for user:', userId);
@@ -224,24 +227,24 @@ export class AuthController {
 			// Update refresh token in database
 			await AuthService.updateRefreshToken(user.id, newRefreshToken);
 
-			// Set new cookies
+			// Set new cookies - FIX: Use the correct variable names
 			reply.setCookie('accessToken', newAccessToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 15 * 60 * 1000
-			});
+			})
 
 			reply.setCookie('refreshToken', newRefreshToken, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
 				domain: undefined,
 				path: '/',
 				maxAge: 24 * 60 * 60 * 1000
-			});
+			})
 
 			return Send.success(reply, null, 'Token refreshed successfully');
 
@@ -319,10 +322,144 @@ export class AuthController {
 
 	// GOOGLE
 
-	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
-		return Send.success(reply, null, 'Google signin endpoint');
-	}
+static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        console.log('🔍 Google OAuth callback received');
+        console.log('🔍 Request URL:', request.url);
+        console.log('🔍 Request query:', request.query);
 
+        const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+        console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
+
+        // 🚨 CRITICAL DEBUG: Log the actual token structure
+        console.log('🔍 Raw token object:', token);
+        console.log('🔍 Token type:', typeof token);
+        console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
+
+        // Try all possible access token locations
+        const possibleTokens = {
+            'token.access_token': token?.access_token,
+            'token.accessToken': token?.accessToken,
+            'token.token': token?.token,
+            'token.token.access_token': token?.token?.access_token,
+            'entire token as string': typeof token === 'string' ? token : null
+        };
+
+        console.log('🔍 Possible token locations:', possibleTokens);
+
+        // Find the actual access token
+        const googleAccessToken = token?.access_token ||
+                                 token?.accessToken ||
+                                 token?.token?.access_token ||
+                                 (typeof token === 'string' ? token : null);
+
+        console.log('🔍 Google access token found:', !!googleAccessToken);
+        console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
+
+        if (!googleAccessToken) {
+            console.error('❌ No Google access token found in token object');
+            console.log('🔍 Full token dump:', JSON.stringify(token, null, 2));
+            return reply.redirect('http://localhost:5173/auth?error=no_google_token');
+        }
+
+        // Test the Google token by fetching user info
+        console.log('🔍 Fetching Google user info...');
+        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${googleAccessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error('❌ Failed to fetch Google user info:', response.status, await response.text());
+            return reply.redirect('http://localhost:5173/auth?error=invalid_google_token');
+        }
+
+        const googleUser = await response.json();
+        console.log('✅ Google user data received:', { email: googleUser.email, name: googleUser.name });
+
+        // Check if user exists or create new one
+        let user = await UserService.getUserByName(googleUser.email);
+
+        if (!user) {
+            console.log('🔍 Creating new user for:', googleUser.email);
+            user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
+            console.log('✅ Created new user:', user.id);
+        } else {
+            console.log('✅ Found existing user:', user.id);
+        }
+
+        // Generate YOUR JWT tokens (not Google's)
+        console.log('🔍 Generating JWT tokens...');
+        const jwtAccessToken = jwt.sign(
+            { userId: user.id },
+            authConfig.secret,
+            { expiresIn: authConfig.secret_expires_in }
+        );
+
+        const jwtRefreshToken = jwt.sign(
+            { userId: user.id },
+            authConfig.refresh_secret,
+            { expiresIn: authConfig.refresh_secret_expires_in }
+        );
+
+        console.log('🔍 JWT tokens generated successfully');
+        console.log('🔍 JWT Access token preview:', jwtAccessToken.substring(0, 30) + '...');
+
+        // Store refresh token in database
+        await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
+        console.log('✅ Refresh token stored in database');
+
+        // Set JWT cookies (these are your app's auth tokens)
+        reply.setCookie('accessToken', jwtAccessToken, {
+            httpOnly: true,
+            secure: false, // localhost
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 15 * 60 * 1000
+        });
+
+        reply.setCookie('refreshToken', jwtRefreshToken, {
+            httpOnly: true,
+            secure: false, // localhost
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        console.log('🍪 JWT cookies set successfully');
+        console.log('🔄 Redirecting to frontend home page...');
+
+        // Redirect to frontend
+        return reply.redirect('http://localhost:5173/home');
+
+    } catch (error) {
+        console.error('❌ Google OAuth callback error:', error);
+        return reply.redirect('http://localhost:5173/auth?error=oauth_failed');
+    }
+}
+
+    static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            console.log('🔍 Initiating Google OAuth signin...');
+
+            // The OAuth2 plugin automatically handles the redirect to Google
+            // This method will redirect the user to Google's authorization URL
+            const oauth2 = (request.server as any).GoogleOAuth2;
+
+            if (!oauth2) {
+                console.error('❌ GoogleOAuth2 plugin not available');
+                return reply.redirect('/auth?error=oauth_not_configured');
+            }
+
+            // Generate the authorization URL and redirect
+            return oauth2.generateAuthorizationUri(request, reply);
+
+        } catch (error) {
+            console.error('❌ Google signin initiation error:', error);
+            return reply.redirect('/auth?error=google_signin_failed');
+        }
+    }
 
 
 }
