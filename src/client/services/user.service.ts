@@ -11,7 +11,7 @@ export class UserService {
       });
 
 		const	apiResponse = await response.json();
-		console.log('language file response:', apiResponse);
+//		console.log('language file response:', apiResponse);
 		const	ResponseData = apiResponse.data;
 		return	ResponseData;
     }

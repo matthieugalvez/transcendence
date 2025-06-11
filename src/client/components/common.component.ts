@@ -78,32 +78,32 @@ static createInput(type: string, placeholder: string): HTMLInputElement {
     return button;
   }
 
-static createStylizedButton(text: string, color: 'blue' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.textContent = text;
+	static createStylizedButton(text: string, color: 'blue' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
+	  const button = document.createElement('button');
+	  button.textContent = text;
 
-  const colorClasses = {
-    blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
-    purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
-    gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
-	red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
-  };
+	  const colorClasses = {
+		blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
+		purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
+		gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
+		red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
+	  };
 
-  button.className = `
-    font-['Orbitron']
-    ${colorClasses[color]} text-white font-semibold
-    border-2 border-black
-    py-2 px-12
-    rounded-lg text-lg transition-colors
-    focus:outline-none focus:ring-2
-    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    disabled:opacity-50 disabled:cursor-not-allowed
-  `.replace(/\s+/g, ' ').trim();
+	  button.className = `
+		font-['Orbitron']
+		${colorClasses[color]} text-white font-semibold
+		border-2 border-black
+		py-2 px-12
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+		disabled:opacity-50 disabled:cursor-not-allowed
+	  `.replace(/\s+/g, ' ').trim();
 
-  button.style.letterSpacing = "0.2em";
+	  button.style.letterSpacing = "0.2em";
 
-  return button;
-}
+	  return button;
+	}
 
   /**
    * Create a styled container div

@@ -53,7 +53,7 @@ export class UserController {
 				language = 'eng'
 			}
 			const	fs = require(`../locales/${language}.json`);
-			console.log("File data:", fs);
+//			console.log("File data:", fs);
 
 			return Send.success(reply, fs, 'Language file retrieved successfully');
 		}
