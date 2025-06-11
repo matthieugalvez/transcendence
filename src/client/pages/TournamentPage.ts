@@ -8,13 +8,15 @@ import {
   setupStartButtonLogic,
   requestNewGameId,
 } from './game/tournament.utils';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export function renderTournamentPage() {
-  document.title = 'Transcendence - Tournament'; // i18n var: Tournamentpage_title
+  document.title = `${language_obj['Tournamentpage_title']}`;
 
   // 1) création du conteneur + titre
   const container = createTournamentContainer();
-  appendTournamentTitle(container, 'Enter name to begin tournament:'); // i18n var: Tournamentpage_name_prompt
+  appendTournamentTitle(container, `${language_obj['Tournamentpage_name_prompt']}`);
 
   // 2) création des 4 inputs pour les alias
   const inputs = createAliasInputs(container, 4);
@@ -48,7 +50,7 @@ async function launchTournament(inputs: HTMLInputElement[]) {
       // tournoi terminé : on affiche un message final
       document.body.innerHTML = '';
       const finalMsg = document.createElement('h2');
-      finalMsg.textContent = 'Tournament finished! 🏆'; // i18n var: Tournamentpage_finished
+      finalMsg.textContent = `${language_obj['Tournamentpage_finished']}`;
       finalMsg.className = 'text-3xl font-bold text-center mt-8';
       document.body.appendChild(finalMsg);
       return;
@@ -62,7 +64,7 @@ async function launchTournament(inputs: HTMLInputElement[]) {
 
     // 4) préparation du titre du match et du conteneur de jeu
     const [leftAlias, rightAlias] = matchups[i];
-    const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`; // i18n var: Tournamentpage_match
+    const matchTitle = `${language_obj['Tournamentpage_match']} ${i + 1} : ${leftAlias} vs ${rightAlias}`;
 
     document.body.innerHTML = '';
     const gameContainer = document.createElement('div');
@@ -76,7 +78,7 @@ async function launchTournament(inputs: HTMLInputElement[]) {
     } catch (err) {
       console.error(err);
       const errMsg = document.createElement('p');
-      errMsg.textContent = 'Server error, please try again later'; // i18n var: Tournamentpage_error_server
+      errMsg.textContent = `${language_obj['Tournamentpage_error_server']}`;
       errMsg.className = 'text-red-600';
       document.body.appendChild(errMsg);
       return;

@@ -1,5 +1,7 @@
 import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export class AuthComponent {
   /**
@@ -7,7 +9,7 @@ export class AuthComponent {
    */
   static async signupUser(name: string, password: string): Promise<boolean> {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
+      CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error'); 
       return false;
     }
 
@@ -27,7 +29,7 @@ export class AuthComponent {
    */
   static async loginUser(name: string, password: string): Promise<boolean> {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
+      CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
       return false;
     }
 
@@ -94,7 +96,7 @@ export class AuthComponent {
    */
   static validateInput(name: string, password: string): boolean {
     if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error'); // i18n var: Authpage_error_empty_field
+      CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
       return false;
     }
     return true;

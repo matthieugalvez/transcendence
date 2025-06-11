@@ -31,7 +31,7 @@ function initWebSocket(
   });
 
   socket.addEventListener('close', () => {
-    console.warn('WebSocket fermé pour gameId=', gameId);
+    console.warn('WebSocket closed for gameId=', gameId);
   });
 
   return socket;

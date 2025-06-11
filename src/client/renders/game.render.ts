@@ -1,4 +1,6 @@
 import { CommonComponent } from '../components/common.component';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export class GameRender {
   /**
@@ -10,7 +12,7 @@ export class GameRender {
     player2Input: HTMLInputElement;
     startButton: HTMLButtonElement;
   } {
-    document.title = 'Transcendence - Pong Game';
+    document.title = `${language_obj['Gamepage_title']}`;
     document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
     document.body.innerHTML = '';
 

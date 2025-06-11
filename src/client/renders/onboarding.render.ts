@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
-const language_obj = await UserService.GetLanguageFile();
+const	language_obj = await UserService.GetLanguageFile();
 
 export class OnboardingRender {
   static async render(): Promise<void> {

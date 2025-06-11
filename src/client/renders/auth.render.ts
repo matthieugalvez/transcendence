@@ -2,7 +2,7 @@ import logo from '../assets/logo.png';
 import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
-const language_obj = await UserService.GetLanguageFile();
+const	language_obj = await UserService.GetLanguageFile();
 
 export class AuthRender {
   /**

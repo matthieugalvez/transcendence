@@ -6,9 +6,11 @@ import profil2 from '../assets/profilpic/profilpic2.png';
 import profil3 from '../assets/profilpic/proflipic3.png';
 import bgEffect from '../assets/effects/otis-redding.png';
 import { BackgroundComponent } from '../components/background.component';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export function renderHomePage(): void {
-	document.title = "Transcendence - Homepage"; // i18n var: Homepage_title
+	document.title = `${language_obj['Homepage_title']}`;
 	document.body.innerHTML = '';
 
   BackgroundComponent.applyNormalGradientLayout();
@@ -134,7 +136,7 @@ export function renderHomePage(): void {
   });
 
   const userText = document.createElement('p');
-  userText.textContent = '1000+ Players'; // i18n var: Homepage_player_count
+  userText.textContent = `${language_obj['Homepage_player_count']}`;
   userText.className = 'text-sm font-medium ml-3';
 
   users.appendChild(userpic);
@@ -148,7 +150,7 @@ export function renderHomePage(): void {
 
 	const	keywordText = document.createElement('p');
 	keywordText.innerHTML = `
-		<span class="block text-lg font-bold">Fast-Paced<br>Competitive<br>Multiplayer</span>` // i18n var: Homepage_description
+		<span class="block text-lg font-bold">${language_obj['Homepage_description']}</span>`
 	;
   keywords.appendChild(keywordText);
 

@@ -1,6 +1,8 @@
 import '../styles.css';
 import { BackgroundComponent } from '../components/background.component';
 import { startPongInContainer } from './game/utils';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export function renderGamePage() {
   document.title = 'Transcendence - Pong';
@@ -19,13 +21,13 @@ export function renderGamePage() {
   // 3) Appeler l’utilitaire pour ouvrir la WebSocket et démarrer le rendu
   startPongInContainer(
     container,
-    'Player 1',
-    'Player 2',
+    `${language_obj['Gamepage_player']} 1`,
+    `${language_obj['Gamepage_player']} 2`,
     (winnerAlias: string) => {
       // Ici on efface et on affiche le message final
       container.innerHTML = '';
       const msg = document.createElement('h2');
-      msg.textContent = `The winner is : ${winnerAlias} !`; //i18n var: Gamepage_winner
+      msg.textContent = `${language_obj['Gamepage_winner']} ${winnerAlias} !`;
       msg.className = 'text-3xl font-bold text-center mt-8';
       container.appendChild(msg);
     },
