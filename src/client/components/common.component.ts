@@ -1,57 +1,56 @@
 export class CommonComponent {
-  /**
-   * Display a message to the user
-   */
- static showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
-    const signupMsgDisplay = document.getElementById('signup-msg-display');
-    if (!signupMsgDisplay) return;
+	/**
+	 * Display a message to the user
+	 */
+	static showMessage(text: string, type: 'success' | 'error', isHtml: boolean = false): void {
+		const signupMsgDisplay = document.getElementById('signup-msg-display');
+		if (!signupMsgDisplay) return;
 
-    signupMsgDisplay.innerHTML = '';
+		signupMsgDisplay.innerHTML = '';
 
-    const message = document.createElement('div');
-    if (isHtml) {
-      message.innerHTML = text;
-    } else {
-      message.textContent = text;
-    }
+		const message = document.createElement('div');
+		if (isHtml) {
+			message.innerHTML = text;
+		} else {
+			message.textContent = text;
+		}
 
-    // Apply consistent typography to match your auth page
-    message.className = `
-      font-['Orbitron']
+		// Apply consistent typography to match your auth page
+		message.className = `
       ${type === 'success' ? 'text-green-600' : 'text-red-600'}
       font-semibold mt-2 text-center
     `.replace(/\s+/g, ' ').trim();
 
-    // Apply consistent letter spacing
-    message.style.letterSpacing = "0.05em";
+		// Apply consistent letter spacing
+		message.style.letterSpacing = "0.05em";
 
-    signupMsgDisplay.appendChild(message);
-  }
+		signupMsgDisplay.appendChild(message);
+	}
 
-  /**
-   * Create a styled label element
-   */
-static createLabel(text: string): HTMLLabelElement {
-  const label = document.createElement('label');
-  label.textContent = text;
-  label.className = `
+	/**
+	 * Create a styled label element
+	 */
+	static createLabel(text: string): HTMLLabelElement {
+		const label = document.createElement('label');
+		label.textContent = text;
+		label.className = `
     font-['Orbitron']
     block text-lg font-semibold mb-2 text-gray-700
   `.replace(/\s+/g, ' ').trim();
 
-  label.style.letterSpacing = "0.1em";
+		label.style.letterSpacing = "0.1em";
 
-  return label;
-}
+		return label;
+	}
 
-  /**
-   * Create a styled input element
-   */
-static createInput(type: string, placeholder: string): HTMLInputElement {
-  const input = document.createElement('input');
-  input.type = type;
-  input.placeholder = placeholder;
-  input.className = `
+	/**
+	 * Create a styled input element
+	 */
+	static createInput(type: string, placeholder: string): HTMLInputElement {
+		const input = document.createElement('input');
+		input.type = type;
+		input.placeholder = placeholder;
+		input.className = `
     font-['Orbitron']
     border-2 border-black rounded-lg
     px-4 py-3
@@ -63,33 +62,33 @@ static createInput(type: string, placeholder: string): HTMLInputElement {
     transition-all duration-200
   `.replace(/\s+/g, ' ').trim();
 
-  input.style.letterSpacing = "0.1em";
+		input.style.letterSpacing = "0.1em";
 
-  return input;
-}
+		return input;
+	}
 
-  /**
-   * Create a styled button element
-   */
-  static createButton(text: string): HTMLButtonElement {
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
-    return button;
-  }
+	/**
+	 * Create a styled button element
+	 */
+	static createButton(text: string): HTMLButtonElement {
+		const button = document.createElement('button');
+		button.textContent = text;
+		button.className = 'bg-blue-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-lg transition-colors';
+		return button;
+	}
 
 static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
   const button = document.createElement('button');
   button.textContent = text;
 
-  const colorClasses = {
-    blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
-    purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
-    gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
-	red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
-  };
+		const colorClasses = {
+			blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
+			purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
+			gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
+			red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
+		};
 
-  button.className = `
+		button.className = `
     font-['Orbitron']
     ${colorClasses[color]} text-white font-semibold
     border-2 border-black
@@ -100,48 +99,48 @@ static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gr
     disabled:opacity-50 disabled:cursor-not-allowed
   `.replace(/\s+/g, ' ').trim();
 
-  button.style.letterSpacing = "0.2em";
+		button.style.letterSpacing = "0.2em";
 
-  return button;
-}
+		return button;
+	}
 
-  /**
-   * Create a styled container div
-   */
-  static createContainer(className: string = ''): HTMLDivElement {
-    const container = document.createElement('div');
-    container.className = className;
-    return container;
-  }
+	/**
+	 * Create a styled container div
+	 */
+	static createContainer(className: string = ''): HTMLDivElement {
+		const container = document.createElement('div');
+		container.className = className;
+		return container;
+	}
 
-  /**
-   * Create a styled heading
-   */
-  static createHeading(text: string, level: number = 1, className: string = ''): HTMLHeadingElement {
-    const heading = document.createElement(`h${level}`) as HTMLHeadingElement;
-    heading.textContent = text;
-    heading.className = className;
-    return heading;
-  }
+	/**
+	 * Create a styled heading
+	 */
+	static createHeading(text: string, level: number = 1, className: string = ''): HTMLHeadingElement {
+		const heading = document.createElement(`h${level}`) as HTMLHeadingElement;
+		heading.textContent = text;
+		heading.className = className;
+		return heading;
+	}
 
-  /**
-   * Clear the content of an element
-   */
-  static clearElement(element: HTMLElement): void {
-    element.innerHTML = '';
-  }
+	/**
+	 * Clear the content of an element
+	 */
+	static clearElement(element: HTMLElement): void {
+		element.innerHTML = '';
+	}
 
-  /**
-   * Add multiple CSS classes to an element
-   */
-  static addClasses(element: HTMLElement, ...classes: string[]): void {
-    element.classList.add(...classes);
-  }
+	/**
+	 * Add multiple CSS classes to an element
+	 */
+	static addClasses(element: HTMLElement, ...classes: string[]): void {
+		element.classList.add(...classes);
+	}
 
-  /**
-   * Remove multiple CSS classes from an element
-   */
-  static removeClasses(element: HTMLElement, ...classes: string[]): void {
-    element.classList.remove(...classes);
-  }
+	/**
+	 * Remove multiple CSS classes from an element
+	 */
+	static removeClasses(element: HTMLElement, ...classes: string[]): void {
+		element.classList.remove(...classes);
+	}
 }

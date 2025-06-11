@@ -8,7 +8,8 @@ import { authPage } from './pages/AuthPage'
 import { renderGamePage } from './pages/GamePage';
 import { renderTournamentPage } from './pages/TournamentPage';
 import { RenderHomePage } from './pages/HomePage';
-// import { OnboardingPage, RenderOnboardingPage } from './pages/OnboardingPage';
+import { OnboardingPage  } from './pages/OnboardingPage';
+import { oauth2FAPage } from './pages/OAuth2FAPage';
 
 // Register routes
 // router.register ('/', renderHomePage);
@@ -24,6 +25,7 @@ function startSPA() {
     router.register('/home', async() => await RenderHomePage());
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
+	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
     router.start();
 }
 

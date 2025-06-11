@@ -1,90 +1,131 @@
 import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
+import { AuthRender } from '../renders/auth.render'
 
 export class AuthComponent {
-  /**
-   * Signup user with API call and UI feedback
-   */
-  static async signupUser(name: string, password: string): Promise<boolean> {
-    if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-      return false;
-    }
 
-    const apiResponseData = await AuthService.signupUser(name, password);
+	// Signup User main function
+	static async signupUser(name: string, password: string): Promise<boolean> {
+		if (!AuthService.validateInput(name, password)) {
+			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			return false;
+		}
 
-    if (apiResponseData.success) {
-      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-      return true;
-    } else {
-      this.handleAuthError(apiResponseData);
-      return false;
-    }
-  }
+		const apiResponseData = await AuthService.signupUser(name, password);
 
-  /**
-   * Login user with API call and UI feedback
-   */
-  static async loginUser(name: string, password: string): Promise<boolean> {
-    if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-      return false;
-    }
+		if (apiResponseData.success) {
+			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			return true;
+		} else {
+			this.handleAuthError(apiResponseData);
+			return false;
+		}
+	}
 
-    const apiResponseData = await AuthService.loginUser(name, password);
+	// Login user main function
+	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+		if (!AuthService.validateInput(name, password)) {
+			// Only show error message on main page if modal is not open
+			if (!document.getElementById('twofa-modal-msg')) {
+				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			}
+			return false;
+		}
 
-    if (apiResponseData.success) {
-      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-      return true;
-    } else {
-      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
-      return false;
-    }
-  }
+		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
 
-  /**
-   * Logout user with API call and UI feedback
-   */
-  static async logoutUser(): Promise<boolean> {
-    const apiResponseData = await AuthService.logoutUser();
+		if (apiResponseData.success) {
+			if (!document.getElementById('twofa-modal')) {
+				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			}
+			return apiResponseData;
+		} else {
+			// Only show non-2FA errors on the main page
+			const twoFAErrors = ['2FA Code is missing', 'Invalid 2FA Code'];
+			if (
+				!document.getElementById('twofa-modal') &&
+				!twoFAErrors.includes(apiResponseData.error)
+			) {
+				CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+			}
+			return apiResponseData;
+		}
+	}
 
-    if (apiResponseData.success) {
-      CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-      return true;
-    } else {
-      CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
-      return false;
-    }
-  }
+	// Logout main function
+	static async logoutUser(): Promise<boolean> {
+		const apiResponseData = await AuthService.logoutUser();
 
-  /**
-   * Handle authentication errors with validation details
-   */
-  private static handleAuthError(apiResponseData: any): void {
-    let errorMessage = apiResponseData.error || 'Registration failed';
+		if (apiResponseData.success) {
+			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			return true;
+		} else {
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
+			return false;
+		}
+	}
 
-    if (apiResponseData.details && apiResponseData.details.length > 0) {
-      const validationErrors = apiResponseData.details
-        .map((detail: any) => `❌ ${detail.message}`)
-        .join('<br>');
-      errorMessage = `<div class="text-left"><br>${validationErrors}</div>`;
+	// Gestion d'erreur pour l'auth (mdp/signup etc)
+	private static handleAuthError(apiResponseData: any): void {
+		let errorMessage = apiResponseData.error || 'Registration failed';
 
-      // Use HTML formatting for validation errors
-      CommonComponent.showMessage(`${errorMessage}`, 'error', true);
-      return;
-    }
+		if (apiResponseData.details && apiResponseData.details.length > 0) {
+			const validationErrors = apiResponseData.details
+				.map((detail: any) => `❌ ${detail.message}`)
+				.join('<br>');
+			errorMessage = `<div class="text-left"><br>${validationErrors}</div>`;
 
-    CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
-  }
+			// Use HTML formatting for validation errors
+			CommonComponent.showMessage(`${errorMessage}`, 'error', true);
+			return;
+		}
 
-  /**
-   * Validate input fields with UI feedback
-   */
-  static validateInput(name: string, password: string): boolean {
-    if (!AuthService.validateInput(name, password)) {
-      CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-      return false;
-    }
-    return true;
-  }
+		CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
+	}
+
+	// Validate Input avec message d'erreur
+	static validateInput(name: string, password: string): boolean {
+		if (!AuthService.validateInput(name, password)) {
+			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			return false;
+		}
+		return true;
+	}
+
+	// 2FA Setup Handler (modal pour User settings)
+	static async handle2FASetup() {
+		const data = await AuthService.setup2FA();
+		if (!data.success) {
+			CommonComponent.showMessage(`❌ ${data.error || 'Failed to start 2FA setup'}`, 'error');
+			return;
+		}
+
+		let errorMsg: string | undefined = undefined;
+		while (true) {
+			const code = await AuthRender.show2FASetupModal(data.data.qrCodeDataURL, data.data.secret, errorMsg);
+			if (!code) {
+				// User cancelled
+				return;
+			}
+			const verifyData = await AuthService.verify2FA(code);
+			if (verifyData.success) {
+				CommonComponent.showMessage('✅ 2FA enabled!', 'success');
+				break;
+			} else {
+				errorMsg = verifyData.error || '❌ Invalid code. Try again.';
+			}
+		}
+	}
+
+	// Disable 2FA pour user settings
+	static async disable2FA(): Promise<boolean> {
+		const apiResponseData = await AuthService.disable2FA();
+		if (apiResponseData.success) {
+			CommonComponent.showMessage('✅ 2FA disabled!', 'success');
+			return true;
+		} else {
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Failed to disable 2FA'}`, 'error');
+			return false;
+		}
+	}
 }

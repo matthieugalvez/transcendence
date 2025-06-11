@@ -8,12 +8,16 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  name          String        @unique
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  displayName   String?
   password_hash String
+  provider      String   @default("local") // "local" or "google"
   refreshToken  String?
-  created_at    DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  twoFAEnabled  Boolean  @default(false)
+  twoFASecret   String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   // Relations
   player1_sessions GameSession[] @relation("Player1Sessions")
@@ -21,6 +25,7 @@ model User {
 
   @@map("users")
 }
+
 
 model GameSession {
   id            Int      @id @default(autoincrement())
