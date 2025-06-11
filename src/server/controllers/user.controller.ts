@@ -11,7 +11,8 @@ export class UserController {
 				users: users.map(user => ({
 					id: user.id,
 					name: user.name,
-					created_at: user.created_at
+					created_at: user.created_at,
+					updated_at: user.updated_at
 				})),
 				count: users.length
 			}
@@ -57,7 +58,8 @@ export class UserController {
 			const userData = {
 				id: user.id,
 				name: user.name,
-				created_at: user.created_at
+				created_at: user.created_at,
+				update_at: user.updated_at
 			};
 
 			return Send.success(reply, userData, 'Current user retrieved successfully');
@@ -96,7 +98,8 @@ export class UserController {
 			const userData = {
 				id: updatedUser.id,
 				name: updatedUser.name,
-				created_at: updatedUser.created_at
+				created_at: updatedUser.created_at,
+				updated_at: updatedUser.updated_at
 			};
 
 			return Send.success(reply, userData, 'Username updated successfully');

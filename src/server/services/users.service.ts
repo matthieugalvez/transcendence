@@ -23,7 +23,8 @@ export class UserService {
 				id: true,
 				name: true,
 				displayName: true,
-				created_at: true
+				created_at: true,
+				updated_at: true
 			}
 		});
 	}
