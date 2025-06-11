@@ -59,7 +59,7 @@ export class UserComponent {
             } else if (hasChanges) {
                 CommonComponent.showMessage('✅ Settings saved successfully!', 'success');
             } else {
-                CommonComponent.showMessage('⚠️ No changes to save', 'warning');
+                CommonComponent.showMessage('⚠️ No changes to save', 'error');
             }
 
         } catch (error) {
