@@ -102,6 +102,11 @@ export class SidebarComponent {
         });
         bottomContainer.appendChild(backButton);
     }
+    const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+    settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
+    settingBtn.addEventListener("click", async () => {
+    setTimeout(() => router.navigate("/settings"), 300);
+    });
 
     // Logout button
     const logoutBtn = CommonComponent.createStylizedButton("Logout", "red");
@@ -113,6 +118,7 @@ export class SidebarComponent {
             setTimeout(() => router.navigate("/auth"), 300);
         }
     });
+    bottomContainer.appendChild(settingBtn);
     bottomContainer.appendChild(logoutBtn);
     sidebar.appendChild(bottomContainer);
     document.body.appendChild(sidebar);

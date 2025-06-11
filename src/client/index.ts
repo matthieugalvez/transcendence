@@ -23,6 +23,7 @@ function startSPA() {
     router.register('/', renderIndexPage);
     router.register('/auth', async() => await authPage());
     router.register('/home', async() => await RenderHomePage());
+    router.register('/settings', async() => await OnboardingPage());
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
