@@ -20,11 +20,15 @@ export function handlePongWebSocket(ws: WebSocket, gameId: string) {
   // 1.3 Quand on reçoit un message WS, on l’interprète comme un déplacement
   ws.on('message', (data: string) => {
     try {
-      const { playerId, action } = JSON.parse(data) as { 
-        playerId: number;
-        action: 'up' | 'down'
-      };
-      game!.onClientAction(playerId, action);
+      const msg = JSON.parse(data);
+      if (msg.action === 'start') {
+        game!.start(); // demarre partie
+        return;
+      }
+      if (msg.action === 'up' || msg.action === 'down') {
+        game!.onClientAction(msg.playerId, msg.action);
+        return;
+      }
     } catch (err) {
       console.error('WS message parse error:', err);
     }

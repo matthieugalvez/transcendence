@@ -12,6 +12,7 @@ interface Velocity { vx: number; vy: number; }
  */
 export class GameInstance {
     private gameId: string;
+    private isRunning: boolean = false;
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -70,6 +71,10 @@ export class GameInstance {
             this.movePaddle(this.paddle2Pos, action, dt);
         }
     }
+    // start game
+    public start() {
+        this.isRunning = true;
+    }
 
     /** ----------- PRIVATE METHODS ------------ */
     // to have random initial velocity of ball
@@ -101,6 +106,10 @@ export class GameInstance {
     }
     // 60 FPS loop
     private tick() {
+        if (!this.isRunning) {
+            this.broadcastState(false);
+            return;
+        }
         this.moveBall();
         this.checkCollisions();
         this.checkScoreAndReset();
@@ -195,7 +204,7 @@ export class GameInstance {
                 vx: this.ballVel.vx,
                 vy: this.ballVel.vy,
             },
-            isRunning,
+            isRunning: this.isRunning && isRunning,
         };
     }
 

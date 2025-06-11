@@ -77,9 +77,9 @@ export class CommonComponent {
 		return button;
 	}
 
-	static createStylizedButton(text: string, color: 'blue' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
-		const button = document.createElement('button');
-		button.textContent = text;
+static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.textContent = text;
 
 		const colorClasses = {
 			blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
