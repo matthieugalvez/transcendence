@@ -1,7 +1,5 @@
-import { CommonComponent } from './common.component';
-import { AuthService } from '../services/auth.service';
-import { AuthRender } from '../renders/auth.render';
 import { UserService } from '../services/user.service';
+import { CommonComponent } from './common.component';
 
 export class UserComponent {
     static async saveSettings(): Promise<void> {
@@ -20,6 +18,7 @@ export class UserComponent {
 
         // Clear previous messages
         msgDisplay.textContent = '';
+        msgDisplay.innerHTML = ''; // Clear HTML content too
         msgDisplay.className = 'text-center mt-4';
 
         let hasChanges = false;
@@ -33,43 +32,56 @@ export class UserComponent {
                     hasChanges = true;
                     usernameInput.value = ''; // Clear the input
                 } else {
-                    errors.push(`Username: ${usernameResult.error}`);
+                    // Handle detailed validation errors for username - same as AuthComponent
+                    this.handleUserUpdateError(usernameResult, '', errors);
                 }
             }
 
             // Update password if provided
             if (newPassword) {
-                if (newPassword.length < 6) {
-                    errors.push('Password must be at least 6 characters long');
+                const passwordResult = await UserService.changePassword(newPassword);
+                if (passwordResult.success) {
+                    hasChanges = true;
+                    passwordInput.value = ''; // Clear the input
                 } else {
-                    const passwordResult = await UserService.changePassword(newPassword);
-                    if (passwordResult.success) {
-                        hasChanges = true;
-                        passwordInput.value = ''; // Clear the input
-                    } else {
-                        errors.push(`Password: ${passwordResult.error}`);
-                    }
+                    // Handle detailed validation errors for password - same as AuthComponent
+                    this.handleUserUpdateError(passwordResult, '', errors);
                 }
             }
 
-			// location.reload();
-
-            // Display results
+            // Display results exactly like AuthComponent
             if (errors.length > 0) {
-                msgDisplay.className = 'text-center mt-4 text-red-600 font-semibold';
-                msgDisplay.textContent = `❌ ${errors.join(', ')}`;
+                // Join errors with <br> tags like in AuthComponent
+                const errorMessage = `<div class="text-left"><br>${errors.join('<br>')}</div>`;
+
+                // Use HTML formatting for validation errors (same as AuthComponent)
+                CommonComponent.showMessage(`${errorMessage}`, 'error', true);
             } else if (hasChanges) {
-                msgDisplay.className = 'text-center mt-4 text-green-600 font-semibold';
-                msgDisplay.textContent = '✅ Settings saved successfully!';
+                CommonComponent.showMessage('✅ Settings saved successfully!', 'success');
             } else {
-                msgDisplay.className = 'text-center mt-4 text-yellow-600 font-semibold';
-                msgDisplay.textContent = '⚠️ No changes to save';
+                CommonComponent.showMessage('⚠️ No changes to save', 'warning');
             }
 
         } catch (error) {
             console.error('Error saving settings:', error);
-            msgDisplay.className = 'text-center mt-4 text-red-600 font-semibold';
-            msgDisplay.textContent = '❌ Failed to save settings. Please try again.';
+            CommonComponent.showMessage('❌ Failed to save settings. Please try again.', 'error');
+        }
+    }
+
+    /**
+     * Handle user update errors - exactly like AuthComponent.handleAuthError
+     */
+    private static handleUserUpdateError(apiResponseData: any, fieldName: string, errors: string[]): void {
+        if (apiResponseData.details && apiResponseData.details.length > 0) {
+            // Handle detailed validation errors with proper formatting - same as AuthComponent
+            const validationErrors = apiResponseData.details.map((detail: any) =>
+                `❌ ${fieldName} ${detail.message}`
+            );
+            errors.push(...validationErrors);
+        } else {
+            // Handle simple error message
+            const errorMessage = apiResponseData.error || `Failed to update ${fieldName.toLowerCase()}`;
+            errors.push(`❌ ${fieldName} ${errorMessage}`);
         }
     }
 }

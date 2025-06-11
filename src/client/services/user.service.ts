@@ -58,69 +58,74 @@ export class UserService {
 	/**
 	 * Get all users (PROTECTED)
 	 */
+	// ...existing methods...
 
-  static async changeUsername(displayName: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            const response = await ApiClient.authenticatedFetch('/api/me/display-name', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ displayName })
-            });
+	static async changeUsername(displayName: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
+		try {
+			const response = await ApiClient.authenticatedFetch('/api/me/display-name', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ displayName })
+			});
 
-            const data = await response.json();
+			const data = await response.json();
 
-            if (!data.success) {
-                return {
-                    success: false,
-                    error: data.error || 'Failed to update display name'
-                };
-            }
+			console.log('Change username response:', data); // Debug log
 
-            return {
-                success: true
-            };
-        } catch (error) {
-            console.error('Error changing display name:', error);
-            return {
-                success: false,
-                error: 'Failed to update display name. Please try again.'
-            };
-        }
-    }
+			if (!data.success) {
+				return {
+					success: false,
+					error: data.error || 'Failed to update display name',
+					details: data.details || [] // Include validation details
+				};
+			}
 
-    /**
-     * Change user password
-     */
-    static async changePassword(password: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            const response = await ApiClient.authenticatedFetch('/api/me/password', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ password })
-            });
+			return {
+				success: true
+			};
+		} catch (error) {
+			console.error('Error changing display name:', error);
+			return {
+				success: false,
+				error: 'Failed to update display name. Please try again.'
+			};
+		}
+	}
 
-            const data = await response.json();
+	/**
+	 * Change user password
+	 */
+	static async changePassword(password: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
+		try {
+			const response = await ApiClient.authenticatedFetch('/api/me/password', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ password })
+			});
 
-            if (!data.success) {
-                return {
-                    success: false,
-                    error: data.error || 'Failed to update password'
-                };
-            }
+			const data = await response.json();
 
-            return {
-                success: true
-            };
-        } catch (error) {
-            console.error('Error changing password:', error);
-            return {
-                success: false,
-                error: 'Failed to update password. Please try again.'
-            };
-        }
-    }
+			if (!data.success) {
+				return {
+					success: false,
+					error: data.error || 'Failed to update password',
+					details: data.details || [] // Include validation details
+				};
+			}
+
+			return {
+				success: true
+			};
+		} catch (error) {
+			console.error('Error changing password:', error);
+			return {
+				success: false,
+				error: 'Failed to update password. Please try again.'
+			};
+		}
+	}
 }
