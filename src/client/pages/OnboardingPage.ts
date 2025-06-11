@@ -14,7 +14,7 @@ export async function RenderOnboardingPage(): Promise<void>{
     });
 
     const main = document.createElement("div");
-    main.className = "ml-60 min-h-screen flex items-center justify-center p-8";
+    main.className = "min-h-screen min-w-screen flex items-start justify-center";
     document.body.appendChild(main);
     await OnboardingRender.renderInto(main);
 }

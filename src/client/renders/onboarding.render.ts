@@ -45,20 +45,23 @@ export class OnboardingRender {
   }
 
   private static renderMainContent(container: HTMLDivElement, userName: string): void {
-    // Main container with glassmorphism effect
-    const mainContainer = document.createElement('div');
-    mainContainer.className = `
-      bg-white/90 backdrop-blur-md
-      border-2 border-black
-      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-      max-w-lg w-full mx-4 text-center
-    `.replace(/\s+/g, ' ').trim();
+    // sidebar simulee pour flex
+    const sidebarSim = document.createElement('div');
+    sidebarSim.className = "w-[20%] p-6 z-0";
+    container.appendChild(sidebarSim);
+
+    // zone de contenu
+    const content = document.createElement('div');
+    content.className = `
+      w-[80%]
+      flex flex-col items-center
+    `;
 
     // Grid de cartes
     const grid = document.createElement('div')
     grid.className = `
-      flex flex-row gap-12 justify-center
-      relative z-10
+      flex flex-row gap-40 justify-center
+      relative z-10 mx-auto mt-15
       font-['Orbitron']
     `.trim();
 
@@ -70,7 +73,7 @@ export class OnboardingRender {
     games.forEach(({ title, route, img }) => {
       const card = document.createElement('div')
       card.className = `
-        flex flex-col items-center cursor-pointer
+        flex flex-col items-center p-5 cursor-pointer
         hover:scale-105 transition-transform
       `.trim()
       card.onclick = () => router.navigate(route)
@@ -96,8 +99,8 @@ export class OnboardingRender {
 
       grid.appendChild(card)
     })
-
-    container.appendChild(grid);
+    content.appendChild(grid);
+    container.appendChild(content);
   }
 
   private static handleAuthError(container: HTMLDivElement): void {

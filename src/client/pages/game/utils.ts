@@ -1,7 +1,13 @@
 import { GameState } from './types';
 import { renderGame } from './renderGame';
+import { CommonComponent } from '../../components/common.component';
 
 type FinishCallback = (winnerAlias: string) => void;
+
+export interface PongHandle {
+  start: () => void;
+}
+
 /**
  * Fonctionnement :
  * 1. Ouvre websocket
@@ -103,7 +109,7 @@ export function startPongInContainer(
     rightPlayer: string,
     onFinish: FinishCallback,
     gameId: string
-) {
+): PongHandle {
     // 1) Titre du match
     const title = document.createElement('h2');
     title.textContent = matchTitle;
@@ -129,4 +135,54 @@ export function startPongInContainer(
 
     // 5) Boucle client pour envoyer les déplacements
     startClientLoop(socket, keysPressed);
+
+    function start() {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send
+      }
+    }
+
+    return { start }
+}
+
+export function showGameOverOverlay(
+  parent: HTMLDivElement,
+  winnerAlias: string,
+  onReplay: () => void
+) {
+  // overlay semi-transparent
+  const overlay = document.createElement('div');
+  overlay.className = `
+    absolute inset-0
+    bg-black/50 backdrop-blur-sm
+    flex flex-col items-center justify-center
+    z-30
+  `.trim();
+
+  // panneau
+  const panel = document.createElement('div');
+  panel.className = `
+    bg-white/80 backdrop-blur-md
+    rounded-lg p-6 shadow-lg
+    text-center
+    w-64
+  `.trim();
+
+  // message
+  const msg = document.createElement('p');
+  msg.textContent = `${winnerAlias} a gagné !`;
+  msg.className = 'text-2xl font-bold mb-4';
+
+  // bouton Replay
+  const replayBtn = CommonComponent.createStylizedButton('Replay', 'purple');
+  replayBtn.classList.add('px-4','py-2','mt-2');
+  replayBtn.addEventListener('click', () => {
+    overlay.remove();
+    onReplay();
+  });
+
+  panel.appendChild(msg);
+  panel.appendChild(replayBtn);
+  overlay.appendChild(panel);
+  parent.appendChild(overlay);
 }
