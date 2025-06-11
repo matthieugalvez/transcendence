@@ -52,6 +52,8 @@ export class UserComponent {
                 }
             }
 
+			// location.reload();
+
             // Display results
             if (errors.length > 0) {
                 msgDisplay.className = 'text-center mt-4 text-red-600 font-semibold';

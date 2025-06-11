@@ -11,6 +11,7 @@ export class AuthService {
 		return await prisma.user.create({
 			data: {
 				name: name.trim(),
+				displayName: name.trim(),
 				password_hash
 			}
 		})

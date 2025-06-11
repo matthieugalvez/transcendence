@@ -35,7 +35,7 @@ export class SettingsRender {
 			// loadingContainer.remove();
 
 			// Render the main content with user name
-			this.renderMainContent(userData.name);
+			this.renderMainContent(userData.displayName);
 
 		} catch (error) {
 			console.error('Failed to fetch user data:', error);
@@ -149,9 +149,9 @@ export class SettingsRender {
 		gameEmoji.textContent = '🏓';
 		gameEmoji.className = 'text-4xl mb-4';
 
-		const userNameLabel = CommonComponent.createLabel('Change username');
+		const userNameLabel = CommonComponent.createLabel('Change displayname');
 
-		const userNameInput = CommonComponent.createInput('username', 'Enter your name');
+		const userNameInput = CommonComponent.createInput('displayname', 'Enter your nickname');
 		userNameInput.id = 'username-input'; // Add this ID
 		const passwordLabel = CommonComponent.createLabel('Change password');
 		const passwordInput = CommonComponent.createInput('password', 'Change password');

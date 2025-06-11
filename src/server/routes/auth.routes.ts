@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import authSchema from '../validations/auth.schema'
+import {authSchema} from '../validations/auth.schema'
 import ValidationMiddleware from '../middlewares/validation.middleware'
 import { AuthController } from '../controllers/auth.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
@@ -19,7 +19,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	}, AuthController.login)
 
 	// Public but protected by Google OAuth2
-	
+
 	fastify.get('/oauth2/google/callback', AuthController.googleCallback);
 	fastify.get('/google/signin', AuthController.googleSignin);
 	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
