@@ -3,6 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
+import { SidebarComponent } from "../components/sidebar.components";
 
 
 export class OnboardingRender {
@@ -10,20 +11,25 @@ export class OnboardingRender {
 	static async render(): Promise<void> {
 		document.title = 'Transcendence - Home';
 		document.body.innerHTML = '';
-
+	const user = await UserService.getCurrentUser();
+		SidebarComponent.render({
+				userName: user.name,
+				showStats: true,
+				showBackHome: true
+			});
 		// Apply centered gradient layout using BackgroundComponent
 		BackgroundComponent.applyCenteredGradientLayout();
 
 		// Create loading container first
-		const loadingContainer = this.createLoadingContainer();
-		document.body.appendChild(loadingContainer);
+		// const loadingContainer = this.createLoadingContainer();
+		// document.body.appendChild(loadingContainer);
 
 		try {
 			// Fetch user data using UserService
 			const userData = await UserService.getCurrentUser();
 
 			// Remove loading container
-			loadingContainer.remove();
+			// loadingContainer.remove();
 
 			// Render the main content with user name
 			this.renderMainContent(userData.name);
@@ -32,7 +38,7 @@ export class OnboardingRender {
 			console.error('Failed to fetch user data:', error);
 
 			// Remove loading container
-			loadingContainer.remove();
+			// loadingContainer.remove();
 
 			// Show error or redirect to auth
 			this.handleAuthError();
