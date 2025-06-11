@@ -1,7 +1,7 @@
 import '../styles.css';
 import { BackgroundComponent } from '../components/background.component';
 import { startPongInContainer, showGameOverOverlay } from './game/utils';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';

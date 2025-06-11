@@ -55,4 +55,40 @@ export class UserService {
       throw new Error('Failed to fetch users. Please try again.');
     }
   }
+
+  static async changeUsername(name: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await ApiClient.authenticatedFetch('/api/users/me/change-name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error changing username:', error);
+    return { success: false, error: 'Failed to change username' };
+  }
+}
+
+static async changePassword(password: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await ApiClient.authenticatedFetch('/api/users/me/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password })
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return { success: false, error: 'Failed to change password' };
+  }
+}
 }

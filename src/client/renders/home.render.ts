@@ -11,7 +11,7 @@ export class HomeRender {
     // 1) loading dans container
     // const loader = this.createLoadingContainer();
     // container.appendChild(loader);
-    BackgroundComponent.applyCenteredGradientLayout();
+  //  BackgroundComponent.applyCenteredGradientLayout();
 
     try {
       const user = await UserService.getCurrentUser();

@@ -1,11 +1,13 @@
 import '../styles.css';
 import { HomeRender } from '../renders/home.render';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
+import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 
 export async function RenderHomePage(): Promise<void>{
     document.title = "Home";
-    document.body.innerHTML = "";
+    //document.body.innerHTML = "";
+	BackgroundComponent.applyAnimatedGradient();
     const user = await UserService.getCurrentUser();
     SidebarComponent.render({
         userName: user.name,

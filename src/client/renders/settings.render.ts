@@ -3,14 +3,17 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
+import { UserComponent} from '../components/user.component'
 
 
 export class SettingsRender {
 
 	static async render(): Promise<void> {
 		document.title = 'Transcendence - Home';
-		document.body.innerHTML = '';
+	//	document.body.innerHTML = '';
+		BackgroundComponent.applyCenteredGradientLayout();
+
 	const user = await UserService.getCurrentUser();
 		SidebarComponent.render({
 				userName: user.name,
@@ -19,7 +22,6 @@ export class SettingsRender {
 				showBackHome: true
 			});
 		// Apply centered gradient layout using BackgroundComponent
-		BackgroundComponent.applyCenteredGradientLayout();
 
 		// Create loading container first
 		// const loadingContainer = this.createLoadingContainer();
@@ -106,24 +108,6 @@ export class SettingsRender {
 		const buttonContainer = document.createElement('div');
 		buttonContainer.className = 'flex flex-col gap-4 justify-center';
 
-		// Play button
-		// const playButton = CommonComponent.createStylizedButton('Play', 'blue');
-		// playButton.addEventListener('click', () => {
-		// 	router.navigate('/game');
-		// });
-
-		// // Tournament button
-		// const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple');
-		// tournamentButton.addEventListener('click', () => {
-		// 	router.navigate('/tournament');
-		// });
-
-		// // Back to home button
-		// const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
-		// backButton.addEventListener('click', () => {
-		// 	router.navigate('/');
-		// });
-
 		// Logout button
 		const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
 		logoutButton.addEventListener('click', async () => {
@@ -136,6 +120,14 @@ export class SettingsRender {
 			}
 		});
 
+		const userSettingsContainer = document.createElement('div');
+		userSettingsContainer.className = `
+		bg-gray-50/80 backdrop-blur-sm
+		border border-gray-200
+		rounded-lg p-6 mb-6
+		shadow-sm
+		`.replace(/\s+/g, ' ').trim();
+
 		// 2FA Settings buttons.
 		const Enable2FAButton = CommonComponent.createStylizedButton('Enable2FA', 'blue');
 		Enable2FAButton.addEventListener('click', async () => {
@@ -147,15 +139,23 @@ export class SettingsRender {
 			await AuthComponent.disable2FA();
 		});
 
+		const saveButton = CommonComponent.createStylizedButton('Save', 'purple');
+		saveButton.addEventListener('click', async () => {
+			await UserComponent.saveSettings();
+		});
+
 		// Add emoji decorations
 		const gameEmoji = document.createElement('div');
 		gameEmoji.textContent = '🏓';
 		gameEmoji.className = 'text-4xl mb-4';
 
-		// Assemble elements
-		// buttonContainer.appendChild(playButton);
-		// buttonContainer.appendChild(tournamentButton);
-		// buttonContainer.appendChild(backButton);
+		const userNameLabel = CommonComponent.createLabel('Change username');
+
+		const userNameInput = CommonComponent.createInput('username', 'Enter your name');
+		userNameInput.id = 'username-input'; // Add this ID
+		const passwordLabel = CommonComponent.createLabel('Change password');
+		const passwordInput = CommonComponent.createInput('password', 'Change password');
+		passwordInput.id = 'password-input'; // Add this ID
 		buttonContainer.appendChild(Enable2FAButton);
 		buttonContainer.appendChild(Disable2FA);
 		buttonContainer.appendChild(logoutButton);
@@ -163,6 +163,13 @@ export class SettingsRender {
 		mainContainer.appendChild(gameEmoji);
 		mainContainer.appendChild(pageTitle);
 		mainContainer.appendChild(subtitle);
+		userSettingsContainer.appendChild(userNameLabel);
+		userSettingsContainer.appendChild(userNameInput);
+		userSettingsContainer.appendChild(passwordLabel);
+		userSettingsContainer.appendChild(passwordInput);
+		userSettingsContainer.appendChild(saveButton);
+
+		mainContainer.appendChild(userSettingsContainer);
 		mainContainer.appendChild(buttonContainer);
 
 		mainContainer.appendChild(msgDisplay);

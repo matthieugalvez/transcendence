@@ -18,4 +18,14 @@ export default async function userDataRoutes(fastify: FastifyInstance) {
   fastify.get('/me', {
     preHandler: AuthMiddleware.authenticateUser
   }, UserController.getCurrentUser)
+
+
+    // GET /api/users/me - Get current user (PROTECTED)
+  fastify.post('/me/change-name', {
+    preHandler: AuthMiddleware.authenticateUser
+  }, UserController.changeUserName)
+
+    fastify.post('/me/change-password', {
+    preHandler: AuthMiddleware.authenticateUser
+  }, UserController.changeUserPassword)
 }

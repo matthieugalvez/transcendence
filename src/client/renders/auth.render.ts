@@ -18,7 +18,7 @@ export class AuthRender {
 	} {
 		// Set document title and body styles to match HomePage
 		document.title = 'Transcendence - Authentication';
-		document.body.innerHTML = '';
+		//document.body.innerHTML = '';
 
 		// Apply centered gradient layout using BackgroundComponent
 		BackgroundComponent.applyCenteredGradientLayout();

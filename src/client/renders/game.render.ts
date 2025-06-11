@@ -11,8 +11,8 @@ export class GameRender {
     startButton: HTMLButtonElement;
   } {
     document.title = 'Transcendence - Pong Game';
-    document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.innerHTML = '';
+  //  document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
+  //  document.body.innerHTML = '';
 
     // Main container
     const container = document.createElement('div');

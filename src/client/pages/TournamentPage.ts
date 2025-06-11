@@ -9,7 +9,7 @@ import {
   requestNewGameId,
 } from './game/tournament.utils';
 import { BackgroundComponent } from '../components/background.component';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 
@@ -109,7 +109,7 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
     const gameContainer = document.createElement('div');
     gameContainer.className = 'flex flex-col items-center justify-center p-4';
     wrapper.appendChild(gameContainer);
-    
+
     // 5) on demande un gameId au serveur pour créer la partie
     let gameId: string;
     try {
@@ -158,7 +158,7 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         let nextMatchMsg = '';
         if (i < matchups.length - 1) {
           // Si on va vers la finale
-          const [nextLeft, nextRight] = 
+          const [nextLeft, nextRight] =
             i + 1 === 2
               ? [winners[0], winners[1]]
               : matchups[i + 1];
@@ -183,7 +183,7 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         gameContainer.appendChild(transition);
         const canvas = gameContainer.querySelector('canvas');
         if (canvas) canvas.classList.add('blur-xs');
-        
+
         setTimeout(() => {
           if (canvas) canvas.classList.remove('blur-xs');
           // winners.push(winnerAlias);
