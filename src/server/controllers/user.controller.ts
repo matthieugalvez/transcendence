@@ -43,10 +43,16 @@ export class UserController {
 
 	static async	getLanguageFile(request: fastifyrequest, reply: fastifyreply) {
 		try {
-			const userId = (request as any).userId;
-			const user = await UserService.getUserById(userId);
-			const language = user.language;
-			const fs = require(`../locales/${language}.json`);
+			var		language: string
+			const	userId = (request as any).userId;
+			if (userId) {
+				const	user = await UserService.getUserById(userId);
+				language = user.language;
+			}
+			else {
+				language = 'eng'
+			}
+			const	fs = require(`../locales/${language}.json`);
 			console.log("File data:", fs);
 
 			return Send.success(reply, fs, 'Language file retrieved successfully');

@@ -3,10 +3,10 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
-
+const language_obj = await UserService.GetLanguageFile();
 
 export class OnboardingRender {
-  static async render(language_obj: object): Promise<void> {
+  static async render(): Promise<void> {
 	document.title = `${language_obj['Onboardingpage_title']}`
 	document.body.innerHTML = '';
 
@@ -14,7 +14,7 @@ export class OnboardingRender {
     BackgroundComponent.applyCenteredGradientLayout();
 
     // Create loading container first
-    const loadingContainer = this.createLoadingContainer(language_obj);
+    const loadingContainer = this.createLoadingContainer();
     document.body.appendChild(loadingContainer);
 
     try {
@@ -25,7 +25,7 @@ export class OnboardingRender {
       loadingContainer.remove();
 
       // Render the main content with user name
-      this.renderMainContent(userData.name, language_obj);
+      this.renderMainContent(userData.name);
 
     } catch (error) {
       console.error(`${language_obj['Onboardingpage_error_fetch_data']}`, error);
@@ -34,11 +34,11 @@ export class OnboardingRender {
       loadingContainer.remove();
 
       // Show error or redirect to auth
-      this.handleAuthError(language_obj);
+      this.handleAuthError();
     }
   }
 
-  private static createLoadingContainer(language_obj: object): HTMLDivElement {
+  private static createLoadingContainer(): HTMLDivElement {
     const loadingContainer = document.createElement('div');
     loadingContainer.className = `
       bg-white/90 backdrop-blur-md
@@ -58,7 +58,7 @@ export class OnboardingRender {
     return loadingContainer;
   }
 
-  private static renderMainContent(userName: string, language_obj: object): void {
+  private static renderMainContent(userName: string): void {
     // Main container with glassmorphism effect
     const mainContainer = document.createElement('div');
     mainContainer.className = `
@@ -125,8 +125,7 @@ export class OnboardingRender {
 
     const EnglishLanguageButton = CommonComponent.createStylizedButton('set language to english', 'red');
     EnglishLanguageButton.addEventListener('click', async () => {
-		const language = 'eng';
-		const success = await AuthComponent.SetLanguageUser(language);
+		const success = await AuthComponent.SetLanguageUser('eng');
 		if (success.error) {
 				CommonComponent.showMessage('Failed to change language', 'error');
 			}
@@ -135,8 +134,7 @@ export class OnboardingRender {
 
     const FrenchLanguageButton = CommonComponent.createStylizedButton('set language to french', 'blue');
     FrenchLanguageButton.addEventListener('click', async () => {
-		const language = 'fr';
-		const success = await AuthComponent.SetLanguageUser(language);
+		const success = await AuthComponent.SetLanguageUser('fr');
 		if (success.error) {
 				CommonComponent.showMessage('Failed to change language', 'error');
 			}
@@ -164,7 +162,7 @@ export class OnboardingRender {
     document.body.appendChild(mainContainer);
   }
 
-  private static handleAuthError(language_obj: object): void {
+  private static handleAuthError(): void {
     // Show error message and redirect to auth
     const errorContainer = document.createElement('div');
     errorContainer.className = `
