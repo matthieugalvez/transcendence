@@ -1,99 +1,154 @@
-import { startPongInContainer } from '../pages/game/utils';
-import { GameService } from '../services/game.service';
-import { TournamentRender } from '../renders/tournament.render';
+import { renderTournamentPage } from '../pages/TournamentPage';
+import { validatePlayerNames } from '../utils/player.utils';
+import { CommonComponent } from './common.component';
 
 export class TournamentComponent {
-  /**
-   * Validate tournament player names
-   */
-  static validateTournamentPlayers(playerNames: string[]): boolean {
-    // Check if all names are filled
-    for (const name of playerNames) {
-      if (!name.trim()) {
-        alert('Please enter names for all 4 players');
-        return false;
+  static showAliasOverlay(
+    canvas: HTMLCanvasElement | null,
+    wrapper: HTMLElement,
+    onSubmit: (aliases: string[]) => void
+  ) {
+    const overlay = document.createElement('div');
+    overlay.style.backgroundColor = "#362174";
+    overlay.className = `
+      absolute flex flex-col items-center justify-center
+      backdrop-blur-2xl z-10 w-[40%] h-[55%]
+      border-2 border-black
+      rounded-lg
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    `;
+    wrapper.appendChild(overlay);
+
+    // Blur le canvas pendant la saisie
+    if (canvas) canvas.classList.add('blur-xs');
+
+    // Titre
+    const title = document.createElement('h1');
+    title.textContent = 'Enter name to begin tournament:';
+    title.className = 'text-2xl text-white font-["Canada-big"] capitalize mb-6';
+    overlay.appendChild(title);
+
+    // Inputs
+    const inputs: HTMLInputElement[] = [];
+    for (let i = 1; i <= 4; i++) {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = `Player ${i}`;
+      inp.className = `
+        border border-purple-500 rounded-lg px-4 py-2
+        text-lg text-white font-['Orbitron']
+        focus:outline-none focus:ring-2 focus:ring-purple-500
+        mb-4 w-64
+      `;
+      overlay.appendChild(inp);
+      inputs.push(inp);
+    }
+
+    // Bouton start
+    const startButton = CommonComponent.createStylizedButton('Start Tournament','blue');
+    startButton.disabled = true;
+    startButton.style.display = 'none';
+    overlay.appendChild(startButton);
+
+    // Message d’erreur
+    let errorMsg = document.createElement('p');
+    errorMsg.className = "text-sm text-red-500 mb-2";
+    overlay.appendChild(errorMsg);
+
+    // Validation dynamique
+    function checkAllValid() {
+      const aliases = inputs.map(inp => inp.value.trim());
+      const { valid, error } = validatePlayerNames(...aliases);
+      if (valid) {
+        startButton.disabled = false;
+        startButton.style.display = 'block';
+        errorMsg.textContent = '';
+      } else {
+        startButton.disabled = true;
+        startButton.style.display = 'none';
+        errorMsg.textContent = error || '';
       }
     }
+    inputs.forEach((inp, index) => {
+      inp.addEventListener('input', checkAllValid);
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && inp.value.trim().length > 0) {
+          e.preventDefault();
+          if (index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          } else {
+            checkAllValid();
+            if (!startButton.disabled) startButton.click();
+          }
+        }
+      });
+    });
 
-    // Check for duplicate names
-    const uniqueNames = new Set(playerNames);
-    if (uniqueNames.size !== playerNames.length) {
-      alert('All players must have different names');
-      return false;
-    }
-
-    return true;
+    startButton.onclick = () => {
+      overlay.remove();
+      if (canvas) canvas.classList.remove('blur-xs');
+      onSubmit(inputs.map(inp => inp.value.trim()));
+    };
   }
 
-  /**
-   * Launch the tournament with given players
-   */
-  static async launchTournament(playerNames: string[]): Promise<void> {
-    // Prepare matchups: semi-finals and final
-    const matchups: [string, string][] = [
-      [playerNames[0], playerNames[1]],
-      [playerNames[2], playerNames[3]],
-      ['', ''], // Final match - will be filled with winners
-    ];
+  static showTransitionPanel(
+    gameContainer: HTMLElement,
+    i: number,
+    matchups: [string, string][],
+    winnerAlias: string,
+    winners: string[],
+    onNext: () => void
+  ) {
+    const transition = document.createElement('div');
+    transition.style.backgroundColor = "#362174";
+    transition.className = `
+      absolute flex flex-col items-center justify-center p-8
+      backdrop-blur-2xl z-20 w-[40%] h-[25%]
+      border-2 border-black
+      whitespace-nowrap
+      rounded-lg
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    `;
+    // Message principal
+    const winnerMsg = document.createElement('h2');
+    if (i === matchups.length - 1)
+      winnerMsg.textContent = "Tournament finished! 🏆";
+    else
+      winnerMsg.textContent = `${winnerAlias} wins this match!`;
+    winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+    transition.appendChild(winnerMsg);
 
-    const winners: string[] = [];
+    // Sous message / prochain match ou résultat final
+    let nextMatchMsg = '';
+    if (i < matchups.length - 1) {
+      const [nextLeft, nextRight] = 
+        i + 1 === 2
+          ? [winners[0], winners[1]]
+          : matchups[i + 1];
+      nextMatchMsg = `Next Match : ${nextLeft} VS ${nextRight}`;
+    } else {
+      nextMatchMsg = `${winnerAlias} wins!`;
+    }
+    const nextMsg = document.createElement('p');
+    nextMsg.textContent = nextMatchMsg;
+    nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
+    transition.appendChild(nextMsg);
 
-    // Function to play each match
-    async function playMatch(i: number): Promise<void> {
-      if (i >= matchups.length) {
-        // Tournament finished
-        TournamentRender.renderTournamentComplete();
-        return;
-      }
-
-      // If it's the final match, fill with winners from semi-finals
-      if (i === 2) {
-        matchups[2][0] = winners[0];
-        matchups[2][1] = winners[1];
-      }
-
-      const [leftAlias, rightAlias] = matchups[i];
-      const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
-
-      // Render match container
-      const gameContainer = TournamentRender.renderTournamentMatch(matchTitle);
-
-      try {
-        // Get gameId from server
-        const gameId = await GameService.requestNewGameId();
-
-        // Display the game ID for the match
-        const gameIdElement = document.createElement('div');
-        gameIdElement.className = 'text-sm text-gray-600 mb-4 text-center';
-        gameIdElement.textContent = `Game ID: ${gameId}`;
-        gameContainer.appendChild(gameIdElement);
-
-        // Start the match
-        startPongInContainer(
-          gameContainer,
-          matchTitle,
-          leftAlias,
-          rightAlias,
-          (winnerAlias: string) => {
-            // Match finished, proceed to next match after delay
-            setTimeout(() => {
-              winners.push(winnerAlias);
-              playMatch(i + 1);
-            }, 4000); // Give time to see winner message
-          },
-          gameId
-        );
-      } catch (error) {
-        console.error('Error starting tournament match:', error);
-        const errMsg = document.createElement('p');
-        errMsg.textContent = 'Erreur serveur, réessayez plus tard';
-        errMsg.className = 'text-red-600';
-        document.body.appendChild(errMsg);
-        return;
-      }
+    // Bouton play again si dernier match
+    if (i === matchups.length - 1) {
+      const replayBtn = CommonComponent.createStylizedButton('Play again', 'blue');
+      replayBtn.classList.add('mt-4');
+      replayBtn.onclick = () => renderTournamentPage();
+      transition.appendChild(replayBtn);
     }
 
-    // Start tournament with first match
-    await playMatch(0);
+    gameContainer.appendChild(transition);
+    const canvas = gameContainer.querySelector('canvas');
+    if (canvas) canvas.classList.add('blur-xs');
+
+    setTimeout(() => {
+      if (canvas) canvas.classList.remove('blur-xs');
+      if (i < matchups.length - 1) onNext();
+    }, 4000);
   }
 }

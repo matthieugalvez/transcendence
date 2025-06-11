@@ -1,6 +1,6 @@
 import { router } from "../configs/simplerouter";
-import { CommonComponent } from '../components/common.component';
-import { AuthComponent } from '../components/auth.component';
+import { CommonComponent } from './common.component';
+import { AuthComponent } from './auth.component';
 import defaultAvatar from "../assets/profilpic/profilpic1.png";
 
 export interface SidebarOptions {

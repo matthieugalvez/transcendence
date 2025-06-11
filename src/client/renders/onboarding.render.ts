@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
 
 
 export class OnboardingRender {

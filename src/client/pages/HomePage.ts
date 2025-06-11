@@ -1,6 +1,6 @@
 import '../styles.css';
 import { HomeRender } from '../renders/home.render';
-import { SidebarComponent } from "../components/sidebar.components";
+import { SidebarComponent } from "../components/sidebar.component";
 import { UserService } from '../services/user.service';
 
 export async function RenderHomePage(): Promise<void>{
