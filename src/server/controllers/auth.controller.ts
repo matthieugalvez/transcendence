@@ -467,12 +467,13 @@ export class AuthController {
 		}
 	}
 
+	// Redirection vers la page de login google.
+
 	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			console.log('🔍 Initiating Google OAuth signin...');
 
-			// The OAuth2 plugin automatically handles the redirect to Google
-			// This method will redirect the user to Google's authorization URL
+
 			const oauth2 = (request.server as any).GoogleOAuth2;
 
 			if (!oauth2) {
@@ -480,7 +481,6 @@ export class AuthController {
 				return reply.redirect('/auth?error=oauth_not_configured');
 			}
 
-			// Generate the authorization URL and redirect
 			return oauth2.generateAuthorizationUri(request, reply);
 
 		} catch (error) {
@@ -489,6 +489,7 @@ export class AuthController {
 		}
 	}
 
+	// Check le token JWT pendant le OAuth si le 2FA Est actif.
 	static async checkOAuth2FAStatus(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const { tempOAuthAuth } = request.cookies as { tempOAuthAuth: string };
@@ -516,6 +517,7 @@ export class AuthController {
 		}
 	}
 
+	//Verifie le 2FA Pour le Google OAuth
 	static async verifyOAuth2FA(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const { token } = request.body as { token: string };

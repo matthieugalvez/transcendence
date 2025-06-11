@@ -107,7 +107,6 @@ export class AuthService {
 		})
 	}
 
-
 	// /api/2fa/disable
 	static async enable2FA(userId: number) {
 		await prisma.user.update({
@@ -143,9 +142,4 @@ export class AuthService {
 		});
 		return user;
 	}
-
-	/**
- * Verify 2FA code for OAuth users (Google, etc.)
- */
-
 }

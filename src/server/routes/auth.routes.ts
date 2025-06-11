@@ -18,6 +18,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
 		preHandler: ValidationMiddleware.validateBody(authSchema.login)
 	}, AuthController.login)
 
+	// Public but protected by Google OAuth2
+	
+	fastify.get('/oauth2/google/callback', AuthController.googleCallback);
+	fastify.get('/google/signin', AuthController.googleSignin);
+	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
+	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
+
 	// PROTECTED ROUTES
 	fastify.post('/logout', {
 		preHandler: AuthMiddleware.authenticateUser
@@ -40,19 +47,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 		preHandler: AuthMiddleware.authenticateUser
 	}, AuthController.disable2FA);
 
-    fastify.get('/oauth2/google/callback', AuthController.googleCallback);
 
-    // Optional: manual Google signin endpoint (if you want to trigger it via API)
-    fastify.get('/google/signin', AuthController.googleSignin);
-	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
-	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
 }
 
-
-// export async function googleRoutes(fastify: FastifyInstance) {
-// fastify.get('/oauth2/google/callback', async (request, reply) => {
-//     const token = await fastify.googleOAuth2Options.getAccessTokenFromAuthorizationCodeFlow(request);
-//     // ...handle user info, session, etc.
-// });
-// }
 
