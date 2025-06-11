@@ -124,7 +124,9 @@ export class AuthService {
 		}
 		await prisma.user.update({
 			where: { id: userId },
-			data: { twoFAEnabled: false }
+			data: { twoFAEnabled: false,
+				twoFASecret: null,
+			 }
 		});
 	}
 
