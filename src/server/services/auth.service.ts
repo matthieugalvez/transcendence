@@ -144,5 +144,8 @@ export class AuthService {
 		return user;
 	}
 
+	/**
+ * Verify 2FA code for OAuth users (Google, etc.)
+ */
 
 }

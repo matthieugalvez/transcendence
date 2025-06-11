@@ -44,6 +44,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
     // Optional: manual Google signin endpoint (if you want to trigger it via API)
     fastify.get('/google/signin', AuthController.googleSignin);
+	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
+	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
 }
 
 

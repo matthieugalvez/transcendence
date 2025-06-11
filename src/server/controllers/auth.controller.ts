@@ -322,144 +322,270 @@ export class AuthController {
 
 	// GOOGLE
 
-static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
-    try {
-        console.log('🔍 Google OAuth callback received');
-        console.log('🔍 Request URL:', request.url);
-        console.log('🔍 Request query:', request.query);
+	static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			console.log('🔍 Google OAuth callback received');
+			console.log('🔍 Request URL:', request.url);
+			console.log('🔍 Request query:', request.query);
 
-        const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-        console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
+			const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+			console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
 
-        // 🚨 CRITICAL DEBUG: Log the actual token structure
-        console.log('🔍 Raw token object:', token);
-        console.log('🔍 Token type:', typeof token);
-        console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
+			// 🚨 CRITICAL DEBUG: Log the actual token structure
+			console.log('🔍 Raw token object:', token);
+			console.log('🔍 Token type:', typeof token);
+			console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
 
-        // Try all possible access token locations
-        const possibleTokens = {
-            'token.access_token': token?.access_token,
-            'token.accessToken': token?.accessToken,
-            'token.token': token?.token,
-            'token.token.access_token': token?.token?.access_token,
-            'entire token as string': typeof token === 'string' ? token : null
-        };
+			// Try all possible access token locations
+			const possibleTokens = {
+				'token.access_token': token?.access_token,
+				'token.accessToken': token?.accessToken,
+				'token.token': token?.token,
+				'token.token.access_token': token?.token?.access_token,
+				'entire token as string': typeof token === 'string' ? token : null
+			};
 
-        console.log('🔍 Possible token locations:', possibleTokens);
+			console.log('🔍 Possible token locations:', possibleTokens);
 
-        // Find the actual access token
-        const googleAccessToken = token?.access_token ||
-                                 token?.accessToken ||
-                                 token?.token?.access_token ||
-                                 (typeof token === 'string' ? token : null);
+			// Find the actual access token
+			const googleAccessToken = token?.access_token ||
+				token?.accessToken ||
+				token?.token?.access_token ||
+				(typeof token === 'string' ? token : null);
 
-        console.log('🔍 Google access token found:', !!googleAccessToken);
-        console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
+			console.log('🔍 Google access token found:', !!googleAccessToken);
+			console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
 
-        if (!googleAccessToken) {
-            console.error('❌ No Google access token found in token object');
-            console.log('🔍 Full token dump:', JSON.stringify(token, null, 2));
-            return reply.redirect('http://localhost:5173/auth?error=no_google_token');
+			if (!googleAccessToken) {
+				console.error('❌ No Google access token found in token object');
+				console.log('🔍 Full token dump:', JSON.stringify(token, null, 2));
+				return reply.redirect('http://localhost:5173/auth?error=no_google_token');
+			}
+
+			// Test the Google token by fetching user info
+			console.log('🔍 Fetching Google user info...');
+			const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+				headers: {
+					'Authorization': `Bearer ${googleAccessToken}`
+				}
+			});
+
+			if (!response.ok) {
+				console.error('❌ Failed to fetch Google user info:', response.status, await response.text());
+				return reply.redirect('http://localhost:5173/auth?error=invalid_google_token');
+			}
+
+			const googleUser = await response.json();
+			console.log('✅ Google user data received:', { email: googleUser.email, name: googleUser.name });
+
+			// Check if user exists or create new one
+			let user = await UserService.getUserByName(googleUser.email);
+
+			if (!user) {
+				console.log('🔍 Creating new user for:', googleUser.email);
+				user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
+				console.log('✅ Created new user:', user.id);
+			} else {
+				console.log('✅ Found existing user:', user.id);
+			}
+
+			// 2FA Ici
+
+			 if (user.twoFAEnabled) {
+            console.log('🔐 User has 2FA enabled, creating temporary session');
+
+            // Create a temporary token for 2FA verification
+            const tempToken = jwt.sign(
+                { userId: user.id, purpose: '2fa_pending_oauth' },
+                authConfig.secret,
+                { expiresIn: '5m' } // 5 minutes to complete 2FA
+            );
+
+            // Set temporary cookie and redirect to 2FA verification page
+            reply.setCookie('tempOAuthAuth', tempToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 5 * 60 * 1000 // 5 minutes
+            });
+
+            console.log('🔐 Redirecting to OAuth 2FA page');
+            return reply.redirect('http://localhost:5173/auth/oauth-2fa');
         }
 
-        // Test the Google token by fetching user info
-        console.log('🔍 Fetching Google user info...');
-        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: {
-                'Authorization': `Bearer ${googleAccessToken}`
-            }
-        });
-
-        if (!response.ok) {
-            console.error('❌ Failed to fetch Google user info:', response.status, await response.text());
-            return reply.redirect('http://localhost:5173/auth?error=invalid_google_token');
-        }
-
-        const googleUser = await response.json();
-        console.log('✅ Google user data received:', { email: googleUser.email, name: googleUser.name });
-
-        // Check if user exists or create new one
-        let user = await UserService.getUserByName(googleUser.email);
-
-        if (!user) {
-            console.log('🔍 Creating new user for:', googleUser.email);
-            user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
-            console.log('✅ Created new user:', user.id);
-        } else {
-            console.log('✅ Found existing user:', user.id);
-        }
-
-        // Generate YOUR JWT tokens (not Google's)
+        // Continue with normal JWT token generation if no 2FA...
         console.log('🔍 Generating JWT tokens...');
-        const jwtAccessToken = jwt.sign(
-            { userId: user.id },
-            authConfig.secret,
-            { expiresIn: authConfig.secret_expires_in }
-        );
+        // ...rest of existing code...
+			const jwtAccessToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.secret,
+				{ expiresIn: authConfig.secret_expires_in }
+			);
 
-        const jwtRefreshToken = jwt.sign(
-            { userId: user.id },
-            authConfig.refresh_secret,
-            { expiresIn: authConfig.refresh_secret_expires_in }
-        );
+			const jwtRefreshToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.refresh_secret,
+				{ expiresIn: authConfig.refresh_secret_expires_in }
+			);
 
-        console.log('🔍 JWT tokens generated successfully');
-        console.log('🔍 JWT Access token preview:', jwtAccessToken.substring(0, 30) + '...');
+			console.log('🔍 JWT tokens generated successfully');
+			console.log('🔍 JWT Access token preview:', jwtAccessToken.substring(0, 30) + '...');
 
-        // Store refresh token in database
-        await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
-        console.log('✅ Refresh token stored in database');
+			// Store refresh token in database
+			await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
+			console.log('✅ Refresh token stored in database');
 
-        // Set JWT cookies (these are your app's auth tokens)
-        reply.setCookie('accessToken', jwtAccessToken, {
-            httpOnly: true,
-            secure: false, // localhost
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60 * 1000
-        });
+			// Set JWT cookies (these are your app's auth tokens)
+			reply.setCookie('accessToken', jwtAccessToken, {
+				httpOnly: true,
+				secure: false, // localhost
+				sameSite: 'lax',
+				path: '/',
+				maxAge: 15 * 60 * 1000
+			});
 
-        reply.setCookie('refreshToken', jwtRefreshToken, {
-            httpOnly: true,
-            secure: false, // localhost
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 24 * 60 * 60 * 1000
-        });
+			reply.setCookie('refreshToken', jwtRefreshToken, {
+				httpOnly: true,
+				secure: false, // localhost
+				sameSite: 'lax',
+				path: '/',
+				maxAge: 24 * 60 * 60 * 1000
+			});
 
-        console.log('🍪 JWT cookies set successfully');
-        console.log('🔄 Redirecting to frontend home page...');
+			console.log('🍪 JWT cookies set successfully');
+			console.log('🔄 Redirecting to frontend home page...');
 
-        // Redirect to frontend
-        return reply.redirect('http://localhost:5173/home');
+			// Redirect to frontend
+			return reply.redirect('http://localhost:5173/home');
 
-    } catch (error) {
-        console.error('❌ Google OAuth callback error:', error);
-        return reply.redirect('http://localhost:5173/auth?error=oauth_failed');
-    }
-}
+		} catch (error) {
+			console.error('❌ Google OAuth callback error:', error);
+			return reply.redirect('http://localhost:5173/auth?error=oauth_failed');
+		}
+	}
 
-    static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            console.log('🔍 Initiating Google OAuth signin...');
+	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			console.log('🔍 Initiating Google OAuth signin...');
 
-            // The OAuth2 plugin automatically handles the redirect to Google
-            // This method will redirect the user to Google's authorization URL
-            const oauth2 = (request.server as any).GoogleOAuth2;
+			// The OAuth2 plugin automatically handles the redirect to Google
+			// This method will redirect the user to Google's authorization URL
+			const oauth2 = (request.server as any).GoogleOAuth2;
 
-            if (!oauth2) {
-                console.error('❌ GoogleOAuth2 plugin not available');
-                return reply.redirect('/auth?error=oauth_not_configured');
-            }
+			if (!oauth2) {
+				console.error('❌ GoogleOAuth2 plugin not available');
+				return reply.redirect('/auth?error=oauth_not_configured');
+			}
 
-            // Generate the authorization URL and redirect
-            return oauth2.generateAuthorizationUri(request, reply);
+			// Generate the authorization URL and redirect
+			return oauth2.generateAuthorizationUri(request, reply);
 
-        } catch (error) {
-            console.error('❌ Google signin initiation error:', error);
-            return reply.redirect('/auth?error=google_signin_failed');
-        }
-    }
+		} catch (error) {
+			console.error('❌ Google signin initiation error:', error);
+			return reply.redirect('/auth?error=google_signin_failed');
+		}
+	}
 
+	static async checkOAuth2FAStatus(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { tempOAuthAuth } = request.cookies as { tempOAuthAuth: string };
 
+			if (!tempOAuthAuth) {
+				return Send.unauthorized(reply, 'No pending OAuth 2FA session');
+			}
+
+			// Verify temporary token is valid
+			try {
+				const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+
+				if (decoded.purpose !== '2fa_pending_oauth') {
+					return Send.unauthorized(reply, 'Invalid OAuth session');
+				}
+
+				return Send.success(reply, { userId: decoded.userId }, 'OAuth 2FA session active');
+			} catch (jwtError) {
+				return Send.unauthorized(reply, 'OAuth 2FA session expired');
+			}
+
+		} catch (error) {
+			console.error('OAuth 2FA status check error:', error);
+			return Send.internalError(reply, 'Failed to check OAuth 2FA status');
+		}
+	}
+
+	static async verifyOAuth2FA(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { token } = request.body as { token: string };
+			const { tempOAuthAuth } = request.cookies as { tempOAuthAuth: string };
+
+			if (!tempOAuthAuth) {
+				return Send.unauthorized(reply, '2FA verification session expired');
+			}
+
+			if (!token) {
+				return Send.badRequest(reply, '2FA token required');
+			}
+
+			// Verify temporary token
+			const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+
+			if (decoded.purpose !== '2fa_pending_oauth') {
+				return Send.unauthorized(reply, 'Invalid verification session');
+			}
+
+			// Verify 2FA code
+			const isValid = await AuthService.verify2FACode(decoded.userId, token);
+			if (!isValid) {
+				return Send.unauthorized(reply, 'Invalid 2FA code');
+			}
+
+			// Get user data
+			const user = await UserService.getUserById(decoded.userId);
+			if (!user) {
+				return Send.unauthorized(reply, 'User not found');
+			}
+
+			// Generate actual JWT tokens (same logic as in googleCallback)
+			const accessToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.secret,
+				{ expiresIn: authConfig.secret_expires_in }
+			);
+
+			const refreshToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.refresh_secret,
+				{ expiresIn: authConfig.refresh_secret_expires_in }
+			);
+
+			// Store refresh token and set cookies
+			await AuthService.updateRefreshToken(user.id, refreshToken);
+
+			reply.setCookie('accessToken', accessToken, {
+				httpOnly: true,
+				secure: false,
+				sameSite: 'lax',
+				path: '/',
+				maxAge: 15 * 60 * 1000
+			});
+
+			reply.setCookie('refreshToken', refreshToken, {
+				httpOnly: true,
+				secure: false,
+				sameSite: 'lax',
+				path: '/',
+				maxAge: 24 * 60 * 60 * 1000
+			});
+
+			// Clear temporary auth cookie
+			reply.setCookie('tempOAuthAuth', '', { maxAge: 0 });
+
+			return Send.success(reply, { id: user.id, name: user.name }, 'OAuth 2FA verification successful');
+
+		} catch (error) {
+			console.error('OAuth 2FA verify error:', error);
+			return Send.internalError(reply, 'Failed to verify 2FA');
+		}
+	}
 }
