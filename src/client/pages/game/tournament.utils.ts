@@ -1,3 +1,5 @@
+import { CommonComponent } from '../../components/common.component';
+
 // Crée et retourne le conteneur principal centré
 export function createTournamentContainer(): HTMLDivElement {
   const container = document.createElement('div');
@@ -24,6 +26,7 @@ export function appendTournamentTitle(container: HTMLDivElement, text: string): 
   title.className = `
     text-2xl text-white 
     font-['Canada-big']
+    capitalize
     mb-6
   `;
   container.appendChild(title);
@@ -35,11 +38,11 @@ export function createAliasInputs(container: HTMLDivElement, count: number): HTM
   for (let i = 1; i <= count; i++) {
     const inp = document.createElement('input');
     inp.type = 'text';
-    inp.placeholder = `Joueur ${i}`;
+    inp.placeholder = `Player ${i}`;
     inp.className = `
-      border border-gray-300 rounded-lg px-4 py-2
+      border border-purple-500 rounded-lg px-4 py-2
       text-lg text-white font-['Orbitron']
-      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+      focus:outline-none focus:ring-2 focus:ring-purple-500
       mb-4 w-64
     `;
     container.appendChild(inp);
@@ -50,10 +53,10 @@ export function createAliasInputs(container: HTMLDivElement, count: number): HTM
 
 // Crée et retourne le bouton "Start Tournament" (désactivé/masqué par défaut)
 export function createStartButton(container: HTMLDivElement): HTMLButtonElement {
-  const startButton = document.createElement('button');
+  // const startButton = document.createElement('button');
+  const startButton = CommonComponent.createStylizedButton('Start Tournament','blue');
   startButton.textContent = 'Start Tournament';
-  startButton.className =
-    'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors mb-4';
+  startButton.classList.add("cursor-pointer");
   startButton.disabled = true;
   startButton.style.display = 'none';
   container.appendChild(startButton);
@@ -65,14 +68,25 @@ export function setupStartButtonLogic(
   inputs: HTMLInputElement[],
   startButton: HTMLButtonElement
 ): void {
+  let errorMsg = document.createElement('p');
+  errorMsg.className = "text-sm text-red-500 mb-2";
+  startButton.parentElement?.appendChild(errorMsg);
+  
   function checkAllFilled() {
+    const aliases = inputs.map(inp => inp.value.trim().toLowerCase());
     const tousValides = inputs.every((inp) => inp.value.trim().length > 0);
-    if (tousValides) {
+    const allUnique = new Set(aliases).size === aliases.length;
+    if (tousValides && allUnique) {
       startButton.disabled = false;
       startButton.style.display = 'block';
+      errorMsg.textContent = '';
     } else {
       startButton.disabled = true;
       startButton.style.display = 'none';
+      if (!allUnique && tousValides)
+        errorMsg.textContent = 'Each player must have a unique name!';
+      else
+        errorMsg.textContent = '';
     }
   }
 

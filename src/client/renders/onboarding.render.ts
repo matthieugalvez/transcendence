@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
-import pongImg from '../assets/gameimg/pong-preview.jpg';
+import pongImg from '../assets/gameimg/screen-pongGame.png';
 import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
 
 

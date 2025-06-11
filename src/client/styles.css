@@ -38,23 +38,6 @@
   animation: gradient-shift 15s ease infinite;
 }
 
-@import "tailwindcss";
-
-/* Existing font faces... */
-
-/* Enhanced animations for Balatro effect */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 @keyframes float-slow {
   0%, 100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
@@ -161,4 +144,10 @@
 
 .animate-pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* personalized blur */
+.blur-xs {
+  filter: blur(1.5px);
+  transition: filter 0.2s;
 }

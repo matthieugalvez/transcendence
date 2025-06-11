@@ -86,12 +86,12 @@ export class SidebarComponent {
     bottomContainer.className = 'mt-auto w-full space-y-2';
 
     // tournament
-    const tournamentButton = CommonComponent.createStylizedButton('Tournament - provisoire', 'gray');
-    tournamentButton.classList.add("w-full", "text-center", "cursor-pointer");
-    tournamentButton.addEventListener('click', () => {
-        router.navigate('/tournament');
-    });
-    bottomContainer.appendChild(tournamentButton);
+    // const tournamentButton = CommonComponent.createStylizedButton('Tournament - provisoire', 'gray');
+    // tournamentButton.classList.add("w-full", "text-center", "cursor-pointer");
+    // tournamentButton.addEventListener('click', () => {
+    //     router.navigate('/tournament');
+    // });
+    // bottomContainer.appendChild(tournamentButton);
 
     // Back to home button
     if (showBackHome) {
