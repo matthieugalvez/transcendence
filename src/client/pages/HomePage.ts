@@ -10,6 +10,7 @@ export async function RenderHomePage(): Promise<void>{
     SidebarComponent.render({
         userName: user.name,
         showStats: true,
+		showSettings: true,
         showBackHome: false
     });
 

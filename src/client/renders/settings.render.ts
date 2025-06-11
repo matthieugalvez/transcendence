@@ -6,7 +6,7 @@ import { AuthComponent } from '../components/auth.component';
 import { SidebarComponent } from "../components/sidebar.components";
 
 
-export class OnboardingRender {
+export class SettingsRender {
 
 	static async render(): Promise<void> {
 		document.title = 'Transcendence - Home';
@@ -15,6 +15,7 @@ export class OnboardingRender {
 		SidebarComponent.render({
 				userName: user.name,
 				showStats: true,
+				showSettings: false,
 				showBackHome: true
 			});
 		// Apply centered gradient layout using BackgroundComponent

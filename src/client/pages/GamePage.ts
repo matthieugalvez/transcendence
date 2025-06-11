@@ -19,7 +19,7 @@ export async function renderGamePage() {
   const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
   // sidebar + gradiant bg
-  SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true });
+  SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true, showSettings:true });
   BackgroundComponent.applyNormalGradientLayout();
 
   const wrapper = document.createElement('div');
@@ -50,7 +50,7 @@ export async function renderGamePage() {
     space-y-4 z-10
   `.replace(/\s+/g,' ').trim();
   wrapper.appendChild(controls);
-  
+
   const canvas = gameContainer.querySelector('canvas');
   if (canvas) canvas.classList.add('blur-xs');
 
