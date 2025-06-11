@@ -9,16 +9,16 @@ import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
 export class HomeRender {
   static async renderInto(container: HTMLDivElement): Promise<void> {
     // 1) loading dans container
-    const loader = this.createLoadingContainer();
-    container.appendChild(loader);
+    // const loader = this.createLoadingContainer();
+    // container.appendChild(loader);
     BackgroundComponent.applyCenteredGradientLayout();
 
     try {
       const user = await UserService.getCurrentUser();
-      loader.remove();
+      // loader.remove();
       this.renderMainContent(container, user.name);
     } catch {
-      loader.remove();
+      // loader.remove();
       this.handleAuthError(container);
     }
   }
