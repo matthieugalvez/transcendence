@@ -100,22 +100,22 @@ export class OnboardingRender {
 		buttonContainer.className = 'flex flex-col gap-4 justify-center';
 
 		// Play button
-		const playButton = CommonComponent.createStylizedButton('Play', 'blue');
-		playButton.addEventListener('click', () => {
-			router.navigate('/game');
-		});
+		// const playButton = CommonComponent.createStylizedButton('Play', 'blue');
+		// playButton.addEventListener('click', () => {
+		// 	router.navigate('/game');
+		// });
 
-		// Tournament button
-		const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple');
-		tournamentButton.addEventListener('click', () => {
-			router.navigate('/tournament');
-		});
+		// // Tournament button
+		// const tournamentButton = CommonComponent.createStylizedButton('Tournament', 'purple');
+		// tournamentButton.addEventListener('click', () => {
+		// 	router.navigate('/tournament');
+		// });
 
-		// Back to home button
-		const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
-		backButton.addEventListener('click', () => {
-			router.navigate('/');
-		});
+		// // Back to home button
+		// const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
+		// backButton.addEventListener('click', () => {
+		// 	router.navigate('/');
+		// });
 
 		// Logout button
 		const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
@@ -146,9 +146,9 @@ export class OnboardingRender {
 		gameEmoji.className = 'text-4xl mb-4';
 
 		// Assemble elements
-		buttonContainer.appendChild(playButton);
-		buttonContainer.appendChild(tournamentButton);
-		buttonContainer.appendChild(backButton);
+		// buttonContainer.appendChild(playButton);
+		// buttonContainer.appendChild(tournamentButton);
+		// buttonContainer.appendChild(backButton);
 		buttonContainer.appendChild(Enable2FAButton);
 		buttonContainer.appendChild(Disable2FA);
 		buttonContainer.appendChild(logoutButton);

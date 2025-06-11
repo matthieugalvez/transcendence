@@ -19,9 +19,9 @@ class AuthMiddleware {
      * Middleware to authenticate the user based on the access token stored in the HttpOnly cookie.
      */
     static authenticateUser = async (request: FastifyRequestWithCookies, reply: FastifyReply) => {
-        // DEBUG: Log all cookies
-        console.log('🍪 Auth middleware - All cookies:', request.cookies);
-        console.log('🔑 Auth middleware - accessToken:', request.cookies?.accessToken ? '***EXISTS***' : 'MISSING');
+        // // DEBUG: Log all cookies
+        // console.log('🍪 Auth middleware - All cookies:', request.cookies);
+        // console.log('🔑 Auth middleware - accessToken:', request.cookies?.accessToken ? '***EXISTS***' : 'MISSING');
 
         const token = request.cookies.accessToken;
 
@@ -31,10 +31,10 @@ class AuthMiddleware {
         }
 
         try {
-            console.log('🔧 Auth config secret exists:', authConfig.secret ? '***EXISTS***' : 'MISSING');
+            // console.log('🔧 Auth config secret exists:', authConfig.secret ? '***EXISTS***' : 'MISSING');
 
             const decodedToken = jwt.verify(token, authConfig.secret) as DecodedToken;
-            console.log('✅ Token verified successfully, userId:', decodedToken.userId);
+            // console.log('✅ Token verified successfully, userId:', decodedToken.userId);
 
             // Attach user information to the request object
             (request as any).userId = decodedToken.userId;

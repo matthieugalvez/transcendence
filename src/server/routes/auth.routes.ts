@@ -3,11 +3,9 @@ import authSchema from '../validations/auth.schema'
 import ValidationMiddleware from '../middlewares/validation.middleware'
 import { AuthController } from '../controllers/auth.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
-import cookie from '@fastify/cookie'
 
 export default async function authRoutes(fastify: FastifyInstance) {
 	// Register cookie plugin
-	await fastify.register(cookie)
 
 	// PUBLIC ROUTES
 	fastify.post('/signup', {
@@ -19,6 +17,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	fastify.post('/login', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.login)
 	}, AuthController.login)
+
+	// Public but protected by Google OAuth2
+	
+	fastify.get('/oauth2/google/callback', AuthController.googleCallback);
+	fastify.get('/google/signin', AuthController.googleSignin);
+	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
+	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
 
 	// PROTECTED ROUTES
 	fastify.post('/logout', {
@@ -42,4 +47,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 		preHandler: AuthMiddleware.authenticateUser
 	}, AuthController.disable2FA);
 
+
 }
+
+
