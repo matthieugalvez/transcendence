@@ -1,122 +1,134 @@
+import '../styles.css';
+import { BackgroundComponent } from '../components/background.component';
+import { startPongInContainer, showGameOverOverlay } from './game/utils';
+import { SidebarComponent } from "../components/sidebar.component";
+import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { router } from '../configs/simplerouter';
 
-export class GameRender {
-  /**
-   * Render the game page with player inputs and controls
-   */
-  static renderGamePage(): {
-    container: HTMLDivElement;
-    player1Input: HTMLInputElement;
-    player2Input: HTMLInputElement;
-    startButton: HTMLButtonElement;
-  } {
-    document.title = 'Transcendence - Pong Game';
-  //  document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
-  //  document.body.innerHTML = '';
+export async function renderGamePage() {
+  // clean
+  document.body.innerHTML = '';
 
-    // Main container
-    const container = document.createElement('div');
-    container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.appendChild(container);
+  // creation page
+  document.title = 'Pong';
 
-    // Title
-    const title = CommonComponent.createHeading('Pong Game', 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
-    container.appendChild(title);
+  try {
+    // get user name - if this fails, we handle it in catch block
+    const user = await UserService.getCurrentUser();
+    const leftPlayer = user?.name || "Player 1";
+    const rightPlayer = "Player 2";
+    const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
-    // Player input form
-    const formContainer = CommonComponent.createContainer('bg-white rounded-lg shadow-lg p-6 mb-6');
+    // sidebar + gradiant bg
+    SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true, showSettings:true });
+    BackgroundComponent.applyNormalGradientLayout();
 
-    const player1Label = CommonComponent.createLabel('Player 1 Name:');
-    const player1Input = CommonComponent.createInput('text', 'Enter Player 1 name');
+    const wrapper = document.createElement('div');
+    wrapper.className = `
+      ml-60 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
+    `.replace(/\s+/g,' ').trim();
+    document.body.appendChild(wrapper);
 
-    const player2Label = CommonComponent.createLabel('Player 2 Name:');
-    const player2Input = CommonComponent.createInput('text', 'Enter Player 2 name');
+    const gameContainer = document.createElement('div');
+    gameContainer.className = 'relative z-0';
+    wrapper.appendChild(gameContainer);
 
-    const startButton = CommonComponent.createButton('Start Game');
-    startButton.disabled = true;
-    startButton.className += ' disabled:opacity-50 disabled:cursor-not-allowed';
+    // initialise sans lancer
+    const gameId = Date.now().toString();
+    const pongHandle = startPongInContainer(
+      gameContainer,
+      matchTitle,
+      leftPlayer,
+      rightPlayer,
+      (winner) => {
+        showGameOverOverlay(gameContainer, winner, () => {
+          // Restart game logic
+          pongHandle.restart();
+        });
+      },
+      gameId
+    );
 
-    formContainer.appendChild(player1Label);
-    formContainer.appendChild(player1Input);
-    formContainer.appendChild(player2Label);
-    formContainer.appendChild(player2Input);
-    formContainer.appendChild(startButton);
+    // Controls sous le jeu
+    const controls = document.createElement('div');
+    controls.className = 'absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-10';
 
-    container.appendChild(formContainer);
+    const startBtn = CommonComponent.createStylizedButton('Start Game', 'green');
+    startBtn.onclick = () => pongHandle.start();
+    controls.appendChild(startBtn);
 
-    // Instructions
-    const instructions = document.createElement('div');
-    instructions.className = 'text-center text-gray-600 mb-4';
-    instructions.innerHTML = `
-      <p class="mb-2"><strong>Controls:</strong></p>
-      <p>Player 1: W (up) / S (down)</p>
-      <p>Player 2: ↑ (up) / ↓ (down)</p>
-    `;
-    container.appendChild(instructions);
+    const pauseBtn = CommonComponent.createStylizedButton('Pause', 'yellow');
+    pauseBtn.onclick = () => pongHandle.pause();
+    controls.appendChild(pauseBtn);
 
-    return {
-      container,
-      player1Input,
-      player2Input,
-      startButton
-    };
+    const resetBtn = CommonComponent.createStylizedButton('Reset', 'red');
+    resetBtn.onclick = () => pongHandle.restart();
+    controls.appendChild(resetBtn);
+
+    const tourBtn = CommonComponent.createStylizedButton('Tournament', 'purple');
+    tourBtn.onclick = () => router.navigate('/tournament');
+    controls.appendChild(tourBtn);
+
+    wrapper.appendChild(controls);
+
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+
+    // Show error and redirect to auth - same as SettingsRender
+    handleAuthError();
   }
+}
 
-  /**
-   * Render the game canvas and controls
-   */
-  static renderGameCanvas(container: HTMLDivElement, player1Name: string, player2Name: string): HTMLCanvasElement {
-    // Clear form content but keep container
-    const formContainer = container.querySelector('.bg-white');
-    if (formContainer) {
-      formContainer.remove();
-    }
+/**
+ * Handle authentication error - same as SettingsRender.handleAuthError
+ */
+function handleAuthError(): void {
+    // Clear any existing content first
+    document.body.innerHTML = '';
 
-    // Game title with player names
-    const gameTitle = document.createElement('h2');
-    gameTitle.textContent = `${player1Name} vs ${player2Name}`;
-    gameTitle.className = 'text-2xl font-semibold text-center mb-4';
-    container.appendChild(gameTitle);
+    // Apply background
+    BackgroundComponent.applyCenteredGradientLayout();
 
-    // Canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.className = 'border border-gray-400 bg-black';
-    container.appendChild(canvas);
+    // Show error message and redirect to auth
+    const errorContainer = document.createElement('div');
+    errorContainer.className = `
+      bg-white/90 backdrop-blur-md
+      border-2 border-red-500
+      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+      max-w-lg w-full mx-4 text-center
+    `.replace(/\s+/g, ' ').trim();
 
-    // Back button
-    const backButton = CommonComponent.createButton('Back to Setup');
-    backButton.className = 'mt-4 bg-gray-600 hover:bg-gray-700';
-    container.appendChild(backButton);
+    const errorIcon = document.createElement('div');
+    errorIcon.textContent = '🔒';
+    errorIcon.className = 'text-4xl mb-4';
 
-    return canvas;
-  }
+    const errorTitle = document.createElement('h2');
+    errorTitle.textContent = 'Authentication Required';
+    errorTitle.className = `
+        font-['Canada-big'] uppercase font-bold
+        text-2xl text-center mb-2
+        text-red-600
+        select-none
+    `.replace(/\s+/g, ' ').trim();
 
-  /**
-   * Show game over screen
-   */
-  static renderGameOver(container: HTMLDivElement, winnerName: string): void {
-    // Clear existing content except title
-    const children = Array.from(container.children);
-    children.forEach((child, index) => {
-      if (index > 0) { // Keep the first child (title)
-        child.remove();
-      }
+    const errorText = document.createElement('p');
+    errorText.textContent = 'You need to be logged in to play games.';
+    errorText.className = 'text-red-600 font-semibold mb-6';
+
+    const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
+    loginButton.addEventListener('click', () => {
+        router.navigate('/auth');
     });
 
-    const winnerDiv = document.createElement('div');
-    winnerDiv.className = 'text-center bg-white rounded-lg shadow-lg p-8';
+    errorContainer.appendChild(errorIcon);
+    errorContainer.appendChild(errorTitle);
+    errorContainer.appendChild(errorText);
+    errorContainer.appendChild(loginButton);
+    document.body.appendChild(errorContainer);
 
-    const winnerText = CommonComponent.createHeading(`🏆 ${winnerName} Wins!`, 2, 'text-3xl font-bold text-green-600 mb-4');
-    const playAgainBtn = CommonComponent.createButton('Play Again');
-    const homeBtn = CommonComponent.createButton('Back to Home');
-    homeBtn.className = 'ml-4 bg-gray-600 hover:bg-gray-700';
-
-    winnerDiv.appendChild(winnerText);
-    winnerDiv.appendChild(playAgainBtn);
-    winnerDiv.appendChild(homeBtn);
-
-    container.appendChild(winnerDiv);
-  }
+    // Auto-redirect after 3 seconds
+    setTimeout(() => {
+        router.navigate('/auth');
+    }, 3000);
 }
