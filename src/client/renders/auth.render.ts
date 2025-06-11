@@ -371,6 +371,12 @@ export class AuthRender {
 			overlay.appendChild(modal);
 			document.body.appendChild(overlay);
 
+			input.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') {
+					submitButton.click();
+				}
+			});
+
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
