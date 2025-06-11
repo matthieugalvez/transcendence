@@ -1,7 +1,6 @@
 export class AuthService {
-	/**
-	 * Signup user with API call
-	 */
+
+	// Signup API Call
 	static async signupUser(name: string, password: string): Promise<{ success: boolean; message?: string; error?: string; details?: any[] }> {
 		try {
 			const response = await fetch('/api/auth/signup', {
@@ -25,9 +24,7 @@ export class AuthService {
 		}
 	}
 
-	/**
-	 * Login user with API call
-	 */
+	// Login API Call
 	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
 		try {
 			const body: any = { name, password };
@@ -49,9 +46,7 @@ export class AuthService {
 		}
 	}
 
-	/**
-	 * Logout user with API call
-	 */
+	// Logout API Call
 	static async logoutUser(): Promise<{ success: boolean; message?: string; error?: string }> {
 		try {
 			const response = await fetch('/api/auth/logout', {
@@ -72,9 +67,7 @@ export class AuthService {
 		}
 	}
 
-	/**
-	 * Validate input fields
-	 */
+	// Valide si y a des inputs ou pas dans name et password
 	static validateInput(name: string, password: string): boolean {
 		if (!name.trim() || !password.trim()) {
 			return false;

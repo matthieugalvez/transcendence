@@ -3,9 +3,8 @@ import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
 
 export class AuthComponent {
-	/**
-	 * Signup user with API call and UI feedback
-	 */
+
+	// Signup User main function
 	static async signupUser(name: string, password: string): Promise<boolean> {
 		if (!AuthService.validateInput(name, password)) {
 			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
@@ -23,41 +22,37 @@ export class AuthComponent {
 		}
 	}
 
-	/**
-	 * Login user with API call and UI feedback
-	 */
-static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
-    if (!AuthService.validateInput(name, password)) {
-        // Only show if modal is not open
-        if (!document.getElementById('twofa-modal-msg')) {
-            CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-        }
-        return false;
-    }
+	// Login user main function
+	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+		if (!AuthService.validateInput(name, password)) {
+			// Only show error message on main page if modal is not open
+			if (!document.getElementById('twofa-modal-msg')) {
+				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			}
+			return false;
+		}
 
-    const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
+		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
 
-    if (apiResponseData.success) {
-        if (!document.getElementById('twofa-modal')) {
-            CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
-        }
-        return apiResponseData;
-    } else {
-        // Only show non-2FA errors on the main page
-        const twoFAErrors = ['2FA Code is missing', 'Invalid 2FA Code'];
-        if (
-            !document.getElementById('twofa-modal') &&
-            !twoFAErrors.includes(apiResponseData.error)
-        ) {
-            CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
-        }
-        return apiResponseData;
-    }
-}
+		if (apiResponseData.success) {
+			if (!document.getElementById('twofa-modal')) {
+				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			}
+			return apiResponseData;
+		} else {
+			// Only show non-2FA errors on the main page
+			const twoFAErrors = ['2FA Code is missing', 'Invalid 2FA Code'];
+			if (
+				!document.getElementById('twofa-modal') &&
+				!twoFAErrors.includes(apiResponseData.error)
+			) {
+				CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+			}
+			return apiResponseData;
+		}
+	}
 
-	/**
-	 * Logout user with API call and UI feedback
-	 */
+	// Logout main function
 	static async logoutUser(): Promise<boolean> {
 		const apiResponseData = await AuthService.logoutUser();
 
@@ -70,9 +65,7 @@ static async loginUser(name: string, password: string, twoFACode?: string): Prom
 		}
 	}
 
-	/**
-	 * Handle authentication errors with validation details
-	 */
+	// Gestion d'erreur pour l'auth (mdp/signup etc)
 	private static handleAuthError(apiResponseData: any): void {
 		let errorMessage = apiResponseData.error || 'Registration failed';
 
@@ -90,9 +83,7 @@ static async loginUser(name: string, password: string, twoFACode?: string): Prom
 		CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
 	}
 
-	/**
-	 * Validate input fields with UI feedback
-	 */
+	// Validate Input avec message d'erreur
 	static validateInput(name: string, password: string): boolean {
 		if (!AuthService.validateInput(name, password)) {
 			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
@@ -101,6 +92,7 @@ static async loginUser(name: string, password: string, twoFACode?: string): Prom
 		return true;
 	}
 
+	// 2FA Setup Handler (modal pour User settings)
 	static async handle2FASetup() {
 		const data = await AuthService.setup2FA();
 		if (!data.success) {
@@ -125,6 +117,7 @@ static async loginUser(name: string, password: string, twoFACode?: string): Prom
 		}
 	}
 
+	// Disable 2FA pour user settings
 	static async disable2FA(): Promise<boolean> {
 		const apiResponseData = await AuthService.disable2FA();
 		if (apiResponseData.success) {

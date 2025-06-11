@@ -24,7 +24,7 @@ export class AuthRender {
 		BackgroundComponent.applyCenteredGradientLayout();
 
 
-		// Main container with glassmorphism
+		// Main container
 		const mainContainer = document.createElement('div');
 		mainContainer.className = `
       bg-white/90 backdrop-blur-md
@@ -51,9 +51,7 @@ export class AuthRender {
 		return formElements;
 	}
 
-	/**
-	 * Create and append logo to the container
-	 */
+	// Logo
 	private static createLogo(container: HTMLElement): void {
 		const img = document.createElement('img');
 		img.src = logo;
@@ -62,9 +60,7 @@ export class AuthRender {
 		container.appendChild(img);
 	}
 
-	/**
-	 * Create and append page title
-	 */
+	// Page Title
 	private static createPageTitle(container: HTMLElement): void {
 		const title = document.createElement('h1');
 		title.textContent = 'Enter the Game';
@@ -185,9 +181,7 @@ export class AuthRender {
 		return googleButton;
 	}
 
-	/**
-	 * Create message display container
-	 */
+	// Container pour les msg d'erreurs
 	private static createMessageDisplay(container: HTMLElement): void {
 		const signupMsgDisplay = document.createElement('div');
 		signupMsgDisplay.id = 'signup-msg-display';
@@ -195,8 +189,7 @@ export class AuthRender {
 		container.appendChild(signupMsgDisplay);
 	}
 
-	// Place this outside your functions in AuthPage.ts
-
+	// Modal 2FA Login
 	static show2FAModal(
 		onVerify: (code: string, setError: (msg: string) => void) => Promise<boolean>,
 		initialErrorMsg?: string
@@ -290,21 +283,20 @@ export class AuthRender {
 			});
 
 
-			overlay.addEventListener('click', (e) => {
-				if (e.target === overlay) {
-					document.body.removeChild(overlay);
-					resolve();
-				}
-			});
+			// overlay.addEventListener('click', (e) => {
+			// 	if (e.target === overlay) {
+			// 		document.body.removeChild(overlay);
+			// 		resolve();
+			// 	}
+			// });
 
 			input.focus();
 		});
 	}
 
-
+	// Modal 2FA Setup (in user settings)
 	static show2FASetupModal(qrCodeDataURL: string, secret: string, errorMsg?: string): Promise<string | null> {
 		return new Promise((resolve) => {
-			// Overlay with blur
 			const overlay = document.createElement('div');
 			overlay.style.position = 'fixed';
 			overlay.style.top = '0';
@@ -318,7 +310,6 @@ export class AuthRender {
 			overlay.style.alignItems = 'center';
 			overlay.style.zIndex = '1000';
 
-			// Modal
 			const modal = CommonComponent.createContainer(`
       bg-white/90 backdrop-blur-md
       border-2 border-black
@@ -399,12 +390,12 @@ export class AuthRender {
 				resolve(null);
 			});
 
-			overlay.addEventListener('click', (e) => {
-				if (e.target === overlay) {
-					document.body.removeChild(overlay);
-					resolve(null);
-				}
-			});
+			// overlay.addEventListener('click', (e) => {
+			// 	if (e.target === overlay) {
+			// 		document.body.removeChild(overlay);
+			// 		resolve(null);
+			// 	}
+			// });
 
 			input.focus();
 		});

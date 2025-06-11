@@ -1,6 +1,8 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import OAuth2, {OAuth2Namespace} from "@fastify/oauth2";
 
+// Info d'env pour le googleOAuth2, faudra voir si ca marche en prod changer en https a un moment
+
 export const googleOAuth2Options = {
     name: 'GoogleOAuth2',
     scope: ['profile', 'email'],
