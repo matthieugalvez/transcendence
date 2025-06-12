@@ -27,4 +27,5 @@ export interface GameState {
   ballVelocity: { vx: number; vy: number };
   /** Si le jeu est en cours ou en pause */
   isRunning: boolean;
+  isPaused: boolean;
 }

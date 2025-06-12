@@ -13,6 +13,9 @@ interface Velocity { vx: number; vy: number; }
 export class GameInstance {
     private gameId: string;
     private isRunning: boolean = false;
+    // pour pause/resume
+    private isPaused: boolean = false;
+    private currentBallSpeed: number = 380;
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -34,7 +37,7 @@ export class GameInstance {
     private readonly canvasWidth = 800;
     private readonly canvasHeight = 600;
     private readonly paddleSpeed = 400; // px/sec
-    private readonly ballSpeed = 300; // px/sec
+    // private readonly ballSpeed = 300; // px/sec
 
     constructor(gameId: string) {
         this.gameId = gameId;
@@ -75,6 +78,23 @@ export class GameInstance {
     public start() {
         this.isRunning = true;
     }
+    // pause game
+    public pause() {
+        this.isPaused = true;
+        this.broadcastState(this.isRunning);
+    }
+    // resume game
+    public resume() {
+        this.isPaused = false;
+        this.broadcastState(this.isRunning);
+    }
+    // set difficulty
+    public setDifficulty(difficulty: 'EASY' | 'MEDIUM' | 'HARD') {
+        if (difficulty === 'EASY') this.currentBallSpeed = 240;
+        else if (difficulty === 'MEDIUM') this.currentBallSpeed = 380;
+        else if (difficulty === 'HARD') this.currentBallSpeed = 480;
+        this.ballVel = this.randomBallVel();
+    }
 
     /** ----------- PRIVATE METHODS ------------ */
     // to have random initial velocity of ball
@@ -82,8 +102,8 @@ export class GameInstance {
         const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
         const dir = Math.random() < 0.5 ? -1 : 1;
         return {
-            vx: this.ballSpeed * Math.cos(angle) * dir,
-            vy: this.ballSpeed * Math.sin(angle),
+            vx: this.currentBallSpeed * Math.cos(angle) * dir,
+            vy: this.currentBallSpeed * Math.sin(angle),
         };
     }
     // if no player we stop the instance    
@@ -106,7 +126,7 @@ export class GameInstance {
     }
     // 60 FPS loop
     private tick() {
-        if (!this.isRunning) {
+        if (!this.isRunning || this.isPaused) {
             this.broadcastState(false);
             return;
         }
@@ -205,6 +225,7 @@ export class GameInstance {
                 vy: this.ballVel.vy,
             },
             isRunning: this.isRunning && isRunning,
+            isPaused: this.isPaused,
         };
     }
 

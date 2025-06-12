@@ -6,6 +6,12 @@ import { SidebarComponent } from "../components/sidebar.component";
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
+import { getShareableLink } from '../utils/game.utils';
+
+// memoriser etat de la partie en cours
+let pongHandle: { start: () => void; socket: any } | null = null;
+// etat de pause
+let pauseState = { value: false };
 
 // Sous-fonction pour le wrapper principal
 function createMainWrapper(): HTMLDivElement {
@@ -20,9 +26,9 @@ function createMainWrapper(): HTMLDivElement {
 // Sous-fonction pour la barre de contrôles
 function createGameControls(
   wrapper: HTMLElement,
-  onStart: () => void,
-  onTournament: () => void,
-  canvas?: HTMLCanvasElement | null
+  onSolo: () => void,
+  onDuo: () => void,
+  onTournament: () => void
 ) {
   const controls = document.createElement('div');
   controls.className = `
@@ -30,45 +36,38 @@ function createGameControls(
     space-y-4 z-10
   `.replace(/\s+/g,' ').trim();
 
-  // const startBtn = CommonComponent.createStylizedButton('Start','blue');
-  // startBtn.onclick = () => {
-  //   if (canvas) canvas.classList.remove('blur-xs');
-  //   controls.remove();
-  //   onStart();
-  // };
-  // controls.appendChild(startBtn);
-
   const gameMode = document.createElement('div');
-  gameMode.className = `
-    flex flex-row space-x-4 z-10 w-full
-  `;
-  const soloBtn = CommonComponent.createStylizedButton('Solo','blue');
+  gameMode.className = `flex flex-row space-x-4 z-10 w-full`;
+
+  const soloBtn = CommonComponent.createStylizedButton('Solo', 'blue');
   soloBtn.classList.add("cursor-pointer", "px-8");
   soloBtn.onclick = () => {
-    if (canvas) canvas.classList.remove('blur-xs');
     controls.remove();
-    onStart();
+    onSolo();
   };
   gameMode.appendChild(soloBtn);
 
-  const duoBtn = CommonComponent.createStylizedButton('Duo','purple');
+  const duoBtn = CommonComponent.createStylizedButton('Duo', 'purple');
   duoBtn.classList.add("cursor-pointer", "px-8");
   duoBtn.onclick = () => {
-    if (canvas) canvas.classList.remove('blur-xs');
     controls.remove();
-    // onStart();
-    // GameSettingsComponent.render();
+    onDuo();
   };
   gameMode.appendChild(duoBtn);
+
   controls.appendChild(gameMode);
 
-  const tourBtn = CommonComponent.createStylizedButton('Tournament','red');
-  tourBtn.onclick = onTournament;
+  const tourBtn = CommonComponent.createStylizedButton('Tournament', 'red');
+  tourBtn.onclick = () => {
+    controls.remove();
+    onTournament();
+  };
   controls.appendChild(tourBtn);
-  
+
   wrapper.appendChild(controls);
 }
 
+// Fonction principale
 export async function renderPongGamePage() {
   // clean page
   document.body.innerHTML = '';
@@ -83,7 +82,7 @@ export async function renderPongGamePage() {
   // layout de base
   SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true });
   BackgroundComponent.applyNormalGradientLayout();
-  GameSettingsComponent.render({ showGamePause:true, showUrl:true });
+  GameSettingsComponent.render('initial');
 
   const wrapper = createMainWrapper();
   const gameContainer = document.createElement('div');
@@ -91,22 +90,97 @@ export async function renderPongGamePage() {
   wrapper.appendChild(gameContainer);
 
   const gameId = Date.now().toString();
-  const { start } = startPongInContainer(
+
+  pongHandle = startPongInContainer(
     gameContainer,
     matchTitle,
     leftPlayer,
     rightPlayer,
     (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-    gameId
+    gameId,
   );
+  const { socket } = pongHandle;
 
   const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
   if (canvas) canvas.classList.add('blur-xs');
 
   createGameControls(
     wrapper,
-    start,
-    () => router.navigate('/tournament'),
-    canvas
+    // --- Callback SOLO ---
+    () => {
+      GameSettingsComponent.render('solo', {
+        onStartGame: () => {
+          if (canvas) canvas.classList.remove('blur-xs');
+          pongHandle?.start();
+          // masquer le bouton "start"
+          GameSettingsComponent.render('solo-start', {
+            onPauseGame: () => {
+              pauseState.value = !pauseState.value;
+              if (socket && socket.readyState === socket.OPEN) {
+                socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+              }
+            },
+            onRestartGame: () => {
+              renderPongGamePage();
+            },
+          });
+        },
+        onPauseGame: () => {
+          pauseState.value = !pauseState.value;
+          if (socket && socket.readyState === socket.OPEN) {
+            socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+          }
+        },
+        onRestartGame: () => {
+          renderPongGamePage();
+        },
+        onDifficultyChange: (difficulty) => {
+          if (socket && socket.readyState === socket.OPEN) {
+            socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+          }
+        }
+      });
+    },
+    // --- Callback DUO ---
+    () => {
+      GameSettingsComponent.render('duo', {
+        onStartGame: () => {
+          if (canvas) canvas.classList.remove('blur-xs');
+          pongHandle?.start();
+          GameSettingsComponent.render('solo-start', {
+            onPauseGame: () => {
+              pauseState.value = !pauseState.value;
+              if (socket && socket.readyState === socket.OPEN) {
+                socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+              }
+            },
+            onRestartGame: () => {
+              renderPongGamePage();
+            },
+          });
+        },
+        onPauseGame: () => {
+          pauseState.value = !pauseState.value;
+          if (socket && socket.readyState === socket.OPEN) {
+            socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+          }
+        },
+        onRestartGame: () => {
+          renderPongGamePage();
+        },
+        onDifficultyChange: (difficulty) => {
+          if (socket && socket.readyState === socket.OPEN) {
+            socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+          }
+        },
+        // ONLINE
+        getOnlineLink: () => getShareableLink(gameId),
+        onCopyLink: (link) => {
+          navigator.clipboard.writeText(link);
+        }
+      });
+    },
+    // --- TOURNOI ---
+    () => router.navigate('/tournament')
   );
 }

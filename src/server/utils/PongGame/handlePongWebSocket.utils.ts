@@ -17,12 +17,24 @@ export function handlePongWebSocket(ws: WebSocket, gameId: string) {
   // 1.2 Ajouter ce client dans l’instance
   game.addPlayer(ws);
 
-  // 1.3 Quand on reçoit un message WS, on l’interprète comme un déplacement
+  // 1.3 Quand on reçoit un message WS, on l’interprète
   ws.on('message', (data: string) => {
     try {
       const msg = JSON.parse(data);
       if (msg.action === 'start') {
         game!.start(); // demarre partie
+        return;
+      }
+      if (msg.action === 'pause') {
+        game!.pause(); // pause partie
+        return;
+      }
+      if (msg.action === 'resume') {
+        game!.resume(); // reprend partie
+        return;
+      }
+      if (msg.action === 'difficulty' && msg.difficulty) {
+        game!.setDifficulty(msg.difficulty);
         return;
       }
       if (msg.action === 'up' || msg.action === 'down') {

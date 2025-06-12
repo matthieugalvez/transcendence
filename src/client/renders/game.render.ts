@@ -112,4 +112,18 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): voi
   drawPaddle(ctx, state.paddle2, "#B946EF", "#d579fc");
   drawBall(ctx, state.ball.x, state.ball.y, state.ball.radius);
   drawScores(ctx, state.score1, state.score2);
+
+  // Affichage de "Paused" si jeu en pause
+  if (state.isPaused) {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, ctx.canvas.height / 2 - 60, ctx.canvas.width, 120);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#FFF";
+    ctx.font = "70px Orbitron, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PAUSED", ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
+    ctx.restore();
+  }
 }

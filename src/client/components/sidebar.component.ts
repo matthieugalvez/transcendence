@@ -23,7 +23,7 @@ export class SidebarComponent {
         disabled:opacity-50 disabled:cursor-not-allowed
         border-2 border-black
         flex flex-col items-start p-6
-        space-y-4
+        space-y-4 z-11
     `.trim();
 
     // Profil picture of user (with default one if none)
@@ -87,7 +87,7 @@ export class SidebarComponent {
 
     // Back to home button
     if (showBackHome) {
-        const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
+        const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
         backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
         backButton.addEventListener('click', () => {
         router.navigate('/home');

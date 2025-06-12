@@ -1,7 +1,6 @@
 import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
-import { match } from 'assert';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: string) => void;
@@ -23,15 +22,17 @@ function createGameWebSocket(
   const socket = new WebSocket(socketUrl);
 
   let wasRunning = false;
+  let wasPaused = false;
   socket.addEventListener('message', (event) => {
     const state: GameState = JSON.parse(event.data);
     renderGame(ctx, state);
 
-    if (wasRunning && !state.isRunning) {
+    if (wasRunning && !state.isRunning && !state.isPaused) {
       const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
       setTimeout(() => onFinish(winnerAlias), 150);
     }
     wasRunning = state.isRunning;
+    wasPaused = state.isPaused;
   });
 
   socket.addEventListener('close', () => {
@@ -57,7 +58,7 @@ function setupKeyboardHandlers(
 // --- Boucle de polling des touches ---
 function startClientInputLoop(
   socket: WebSocket,
-  keysPressed: Record<string, boolean>
+  keysPressed: Record<string, boolean>,
 ) {
   function frame() {
     if (socket.readyState === WebSocket.OPEN) {
@@ -85,7 +86,7 @@ export function startPongInContainer(
   rightPlayer: string,
   onFinish: FinishCallback,
   gameId: string,
-): PongHandle {
+): PongHandle & { socket: WebSocket } {
   // Titre
   const title = document.createElement('h2');
   title.textContent = "Ready to pong?";
@@ -125,7 +126,7 @@ export function startPongInContainer(
     }
   }
 
-  return { start };
+  return { start, socket };
 }
 
 // --- Overlay de fin de partie ---
@@ -170,4 +171,9 @@ export function showGameOverOverlay(
     onReplay();
   };
   panel.appendChild(replay);
+}
+
+// peut etre a mettre ailleurs
+export function getShareableLink(gameId) {
+  return `${window.location.origin}/game?gameId=${gameId}`;
 }
