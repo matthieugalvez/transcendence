@@ -3,7 +3,6 @@ import { SettingsRender } from '../renders/settings.render';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { router } from '../configs/simplerouter';
 import { SidebarComponent } from '../components/sidebar.component';
 import { AuthComponent } from '../components/auth.component';
 
