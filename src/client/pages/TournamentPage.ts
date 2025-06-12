@@ -127,3 +127,5 @@ async function launchTournament(aliases: string[], wrapper: HTMLElement) {
   }
   await playMatch(0);
 }
+
+// -> match des tournois doivent etre rqandom et pas toujours 0 vs 1 et 2 vs 3 au debut
