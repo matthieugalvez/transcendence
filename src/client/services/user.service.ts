@@ -55,6 +55,25 @@ export class UserService {
 		}
 	}
 
+	    static async checkDisplayNameAvailability(displayName: string): Promise<{ available: boolean; message?: string }> {
+        try {
+            const response = await fetch(`/api/users/check-display-name?displayName=${encodeURIComponent(displayName)}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            return data;
+
+        } catch (error) {
+            console.error('Error checking display name availability:', error);
+            return {
+                available: false,
+                message: 'Failed to check availability'
+            };
+        }
+    }
+
 	/**
 	 * Get all users (PROTECTED)
 	 */

@@ -610,15 +610,18 @@ static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply)
             return Send.conflict(reply, 'Username already exists');
         }
 
+		const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName);
+		if (isDisplayNameTaken) {
+			return Send.conflict(reply, 'Display name is already taken')
+		}
+
+
+
         // Create user with display name - use the same pattern as regular signup
         const user = await AuthService.createUser(name, password, displayName)
 
         // Generate JWT tokens - use same pattern as regular signup
-        const accessToken = jwt.sign(
-            { userId: user.id },
-            authConfig.secret,
-            { expiresIn: authConfig.secret_expires_in }
-        );
+
 
         const refreshToken = jwt.sign(
             { userId: user.id },
@@ -665,7 +668,6 @@ static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply)
     }
 }
 
-// ...existing code...
 
 
 }

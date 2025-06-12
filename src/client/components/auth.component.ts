@@ -1,6 +1,8 @@
 import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
+import {router} from '../configs/simplerouter'
+import { UserService } from '../services/user.service';
 
 export class AuthComponent {
 
@@ -160,6 +162,56 @@ export class AuthComponent {
             return false;
         }
     }
+
+	static async checkAndHandleDisplayName(): Promise<boolean> {
+        try {
+            // Get current user data
+            const userData = await UserService.getCurrentUser();
+
+            // Check if display name is missing or same as username (Google users often get email as display name)
+            const needsDisplayName = !userData.displayName ||
+                                   userData.displayName.trim() === '' ||
+                                   userData.displayName === userData.name;
+
+            if (!needsDisplayName) {
+                return true; // All good, continue
+            }
+
+            console.log('User needs display name setup');
+
+            // Show display name modal
+            const displayName = await AuthRender.showDisplayNameModal(true); // Always required for this flow
+
+            if (!displayName) {
+                // If user cancels, logout and redirect
+                await this.logoutUser();
+                router.navigate('/auth');
+                return false;
+            }
+
+            // Update display name
+            const updateResult = await UserService.changeUsername(displayName);
+
+            if (updateResult.success) {
+                CommonComponent.showMessage('✅ Display name set successfully!', 'success');
+                return true;
+            } else {
+                CommonComponent.showMessage(`❌ ${updateResult.error || 'Failed to set display name'}`, 'error');
+                return false;
+            }
+
+        } catch (error) {
+            console.error('Error checking display name:', error);
+            // If we can't check, assume they need to login again
+            await this.logoutUser();
+            router.navigate('/auth');
+            return false;
+        }
+    }
+
+
+
+
 
     // Remove or modify the old handleDisplayNameSetup method since we won't need it anymore
     // ...existing code...

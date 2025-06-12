@@ -61,4 +61,37 @@ export class UserService {
             throw error;
         }
     }
+
+	    static async isDisplayNameTaken(displayName: string, excludeUserId?: number): Promise<boolean> {
+        try {
+            const existingUser = await prisma.user.findFirst({
+                where: {
+                    displayName: displayName.trim(),
+                    // Exclude current user if updating their own display name
+                    ...(excludeUserId && { id: { not: excludeUserId } })
+                }
+            });
+
+            return !!existingUser;
+        } catch (error) {
+            console.error('Error checking display name:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get user by display name
+     */
+    static async getUserByDisplayName(displayName: string) {
+        try {
+            return await prisma.user.findFirst({
+                where: {
+                    displayName: displayName.trim()
+                }
+            });
+        } catch (error) {
+            console.error('Error getting user by display name:', error);
+            throw error;
+        }
+    }
 }

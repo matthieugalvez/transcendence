@@ -4,7 +4,9 @@ import { SidebarComponent } from "../components/sidebar.component";
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { router } from '../configs/simplerouter';
+import { AuthRender } from '../renders/auth.render';
+import { AuthComponent } from '../components/auth.component';
+
 
 export async function RenderHomePage(): Promise<void> {
     document.title = "Home";
@@ -14,6 +16,11 @@ export async function RenderHomePage(): Promise<void> {
     try {
         // Fetch user data first - if this fails, we handle it in catch block
         const user = await UserService.getCurrentUser();
+		if(!user.displayName || user.displayName == '')
+		{
+			//AuthRender.showDisplayNameModal()
+			AuthComponent.checkAndHandleDisplayName();
+		}
 
         // Only render sidebar and main content if authentication succeeds
         SidebarComponent.render({

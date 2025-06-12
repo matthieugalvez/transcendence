@@ -10,7 +10,6 @@ import { renderTournamentPage } from './pages/TournamentPage';
 import { RenderHomePage } from './pages/HomePage';
 import { SettingsPage  } from './pages/SettingsPage';
 import { oauth2FAPage } from './pages/OAuth2FAPage';
-import { googleSetupPage } from './pages/GoogleSetupPage';
 
 // Register routes
 // router.register ('/', renderHomePage);
@@ -28,7 +27,7 @@ function startSPA() {
     router.register('/game', renderGamePage);
     router.register('/tournament', renderTournamentPage);
     router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
-    router.register('/auth/google-setup', async() => await googleSetupPage()); // Add this line
+    // router.register('/auth/google-setup', async() => await googleCompletePage()); // Add this line
     router.start();
 }
 

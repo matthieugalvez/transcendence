@@ -40,92 +40,119 @@ export class UserController {
 		}
 	}
 
-	 static async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            const userId = (request as any).userId;
+	static async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
 
-            if (!userId) {
-                return Send.unauthorized(reply, 'Authentication required');
-            }
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
 
-            const user = await UserService.getUserById(userId);
+			const user = await UserService.getUserById(userId);
 
-            if (!user) {
-                return Send.notFound(reply, 'User not found');
-            }
+			if (!user) {
+				return Send.notFound(reply, 'User not found');
+			}
 
-            const userData = {
-                id: user.id,
-                name: user.name,
-                displayName: user.displayName,
-                created_at: user.created_at,
-                updated_at: user.updated_at // Fix: was update_at
-            };
+			const userData = {
+				id: user.id,
+				name: user.name,
+				displayName: user.displayName,
+				created_at: user.created_at,
+				updated_at: user.updated_at // Fix: was update_at
+			};
 
-            return Send.success(reply, userData, 'Current user retrieved successfully');
+			return Send.success(reply, userData, 'Current user retrieved successfully');
 
-        } catch (error) {
-            console.error('Get current user error:', error);
-            return Send.internalError(reply, 'Failed to get current user');
+		} catch (error) {
+			console.error('Get current user error:', error);
+			return Send.internalError(reply, 'Failed to get current user');
+		}
+	}
+
+	static async changeUserName(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+			const { displayName } = request.body as { displayName: string };
+
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName);
+			if (isDisplayNameTaken) {
+				return Send.conflict(reply, 'Display name is already taken')
+			}
+
+			// Validation is now handled by middleware, so we can skip manual checks
+			// Update the display name
+			const updatedUser = await UserService.updateUserName(userId, displayName.trim());
+
+			if (!updatedUser) {
+				return Send.notFound(reply, 'User not found');
+			}
+
+			const userData = {
+				id: updatedUser.id,
+				name: updatedUser.name,
+				displayName: updatedUser.displayName,
+				created_at: updatedUser.created_at,
+				updated_at: updatedUser.updated_at
+			};
+
+			return Send.success(reply, userData, 'Display name updated successfully');
+
+		} catch (error) {
+			console.error('Change display name error:', error);
+			return Send.internalError(reply, 'Failed to change display name');
+		}
+	}
+
+	static async changeUserPassword(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+			const { password } = request.body as { password: string };
+
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			// Validation is now handled by middleware, so we can skip manual checks
+			// Update the password
+			const success = await UserService.updateUserPassword(userId, password);
+
+			if (!success) {
+				return Send.notFound(reply, 'User not found');
+			}
+
+			return Send.success(reply, {}, 'Password updated successfully');
+
+		} catch (error) {
+			console.error('Change password error:', error);
+			return Send.internalError(reply, 'Failed to change password');
+		}
+	}
+
+	static async checkDisplayNameAvailability(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        const userId = (request as any).userId;
+        const { displayName } = request.query as { displayName: string };
+
+        if (!displayName || displayName.trim() === '') {
+            return Send.badRequest(reply, 'Display name is required');
         }
+
+        const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName, userId);
+
+        return Send.success(reply, {
+            available: !isDisplayNameTaken,
+            message: isDisplayNameTaken ? 'Display name is already taken' : 'Display name is available'
+        });
+
+    } catch (error) {
+        console.error('Error checking display name availability:', error);
+        return Send.internalError(reply, 'Failed to check display name availability');
     }
-
- static async changeUserName(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            const userId = (request as any).userId;
-            const { displayName } = request.body as { displayName: string };
-
-            if (!userId) {
-                return Send.unauthorized(reply, 'Authentication required');
-            }
-
-            // Validation is now handled by middleware, so we can skip manual checks
-            // Update the display name
-            const updatedUser = await UserService.updateUserName(userId, displayName.trim());
-
-            if (!updatedUser) {
-                return Send.notFound(reply, 'User not found');
-            }
-
-            const userData = {
-                id: updatedUser.id,
-                name: updatedUser.name,
-                displayName: updatedUser.displayName,
-                created_at: updatedUser.created_at,
-                updated_at: updatedUser.updated_at
-            };
-
-            return Send.success(reply, userData, 'Display name updated successfully');
-
-        } catch (error) {
-            console.error('Change display name error:', error);
-            return Send.internalError(reply, 'Failed to change display name');
-        }
-    }
-
-    static async changeUserPassword(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            const userId = (request as any).userId;
-            const { password } = request.body as { password: string };
-
-            if (!userId) {
-                return Send.unauthorized(reply, 'Authentication required');
-            }
-
-            // Validation is now handled by middleware, so we can skip manual checks
-            // Update the password
-            const success = await UserService.updateUserPassword(userId, password);
-
-            if (!success) {
-                return Send.notFound(reply, 'User not found');
-            }
-
-            return Send.success(reply, {}, 'Password updated successfully');
-
-        } catch (error) {
-            console.error('Change password error:', error);
-            return Send.internalError(reply, 'Failed to change password');
-        }
-    }
+}
 
 }
