@@ -461,19 +461,16 @@ export class AuthRender {
 			modal.appendChild(errorMsg);
 
 			// Buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'flex gap-4 justify-center mt-6';
+			const buttonContainer = document.createElement('div');
+			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-        const submitButton = CommonComponent.createStylizedButton('Continue', 'blue');
+			const submitButton = CommonComponent.createStylizedButton('Continue', 'blue');
 
-        buttonContainer.appendChild(submitButton);
+			buttonContainer.appendChild(submitButton);
 
-        // Only show cancel if not required
+			// Only show cancel if not required
 
-        modal.appendChild(buttonContainer);
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-
+			modal.appendChild(buttonContainer);
 			overlay.appendChild(modal);
 			document.body.appendChild(overlay);
 
@@ -481,6 +478,7 @@ export class AuthRender {
 			input.addEventListener('keypress', (e) => {
 				if (e.key === 'Enter') {
 					submitButton.click();
+					location.reload();
 				}
 			});
 

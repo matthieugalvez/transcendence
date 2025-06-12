@@ -14,16 +14,22 @@ export async function SettingsPage(): Promise<void> {
 
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
-		const userData = await UserService.getCurrentUser();
+		 let user = await UserService.getCurrentUser();
 
-		if (!userData.displayName || userData.displayName == '') {
-			//AuthRender.showDisplayNameModal()
-			AuthComponent.checkAndHandleDisplayName();
-		}
+        if(!user.displayName || user.displayName == '') {
+            const result = await AuthComponent.checkAndHandleDisplayName();
+            if (result.success && result.userData) {
+                // Use the updated user data
+                user = result.userData;
+            } else {
+                // If checkAndHandleDisplayName failed, it already handled redirect
+                return;
+            }
+        }
 
 		// Only render sidebar and main content if authentication succeeds
 		SidebarComponent.render({
-			userName: userData.name,
+			userName: user.displayName,
 			showStats: true,
 			showSettings: false, // Don't show settings button on settings page
 			showBackHome: true

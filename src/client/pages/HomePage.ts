@@ -15,16 +15,22 @@ export async function RenderHomePage(): Promise<void> {
 
     try {
         // Fetch user data first - if this fails, we handle it in catch block
-        const user = await UserService.getCurrentUser();
-		if(!user.displayName || user.displayName == '')
-		{
-			//AuthRender.showDisplayNameModal()
-			AuthComponent.checkAndHandleDisplayName();
-		}
+        let user = await UserService.getCurrentUser();
+
+        if(!user.displayName || user.displayName == '') {
+            const result = await AuthComponent.checkAndHandleDisplayName();
+            if (result.success && result.userData) {
+                // Use the updated user data
+                user = result.userData;
+            } else {
+                // If checkAndHandleDisplayName failed, it already handled redirect
+                return;
+            }
+        }
 
         // Only render sidebar and main content if authentication succeeds
         SidebarComponent.render({
-            userName: user.name,
+            userName: user.displayName,
             showStats: true,
             showSettings: true,
             showBackHome: false

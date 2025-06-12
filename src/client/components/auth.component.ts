@@ -1,7 +1,7 @@
 import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
-import {router} from '../configs/simplerouter'
+import { router } from '../configs/simplerouter'
 import { UserService } from '../services/user.service';
 
 export class AuthComponent {
@@ -131,88 +131,91 @@ export class AuthComponent {
 		}
 	}
 
-	    static async signupUserWithDisplayName(name: string, password: string, displayName: string): Promise<boolean> {
-        if (!AuthService.validateInput(name, password)) {
-            CommonComponent.showMessage('❌ Please fill in all fields', 'error');
-            return false;
-        }
+	static async signupUserWithDisplayName(name: string, password: string, displayName: string): Promise<boolean> {
+		if (!AuthService.validateInput(name, password)) {
+			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			return false;
+		}
 
-        try {
-            const response = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ name, password, displayName })
-            });
+		try {
+			const response = await fetch('/api/auth/signup', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				credentials: 'include',
+				body: JSON.stringify({ name, password, displayName })
+			});
 
-            const data = await response.json();
+			const data = await response.json();
 
-            if (data.success) {
-                CommonComponent.showMessage(`✅ ${data.message || 'Account created successfully!'}`, 'success');
-                return true;
-            } else {
-                this.handleAuthError(data);
-                return false;
-            }
-        } catch (error) {
-            console.error('Signup with display name error:', error);
-            CommonComponent.showMessage('❌ Failed to create account. Please try again.', 'error');
-            return false;
-        }
-    }
+			if (data.success) {
+				CommonComponent.showMessage(`✅ ${data.message || 'Account created successfully!'}`, 'success');
+				return true;
+			} else {
+				this.handleAuthError(data);
+				return false;
+			}
+		} catch (error) {
+			console.error('Signup with display name error:', error);
+			CommonComponent.showMessage('❌ Failed to create account. Please try again.', 'error');
+			return false;
+		}
+	}
 
-	static async checkAndHandleDisplayName(): Promise<boolean> {
-        try {
-            // Get current user data
-            const userData = await UserService.getCurrentUser();
+	static async checkAndHandleDisplayName(): Promise<{ success: boolean; userData?: any }> {
+		try {
+			// Get current user data
+			const userData = await UserService.getCurrentUser();
 
-            // Check if display name is missing or same as username (Google users often get email as display name)
-            const needsDisplayName = !userData.displayName ||
-                                   userData.displayName.trim() === '' ||
-                                   userData.displayName === userData.name;
+			// Check if display name is missing or same as username (Google users often get email as display name)
+			const needsDisplayName = !userData.displayName ||
+				userData.displayName.trim() === '' ||
+				userData.displayName === userData.name;
 
-            if (!needsDisplayName) {
-                return true; // All good, continue
-            }
+			if (!needsDisplayName) {
+				return { success: true, userData }; // Return current data if no update needed
+			}
 
-            console.log('User needs display name setup');
+			console.log('User needs display name setup');
 
-            // Show display name modal
-            const displayName = await AuthRender.showDisplayNameModal(true); // Always required for this flow
+			// Show display name modal
+			const displayName = await AuthRender.showDisplayNameModal(true); // Always required for this flow
 
-            if (!displayName) {
-                // If user cancels, logout and redirect
-                await this.logoutUser();
-                router.navigate('/auth');
-                return false;
-            }
+			if (!displayName) {
+				// If user cancels, logout and redirect
+				await this.logoutUser();
+				router.navigate('/auth');
+				return { success: false };
+			}
 
-            // Update display name
-            const updateResult = await UserService.changeUsername(displayName);
+			// Update display name
+			const updateResult = await UserService.changeUsername(displayName);
 
-            if (updateResult.success) {
-                CommonComponent.showMessage('✅ Display name set successfully!', 'success');
-                return true;
-            } else {
-                CommonComponent.showMessage(`❌ ${updateResult.error || 'Failed to set display name'}`, 'error');
-                return false;
-            }
+			if (updateResult.success) {
+				CommonComponent.showMessage('✅ Display name set successfully!', 'success');
 
-        } catch (error) {
-            console.error('Error checking display name:', error);
-            // If we can't check, assume they need to login again
-            await this.logoutUser();
-            router.navigate('/auth');
-            return false;
-        }
-    }
+				// Re-fetch user data to get the updated display name
+				const updatedUserData = await UserService.getCurrentUser();
+				return { success: true, userData: updatedUserData };
+			} else {
+				CommonComponent.showMessage(`❌ ${updateResult.error || 'Failed to set display name'}`, 'error');
+				return { success: false };
+			}
+
+		} catch (error) {
+			console.error('Error checking display name:', error);
+			// If we can't check, assume they need to login again
+			await this.logoutUser();
+			router.navigate('/auth');
+			return { success: false };
+		}
+	}
 
 
 
 
 
-    // Remove or modify the old handleDisplayNameSetup method since we won't need it anymore
-    // ...existing code...
+	// Remove or modify the old handleDisplayNameSetup method since we won't need it anymore
+	// ...existing code...
 }

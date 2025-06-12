@@ -23,26 +23,6 @@ export class HomeRender {
     }
   }
 
-  private static createLoadingContainer(): HTMLDivElement {
-    const loadingContainer = document.createElement('div');
-    loadingContainer.className = `
-      bg-white/90 backdrop-blur-md
-      border-2 border-black
-      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-      max-w-lg w-full mx-4 text-center
-    `.replace(/\s+/g, ' ').trim();
-
-    const loadingText = document.createElement('p');
-    loadingText.textContent = 'Loading...';
-    loadingText.className = `
-      font-['Orbitron'] text-center text-gray-600
-      text-lg font-medium
-    `.replace(/\s+/g, ' ').trim();
-
-    loadingContainer.appendChild(loadingText);
-    return loadingContainer;
-  }
-
   private static renderMainContent(container: HTMLDivElement, userName: string): void {
     // sidebar simulee pour flex
     const sidebarSim = document.createElement('div');
