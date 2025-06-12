@@ -427,7 +427,7 @@ export class AuthRender {
 
 			// Title
 			const title = CommonComponent.createHeading(
-				isGoogleUser ? 'Complete Your Google Sign-In' : 'Choose Your Display Name',
+				isGoogleUser ? 'Complete Your Sign-Up' : 'Choose Your Display Name',
 				2,
 				`
                     font-['Canada-big'] uppercase font-bold

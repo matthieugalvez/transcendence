@@ -7,74 +7,74 @@ import { AuthService } from '../services/auth.service'
 import OAuth2, { OAuthNamespace } from "@fastify/oauth2";
 
 export class AuthController {
-	static async signup(request: FastifyRequest, reply: FastifyReply) {
-		try {
-			const { name, password } = request.body as { name: string, password: string }
+	// static async signup(request: FastifyRequest, reply: FastifyReply) {
+	// 	try {
+	// 		const { name, password } = request.body as { name: string, password: string }
 
-			// Check if user already exists
-			const existingUser = await UserService.getUserByName(name)
-			if (existingUser) {
-				return Send.conflict(reply, 'Username already exists')
-			}
-
-
-			// Create new user
-			const user = await AuthService.createUser(name, password)
-
-			// Create new user
+	// 		// Check if user already exists
+	// 		const existingUser = await UserService.getUserByName(name)
+	// 		if (existingUser) {
+	// 			return Send.conflict(reply, 'Username already exists')
+	// 		}
 
 
-			// Generate JWT tokens
-			const accessToken = jwt.sign(
-				{ userId: user.id },
-				authConfig.secret,
-				{ expiresIn: authConfig.secret_expires_in }
-			)
+	// 		// Create new user
+	// 		const user = await AuthService.createUser(name, password)
 
-			const refreshToken = jwt.sign(
-				{ userId: user.id },
-				authConfig.refresh_secret,
-				{ expiresIn: authConfig.refresh_secret_expires_in }
-			)
+	// 		// Create new user
 
-			// Store refresh token in database
-			await AuthService.updateRefreshToken(user.id, refreshToken)
 
-			console.log('🍪 Setting cookies for new user:', user.id);
-			console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
+	// 		// Generate JWT tokens
+	// 		const accessToken = jwt.sign(
+	// 			{ userId: user.id },
+	// 			authConfig.secret,
+	// 			{ expiresIn: authConfig.secret_expires_in }
+	// 		)
 
-			// Set HttpOnly cookies
-			reply.setCookie('accessToken', accessToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
-				sameSite: 'strict',
-				domain: undefined,
-				path: '/',
-				maxAge: 15 * 60 * 1000
-			})
+	// 		const refreshToken = jwt.sign(
+	// 			{ userId: user.id },
+	// 			authConfig.refresh_secret,
+	// 			{ expiresIn: authConfig.refresh_secret_expires_in }
+	// 		)
 
-			reply.setCookie('refreshToken', refreshToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
-				sameSite: 'strict',
-				domain: undefined,
-				path: '/',
-				maxAge: 24 * 60 * 60 * 1000
-			})
+	// 		// Store refresh token in database
+	// 		await AuthService.updateRefreshToken(user.id, refreshToken)
 
-			const userData = {
-				id: user.id,
-				name: user.name,
-				created_at: user.created_at
-			}
+	// 		console.log('🍪 Setting cookies for new user:', user.id);
+	// 		console.log('🔑 AccessToken being set:', accessToken ? '***CREATED***' : 'FAILED');
 
-			return Send.created(reply, userData, `Account created for: ${name}`)
+	// 		// Set HttpOnly cookies
+	// 		reply.setCookie('accessToken', accessToken, {
+	// 			httpOnly: true,
+	// 			secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+	// 			sameSite: 'strict',
+	// 			domain: undefined,
+	// 			path: '/',
+	// 			maxAge: 15 * 60 * 1000
+	// 		})
 
-		} catch (error) {
-			console.error('Signup error:', error)
-			return Send.internalError(reply, 'Failed to create account')
-		}
-	}
+	// 		reply.setCookie('refreshToken', refreshToken, {
+	// 			httpOnly: true,
+	// 			secure: process.env.NODE_ENV === 'production', // Changed from secure: true
+	// 			sameSite: 'strict',
+	// 			domain: undefined,
+	// 			path: '/',
+	// 			maxAge: 24 * 60 * 60 * 1000
+	// 		})
+
+	// 		const userData = {
+	// 			id: user.id,
+	// 			name: user.name,
+	// 			created_at: user.created_at
+	// 		}
+
+	// 		return Send.created(reply, userData, `Account created for: ${name}`)
+
+	// 	} catch (error) {
+	// 		console.error('Signup error:', error)
+	// 		return Send.internalError(reply, 'Failed to create account')
+	// 	}
+	// }
 
 	static async login(request: FastifyRequest, reply: FastifyReply) {
 		try {

@@ -10,11 +10,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	// Register cookie plugin
 
 	// PUBLIC ROUTES
-	fastify.post('/signup', {
-		preHandler: [
-			ValidationMiddleware.validateBody(authSchema.signup),
-		]
-	}, AuthController.signup)
+	// fastify.post('/signup', {
+	// 	preHandler: [
+	// 		ValidationMiddleware.validateBody(authSchema.signup),
+	// 	]
+	// }, AuthController.signup)
 
 	fastify.post('/login', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.login)
@@ -40,7 +40,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
 	// ...existing routes...
 
-	fastify.post('/signup-with-displayname', {
+	fastify.post('/signup', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.signupWithDisplayName),
 	}, AuthController.signupWithDisplayName)
 

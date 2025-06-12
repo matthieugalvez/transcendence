@@ -32,7 +32,7 @@ const signup = z.object({
 
 
 const displayNameSchema = z.string()
-    .min(1, "Display name is required")
+    .min(3, "Display must be at least 3 characters long")
     .max(12, "Display name must not exceed 12 characters")
     .regex(/^[a-zA-Z0-9_\s-]+$/, "Display name can only contain letters, numbers, spaces, hyphens, and underscores")
     .refine((value) => value.trim().length > 0, {
