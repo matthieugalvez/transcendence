@@ -56,12 +56,12 @@ static async saveSettings(): Promise<void> {
         if (successes.length > 0 && errors.length > 0) {
             // Both successes and errors - show both
             const successMessage = successes.join('<br>');
-            const errorMessage = `<div class="text-left"><br>${errors.join('<br>')}</div>`;
+            const errorMessage = `<div class="text-center"><br>${errors.join('<br>')}</div>`;
             const combinedMessage = `${successMessage}<br>${errorMessage}`;
             CommonComponent.showMessage(combinedMessage, 'warning', true);
         } else if (errors.length > 0) {
             // Only errors - show as error
-            const errorMessage = `<div class="text-left"><br>${errors.join('<br>')}</div>`;
+            const errorMessage = `<div class="text-center"><br>${errors.join('<br>')}</div>`;
             CommonComponent.showMessage(errorMessage, 'error', true);
         } else if (hasChanges) {
             // Only successes - show as success
