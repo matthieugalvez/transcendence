@@ -1,5 +1,5 @@
 import type { WebSocket } from 'ws';
-import type { GameState } from '../../client/pages/game/types';
+import type { GameState } from '../../client/types/game.types';
 
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }

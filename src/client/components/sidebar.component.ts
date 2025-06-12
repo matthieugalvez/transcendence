@@ -13,7 +13,7 @@ export interface SidebarOptions {
 export class SidebarComponent {
   static render(opts: SidebarOptions): HTMLDivElement {
     const { userName, avatarUrl, showStats = false, showBackHome = false } = opts;
-    const sidebar = document.createElement("nav");
+    const sidebar = document.createElement("nav") as HTMLDivElement;
     sidebar.className = `
         fixed left-10 top-10 h-[90%] w-80
         bg-blue-950/70 backdrop-blur-2xl
@@ -84,14 +84,6 @@ export class SidebarComponent {
     // pousse les bouttons suivants tout en bas
     const bottomContainer = document.createElement('div');
     bottomContainer.className = 'mt-auto w-full space-y-2';
-
-    // tournament
-    // const tournamentButton = CommonComponent.createStylizedButton('Tournament - provisoire', 'gray');
-    // tournamentButton.classList.add("w-full", "text-center", "cursor-pointer");
-    // tournamentButton.addEventListener('click', () => {
-    //     router.navigate('/tournament');
-    // });
-    // bottomContainer.appendChild(tournamentButton);
 
     // Back to home button
     if (showBackHome) {

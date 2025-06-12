@@ -22,7 +22,7 @@ export async function renderTournamentPage() {
   // Main layout
   const wrapper = document.createElement('div');
   wrapper.className = `
-    ml-60 w-[calc(100%-15rem)] min-h-screen
+    ml-40 w-[calc(100%-15rem)] min-h-screen
     flex items-center justify-center
     p-8 relative
   `.replace(/\s+/g,' ').trim();

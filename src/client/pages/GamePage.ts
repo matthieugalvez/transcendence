@@ -5,12 +5,13 @@ import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
+import { GameSettingsComponent } from '../components/game.component';
 
 // Sous-fonction pour le wrapper principal
 function createMainWrapper(): HTMLDivElement {
   const wrapper = document.createElement('div');
   wrapper.className = `
-    ml-60 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
+    ml-40 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
   `.replace(/\s+/g,' ').trim();
   document.body.appendChild(wrapper);
   return wrapper;
@@ -29,18 +30,42 @@ function createGameControls(
     space-y-4 z-10
   `.replace(/\s+/g,' ').trim();
 
-  const startBtn = CommonComponent.createStylizedButton('Start','blue');
-  startBtn.onclick = () => {
+  // const startBtn = CommonComponent.createStylizedButton('Start','blue');
+  // startBtn.onclick = () => {
+  //   if (canvas) canvas.classList.remove('blur-xs');
+  //   controls.remove();
+  //   onStart();
+  // };
+  // controls.appendChild(startBtn);
+
+  const gameMode = document.createElement('div');
+  gameMode.className = `
+    flex flex-row space-x-4 z-10 w-full
+  `;
+  const soloBtn = CommonComponent.createStylizedButton('Solo','blue');
+  soloBtn.classList.add("cursor-pointer", "px-8");
+  soloBtn.onclick = () => {
     if (canvas) canvas.classList.remove('blur-xs');
     controls.remove();
     onStart();
   };
-  controls.appendChild(startBtn);
+  gameMode.appendChild(soloBtn);
 
-  const tourBtn = CommonComponent.createStylizedButton('Tournament','purple');
+  const duoBtn = CommonComponent.createStylizedButton('Duo','purple');
+  duoBtn.classList.add("cursor-pointer", "px-8");
+  duoBtn.onclick = () => {
+    if (canvas) canvas.classList.remove('blur-xs');
+    controls.remove();
+    // onStart();
+    // GameSettingsComponent.render();
+  };
+  gameMode.appendChild(duoBtn);
+  controls.appendChild(gameMode);
+
+  const tourBtn = CommonComponent.createStylizedButton('Tournament','red');
   tourBtn.onclick = onTournament;
   controls.appendChild(tourBtn);
-
+  
   wrapper.appendChild(controls);
 }
 
@@ -58,6 +83,7 @@ export async function renderPongGamePage() {
   // layout de base
   SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true });
   BackgroundComponent.applyNormalGradientLayout();
+  GameSettingsComponent.render({ showGamePause:true, showUrl:true });
 
   const wrapper = createMainWrapper();
   const gameContainer = document.createElement('div');

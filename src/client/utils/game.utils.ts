@@ -1,6 +1,7 @@
 import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
+import { match } from 'assert';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: string) => void;
@@ -83,11 +84,11 @@ export function startPongInContainer(
   leftPlayer: string,
   rightPlayer: string,
   onFinish: FinishCallback,
-  gameId: string
+  gameId: string,
 ): PongHandle {
   // Titre
   const title = document.createElement('h2');
-  title.textContent = matchTitle;
+  title.textContent = "Ready to pong?";
   title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
   container.appendChild(title);
 
@@ -110,6 +111,7 @@ export function startPongInContainer(
 
   function start() {
     if (!keyboardHandlerStarted) {
+      title.textContent = matchTitle;
       setupKeyboardHandlers(socket, keysPressed);
       startClientInputLoop(socket, keysPressed);
       keyboardHandlerStarted = true;
