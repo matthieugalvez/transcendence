@@ -128,4 +128,39 @@ export class AuthComponent {
 			return false;
 		}
 	}
+
+	    static async signupUserWithDisplayName(name: string, password: string, displayName: string): Promise<boolean> {
+        if (!AuthService.validateInput(name, password)) {
+            CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+            return false;
+        }
+
+        try {
+            const response = await fetch('/api/auth/signup-with-displayname', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ name, password, displayName })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                CommonComponent.showMessage(`✅ ${data.message || 'Account created successfully!'}`, 'success');
+                return true;
+            } else {
+                this.handleAuthError(data);
+                return false;
+            }
+        } catch (error) {
+            console.error('Signup with display name error:', error);
+            CommonComponent.showMessage('❌ Failed to create account. Please try again.', 'error');
+            return false;
+        }
+    }
+
+    // Remove or modify the old handleDisplayNameSetup method since we won't need it anymore
+    // ...existing code...
 }

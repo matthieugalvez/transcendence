@@ -383,6 +383,7 @@ export class AuthController {
 			if (!user) {
 				console.log('🔍 Creating new user for:', googleUser.email);
 				user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
+				// MODAL POUR NAME SELECTION
 				console.log('✅ Created new user:', user.id);
 			} else {
 				console.log('✅ Found existing user:', user.id);
@@ -592,4 +593,79 @@ export class AuthController {
 			return Send.internalError(reply, 'Failed to verify 2FA');
 		}
 	}
+
+// ...existing code...
+
+static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        const { name, password, displayName } = request.body as {
+            name: string;
+            password: string;
+            displayName: string;
+        };
+
+        // Check if user already exists
+        const existingUser = await UserService.getUserByName(name);
+        if (existingUser) {
+            return Send.conflict(reply, 'Username already exists');
+        }
+
+        // Create user with display name - use the same pattern as regular signup
+        const user = await AuthService.createUser(name, password, displayName)
+
+        // Generate JWT tokens - use same pattern as regular signup
+        const accessToken = jwt.sign(
+            { userId: user.id },
+            authConfig.secret,
+            { expiresIn: authConfig.secret_expires_in }
+        );
+
+        const refreshToken = jwt.sign(
+            { userId: user.id },
+            authConfig.refresh_secret,
+            { expiresIn: authConfig.refresh_secret_expires_in }
+        );
+
+        // Store refresh token in database
+        await AuthService.updateRefreshToken(user.id, refreshToken);
+
+        console.log('🍪 Setting cookies for new user with display name:', user.id);
+
+        // Set HttpOnly cookies - use same pattern as regular signup
+        reply.setCookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            domain: undefined,
+            path: '/',
+            maxAge: 15 * 60 * 1000
+        });
+
+        reply.setCookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            domain: undefined,
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        const userData = {
+            id: user.id,
+            name: user.name,
+            displayName: user.displayName,
+            created_at: user.created_at
+        };
+
+        return Send.created(reply, userData, `Account created for: ${name}`);
+
+    } catch (error) {
+        console.error('Signup with display name error:', error);
+        return Send.internalError(reply, 'Failed to create account');
+    }
+}
+
+// ...existing code...
+
+
 }

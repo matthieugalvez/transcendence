@@ -401,4 +401,115 @@ export class AuthRender {
 		});
 	}
 
+	static showDisplayNameModal(isGoogleUser: boolean = false): Promise<string | null> {
+		return new Promise((resolve) => {
+			// Create overlay with blur
+			const overlay = document.createElement('div');
+			overlay.style.position = 'fixed';
+			overlay.style.top = '0';
+			overlay.style.left = '0';
+			overlay.style.width = '100vw';
+			overlay.style.height = '100vh';
+			overlay.style.background = 'rgba(0,0,0,0.35)';
+			overlay.style.backdropFilter = 'blur(6px)';
+			overlay.style.display = 'flex';
+			overlay.style.justifyContent = 'center';
+			overlay.style.alignItems = 'center';
+			overlay.style.zIndex = '1000';
+
+			// Create modal container
+			const modal = CommonComponent.createContainer(`
+                bg-white/90 backdrop-blur-md
+                border-2 border-black
+                rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+                max-w-md w-full mx-4 text-center
+            `);
+
+			// Title
+			const title = CommonComponent.createHeading(
+				isGoogleUser ? 'Complete Your Google Sign-In' : 'Choose Your Display Name',
+				2,
+				`
+                    font-['Canada-big'] uppercase font-bold
+                    text-xl text-center mb-2
+                    bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+                    bg-clip-text text-transparent
+                    select-none
+                `
+			);
+			title.style.letterSpacing = "0.1em";
+			modal.appendChild(title);
+
+			// Description
+			const description = document.createElement('p');
+			description.textContent = isGoogleUser
+				? 'Please choose a display name for your account'
+				: 'This will be shown to other players';
+			description.className = 'text-gray-600 mb-4';
+			modal.appendChild(description);
+
+			// Input
+			const input = CommonComponent.createInput('text', 'Enter your display name');
+			input.id = 'displayname-input';
+			input.style.marginTop = '1rem';
+			modal.appendChild(input);
+
+			// Error message
+			const errorMsg = document.createElement('div');
+			errorMsg.id = 'displayname-error-msg';
+			errorMsg.className = 'text-red-600 font-semibold mt-2 text-center';
+			modal.appendChild(errorMsg);
+
+			// Buttons
+			const buttonContainer = document.createElement('div');
+			buttonContainer.className = 'flex gap-4 justify-center mt-6';
+
+			const submitButton = CommonComponent.createStylizedButton('Continue', 'blue');
+			// const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+
+			buttonContainer.appendChild(submitButton);
+			// if (!isGoogleUser) { // Don't show cancel for Google users as they need to complete setup
+			// 	buttonContainer.appendChild(cancelButton);
+			// }
+			modal.appendChild(buttonContainer);
+
+			overlay.appendChild(modal);
+			document.body.appendChild(overlay);
+
+			// Event listeners
+			input.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') {
+					submitButton.click();
+				}
+			});
+
+			submitButton.addEventListener('click', () => {
+				const displayName = input.value.trim();
+				if (!displayName) {
+					errorMsg.textContent = 'Please enter a display name';
+					return;
+				}
+				if (displayName.length < 3) {
+					errorMsg.textContent = 'Display name must be at least 3 characters';
+					return;
+				}
+				if (displayName.length > 20) {
+					errorMsg.textContent = 'Display name must be less than 20 characters';
+					return;
+				}
+				document.body.removeChild(overlay);
+				resolve(displayName);
+			});
+
+			// if (!isGoogleUser) {
+			// 	cancelButton.addEventListener('click', () => {
+			// 		document.body.removeChild(overlay);
+			// 		resolve(null);
+			// 	});
+			// }
+
+			input.focus();
+		});
+	}
+
 }

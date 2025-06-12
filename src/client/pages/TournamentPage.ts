@@ -19,6 +19,8 @@ export async function renderTournamentPage() {
   document.body.innerHTML = '';
 
   // sidebar + bg gradient
+
+  try {
   const user = await UserService.getCurrentUser();
   SidebarComponent.render({
     userName: user.name,
@@ -84,6 +86,9 @@ export async function renderTournamentPage() {
     if (canvas) canvas.classList.remove('blur-xs');
     launchTournament(inputs, wrapper)
   });
+} catch (error) {
+	CommonComponent.handleAuthError();
+}
 }
 
 async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement) {

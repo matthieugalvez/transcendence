@@ -60,21 +60,31 @@ function setupEventListeners(): void {
  * Handle signup button click - includes navigation logic
  */
 async function onSignupClick(): Promise<void> {
-	const name = nameInput.value.trim();
-	const password = passwordInput.value.trim();
+    const name = nameInput.value.trim();
+    const password = passwordInput.value.trim();
 
-	if (!AuthComponent.validateInput(name, password)) {
-		return;
-	}
+    if (!AuthComponent.validateInput(name, password)) {
+        return;
+    }
 
-	const success = await AuthComponent.signupUser(name, password);
+    // Show display name modal BEFORE creating user
+    const displayName = await AuthRender.showDisplayNameModal(false);
 
-	if (success) {
-		// Page-level navigation logic
-		setTimeout(() => {
-			router.navigate('/home');
-		}, 500);
-	}
+    if (!displayName) {
+        // User cancelled, no account is created
+        CommonComponent.showMessage('⚠️ Account creation cancelled', 'warning');
+        return;
+    }
+
+    // Now create user with display name in one step
+    const success = await AuthComponent.signupUserWithDisplayName(name, password, displayName);
+
+    if (success) {
+        // Navigate to home after successful signup
+        setTimeout(() => {
+            router.navigate('/home');
+        }, 500);
+    }
 }
 
 async function onLoginClick(): Promise<void> {

@@ -31,31 +31,14 @@ export class SettingsRender {
             console.error('Failed to fetch user data:', error);
 
             // Show error and redirect to auth
-            this.handleAuthError();
+            CommonComponent.handleAuthError();
         }
     }
 
-    private static createLoadingContainer(): HTMLDivElement {
-        const loadingContainer = document.createElement('div');
-        loadingContainer.className = `
-      bg-white/90 backdrop-blur-md
-      border-2 border-black
-      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-      max-w-lg w-full mx-4 text-center
-    `.replace(/\s+/g, ' ').trim();
-
-        const loadingText = document.createElement('p');
-        loadingText.textContent = 'Loading...';
-        loadingText.className = `
-      font-['Orbitron'] text-center text-gray-600
-      text-lg font-medium
-    `.replace(/\s+/g, ' ').trim();
-
-        loadingContainer.appendChild(loadingText);
-        return loadingContainer;
-    }
-
-    private static renderMainContent(userName: string): void {
+    /**
+     * Render main content - can be called directly from SettingsPage
+     */
+    static renderMainContent(userName: string): void {
         // Main container with glassmorphism effect
         const mainContainer = document.createElement('div');
         mainContainer.className = `
@@ -162,53 +145,23 @@ export class SettingsRender {
         document.body.appendChild(mainContainer);
     }
 
-    private static handleAuthError(): void {
-        // Clear any existing content first
-        document.body.innerHTML = '';
-
-        // Apply background
-        BackgroundComponent.applyCenteredGradientLayout();
-
-        // Show error message and redirect to auth
-        const errorContainer = document.createElement('div');
-        errorContainer.className = `
+    private static createLoadingContainer(): HTMLDivElement {
+        const loadingContainer = document.createElement('div');
+        loadingContainer.className = `
       bg-white/90 backdrop-blur-md
-      border-2 border-red-500
+      border-2 border-black
       rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
       max-w-lg w-full mx-4 text-center
     `.replace(/\s+/g, ' ').trim();
 
-        const errorIcon = document.createElement('div');
-        errorIcon.textContent = '🔒';
-        errorIcon.className = 'text-4xl mb-4';
+        const loadingText = document.createElement('p');
+        loadingText.textContent = 'Loading...';
+        loadingText.className = `
+      font-['Orbitron'] text-center text-gray-600
+      text-lg font-medium
+    `.replace(/\s+/g, ' ').trim();
 
-        const errorTitle = document.createElement('h2');
-        errorTitle.textContent = 'Authentication Required';
-        errorTitle.className = `
-            font-['Canada-big'] uppercase font-bold
-            text-2xl text-center mb-2
-            text-red-600
-            select-none
-        `.replace(/\s+/g, ' ').trim();
-
-        const errorText = document.createElement('p');
-        errorText.textContent = 'You need to be logged in to access settings.';
-        errorText.className = 'text-red-600 font-semibold mb-6';
-
-        const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
-        loginButton.addEventListener('click', () => {
-            router.navigate('/auth');
-        });
-
-        errorContainer.appendChild(errorIcon);
-        errorContainer.appendChild(errorTitle);
-        errorContainer.appendChild(errorText);
-        errorContainer.appendChild(loginButton);
-        document.body.appendChild(errorContainer);
-
-        // Auto-redirect after 3 seconds
-        setTimeout(() => {
-            router.navigate('/auth');
-        }, 3000);
+        loadingContainer.appendChild(loadingText);
+        return loadingContainer;
     }
 }
