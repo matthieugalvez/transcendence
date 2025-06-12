@@ -1,4 +1,5 @@
 import { CommonComponent } from './common.component';
+import { validatePlayerNames } from '../utils/player.utils';
 
 export interface GameSetOptions {
   showUrl?: boolean;
@@ -13,11 +14,13 @@ type SettingState =
     | 'solo-start'
     | 'duo'
     | 'duo-local'
-    | 'duo-online';
+    | 'duo-online'
+    | 'tournament-alias'
+    | 'tournament-settings';
 
 // pour changer logique de jeu
 interface GameSettingsCallbacks {
-    onStartGame?: (mode: SettingState, difficulty?: string) => void;
+    onStartGame?: (mode: SettingState, difficulty?: string, aliases?: string[]) => void;
     onPauseGame?: () => void;
     onRestartGame?: () => void;
     onDifficultyChange?: (difficulty: string) => void;
@@ -30,6 +33,7 @@ export class GameSettingsComponent {
     static panelId = 'game-settings-bar';
     static currentDifficulty = 'MEDIUM'; // default
     static currentMode: SettingState = 'initial';
+    static tournamentStarted = false;
 
     /**
      *  dynamic render of settings panel
@@ -44,7 +48,7 @@ export class GameSettingsComponent {
         const settingsBar = document.createElement("nav");
         settingsBar.id = GameSettingsComponent.panelId;
         settingsBar.className = `
-            fixed right-30 top-63 h-[55%] w-80
+            fixed right-30 top-63 h-[56%] w-80
             bg-blue-950/70 backdrop-blur-2xl
             rounded-lg text-lg transition-colors
             shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
@@ -143,6 +147,93 @@ export class GameSettingsComponent {
             }
             startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
+            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+        }
+
+        // 4. TOURNOI
+        if (state === 'tournament-alias') {
+            // Titre
+            const title = document.createElement('h2');
+            title.textContent = "⬇️ Enter player names for the tournament ⬇️";
+            title.className = 'font-["Canada-big"] capitalize mb-4 text-white text-2xl justify-center items-center';
+            settingsBar.appendChild(title);
+
+            // Inputs
+            const inputs: HTMLInputElement[] = [];
+            for (let i = 1; i <= 4; i++) {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.placeholder = `Player ${i}`;
+                inp.className = `
+                    border border-purple-500 rounded-lg px-4 py-2
+                    text-lg text-white font-['Orbitron']
+                    focus:outline-none focus:ring-2 focus:ring-purple-500
+                    mb-4 w-full
+                `;
+                settingsBar.appendChild(inp);
+                inputs.push(inp);
+            }
+
+            // Bouton Start
+            const startButton = CommonComponent.createStylizedButton('Start Tournament', 'blue');
+            startButton.classList.add('w-full');
+            startButton.disabled = true;
+            settingsBar.appendChild(startButton);
+
+            // Message d’erreur
+            let errorMsg = document.createElement('p');
+            errorMsg.className = "text-sm text-red-500 mb-2";
+            settingsBar.appendChild(errorMsg);
+
+            // Validation dynamique (utilise ta fonction existante validatePlayerNames)
+            function checkAllValid() {
+                const aliases = inputs.map(inp => inp.value.trim());
+                const { valid, error } = validatePlayerNames(...aliases);
+                if (valid) {
+                    startButton.disabled = false;
+                    errorMsg.textContent = '';
+                } else {
+                    startButton.disabled = true;
+                    errorMsg.textContent = error || '';
+                }
+            }
+            inputs.forEach((inp, index) => {
+                inp.addEventListener('input', checkAllValid);
+                inp.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (inp.value.trim().length === 0) return;
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else if (!startButton.disabled) {
+                        startButton.click();
+                    }
+                    }
+                });
+            });
+
+            startButton.onclick = () => {
+                callbacks.onStartGame?.('tournament-settings', undefined, inputs.map(i => i.value.trim()));
+            };
+        }
+
+        if (state === 'tournament-settings') {
+            // Play/Pause/Restart
+            settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
+            // Start game
+            if (!GameSettingsComponent.tournamentStarted) {
+                const startBtn = CommonComponent.createStylizedButton('Start Tournament', 'red');
+                startBtn.classList.add('w-full');
+                startBtn.onclick = () => {
+                    GameSettingsComponent.tournamentStarted = true;
+                    callbacks.onStartGame?.('tournament-settings');
+                    // Re-render pour faire disparaitre le bouton
+                    GameSettingsComponent.render('tournament-settings', callbacks);
+                };
+                settingsBar.appendChild(startBtn);
+            }
+           
+            // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
         document.body.appendChild(settingsBar);

@@ -125,12 +125,6 @@ export async function renderPongGamePage() {
             },
           });
         },
-        onPauseGame: () => {
-          pauseState.value = !pauseState.value;
-          if (socket && socket.readyState === socket.OPEN) {
-            socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-          }
-        },
         onRestartGame: () => {
           renderPongGamePage();
         },
@@ -158,12 +152,6 @@ export async function renderPongGamePage() {
               renderPongGamePage();
             },
           });
-        },
-        onPauseGame: () => {
-          pauseState.value = !pauseState.value;
-          if (socket && socket.readyState === socket.OPEN) {
-            socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-          }
         },
         onRestartGame: () => {
           renderPongGamePage();

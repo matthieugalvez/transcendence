@@ -63,7 +63,7 @@ export class SidebarComponent {
 
     // Stat button
     if (showStats) {
-        const statButton = CommonComponent.createStylizedButton('Your statistics', 'blue');
+        const statButton = CommonComponent.createStylizedButton('Your profile', 'blue');
         statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
         statButton.addEventListener('click', () => {
             router.navigate('/UserStat');
@@ -94,7 +94,7 @@ export class SidebarComponent {
         });
         bottomContainer.appendChild(backButton);
     }
-    const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+    const settingBtn = CommonComponent.createStylizedButton("Settings", "purple");
     settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
     settingBtn.addEventListener("click", async () => {
     setTimeout(() => router.navigate("/settings"), 300);
