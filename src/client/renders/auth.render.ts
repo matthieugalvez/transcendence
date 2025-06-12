@@ -99,8 +99,8 @@ export class AuthRender {
 		inputContainer.className = 'text-center mb-6';
 
 		// Name input and label with gaming theme
-		const nameLabel = CommonComponent.createLabel('Nickname');
-		const nameInput = CommonComponent.createInput('text', 'Enter your nickname');
+		const nameLabel = CommonComponent.createLabel('Username');
+		const nameInput = CommonComponent.createInput('text', 'Enter your username');
 
 		// Password input and label with gaming theme
 		const passwordLabel = CommonComponent.createLabel('Password');
