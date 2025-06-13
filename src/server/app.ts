@@ -7,6 +7,9 @@ import { registerPlugins } from './config/plugins.config';
 import { registerRoutes } from './routes/router';
 import { registerPongWebSocket } from './routes/game.routes';
 
+
+
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 

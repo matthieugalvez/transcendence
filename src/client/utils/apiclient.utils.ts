@@ -4,28 +4,24 @@ export class ApiClient {
   /**
    * Make authenticated API requests with automatic redirect on 401
    */
- static async authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-    const response = await fetch(url, {
-      ...options,
-      credentials: 'include', // Always include cookies
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      }
-    });
+    static async authenticatedFetch(url: string, options: RequestInit = {}) {
+        let response = await fetch(url, { ...options, credentials: 'include' });
 
-    // If we get 401 Unauthorized, redirect to auth page (but only if not already on auth page)
-    if (response.status === 401) {
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/auth') {
-        console.warn('Authentication failed - redirecting to login');
-        router.navigate('/auth');
-      }
-      throw new Error('Authentication required');
+        if (response.status === 401) {
+            // Try refresh
+            const refreshResponse = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (refreshResponse.ok) {
+                response = await fetch(url, { ...options, credentials: 'include' });
+            } else {
+                window.location.href = '/auth';
+            }
+        }
+        return response;
     }
-
-    return response;
-  }
 
   /**
    * Make API requests without automatic redirect (useful for auth checks)

@@ -1,7 +1,20 @@
 import { FastifyInstance } from 'fastify'
 import { join } from 'path'
+import OAuth2, {OAuth2Namespace} from "@fastify/oauth2";
+import { googleOAuth2Options } from './google.config';
+import cookie from '@fastify/cookie'; // Add this import
 
 export async function registerPlugins(app: FastifyInstance, dirname: string) {
+  // Register cookie plugin globally
+    await app.register(cookie, {
+    secret: process.env.COOKIE_SECRET || 'your-cookie-secret', // Add cookie secret
+    parseOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // Changed from 'strict' for OAuth2 flow
+    }
+  })
+
   // Register static files
   await app.register(import('@fastify/static'), {
     root: join(dirname, '../../dist'),
@@ -29,6 +42,9 @@ export async function registerPlugins(app: FastifyInstance, dirname: string) {
       credentials: true
     })
   }
+
+  // Register Google OAuth2
+  await app.register(OAuth2, googleOAuth2Options)
 
   console.log('✅ Plugins registered')
 }

@@ -82,7 +82,7 @@ export function renderNotFoundPage(): void {
     `;
     goHomeBtn.style.letterSpacing = "0.2em";
     goHomeBtn.addEventListener('click', () => {
-        router.navigate('/');
+        router.navigate('/home');
     });
     btnContainer.appendChild(goHomeBtn);
     container.appendChild(btnContainer);

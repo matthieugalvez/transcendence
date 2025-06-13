@@ -1,36 +1,69 @@
 import '../styles.css';
 import { BackgroundComponent } from '../components/background.component';
-import { startPongInContainer } from './game/utils';
+import { startPongInContainer, showGameOverOverlay } from './game/utils';
+import { SidebarComponent } from "../components/sidebar.components";
 import { UserService } from '../services/user.service';
 const	language_obj = await UserService.GetLanguageFile();
+import { CommonComponent } from '../components/common.component';
+import { router } from '../configs/simplerouter';
 
-export function renderGamePage() {
-  document.title = 'Transcendence - Pong';
+export async function renderGamePage() {
+  // clean
+  document.body.innerHTML = '';
+
+  // creation page
+  document.title = 'Pong';
+  // get user name
+  const user = await UserService.getCurrentUser();
+  const leftPlayer = user?.name || "Player 1";
+  const rightPlayer = "Player 2";
+  const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
+
+  // sidebar + gradiant bg
+  SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true, showSettings:true });
   BackgroundComponent.applyNormalGradientLayout();
 
-  // 1) Conteneur principal centré
-  const container = document.createElement('div');
-  container.className = 'min-h-screen flex flex-col items-center justify-center p-8';
-  container.style.position = 'relative';
-  container.style.zIndex = '0';
-  document.body.appendChild(container);
+  const wrapper = document.createElement('div');
+  wrapper.className = `
+    ml-60 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
+  `.replace(/\s+/g,' ').trim();
+  document.body.appendChild(wrapper);
 
-  // 2) Générer un gameId unique (par exemple à partir de la date courante)
+  const gameContainer = document.createElement('div');
+  gameContainer.className = 'relative z-0';
+  wrapper.appendChild(gameContainer);
+
+  // initialise sans lancer
   const gameId = Date.now().toString();
-
-  // 3) Appeler l’utilitaire pour ouvrir la WebSocket et démarrer le rendu
-  startPongInContainer(
-    container,
-    `${language_obj['Gamepage_player']} 1`,
-    `${language_obj['Gamepage_player']} 2`,
-    (winnerAlias: string) => {
-      // Ici on efface et on affiche le message final
-      container.innerHTML = '';
-      const msg = document.createElement('h2');
-      msg.textContent = `${language_obj['Gamepage_winner']} ${winnerAlias} !`;
-      msg.className = 'text-3xl font-bold text-center mt-8';
-      container.appendChild(msg);
-    },
+  const { start } = startPongInContainer(
+    gameContainer,
+    matchTitle,
+    leftPlayer,
+    rightPlayer,
+    (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderGamePage),
     gameId
   );
+
+  // overlay de contrôles
+  const controls = document.createElement('div');
+  controls.className = `
+    absolute flex flex-col items-center justify-center
+    space-y-4 z-10
+  `.replace(/\s+/g,' ').trim();
+  wrapper.appendChild(controls);
+
+  const canvas = gameContainer.querySelector('canvas');
+  if (canvas) canvas.classList.add('blur-xs');
+
+  const startBtn = CommonComponent.createStylizedButton('Start','blue');
+  startBtn.onclick = () => {
+    if (canvas) canvas.classList.remove('blur-xs'); // remove blur
+    controls.remove(); // cache les boutons
+    start();
+  };
+  controls.appendChild(startBtn);
+
+  const tourBtn = CommonComponent.createStylizedButton('Tournament','purple');
+  tourBtn.onclick = () => router.navigate('/tournament');
+  controls.appendChild(tourBtn);
 }

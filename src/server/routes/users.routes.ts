@@ -1,10 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { UserController } from '../controllers/user.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
-import cookie from '@fastify/cookie'
 
 export default async function userDataRoutes(fastify: FastifyInstance) {
-  await fastify.register(cookie)
 
   // GET /api/users - Get all users (PROTECTED)
   fastify.get('/', {
