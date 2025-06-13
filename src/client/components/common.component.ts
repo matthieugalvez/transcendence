@@ -5,27 +5,27 @@ export class CommonComponent {
 	/**
 	 * Display a message to the user
 	 */
-    static showMessage(text: string, type: 'success' | 'error' | 'warning' = 'error', isHtml: boolean = false): void {
-        const signupMsgDisplay = document.getElementById('signup-msg-display');
-        if (!signupMsgDisplay) return;
+	static showMessage(text: string, type: 'success' | 'error' | 'warning' = 'error', isHtml: boolean = false): void {
+		const signupMsgDisplay = document.getElementById('signup-msg-display');
+		if (!signupMsgDisplay) return;
 
-        signupMsgDisplay.innerHTML = '';
+		signupMsgDisplay.innerHTML = '';
 
-        const message = document.createElement('div');
-        if (isHtml) {
-            message.innerHTML = text;
-        } else {
-            message.textContent = text;
-        }
+		const message = document.createElement('div');
+		if (isHtml) {
+			message.innerHTML = text;
+		} else {
+			message.textContent = text;
+		}
 
-        message.className = `
+		message.className = `
             ${type === 'success' ? 'text-green-600' : type === 'warning' ? 'text-yellow-600' : 'text-red-600'}
             font-semibold mt-2 text-center
         `.replace(/\s+/g, ' ').trim();
 
-        message.style.letterSpacing = "0.05em";
-        signupMsgDisplay.appendChild(message);
-    }
+		message.style.letterSpacing = "0.05em";
+		signupMsgDisplay.appendChild(message);
+	}
 
 
 	/**
@@ -78,9 +78,9 @@ export class CommonComponent {
 		return button;
 	}
 
-static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.textContent = text;
+	static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
+		const button = document.createElement('button');
+		button.textContent = text;
 
 		const colorClasses = {
 			blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',

@@ -17,16 +17,16 @@ export class AuthService {
 		})
 	}
 
-	    static async createGoogleUserPending(email: string, defaultName: string) {
-        return await prisma.user.create({
-            data: {
-                email: email,
-                displayName: null, // Will be set during setup
-                password_hash: '', // No password for Google users
-                provider: 'google'
-            }
-        });
-    }
+	static async createGoogleUserPending(email: string, defaultName: string) {
+		return await prisma.user.create({
+			data: {
+				email: email,
+				displayName: null, // Will be set during setup
+				password_hash: '', // No password for Google users
+				provider: 'google'
+			}
+		});
+	}
 
 	/**
 	 * Update refresh token for a user

@@ -163,62 +163,62 @@ export class AuthComponent {
 		}
 	}
 
-static async checkAndHandleDisplayName(): Promise<{ success: boolean; userData?: any }> {
-    try {
-        // Get current user data
-        const userData = await UserService.getCurrentUser();
+	static async checkAndHandleDisplayName(): Promise<{ success: boolean; userData?: any }> {
+		try {
+			// Get current user data
+			const userData = await UserService.getCurrentUser();
 
-        // Check if display name is missing or same as username
-        const needsDisplayName = !userData.displayName ||
-            userData.displayName.trim() === '' ||
-            userData.displayName === userData.email;
+			// Check if display name is missing or same as username
+			const needsDisplayName = !userData.displayName ||
+				userData.displayName.trim() === '' ||
+				userData.displayName === userData.email;
 
-        if (!needsDisplayName) {
-            return { success: true, userData };
-        }
+			if (!needsDisplayName) {
+				return { success: true, userData };
+			}
 
-        console.log('User needs display name setup');
+			console.log('User needs display name setup');
 
-        // Show display name modal
-        const displayName = await AuthRender.showDisplayNameModal(true);
+			// Show display name modal
+			const displayName = await AuthRender.showDisplayNameModal(true);
 
-        if (!displayName) {
-            // If user cancels, logout and redirect
-            await this.logoutUser();
-            router.navigate('/auth');
-            return { success: false };
-        }
+			if (!displayName) {
+				// If user cancels, logout and redirect
+				await this.logoutUser();
+				router.navigate('/auth');
+				return { success: false };
+			}
 
-        // Update display name
-        const updateResult = await UserService.changeUsername(displayName);
+			// Update display name
+			const updateResult = await UserService.changeUsername(displayName);
 
-        if (updateResult.success) {
-            CommonComponent.showMessage('✅ Display name set successfully!', 'success');
-            const updatedUserData = await UserService.getCurrentUser();
-            return { success: true, userData: updatedUserData };
-        } else {
-            // Show error and retry
-            let errorMessage = updateResult.error || 'Failed to set display name';
+			if (updateResult.success) {
+				CommonComponent.showMessage('✅ Display name set successfully!', 'success');
+				const updatedUserData = await UserService.getCurrentUser();
+				return { success: true, userData: updatedUserData };
+			} else {
+				// Show error and retry
+				let errorMessage = updateResult.error || 'Failed to set display name';
 
-            // Handle validation errors
-            if (updateResult.details && updateResult.details.length > 0) {
-                const validationErrors = updateResult.details
-                    .map((detail: any) => detail.message)
-                    .join(', ');
-                errorMessage = validationErrors;
-            }
+				// Handle validation errors
+				if (updateResult.details && updateResult.details.length > 0) {
+					const validationErrors = updateResult.details
+						.map((detail: any) => detail.message)
+						.join(', ');
+					errorMessage = validationErrors;
+				}
 
-            CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
+				CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
 
-            // Recursively call this method to show the modal again
-            return await this.checkAndHandleDisplayName();
-        }
+				// Recursively call this method to show the modal again
+				return await this.checkAndHandleDisplayName();
+			}
 
-    } catch (error) {
-        console.error('Error checking display name:', error);
-        await this.logoutUser();
-        router.navigate('/auth');
-        return { success: false };
-    }
-}
+		} catch (error) {
+			console.error('Error checking display name:', error);
+			await this.logoutUser();
+			router.navigate('/auth');
+			return { success: false };
+		}
+	}
 }

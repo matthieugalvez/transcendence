@@ -18,23 +18,23 @@ const usernameSchema = z.string()
 	});
 
 export const emailSchema = z.string()
-    .email('Invalid email format')
-    .min(5, 'Email must be at least 5 characters')
-    .max(100, 'Email must be less than 100 characters')
-    .toLowerCase()
-    .trim();
+	.email('Invalid email format')
+	.min(5, 'Email must be at least 5 characters')
+	.max(100, 'Email must be less than 100 characters')
+	.toLowerCase()
+	.trim();
 
 
 
 // Login schema - matches your current API (name + password)
 const login = z.object({
-    email: emailSchema,  // ✅ Now expects string
-    password: z.string().min(1, "Password is required")
+	email: emailSchema,  // ✅ Now expects string
+	password: z.string().min(1, "Password is required")
 });
 
 const signup = z.object({
-    email: emailSchema,  // ✅ Now expects string
-    password: passwordSchema
+	email: emailSchema,  // ✅ Now expects string
+	password: passwordSchema
 });
 
 

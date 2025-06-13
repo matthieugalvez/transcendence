@@ -133,28 +133,28 @@ export class UserController {
 		}
 	}
 
-static async checkDisplayNameAvailability(request: FastifyRequest, reply: FastifyReply) {
-    try {
-        const userId = (request as any).userId;
-        const { displayName } = request.query as { displayName: string };
+	static async checkDisplayNameAvailability(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+			const { displayName } = request.query as { displayName: string };
 
-        if (!displayName || displayName.trim() === '') {
-            return Send.badRequest(reply, 'Display name is required');
-        }
+			if (!displayName || displayName.trim() === '') {
+				return Send.badRequest(reply, 'Display name is required');
+			}
 
-        // Check if display name is taken, excluding current user
-        const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName.trim(), userId);
+			// Check if display name is taken, excluding current user
+			const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName.trim(), userId);
 
-        // Make sure you're using Send.success with the correct structure
-        return Send.success(reply, {
-            available: !isDisplayNameTaken,
-            message: isDisplayNameTaken ? 'Display name is already taken' : 'Display name is available'
-        }, 'Display name check completed');
+			// Make sure you're using Send.success with the correct structure
+			return Send.success(reply, {
+				available: !isDisplayNameTaken,
+				message: isDisplayNameTaken ? 'Display name is already taken' : 'Display name is available'
+			}, 'Display name check completed');
 
-    } catch (error) {
-        console.error('Error checking display name availability:', error);
-        return Send.internalError(reply, 'Failed to check display name availability');
-    }
-}
+		} catch (error) {
+			console.error('Error checking display name availability:', error);
+			return Send.internalError(reply, 'Failed to check display name availability');
+		}
+	}
 
 }
