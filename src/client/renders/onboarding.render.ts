@@ -123,65 +123,8 @@ export class OnboardingRender {
       }
     });
 
-	const	LanguageDropdownMenu = document.createElement('div');
-	LanguageDropdownMenu.className = `
-      bg-white/90 backdrop-blur-md
-      border-2 border-black
-      rounded-xl p-2 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-    `.replace(/\s+/g, ' ').trim();
-	LanguageDropdownMenu.style.position = 'absolute';
-	LanguageDropdownMenu.style.top = '8px';
-	LanguageDropdownMenu.style.right = '16px';
-	LanguageDropdownMenu.style.display = 'inline-grid';
-		
-	const	LanguageDropdownButton = document.createElement('button');
-	LanguageDropdownButton.className = 'dropbtn';
-	if (language_obj['_lang'] == 'eng') {
-		LanguageDropdownButton.textContent = '🇬🇧';
-	}
-	if (language_obj['_lang'] == 'fr') {
-		LanguageDropdownButton.textContent = '🇫🇷';
-	}
-
-	const	LanguageDropdownContent = document.createElement('div');
-	LanguageDropdownContent.className = 'dropdown-content';
-	LanguageDropdownContent.style.display = 'none';
-
-	LanguageDropdownMenu.addEventListener('mouseover', (event) => {
-		LanguageDropdownButton.style.display = "none";
-		LanguageDropdownContent.style.display = 'inline-grid';
-		});
-
-	LanguageDropdownMenu.addEventListener('mouseout', (event) => {
-		LanguageDropdownButton.style.display = "initial";
-		LanguageDropdownContent.style.display = 'none';
-		});
-
-	const	EnglishButton = document.createElement('button');
-	EnglishButton.textContent = '🇬🇧';
-    EnglishButton.addEventListener('click', async () => {
-		const success = await AuthComponent.SetLanguageUser('eng');
-		if (success.error) {
-				CommonComponent.showMessage('Failed to change language', 'error');
-			}
-		location.reload();
-	});
-
-	const	FrenchButton = document.createElement('button');
-	FrenchButton.textContent = '🇫🇷';
-    FrenchButton.addEventListener('click', async () => {
-		const success = await AuthComponent.SetLanguageUser('fr');
-		if (success.error) {
-				CommonComponent.showMessage('Failed to change language', 'error');
-			}
-		location.reload();
-    });
-
-	LanguageDropdownMenu.appendChild(LanguageDropdownButton);
-	LanguageDropdownContent.appendChild(EnglishButton);
-	LanguageDropdownContent.appendChild(FrenchButton);
-	LanguageDropdownMenu.appendChild(LanguageDropdownContent);
-
+	const	LanguageDropdownMenu= CommonComponent.createLanguageMenu(language_obj['_lang']);
+	
     // Add emoji decorations
     const gameEmoji = document.createElement('div');
     gameEmoji.textContent = '🏓';
