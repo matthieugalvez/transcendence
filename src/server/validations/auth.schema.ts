@@ -17,26 +17,23 @@ const usernameSchema = z.string()
 		message: "Username cannot be only numbers",
 	});
 
-export const emailSchema = z.string({
-	email: z
-		.string()
-		.email('Invalid email format')
-		.min(5, 'Email must be at least 5 characters')
-		.max(100, 'Email must be less than 100 characters')
-		.toLowerCase()
-		.trim(),
-});
+export const emailSchema = z.string()
+    .email('Invalid email format')
+    .min(5, 'Email must be at least 5 characters')
+    .max(100, 'Email must be less than 100 characters')
+    .toLowerCase()
+    .trim();
 
 
 
 // Login schema - matches your current API (name + password)
 const login = z.object({
-    email: z.string().email("Invalid email format").min(1, "Email is required"),
+    email: emailSchema,  // ✅ Now expects string
     password: z.string().min(1, "Password is required")
 });
 
 const signup = z.object({
-    email: z.string().email("Invalid email format"),  // ✅ Expect string, not object
+    email: emailSchema,  // ✅ Now expects string
     password: passwordSchema
 });
 

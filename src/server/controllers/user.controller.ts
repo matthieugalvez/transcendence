@@ -133,7 +133,7 @@ export class UserController {
 		}
 	}
 
-	static async checkDisplayNameAvailability(request: FastifyRequest, reply: FastifyReply) {
+static async checkDisplayNameAvailability(request: FastifyRequest, reply: FastifyReply) {
     try {
         const userId = (request as any).userId;
         const { displayName } = request.query as { displayName: string };
@@ -142,12 +142,14 @@ export class UserController {
             return Send.badRequest(reply, 'Display name is required');
         }
 
-        const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName, userId);
+        // Check if display name is taken, excluding current user
+        const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName.trim(), userId);
 
+        // Make sure you're using Send.success with the correct structure
         return Send.success(reply, {
             available: !isDisplayNameTaken,
             message: isDisplayNameTaken ? 'Display name is already taken' : 'Display name is available'
-        });
+        }, 'Display name check completed');
 
     } catch (error) {
         console.error('Error checking display name availability:', error);

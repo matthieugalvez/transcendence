@@ -23,7 +23,7 @@ export class UserService {
 	/**
 	 * Get current authenticated user data
 	 */
-	static async getCurrentUser(): Promise<{ id: number; email: string; displayName: string; created_at: string; updated_at: string }> {
+	static async getCurrentUser(): Promise<{ id: number; name: string; displayName: string; created_at: string; updated_at: string }> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users/me');
 
@@ -55,24 +55,38 @@ export class UserService {
 		}
 	}
 
-	    static async checkDisplayNameAvailability(displayName: string): Promise<{ available: boolean; message?: string }> {
-        try {
-            const response = await fetch(`/api/users/check-display-name?displayName=${encodeURIComponent(displayName)}`, {
-                method: 'GET',
-                credentials: 'include'
-            });
+	static async checkDisplayNameAvailability(displayName: string): Promise<{ available: boolean; message?: string }> {
+		try {
+const response = await fetch(`/api/check-display-name?displayName=${encodeURIComponent(displayName)}`, {
+				method: 'GET',
+				credentials: 'include'
+			});
 
-            const data = await response.json();
-            return data;
+			const data = await response.json();
 
-        } catch (error) {
-            console.error('Error checking display name availability:', error);
-            return {
-                available: false,
-                message: 'Failed to check availability'
-            };
-        }
-    }
+			console.log('🔍 Server response for display name check:', data);
+
+			// Handle the server response structure
+			if (response.ok && data.success) {
+				return {
+					available: data.data?.available || false,
+					message: data.data?.message || data.message
+				};
+			} else {
+				return {
+					available: false,
+					message: data.message || data.error || 'Display name check failed'
+				};
+			}
+
+		} catch (error) {
+			console.error('Error checking display name availability:', error);
+			return {
+				available: false,
+				message: 'Failed to check availability'
+			};
+		}
+	}
 
 	/**
 	 * Get all users (PROTECTED)

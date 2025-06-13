@@ -594,8 +594,7 @@ export class AuthController {
 		}
 	}
 
-// ...existing code...
-
+	// DEPRECATED
 static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply) {
     try {
         const { email, password, displayName } = request.body as {
@@ -620,10 +619,14 @@ static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply)
         // Create user with display name - use the same pattern as regular signup
         const user = await AuthService.createUser(email, password)
 
-        // Generate JWT tokens - use same pattern as regular signup
+		// Generate JWT tokens - use same pattern as regular signup
+		const accessToken = jwt.sign(
+			{ userId: user.id },
+			authConfig.secret,
+			{ expiresIn: authConfig.secret_expires_in }
+		);
 
-
-        const refreshToken = jwt.sign(
+		const refreshToken = jwt.sign(
             { userId: user.id },
             authConfig.refresh_secret,
             { expiresIn: authConfig.refresh_secret_expires_in }

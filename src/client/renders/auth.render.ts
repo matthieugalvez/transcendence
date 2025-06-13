@@ -4,6 +4,7 @@ import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { AuthService } from '../services/auth.service';
 import { GoogleService } from '../services/google.service'
+import { UserService } from '../services/user.service';
 
 
 export class AuthRender {
@@ -90,7 +91,7 @@ export class AuthRender {
 	 * Create form elements (inputs and buttons)
 	 */
 	private static createFormElements(container: HTMLElement): {
-		nameInput: HTMLInputElement;
+		emailInput: HTMLInputElement;
 		passwordInput: HTMLInputElement;
 		signupButton: HTMLButtonElement;
 		loginButton: HTMLButtonElement;
@@ -482,8 +483,13 @@ export class AuthRender {
 				}
 			});
 
-			submitButton.addEventListener('click', () => {
+			submitButton.addEventListener('click', async () => {
 				const displayName = input.value.trim();
+
+				// Clear previous error
+				errorMsg.textContent = '';
+
+				// Basic validation
 				if (!displayName) {
 					errorMsg.textContent = 'Please enter a display name';
 					return;
@@ -492,23 +498,39 @@ export class AuthRender {
 					errorMsg.textContent = 'Display name must be at least 3 characters';
 					return;
 				}
-				if (displayName.length > 20) {
-					errorMsg.textContent = 'Display name must be less than 20 characters';
+				if (displayName.length > 12) {
+					errorMsg.textContent = 'Display name must be less than 12 characters';
 					return;
 				}
-				document.body.removeChild(overlay);
-				resolve(displayName);
+
+				// Disable button during check
+				submitButton.disabled = true;
+				submitButton.textContent = 'Checking...';
+
+				try {
+					// Use the existing service method
+					const availabilityResult = await UserService.checkDisplayNameAvailability(displayName);
+
+					console.log('🔍 Display name availability result:', availabilityResult);
+
+					if (availabilityResult.available) {
+						// Display name is available, close modal
+						document.body.removeChild(overlay);
+						resolve(displayName);
+					} else {
+						// Display name is taken
+						errorMsg.textContent = availabilityResult.message || 'Display name is already taken';
+						submitButton.disabled = false;
+						submitButton.textContent = 'Continue';
+					}
+
+				} catch (error) {
+					console.error('Error checking display name:', error);
+					errorMsg.textContent = 'Failed to check availability. Please try again.';
+					submitButton.disabled = false;
+					submitButton.textContent = 'Continue';
+				}
 			});
-
-			// if (!isGoogleUser) {
-			// 	cancelButton.addEventListener('click', () => {
-			// 		document.body.removeChild(overlay);
-			// 		resolve(null);
-			// 	});
-			// }
-
-			input.focus();
 		});
 	}
-
 }

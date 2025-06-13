@@ -67,6 +67,7 @@ async function onSignupClick(): Promise<void> {
         return;
     }
 
+	// DEPRECATED FOR UX FLOW Better to ask once the account is created, need to check on all pages.
     // Show display name modal BEFORE creating user
     // const displayName = await AuthRender.showDisplayNameModal(false);
 
