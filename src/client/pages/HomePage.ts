@@ -1,5 +1,6 @@
 import '../styles.css';
 import { HomeRender } from '../renders/home.render';
+import { CommonComponent } from '../components/common.component';
 import { SidebarComponent } from "../components/sidebar.components";
 import { UserService } from '../services/user.service';
 const	language_obj = await UserService.GetLanguageFile();
@@ -14,6 +15,9 @@ export async function RenderHomePage(): Promise<void>{
 		showSettings: true,
         showBackHome: false
     });
+
+	const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+	document.body.appendChild(LanguageMenu);
 
     const main = document.createElement("div");
     main.className = "min-h-screen min-w-screen flex items-start justify-center";

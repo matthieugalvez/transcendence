@@ -2,7 +2,6 @@ import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
 
 export class AuthComponent {
 
@@ -92,6 +91,19 @@ export class AuthComponent {
 			return false;
 		}
 		return true;
+	}
+
+	static async	SetLanguageUser(language: string): Promise<boolean> {
+		const	apiResponseData = await AuthService.SetLanguageUser(language);
+
+		if (apiResponseData.success) {
+			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			return true;
+		}
+		else {
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'language change failed'}`, 'error');
+			return false;
+		}
 	}
 
 	// 2FA Setup Handler (modal pour User settings)

@@ -39,4 +39,11 @@ export class UserService {
       data: { refreshToken }
     })
   }
+
+	static async	setUserLanguage(userId: number, new_language: string) {
+		return await prisma.user.update({
+			where: { id: userId },
+			data: { language: new_language }
+		})
+	}
 }
