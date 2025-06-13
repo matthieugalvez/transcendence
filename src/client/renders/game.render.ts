@@ -22,19 +22,19 @@ export class GameRender {
     document.body.appendChild(container);
 
     // Title
-    const title = CommonComponent.createHeading('Pong Game', 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
+    const title = CommonComponent.createHeading(`${language_obj['Gamepage_game_heading']}`, 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
     container.appendChild(title);
 
     // Player input form
     const formContainer = CommonComponent.createContainer('bg-white rounded-lg shadow-lg p-6 mb-6');
 
-    const player1Label = CommonComponent.createLabel('Player 1 Name:');
-    const player1Input = CommonComponent.createInput('text', 'Enter Player 1 name');
+    const player1Label = CommonComponent.createLabel(`${language_obj['Gamepage_P1name_label']}`);
+    const player1Input = CommonComponent.createInput('text', `${language_obj['Gamepage_P1name_input']}`);
 
-    const player2Label = CommonComponent.createLabel('Player 2 Name:');
-    const player2Input = CommonComponent.createInput('text', 'Enter Player 2 name');
+    const player2Label = CommonComponent.createLabel(`${language_obj['Gamepage_P2name_label']}`);
+    const player2Input = CommonComponent.createInput('text', `${language_obj['Gamepage_P2name_input']}`);
 
-    const startButton = CommonComponent.createButton('Start Game');
+    const startButton = CommonComponent.createButton(`${language_obj['Gamepage_start_button']}`);
     startButton.disabled = true;
     startButton.className += ' disabled:opacity-50 disabled:cursor-not-allowed';
 

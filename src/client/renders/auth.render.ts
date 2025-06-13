@@ -168,7 +168,7 @@ export class AuthRender {
     `;
 
 		const buttonText = document.createElement('span');
-		buttonText.textContent = 'Sign in with Google';
+		buttonText.textContent = `${language_obj['Authpage_Google_signin']}`;
 
 		googleButton.appendChild(googleIcon);
 		googleButton.appendChild(buttonText);
@@ -262,7 +262,6 @@ export class AuthRender {
 				}
 			});
 
-
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
@@ -282,7 +281,6 @@ export class AuthRender {
 				document.body.removeChild(overlay);
 				resolve();
 			});
-
 
 			// overlay.addEventListener('click', (e) => {
 			// 	if (e.target === overlay) {

@@ -34,6 +34,7 @@ clean-build:
 	-rm -rf dist/
 	-rm -rf dist-back/
 	-rm -rf .vite/
+	npm cache clean --force
 	@echo "✅ Build artifacts cleaned"
 
 clean: clean-containers clean-db clean-build

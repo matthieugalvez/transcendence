@@ -1,4 +1,6 @@
 import { CommonComponent } from '../components/common.component';
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export class TournamentRender {
   /**
@@ -9,7 +11,7 @@ export class TournamentRender {
     inputs: HTMLInputElement[];
     startButton: HTMLButtonElement;
   } {
-    document.title = 'Tournoi';
+    document.title = `${language_obj['Gamepage_tournament_button']}`;
     document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
     document.body.innerHTML = '';
 
@@ -19,7 +21,7 @@ export class TournamentRender {
     document.body.appendChild(container);
 
     // Title
-    const title = CommonComponent.createHeading('Enter name to begin tournament:', 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
+    const title = CommonComponent.createHeading(`${language_obj['Tournamentpage_name_prompt']}`, 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
     container.appendChild(title);
 
     // Player input form
@@ -28,15 +30,15 @@ export class TournamentRender {
     // Create 4 input fields for tournament players
     const inputs: HTMLInputElement[] = [];
     for (let i = 0; i < 4; i++) {
-      const label = CommonComponent.createLabel(`Player ${i + 1} Name:`);
-      const input = CommonComponent.createInput('text', `Enter Player ${i + 1} name`);
+      const label = CommonComponent.createLabel(`${language_obj['Gamepage_player']} ${i + 1} ${language_obj['Gamepage_name']}:`);
+      const input = CommonComponent.createInput('text', `${language_obj['Gamepage_name_input']} ${i + 1} ${language_obj['Gamepage_name']}`);
       inputs.push(input);
 
       formContainer.appendChild(label);
       formContainer.appendChild(input);
     }
 
-    const startButton = CommonComponent.createButton('Start Tournament');
+    const startButton = CommonComponent.createButton(`${language_obj['Tournamentpage_start']}`);
     startButton.disabled = true;
     startButton.className += ' disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -78,7 +80,7 @@ export class TournamentRender {
   static renderTournamentComplete(): void {
     document.body.innerHTML = '';
     const finalMsg = document.createElement('h2');
-    finalMsg.textContent = 'Tournoi terminé ! 🏆';
+    finalMsg.textContent = `${language_obj['Tournamentpage_finished']}`;
     finalMsg.className = 'text-3xl font-bold text-center mt-8';
     document.body.appendChild(finalMsg);
   }

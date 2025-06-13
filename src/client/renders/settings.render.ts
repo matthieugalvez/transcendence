@@ -4,12 +4,14 @@ import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
 import { SidebarComponent } from "../components/sidebar.components";
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 
 export class SettingsRender {
 
 	static async render(): Promise<void> {
-		document.title = 'Transcendence - Home';
+		document.title = `${language_obj['Onboardingpage_title']}`;
 		document.body.innerHTML = '';
 	const user = await UserService.getCurrentUser();
 		SidebarComponent.render({
@@ -56,7 +58,7 @@ export class SettingsRender {
     `.replace(/\s+/g, ' ').trim();
 
 		const loadingText = document.createElement('p');
-		loadingText.textContent = 'Loading...';
+		loadingText.textContent = `${language_obj['Onboardingpage_loading']}`;
 		loadingText.className = `
       font-['Orbitron'] text-center text-gray-600
       text-lg font-medium
@@ -83,7 +85,7 @@ export class SettingsRender {
 
 		// Welcome title with user's name
 		const pageTitle = document.createElement('h1');
-		pageTitle.textContent = `Welcome ${userName}!`;
+		pageTitle.textContent = `${language_obj['Onboardingpage_welcome']} ${userName}!`;
 		pageTitle.className = `
       font-['Canada-big'] uppercase font-bold
       text-4xl text-center mb-2
@@ -95,7 +97,7 @@ export class SettingsRender {
 
 		// Subtitle
 		const subtitle = document.createElement('p');
-		subtitle.textContent = 'Choose your game mode';
+		subtitle.textContent = `${language_obj['Onboardingpage_box_subtitle']}`;
 		subtitle.className = `
       font-['Orbitron'] text-center text-gray-600
       text-sm font-medium mb-8
@@ -125,7 +127,7 @@ export class SettingsRender {
 		// });
 
 		// Logout button
-		const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
+		const logoutButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_logout_button']}`, 'red');
 		logoutButton.addEventListener('click', async () => {
 			const success = await AuthComponent.logoutUser();
 			if (success) {
@@ -137,12 +139,12 @@ export class SettingsRender {
 		});
 
 		// 2FA Settings buttons.
-		const Enable2FAButton = CommonComponent.createStylizedButton('Enable2FA', 'blue');
+		const Enable2FAButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_enable2FA']}`, 'blue');
 		Enable2FAButton.addEventListener('click', async () => {
 			await AuthComponent.handle2FASetup();
 		});
 
-		const Disable2FA = CommonComponent.createStylizedButton('Disable 2FA', 'red');
+		const Disable2FA = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_disable2FA']}`, 'red');
 		Disable2FA.addEventListener('click', async () => {
 			await AuthComponent.disable2FA();
 		});
@@ -180,7 +182,7 @@ export class SettingsRender {
     `.replace(/\s+/g, ' ').trim();
 
 		const errorText = document.createElement('p');
-		errorText.textContent = 'Authentication required';
+		errorText.textContent = `${language_obj['Onboardingpage_error_authrequired']}`;
 		errorText.className = 'text-red-600 font-semibold mb-4';
 
 		const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
