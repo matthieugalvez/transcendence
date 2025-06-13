@@ -68,7 +68,7 @@ export async function renderTournamentPage() {
   if (canvas) canvas.classList.add('blur-xs');
 
   // création du titre
-  appendTournamentTitle(overlay, 'Enter name to begin tournament:');
+  appendTournamentTitle(overlay, `${language_obj['Tournamentpage_name_prompt']}`);
 
   // création des 4 inputs pour les alias
   const inputs = createAliasInputs(overlay, 4);
@@ -149,9 +149,9 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         `;
         const winnerMsg = document.createElement('h2');
         if (i === matchups.length - 1)
-          winnerMsg.textContent = "Tournament finished! 🏆";
+          winnerMsg.textContent = `${language_obj['Tournamentpage_finished']}`;
         else
-          winnerMsg.textContent = `${winnerAlias} won this match!`;
+          winnerMsg.textContent = `${winnerAlias} ${language_obj['Tournamentpage_matchend']}`;
         winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
         transition.appendChild(winnerMsg);
 
@@ -159,13 +159,13 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         let nextMatchMsg = '';
         if (i < matchups.length - 1) {
           // Si on va vers la finale
-          const [nextLeft, nextRight] = 
+          const [nextLeft, nextRight] =
             i + 1 === 2
               ? [winners[0], winners[1]]
               : matchups[i + 1];
-          nextMatchMsg = `Next Match : ${nextLeft} VS ${nextRight}`;
+          nextMatchMsg = `${language_obj['Tournamentpage_nextmatch']} : ${nextLeft} VS ${nextRight}`;
         } else {
-          nextMatchMsg = `${winnerAlias} won!`;
+          nextMatchMsg = `${winnerAlias} ${language_obj['Ingamepage_winner']}`;
         }
         const nextMsg = document.createElement('p');
         nextMsg.textContent = nextMatchMsg;
@@ -175,7 +175,7 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         transition.appendChild(nextMsg);
         // si dernier match bouton replay
         if (i === matchups.length - 1) {
-          const replayBtn = CommonComponent.createStylizedButton('Replay', 'blue');
+          const replayBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_replay_button']}`, 'blue');
           replayBtn.classList.add('mt-4');
           replayBtn.onclick = () => renderTournamentPage();
           transition.appendChild(replayBtn);
@@ -184,7 +184,7 @@ async function launchTournament(inputs: HTMLInputElement[], wrapper: HTMLElement
         gameContainer.appendChild(transition);
         const canvas = gameContainer.querySelector('canvas');
         if (canvas) canvas.classList.add('blur-xs');
-        
+ 
         setTimeout(() => {
           if (canvas) canvas.classList.remove('blur-xs');
           // winners.push(winnerAlias);

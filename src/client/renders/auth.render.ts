@@ -231,7 +231,7 @@ export class AuthRender {
 			modal.appendChild(title);
 
 			// Input
-			const input = CommonComponent.createInput('text', 'Enter your 2FA code');
+			const input = CommonComponent.createInput('text', `${language_obj['Auth2FApage_askcode']}`);
 			input.id = 'twofa-code-input';
 			input.style.marginTop = '1rem';
 			modal.appendChild(input);
@@ -247,8 +247,8 @@ export class AuthRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-			const submitButton = CommonComponent.createStylizedButton('Submit', 'blue');
-			const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+			const submitButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_submit_button']}`, 'blue');
+			const cancelButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_cancel_button']}`, 'gray');
 			buttonContainer.appendChild(submitButton);
 			buttonContainer.appendChild(cancelButton);
 			modal.appendChild(buttonContainer);
@@ -266,7 +266,7 @@ export class AuthRender {
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
-					msg.textContent = 'Please enter your 2FA code.';
+					msg.textContent = `${language_obj['Auth2FApage_askcode']}`;
 					return;
 				}
 				const shouldClose = await onVerify(code, (err) => { msg.textContent = `❌ ${err}`; });
@@ -318,7 +318,7 @@ export class AuthRender {
       max-w-md w-full mx-1 text-center
     `);
 
-			const title = CommonComponent.createHeading('Enable Two-Factor Authentication', 2, `
+			const title = CommonComponent.createHeading(`${language_obj['Auth2FApage_Header']}`, 2, `
       font-['Canada-big'] uppercase font-bold
       text-xl text-center mb-2
       bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
@@ -338,7 +338,7 @@ export class AuthRender {
 			modal.appendChild(qrImg);
 
 			// Input
-			const input = CommonComponent.createInput('text', 'Enter your 2FA Code');
+			const input = CommonComponent.createInput('text', `${language_obj['Auth2FApage_askcode']}`);
 			input.id = 'twofa-setup-code-input';
 			input.style.marginTop = '1rem';
 			modal.appendChild(input);
@@ -354,8 +354,8 @@ export class AuthRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-			const submitButton = CommonComponent.createStylizedButton('Verify', 'blue');
-			const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+			const submitButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_verify_button']}`, 'blue');
+			const cancelButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_cancel_button']}`, 'gray');
 			buttonContainer.appendChild(submitButton);
 			buttonContainer.appendChild(cancelButton);
 			modal.appendChild(buttonContainer);
@@ -372,7 +372,7 @@ export class AuthRender {
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
-					msg.textContent = '❌ You must enter a code to enable 2FA.';
+					msg.textContent = `${language_obj['Auth2FApage_error_empty_field']}`;
 					return;
 				}
 				// Call backend to verify code
@@ -381,7 +381,7 @@ export class AuthRender {
 					document.body.removeChild(overlay);
 					resolve(code);
 				} else {
-					msg.textContent = `❌ ${verifyData.error}` || '❌ Invalid code. Try again.';
+					msg.textContent = `❌ ${verifyData.error}` || `${language_obj['Auth2FApage_error_invalid_code']}`;
 					input.value = '';
 				}
 			});

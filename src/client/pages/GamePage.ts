@@ -15,8 +15,8 @@ export async function renderGamePage() {
   document.title = 'Pong';
   // get user name
   const user = await UserService.getCurrentUser();
-  const leftPlayer = user?.name || "Player 1";
-  const rightPlayer = "Player 2";
+  const leftPlayer = user?.name || `${language_obj['Gamepage_player']} 1`;
+  const rightPlayer = `${language_obj['Gamepage_player']} 2`;
   const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
   // sidebar + gradiant bg
@@ -55,7 +55,7 @@ export async function renderGamePage() {
   const canvas = gameContainer.querySelector('canvas');
   if (canvas) canvas.classList.add('blur-xs');
 
-  const startBtn = CommonComponent.createStylizedButton('Start','blue');
+  const startBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_start_button']}`,'blue');
   startBtn.onclick = () => {
     if (canvas) canvas.classList.remove('blur-xs'); // remove blur
     controls.remove(); // cache les boutons
@@ -63,7 +63,7 @@ export async function renderGamePage() {
   };
   controls.appendChild(startBtn);
 
-  const tourBtn = CommonComponent.createStylizedButton('Tournament','purple');
+  const tourBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_tournament_button']}`,'purple');
   tourBtn.onclick = () => router.navigate('/tournament');
   controls.appendChild(tourBtn);
 }
