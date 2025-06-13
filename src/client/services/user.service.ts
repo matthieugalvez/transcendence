@@ -23,7 +23,7 @@ export class UserService {
 	/**
 	 * Get current authenticated user data
 	 */
-	static async getCurrentUser(): Promise<{ id: number; name: string; displayName: string; created_at: string; updated_at: string }> {
+	static async getCurrentUser(): Promise<{ id: number; email: string; displayName: string; created_at: string; updated_at: string }> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users/me');
 

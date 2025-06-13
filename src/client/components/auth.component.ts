@@ -7,13 +7,13 @@ import { UserService } from '../services/user.service';
 export class AuthComponent {
 
 	// Signup User main function
-	static async signupUser(name: string, password: string): Promise<boolean> {
-		if (!AuthService.validateInput(name, password)) {
+	static async signupUser(email: string, password: string): Promise<boolean> {
+		if (!AuthService.validateInput(email, password)) {
 			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
 			return false;
 		}
 
-		const apiResponseData = await AuthService.signupUser(name, password);
+		const apiResponseData = await AuthService.signupUser(email, password);
 
 		if (apiResponseData.success) {
 			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
@@ -25,8 +25,8 @@ export class AuthComponent {
 	}
 
 	// Login user main function
-	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
-		if (!AuthService.validateInput(name, password)) {
+	static async loginUser(email: string, password: string, twoFACode?: string): Promise<any> {
+		if (!AuthService.validateInput(email, password)) {
 			// Only show error message on main page if modal is not open
 			if (!document.getElementById('twofa-modal-msg')) {
 				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
@@ -34,7 +34,7 @@ export class AuthComponent {
 			return false;
 		}
 
-		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
+		const apiResponseData = await AuthService.loginUser(email, password, twoFACode);
 
 		if (apiResponseData.success) {
 			if (!document.getElementById('twofa-modal')) {
@@ -86,8 +86,8 @@ export class AuthComponent {
 	}
 
 	// Validate Input avec message d'erreur
-	static validateInput(name: string, password: string): boolean {
-		if (!AuthService.validateInput(name, password)) {
+	static validateInput(email: string, password: string): boolean {
+		if (!AuthService.validateInput(email, password)) {
 			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
 			return false;
 		}
@@ -131,8 +131,8 @@ export class AuthComponent {
 		}
 	}
 
-	static async signupUserWithDisplayName(name: string, password: string, displayName: string): Promise<boolean> {
-		if (!AuthService.validateInput(name, password)) {
+	static async signupUserWithDisplayName(email: string, password: string, displayName: string): Promise<boolean> {
+		if (!AuthService.validateInput(email, password)) {
 			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
 			return false;
 		}
@@ -144,7 +144,7 @@ export class AuthComponent {
 					'Content-Type': 'application/json',
 				},
 				credentials: 'include',
-				body: JSON.stringify({ name, password, displayName })
+				body: JSON.stringify({ email, password, displayName })
 			});
 
 			const data = await response.json();
@@ -171,7 +171,7 @@ export class AuthComponent {
 			// Check if display name is missing or same as username (Google users often get email as display name)
 			const needsDisplayName = !userData.displayName ||
 				userData.displayName.trim() === '' ||
-				userData.displayName === userData.name;
+				userData.displayName === userData.email;
 
 			if (!needsDisplayName) {
 				return { success: true, userData }; // Return current data if no update needed

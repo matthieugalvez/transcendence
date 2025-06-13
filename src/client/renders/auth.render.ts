@@ -11,7 +11,7 @@ export class AuthRender {
 	 * Render the complete signup/login page
 	 */
 	static renderSignupPage(): {
-		nameInput: HTMLInputElement;
+		emailInput: HTMLInputElement;
 		passwordInput: HTMLInputElement;
 		signupButton: HTMLButtonElement;
 		loginButton: HTMLButtonElement;
@@ -99,8 +99,8 @@ export class AuthRender {
 		inputContainer.className = 'text-center mb-6';
 
 		// Name input and label with gaming theme
-		const nameLabel = CommonComponent.createLabel('Username');
-		const nameInput = CommonComponent.createInput('text', 'Enter your username');
+		const emailLabel = CommonComponent.createLabel('Email');
+		const emailInput = CommonComponent.createInput('email', 'Enter your email');
 
 		// Password input and label with gaming theme
 		const passwordLabel = CommonComponent.createLabel('Password');
@@ -121,8 +121,8 @@ export class AuthRender {
 
 
 		// Append all elements to input container
-		inputContainer.appendChild(nameLabel);
-		inputContainer.appendChild(nameInput);
+		inputContainer.appendChild(emailLabel);
+		inputContainer.appendChild(emailInput);
 		inputContainer.appendChild(passwordLabel);
 		inputContainer.appendChild(passwordInput);
 		inputContainer.appendChild(buttonContainer);
@@ -136,7 +136,7 @@ export class AuthRender {
 		container.appendChild(inputContainer);
 
 		return {
-			nameInput,
+			emailInput,
 			passwordInput,
 			signupButton,
 			loginButton

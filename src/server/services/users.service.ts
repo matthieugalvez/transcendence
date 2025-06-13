@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt'
 import { User } from '@prisma/client'
 
 export class UserService {
-    static async getUserByName(name: string) {
+    static async getUserByEmail(email: string) {
         return await prisma.user.findUnique({
-            where: { name }
+            where: { email }
         })
     }
 
@@ -66,7 +66,7 @@ export class UserService {
         try {
             const existingUser = await prisma.user.findFirst({
                 where: {
-                    displayName: displayName.trim(),
+                    displayName: displayName.toLowerCase().trim(),
                     // Exclude current user if updating their own display name
                     ...(excludeUserId && { id: { not: excludeUserId } })
                 }

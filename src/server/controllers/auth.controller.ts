@@ -9,17 +9,17 @@ import OAuth2, { OAuthNamespace } from "@fastify/oauth2";
 export class AuthController {
 	static async signup(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const { name, password } = request.body as { name: string, password: string }
+			const { email, password } = request.body as { email: string, password: string }
 
 			// Check if user already exists
-			const existingUser = await UserService.getUserByName(name)
+			const existingUser = await UserService.getUserByEmail(email)
 			if (existingUser) {
-				return Send.conflict(reply, 'Username already exists')
+				return Send.conflict(reply, 'Account already exists')
 			}
 
 
 			// Create new user
-			const user = await AuthService.createUser(name, password)
+			const user = await AuthService.createUser(email, password)
 
 			// Create new user
 
@@ -64,11 +64,11 @@ export class AuthController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
+				email: user.email,
 				created_at: user.created_at
 			}
 
-			return Send.created(reply, userData, `Account created for: ${name}`)
+			return Send.created(reply, userData, `Account created for: ${email}`)
 
 		} catch (error) {
 			console.error('Signup error:', error)
@@ -78,12 +78,12 @@ export class AuthController {
 
 	static async login(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const { name, password, twoFACode } = request.body as { name: string, password: string, twoFACode: string }
+			const { email, password, twoFACode } = request.body as { email: string, password: string, twoFACode: string }
 
-			const user = await AuthService.verifyUser(name, password)
+			const user = await AuthService.verifyUser(email, password)
 
 			if (!user) {
-				return Send.unauthorized(reply, 'Invalid username or password')
+				return Send.unauthorized(reply, 'Invalid email or password')
 			}
 
 			if (user.twoFAEnabled) {
@@ -139,11 +139,11 @@ export class AuthController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
+				email: user.email,
 				created_at: user.created_at
 			}
 
-			return Send.success(reply, userData, `Successful login for: ${name}`)
+			return Send.success(reply, userData, `Successful login for: ${email}`)
 
 		} catch (error) {
 			console.error('Login error:', error)
@@ -375,14 +375,14 @@ export class AuthController {
 			}
 
 			const googleUser = await response.json();
-			console.log('✅ Google user data received:', { email: googleUser.email, name: googleUser.name });
+			console.log('✅ Google user data received:', { email: googleUser.email});
 
 			// Check if user exists or create new one
-			let user = await UserService.getUserByName(googleUser.email);
+			let user = await UserService.getUserByEmail(googleUser.email);
 
 			if (!user) {
 				console.log('🔍 Creating new user for:', googleUser.email);
-				user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
+				user = await AuthService.createGoogleUser(googleUser.email, googleUser.email);
 				// MODAL POUR NAME SELECTION
 				console.log('✅ Created new user:', user.id);
 			} else {
@@ -586,7 +586,7 @@ export class AuthController {
 			// Clear temporary auth cookie
 			reply.setCookie('tempOAuthAuth', '', { maxAge: 0 });
 
-			return Send.success(reply, { id: user.id, name: user.name }, 'OAuth 2FA verification successful');
+			return Send.success(reply, { id: user.id, email: user.email }, 'OAuth 2FA verification successful');
 
 		} catch (error) {
 			console.error('OAuth 2FA verify error:', error);
@@ -598,14 +598,14 @@ export class AuthController {
 
 static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply) {
     try {
-        const { name, password, displayName } = request.body as {
-            name: string;
+        const { email, password, displayName } = request.body as {
+            email: string;
             password: string;
             displayName: string;
         };
 
         // Check if user already exists
-        const existingUser = await UserService.getUserByName(name);
+        const existingUser = await UserService.getUserByEmail(email);
         if (existingUser) {
             return Send.conflict(reply, 'Username already exists');
         }
@@ -618,7 +618,7 @@ static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply)
 
 
         // Create user with display name - use the same pattern as regular signup
-        const user = await AuthService.createUser(name, password, displayName)
+        const user = await AuthService.createUser(email, password)
 
         // Generate JWT tokens - use same pattern as regular signup
 
@@ -655,12 +655,12 @@ static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply)
 
         const userData = {
             id: user.id,
-            name: user.name,
+            email: user.email,
             displayName: user.displayName,
             created_at: user.created_at
         };
 
-        return Send.created(reply, userData, `Account created for: ${name}`);
+        return Send.created(reply, userData, `Account created for: ${email}`);
 
     } catch (error) {
         console.error('Signup with display name error:', error);
