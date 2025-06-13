@@ -41,8 +41,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	// ...existing routes...
 
 	fastify.post('/signup', {
-		preHandler: ValidationMiddleware.validateBody(authSchema.signupWithDisplayName),
-	}, AuthController.signupWithDisplayName)
+		preHandler: ValidationMiddleware.validateBody(authSchema.signup),
+	}, AuthController.signup)
 
 	// PROTECTED ROUTES
 	fastify.post('/logout', {

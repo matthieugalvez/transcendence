@@ -68,16 +68,17 @@ async function onSignupClick(): Promise<void> {
     }
 
     // Show display name modal BEFORE creating user
-    const displayName = await AuthRender.showDisplayNameModal(false);
+    // const displayName = await AuthRender.showDisplayNameModal(false);
 
-    if (!displayName) {
-        // User cancelled, no account is created
-        CommonComponent.showMessage('⚠️ Account creation cancelled', 'warning');
-        return;
-    }
+    // if (!displayName) {
+    //     // User cancelled, no account is created
+    //     CommonComponent.showMessage('⚠️ Account creation cancelled', 'warning');
+    //     return;
+    // }
 
     // Now create user with display name in one step
-    const success = await AuthComponent.signupUserWithDisplayName(name, password, displayName);
+	const success = await AuthComponent.signupUser(name, password);
+    //const success = await AuthComponent.signupUserWithDisplayName(name, password, displayName);
 
     if (success) {
         // Navigate to home after successful signup

@@ -5,13 +5,13 @@ import qrcode from 'qrcode'
 
 
 export class AuthService {
-	static async createUser(name: string, password: string, displayName: string) {
+	static async createUser(name: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
 
 		return await prisma.user.create({
 			data: {
 				name: name.trim(),
-				displayName: displayName.trim(),
+				displayName: '',
 				password_hash
 			}
 		})
