@@ -2,6 +2,8 @@ import { router } from "../configs/simplerouter";
 import { CommonComponent } from '../components/common.component';
 import { AuthComponent } from '../components/auth.component';
 import defaultAvatar from "../assets/profilpic/profilpic1.png";
+import { UserService } from '../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 export interface SidebarOptions {
   userName: string;
@@ -50,7 +52,7 @@ export class SidebarComponent {
 
     // Welcome title with user's name
     const pageTitle = document.createElement('h1');
-    pageTitle.textContent = `Welcome ${userName}`;
+    pageTitle.textContent = `${language_obj['Onboardingpage_welcome']} ${userName}`;
     pageTitle.className = `
       font-['Canada-big'] uppercase font-bold
       text-4xl text-center mb-2
@@ -64,7 +66,7 @@ export class SidebarComponent {
 
     // Stat button
     if (showStats) {
-        const statButton = CommonComponent.createStylizedButton('Your statistics', 'blue');
+        const statButton = CommonComponent.createStylizedButton(`${language_obj['Sidebar_stats']}`, 'blue');
         statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
         statButton.addEventListener('click', () => {
             router.navigate('/UserStat');
@@ -96,15 +98,15 @@ export class SidebarComponent {
 
     // Back to home button
     if (showBackHome) {
-        const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
-        backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
+        const backButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_backhome_button']}`, 'gray');
+        backButton.classList.add("w-full", "text-center", "cursor-pointer");
         backButton.addEventListener('click', () => {
         router.navigate('/home');
         });
         bottomContainer.appendChild(backButton);
     }
 	if (showSettings) {
-			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+			const settingBtn = CommonComponent.createStylizedButton(`${language_obj['Sidebar_settings']}`, "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
 			settingBtn.addEventListener("click", async () => {
 			setTimeout(() => router.navigate("/settings"), 300);
@@ -114,7 +116,7 @@ export class SidebarComponent {
 	}
 
     // Logout button
-    const logoutBtn = CommonComponent.createStylizedButton("Logout", "red");
+    const logoutBtn = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_logout_button']}`, "red");
     logoutBtn.classList.add("w-full", "text-center", "cursor-pointer");
     logoutBtn.addEventListener("click", async () => {
         const success = await AuthComponent.logoutUser();

@@ -149,6 +149,9 @@ export class SettingsRender {
 			await AuthComponent.disable2FA();
 		});
 
+		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+		document.body.appendChild(LanguageMenu);
+
 		// Add emoji decorations
 		const gameEmoji = document.createElement('div');
 		gameEmoji.textContent = '🏓';

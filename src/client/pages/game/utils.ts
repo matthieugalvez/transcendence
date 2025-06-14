@@ -1,6 +1,8 @@
 import { GameState } from './types';
 import { renderGame } from './renderGame';
 import { CommonComponent } from '../../components/common.component';
+import { UserService } from '../../services/user.service';
+const	language_obj = await UserService.GetLanguageFile();
 
 type FinishCallback = (winnerAlias: string) => void;
 
@@ -174,14 +176,14 @@ export function showGameOverOverlay(
   ov.appendChild(panel);
 
   const msg = document.createElement('p');
-  msg.textContent = `${winner} won! 🎉`;
+  msg.textContent = `${winner} ${language_obj['Ingamepage_winner']} 🎉`;
   msg.className = `
     text-2xl text-white
     font-["Canada-big"] mb-4
   `;
   panel.appendChild(msg);
 
-  const replay = CommonComponent.createStylizedButton('Play Again','blue');
+  const replay = CommonComponent.createStylizedButton(`${language_obj['Ingamepage_replay_button']}`,'blue');
   replay.onclick = () => {
     if (canvas) canvas.classList.remove('blur-xs');
     ov.remove();

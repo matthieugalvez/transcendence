@@ -66,4 +66,7 @@ export async function renderGamePage() {
   const tourBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_tournament_button']}`,'purple');
   tourBtn.onclick = () => router.navigate('/tournament');
   controls.appendChild(tourBtn);
+
+	const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+	document.body.appendChild(LanguageMenu);
 }
