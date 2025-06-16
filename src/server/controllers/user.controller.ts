@@ -58,6 +58,7 @@ export class UserController {
 				id: user.id,
 				name: user.name,
 				displayName: user.displayName,
+				avatar: user.avatar,
 				created_at: user.created_at,
 				updated_at: user.updated_at // Fix: was update_at
 			};
@@ -157,4 +158,11 @@ export class UserController {
 		}
 	}
 
+	static async getAvatar(request: FastifyRequest, reply: FastifyReply) {
+		const userId = (request as any).userId;
+
+		const avatarLink = await UserService.getUserAvatar(userId);
+
+		return Send.success(reply, {}, 'Avatar link succes');
+	}
 }

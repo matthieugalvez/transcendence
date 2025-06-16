@@ -4,6 +4,8 @@ import { BackgroundComponent } from '../components/background.component';
 import { GameSettingsComponent } from '../components/game.component';
 import { UserService } from '../services/user.service';
 import { router } from "../configs/simplerouter";
+import { AuthComponent } from '../components/auth.component';
+import { CommonComponent } from '../components/common.component';
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -26,14 +28,25 @@ export async function renderJoinPage(params: { gameId: string }) {
   document.body.innerHTML = '';
   document.title = 'Pong - Online';
 
-  const user = await UserService.getCurrentUser();
-  SidebarComponent.render({ userName: user?.name || '', showStats: false, showBackHome: true });
-  BackgroundComponent.applyNormalGradientLayout();
-  if (!user) {
-    if (!localStorage.getItem('postAuthRedirect'))
-      localStorage.setItem('postAuthRedirect', window.location.pathname);
+  try {
+    const user = await UserService.getCurrentUser();
+  } catch (error) {
+    console.error('User not authenticated:', error);
+    // Set redirect before navigating to auth
+    if (!localStorage.getItem('postAuthRedirect')) {
+      localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
+    }
     router.navigate('/auth');
     return;
+  }
+
+  // Only render UI if user is authenticated
+  try {
+  AuthComponent.checkAndHandleDisplayName();
+  SidebarComponent.render({ userName: user?.name || '', showStats: false, showBackHome: true });
+  BackgroundComponent.applyNormalGradientLayout();
+  } catch(error) {
+	CommonComponent.handleAuthError();
   }
 
   // Wrapper principal
