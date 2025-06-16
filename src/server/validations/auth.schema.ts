@@ -37,6 +37,20 @@ const signup = z.object({
 	password: passwordSchema
 });
 
+const IMAGE_SCHEMA = z
+  .instanceof(File)
+  .refine(
+    (file) =>
+      [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/svg+xml",
+        "image/gif",
+      ].includes(file.type),
+    { message: "Invalid image file type" }
+  );
+
 
 
 const displayNameSchema = z.string()
@@ -50,6 +64,10 @@ const displayNameSchema = z.string()
 const updateDisplayName = z.object({
 	displayName: displayNameSchema
 });
+
+const updatePicture = z.object({
+	avatarShema: IMAGE_SCHEMA
+})
 
 const updatePassword = z.object({
 	password: z.string()
@@ -75,7 +93,8 @@ const authSchema = {
 
 const userSchema = {
 	updateDisplayName,
-	updatePassword
+	updatePassword,
+	updatePicture
 };
 
 export { userSchema };

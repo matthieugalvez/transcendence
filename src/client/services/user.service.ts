@@ -1,4 +1,8 @@
 import { ApiClient } from '../utils/apiclient.utils';
+import { CommonComponent} from '../components/common.component'
+
+
+
 
 export class UserService {
 
@@ -135,7 +139,7 @@ export class UserService {
 			const response = await ApiClient.authenticatedFetch('/api/me/password', {
 				method: 'PUT',
 				headers: {
-					'Content-Type': 'application/json',
+					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ password })
 			});
@@ -159,6 +163,105 @@ export class UserService {
 				success: false,
 				error: 'Failed to update password. Please try again.'
 			};
+		}
+	}
+
+
+		static async changeAvatar(password: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
+		try {
+			const response = await ApiClient.authenticatedFetch('/api/me/avatar', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ password })
+			});
+
+			const data = await response.json();
+
+			if (!data.success) {
+				return {
+					success: false,
+					error: data.error || 'Failed to update profile pic',
+					details: data.details || [] // Include validation details
+				};
+			}
+
+			return {
+				success: true
+			};
+		} catch (error) {
+			console.error('Error changing profile pic:', error);
+			return {
+				success: false,
+				error: 'Failed to update profile pic. Please try again.'
+			};
+		}
+	}
+
+		static async handleAvatarUpload(file: File, avatarImg: HTMLImageElement): Promise<void> {
+		try {
+			// Validate file size (max 5MB)
+			if (file.size > 5 * 1024 * 1024) {
+				CommonComponent.showMessage('❌ File size must be less than 5MB', 'error');
+				return;
+			}
+
+			// Validate file type
+			if (!file.type.startsWith('image/')) {
+				CommonComponent.showMessage('❌ Please select an image file', 'error');
+				return;
+			}
+
+			// Show loading state - use ID selector instead
+			const uploadButton = document.getElementById('avatar-upload-btn') as HTMLButtonElement;
+			if (uploadButton) {
+				uploadButton.disabled = true;
+				uploadButton.textContent = 'Uploading...';
+			}
+
+			// Create FormData for upload
+			const formData = new FormData();
+			formData.append('avatar', file);
+
+			// Upload to server
+			const response = await fetch('/api/me/avatar', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				throw new Error('Upload failed');
+			}
+
+			const result = await response.json();
+
+			if (result.success) {
+				// Update avatar preview
+				avatarImg.src = result.data.avatarUrl;
+
+				// Show success message
+				CommonComponent.showMessage('✅ Avatar updated successfully', 'success');
+
+				// Update sidebar avatar
+				const sidebarAvatar = document.querySelector('nav img') as HTMLImageElement;
+				if (sidebarAvatar) {
+					sidebarAvatar.src = result.data.avatarUrl;
+				}
+			} else {
+				throw new Error(result.message || 'Upload failed');
+			}
+
+		} catch (error) {
+			console.error('Avatar upload error:', error);
+			CommonComponent.showMessage('❌ Failed to upload avatar', 'error');
+		} finally {
+			// Reset upload button
+			const uploadButton = document.getElementById('avatar-upload-btn') as HTMLButtonElement;
+			if (uploadButton) {
+				uploadButton.disabled = false;
+				uploadButton.textContent = 'Change Avatar';
+			}
 		}
 	}
 }

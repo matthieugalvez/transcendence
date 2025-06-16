@@ -96,13 +96,25 @@ export class UserService {
 	}
 
 	static async getUserAvatar(userId: number): Promise<string | null> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            avatar: true
-        }
-    });
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				avatar: true
+			}
+		});
 
-    return user?.avatar || null;
+		return user?.avatar || null;
+	}
+
+	static async updateUserAvatar(userId: number, avatarPath: string): Promise<void> {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { avatar: avatarPath }
+        });
+    } catch (error) {
+        console.error('Error updating user avatar:', error);
+        throw error;
+    }
 }
 }
