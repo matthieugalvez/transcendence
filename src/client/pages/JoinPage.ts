@@ -67,7 +67,7 @@ export async function renderJoinPage(params: { gameId: string }) {
   let hostUsername = '';
   let guestUsername = '';
 
-  let playerId: number | 'spectator' | null = null;
+  let playerId: string | 'spectator' | null = null;
   if (playerId === 1) hostUsername = user?.name;
   if (playerId === 2) guestUsername = user?.name;
 

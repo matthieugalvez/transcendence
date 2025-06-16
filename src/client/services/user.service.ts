@@ -7,7 +7,7 @@ import { CommonComponent} from '../components/common.component'
 export class UserService {
 
 
-	static async getAllUsers(): Promise<Array<{ id: number; name: string; created_at: string; update_at: string }>> {
+	static async getAllUsers(): Promise<Array<{ id: string; name: string; created_at: string; update_at: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users');
 
@@ -27,7 +27,7 @@ export class UserService {
 	/**
 	 * Get current authenticated user data
 	 */
-	static async getCurrentUser(): Promise<{ id: number; name: string; avatar: string; displayName: string; created_at: string; updated_at: string }> {
+	static async getCurrentUser(): Promise<{ id: string; name: string; avatar: string; displayName: string; created_at: string; updated_at: string }> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users/me');
 

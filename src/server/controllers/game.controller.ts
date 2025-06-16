@@ -15,7 +15,7 @@ export class GameController {
 
 	static async startGame(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const { player1Id, player2Id } = request.body as { player1Id: number, player2Id: number }
+			const { player1Id, player2Id } = request.body as { player1Id: string, player2Id: string }
 			const gameData = await GameService.startGame(player1Id, player2Id)
 			return Send.created(reply, gameData, 'Game started successfully')
 		} catch (error) {
