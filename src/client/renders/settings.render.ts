@@ -131,6 +131,7 @@ export class SettingsRender {
         buttonContainer.appendChild(Disable2FA);
         buttonContainer.appendChild(logoutButton);
 
+		console.log(`Avatar URL: ${avatarUrl}`);
 		const avatarSection = this.createAvatarSection(avatarUrl);
 
         mainContainer.appendChild(gameEmoji);
@@ -170,6 +171,9 @@ export class SettingsRender {
     }
 
 	private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
+
+		    console.log('🔍 Avatar URL received:', currentAvatarUrl);
+    console.log('🔍 Avatar URL type:', typeof currentAvatarUrl);
     const avatarContainer = document.createElement('div');
     avatarContainer.className = `
         bg-gray-50/80 backdrop-blur-sm

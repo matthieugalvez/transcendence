@@ -36,7 +36,7 @@ export async function SettingsPage(): Promise<void> {
 		});
 
 		// Render the main content with user data
-		await SettingsRender.renderMainContent(user.displayName || user.name);
+		await SettingsRender.renderMainContent(user.displayName || user.name, user.avatar);
 
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);
