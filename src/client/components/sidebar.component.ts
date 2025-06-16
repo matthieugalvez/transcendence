@@ -24,7 +24,7 @@ export class SidebarComponent {
         disabled:opacity-50 disabled:cursor-not-allowed
         border-2 border-black
         flex flex-col items-start p-6
-        space-y-4
+        space-y-4 z-11
     `.trim();
 
     // Profil picture of user (with default one if none)
@@ -64,7 +64,7 @@ export class SidebarComponent {
 
     // Stat button
     if (showStats) {
-        const statButton = CommonComponent.createStylizedButton('Your statistics', 'blue');
+        const statButton = CommonComponent.createStylizedButton('Your profile', 'blue');
         statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
         statButton.addEventListener('click', () => {
             router.navigate('/UserStat');
@@ -86,17 +86,9 @@ export class SidebarComponent {
     const bottomContainer = document.createElement('div');
     bottomContainer.className = 'mt-auto w-full space-y-2';
 
-    // tournament
-    // const tournamentButton = CommonComponent.createStylizedButton('Tournament - provisoire', 'gray');
-    // tournamentButton.classList.add("w-full", "text-center", "cursor-pointer");
-    // tournamentButton.addEventListener('click', () => {
-    //     router.navigate('/tournament');
-    // });
-    // bottomContainer.appendChild(tournamentButton);
-
     // Back to home button
     if (showBackHome) {
-        const backButton = CommonComponent.createStylizedButton('Back to Home', 'gray');
+        const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
         backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
         backButton.addEventListener('click', () => {
         router.navigate('/home');

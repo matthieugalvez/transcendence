@@ -84,7 +84,14 @@ async function onSignupClick(): Promise<void> {
 	if (success) {
 		// Navigate to home after successful signup
 		setTimeout(() => {
-			router.navigate('/home');
+			const redirect = localStorage.getItem('postAuthRedirect');
+			if (redirect) { // rediriger vers url en store pour duo online ou tournoi online
+				localStorage.removeItem('postAuthRedirect');
+				router.navigate(redirect);
+			} else {
+				router.navigate('/home');
+			}
+			// router.navigate('/home');
 		}, 500);
 	}
 }
@@ -128,4 +135,10 @@ async function onLoginClick(): Promise<void> {
 	}
 }
 
-
+// const redirect = localStorage.getItem('postAuthRedirect');
+// 					if (redirect) {
+// 						localStorage.removeItem('postAuthRedirect');
+// 						router.navigate(redirect);
+// 					} else {
+// 						router.navigate('/home');
+// 					}
