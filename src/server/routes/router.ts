@@ -29,7 +29,7 @@ export async function registerRoutes(app: FastifyInstance) {
                 return reply.sendFile(filename, path.join(process.cwd(), 'src/server/db/users'));
             } else {
                 // Return default avatar if file doesn't exist
-                return reply.sendFile('default.png', path.join(process.cwd(), 'src/server/db/users'));
+                return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
             }
         } catch (error) {
             return reply.code(404).send({ error: 'Avatar not found' });

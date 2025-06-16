@@ -198,7 +198,7 @@ export class SettingsRender {
 
     // Handle avatar load error
     currentAvatar.onerror = () => {
-        currentAvatar.src = '/avatars/default.png';
+        currentAvatar.src = '/avatars/default.svg';
     };
 
     // Hidden file input
