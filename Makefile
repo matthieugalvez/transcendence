@@ -38,6 +38,7 @@ clean-build:
 
 clean: clean-containers clean-db clean-build
 	@echo "🧹 Full cleanup completed"
+	npm cache clean --force
 
 clean-docker: clean
 	@echo "🐳 Cleaning Docker resources..."
@@ -73,7 +74,6 @@ db-studio:
 
 # Development helpers
 restart: clean build-dev
-	npm cache clean --force
 
 # Show what will be cleaned (dry run)
 clean-preview:

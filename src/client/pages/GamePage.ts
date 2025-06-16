@@ -101,7 +101,6 @@ export async function GamePageCheck() {
       const main = document.createElement("div");
       main.className = "min-h-screen min-w-screen flex items-start justify-center";
       document.body.appendChild(main);
-      await renderPongGamePage;
   
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -112,7 +111,7 @@ export async function GamePageCheck() {
   }
 
 export async function renderPongGamePage() {
-  GamePageCheck();
+  await GamePageCheck();
   // clean page
   document.body.innerHTML = '';
   document.title = 'Pong';
