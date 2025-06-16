@@ -28,8 +28,9 @@ export async function renderJoinPage(params: { gameId: string }) {
   document.body.innerHTML = '';
   document.title = 'Pong - Online';
 
+  let user;
   try {
-    const user = await UserService.getCurrentUser();
+    user = await UserService.getCurrentUser();
   } catch (error) {
     console.error('User not authenticated:', error);
     // Set redirect before navigating to auth
@@ -43,7 +44,7 @@ export async function renderJoinPage(params: { gameId: string }) {
   // Only render UI if user is authenticated
   try {
   AuthComponent.checkAndHandleDisplayName();
-  SidebarComponent.render({ userName: user?.name || '', showStats: false, showBackHome: true });
+  SidebarComponent.render({ userName: user?.displayName || '', showStats: false, showBackHome: true });
   BackgroundComponent.applyNormalGradientLayout();
   } catch(error) {
 	CommonComponent.handleAuthError();
