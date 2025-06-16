@@ -16,7 +16,7 @@ model User {
   refreshToken  String?
   twoFAEnabled  Boolean  @default(false)
   twoFASecret   String?
-  avatar		String?	@default("./db/users/default")
+  avatar		String	@default("./db/users/default")
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 

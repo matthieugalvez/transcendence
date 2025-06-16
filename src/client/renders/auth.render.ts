@@ -479,7 +479,6 @@ export class AuthRender {
 			input.addEventListener('keypress', (e) => {
 				if (e.key === 'Enter') {
 					submitButton.click();
-					location.reload();
 				}
 			});
 

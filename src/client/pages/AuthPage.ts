@@ -127,9 +127,13 @@ async function onLoginClick(): Promise<void> {
 		}, initialError);
 	} else if (loginResponse && loginResponse.success) {
 		CommonComponent.showMessage('✅ ' + (loginResponse.message || 'Login successful'), 'success');
-		setTimeout(() => {
+		const redirect = localStorage.getItem('postAuthRedirect');
+		if (redirect) {
+			localStorage.removeItem('postAuthRedirect');
+			router.navigate(redirect);
+		} else {
 			router.navigate('/home');
-		}, 500);
+		}
 	} else if (loginResponse && loginResponse.error) {
 		CommonComponent.showMessage(`❌ ${loginResponse.error}`, 'error');
 	}

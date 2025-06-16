@@ -74,11 +74,11 @@ export async function GamePageCheck() {
     document.title = "Home";
     document.body.innerHTML = "";
     BackgroundComponent.applyAnimatedGradient();
-  
+
     try {
       // Fetch user data first - if this fails, we handle it in catch block
       let user = await UserService.getCurrentUser();
-  
+
       if (!user.displayName || user.displayName == '') {
         const result = await AuthComponent.checkAndHandleDisplayName();
         if (result.success && result.userData) {
@@ -89,7 +89,7 @@ export async function GamePageCheck() {
           return;
         }
       }
-  
+
       // Only render sidebar and main content if authentication succeeds
       SidebarComponent.render({
         userName: user.displayName,
@@ -97,22 +97,22 @@ export async function GamePageCheck() {
         showSettings: true,
         showBackHome: false
       });
-  
+
       const main = document.createElement("div");
       main.className = "min-h-screen min-w-screen flex items-start justify-center";
       document.body.appendChild(main);
-      await renderPongGamePage;
-  
+     //await renderPongGamePage;
+
     } catch (error) {
       console.error('Failed to fetch user data:', error);
-  
+
       // Show error and redirect to auth - same as SettingsRender
       CommonComponent.handleAuthError();
     }
   }
 
 export async function renderPongGamePage() {
-  GamePageCheck();
+  await GamePageCheck();
   // clean page
   document.body.innerHTML = '';
   document.title = 'Pong';
@@ -193,7 +193,7 @@ export async function renderPongGamePage() {
           // --- LOCAL ---
           if (mode === 'duo-local') {
             if (previewImg.parentNode) previewImg.remove();
-            const res = await fetch('/api/game/start', { 
+            const res = await fetch('/api/game/start', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
@@ -206,7 +206,7 @@ export async function renderPongGamePage() {
             );
             pongHandle?.start();
             GameSettingsComponent.render('solo-start', {
-              onPauseGame: () => { 
+              onPauseGame: () => {
                 pauseState.value = !pauseState.value;
                 const socket = pongHandle?.socket;
                 if (socket && socket.readyState === socket.OPEN) {
