@@ -53,12 +53,19 @@ export class UserController {
 			if (!user) {
 				return Send.notFound(reply, 'User not found');
 			}
+			// AVATAR
+			let avatarUrl = user.avatar;
+			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+				// Extract filename from path
+				const filename = avatarUrl.replace('./db/users/', '');
+				avatarUrl = `/avatars/${filename}`;
+			}
 
 			const userData = {
 				id: user.id,
 				name: user.name,
 				displayName: user.displayName,
-				avatar: user.avatar,
+				avatar: avatarUrl,
 				created_at: user.created_at,
 				updated_at: user.updated_at // Fix: was update_at
 			};

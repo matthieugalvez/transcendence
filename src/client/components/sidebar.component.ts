@@ -1,11 +1,10 @@
 import { router } from "../configs/simplerouter";
 import { CommonComponent } from './common.component';
 import { AuthComponent } from './auth.component';
-import defaultAvatar from "../assets/profilpic/profilpic1.png";
 
 export interface SidebarOptions {
   userName: string;
-  avatarUrl?: string;
+  avatarUrl: string;
   showStats?: boolean;
   showSettings?: boolean;
   showBackHome?: boolean;
@@ -28,8 +27,9 @@ export class SidebarComponent {
     `.trim();
 
     // Profil picture of user (with default one if none)
+	console.log(`Avatar URL: ${avatarUrl}`);
     const profilPic = document.createElement('img');
-    profilPic.src = avatarUrl ?? defaultAvatar;
+    profilPic.src = avatarUrl;
     profilPic.alt = `${userName}'s profile`;
     profilPic.className = `
       w-30 h-30
