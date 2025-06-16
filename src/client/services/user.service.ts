@@ -238,7 +238,9 @@ export class UserService {
 
 			if (result.success) {
 				// Update avatar preview
-				avatarImg.src = result.data.avatarUrl;
+
+				const avatarUrl = result.data.avatarUrl;
+				avatarImg.src = avatarUrl;
 
 				// Show success message
 				CommonComponent.showMessage('✅ Avatar updated successfully', 'success');
