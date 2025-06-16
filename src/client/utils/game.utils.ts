@@ -21,6 +21,7 @@ function createGameWebSocket(
   // const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
   const port = 3000;
   const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+  // localStorage.setItem('postAuthRedirect', socketUrl);
   const socket = new WebSocket(socketUrl);
 
   let playerId = null;
@@ -82,22 +83,41 @@ function setupKeyboardHandlers(
 function startClientInputLoop(
   socket: WebSocket,
   keysPressed: Record<string, boolean>,
-  getPlayerId
+  getPlayerId,
+  mode: 'duo-local' | 'duo-online' | 'solo'
 ) {
   function frame() {
     // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
     const pId = getPlayerId();
     if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
-      if (keysPressed['KeyW']) {
-        socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-      } else if (keysPressed['KeyS']) {
-        socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+      if (mode === 'duo-online') {
+        if (pId === 1) {
+          if (keysPressed['KeyW']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+          } else if (keysPressed['KeyS']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+          }
+        }
+        else if (pId === 2) {
+          if (keysPressed['ArrowUp']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+          } else if (keysPressed['ArrowDown']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+          }
+        }
+      } else {
+        if (keysPressed['KeyW']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+        } else if (keysPressed['KeyS']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+        }
+        if (keysPressed['ArrowUp']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+        } else if (keysPressed['ArrowDown']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+        }
       }
-      if (keysPressed['ArrowUp']) {
-        socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-      } else if (keysPressed['ArrowDown']) {
-        socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-      }
+      
     }
     requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
   }
@@ -113,6 +133,7 @@ export function startPongInContainer(
   rightPlayer: string,
   onFinish: FinishCallback,
   gameId: string,
+  mode: 'duo-local' | 'duo-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
   // Titre
   const title = document.createElement('h2');
@@ -143,7 +164,7 @@ export function startPongInContainer(
     if (!keyboardHandlerStarted && !isSpectator()) {
       title.textContent = matchTitle;
       setupKeyboardHandlers(socket, keysPressed);
-      startClientInputLoop(socket, keysPressed, getPlayerId);
+      startClientInputLoop(socket, keysPressed, getPlayerId, mode);
       keyboardHandlerStarted = true;
     }
     if (socket.readyState === WebSocket.OPEN) {
@@ -202,11 +223,6 @@ export function showGameOverOverlay(
   panel.appendChild(replay);
 }
 
-// peut etre a mettre ailleurs
-// export function getShareableLink(gameId) {
-//   return `${window.location.origin}/game?gameId=${gameId}`;
-// }
 export function getShareableLink(gameId: string) {
   return `${window.location.origin}/game/online/${gameId}`;
 }
-

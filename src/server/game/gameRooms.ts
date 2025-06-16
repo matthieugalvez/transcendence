@@ -7,8 +7,8 @@ const gameRooms: Map<string, GameInstance> = new Map();
 /**
  * Crée une nouvelle partie et l’ajoute au store
  */
-export function createGameRoom(gameId: string): GameInstance {
-    const game = new GameInstance(gameId);
+export function createGameRoom(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM'): GameInstance {
+    const game = new GameInstance(gameId, difficulty);
     gameRooms.set(gameId, game);
     return game;
 }

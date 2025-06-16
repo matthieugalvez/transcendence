@@ -3,14 +3,14 @@ import { addPlayerToRoom, createGameRoom, getGameRoom } from '../../game/gameRoo
 
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
-  // const ws = connection.socket;
   const gameId = req.params.gameId;
-  // const { gameId } = req.params as { gameId: string };
 
   // 1.1 Récupérer ou créer l’instance GameInstance
   let game = getGameRoom(gameId);
   if (!game) {
-    game = createGameRoom(gameId);
+    ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
+    ws.close();
+    return;
   }
 
   // 1.2 Ajouter ce client dans l’instance (player ou spectator)

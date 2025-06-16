@@ -16,6 +16,7 @@ type SettingState =
     | 'duo-local'
     | 'duo-online'
     | 'tournament-alias'
+    | 'duo-guest'
     | 'tournament-settings';
 
 // pour changer logique de jeu
@@ -53,7 +54,7 @@ export class GameSettingsComponent {
             rounded-lg text-lg transition-colors
             shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
             border-2 border-black
-            flex flex-col items-center p-6 space-y-4 z-10
+            flex flex-col items-center p-6 space-y-4 z-15
         `.trim();
 
         // title
@@ -87,6 +88,15 @@ export class GameSettingsComponent {
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
+        // 2.5
+        if (state === 'duo-guest') {
+            // Play/Pause
+            settingsBar.appendChild(GameSettingsComponent.renderPlayPause(callbacks));
+
+            // Difficulté
+            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+        }
+
          // 2. DUO
         if (state === 'duo') {
             // Choix local/online
@@ -94,12 +104,10 @@ export class GameSettingsComponent {
             chooseMode.className = 'flex flex-col w-full space-y-4';
 
             const localBtn = CommonComponent.createStylizedButton('Local', 'red');
-            // localBtn.onclick = () => callbacks.onStartGame?.('duo-local', GameSettingsComponent.currentDifficulty);
             localBtn.onclick = () => GameSettingsComponent.render('duo-local', callbacks);
 
             const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
             onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
-            // onlineBtn.onclick = () => GameSettingsComponent.render('duo-online', callbacks);
 
             chooseMode.appendChild(localBtn);
             chooseMode.appendChild(onlineBtn);
@@ -123,11 +131,6 @@ export class GameSettingsComponent {
             const link = callbacks.getOnlineLink?.() ?? '';
             const linkBox = document.createElement('div');
             linkBox.className = 'flex flex-col items-center w-full mt-4';
-            // const urlInput = document.createElement('input');
-            // urlInput.value = link;
-            // urlInput.readOnly = true;
-            // urlInput.className = 'w-full text-center px-2 py-1 mb-2 rounded text-white whitespace-normal';
-            // linkBox.appendChild(urlInput);
             const copyBtn = CommonComponent.createStylizedButton('Copy Game Link', 'orange');
             copyBtn.onclick = () => {
                 navigator.clipboard.writeText(link);
@@ -140,11 +143,13 @@ export class GameSettingsComponent {
 
             const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
             startBtn.classList.add('w-full');
-            // a mettre plus tard : callbacks.canStart && !callbacks.canStart()
-            let canStart = false;
-            if (canStart == false) {
+            let canStart = callbacks.canStart ? callbacks.canStart() : false;
+            if (!canStart) {
                 startBtn.disabled = true;
                 startBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            } else {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-40', 'cursor-not-allowed');
             }
             startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
@@ -273,17 +278,31 @@ export class GameSettingsComponent {
         setBox.className = 'flex flex-row items-center justify-center space-x-8 mb-4';
 
         const playPauseImg = document.createElement('img');
-        playPauseImg.src = '../assets/img/pause-play-button.png';
+        playPauseImg.src = '/assets/img/pause-play-button.png';
         playPauseImg.className = 'w-10 h-auto cursor-pointer';
         playPauseImg.onclick = () => callbacks.onPauseGame?.();
 
         const restartBtn = document.createElement('img');
-        restartBtn.src = '../assets/img/restart-button.png';
+        restartBtn.src = '/assets/img/restart-button.png';
         restartBtn.className = 'w-10 h-auto cursor-pointer';
         restartBtn.onclick = () => callbacks.onRestartGame?.();
 
         setBox.appendChild(playPauseImg);
         setBox.appendChild(restartBtn);
+
+        return setBox;
+    }
+
+    static renderPlayPause(callbacks: GameSettingsCallbacks) {
+        const setBox = document.createElement('div');
+        setBox.className = 'flex flex-row items-center justify-center space-x-8 mb-4';
+
+        const playPauseImg = document.createElement('img');
+        playPauseImg.src = '/assets/img/pause-play-button.png';
+        playPauseImg.className = 'w-10 h-auto cursor-pointer';
+        playPauseImg.onclick = () => callbacks.onPauseGame?.();
+
+        setBox.appendChild(playPauseImg);
 
         return setBox;
     }

@@ -72,7 +72,14 @@ async function onSignupClick(): Promise<void> {
 	if (success) {
 		// Page-level navigation logic
 		setTimeout(() => {
-			router.navigate('/home');
+			const redirect = localStorage.getItem('postAuthRedirect');
+			if (redirect) { // rediriger vers url en store pour duo online ou tournoi online
+				localStorage.removeItem('postAuthRedirect');
+				router.navigate(redirect);
+			} else {
+				router.navigate('/home');
+			}
+			// router.navigate('/home');
 		}, 500);
 	}
 }
@@ -97,7 +104,13 @@ async function onLoginClick(): Promise<void> {
             if (response && response.success) {
                 CommonComponent.showMessage('✅ ' + (response.message || 'Login successful'), 'success');
                 setTimeout(() => {
-                    router.navigate('/home');
+                    const redirect = localStorage.getItem('postAuthRedirect');
+					if (redirect) {
+						localStorage.removeItem('postAuthRedirect');
+						router.navigate(redirect);
+					} else {
+						router.navigate('/home');
+					}
                 }, 500);
                 return true; // Close modal
             } else if (response && response.error) {
@@ -109,11 +122,15 @@ async function onLoginClick(): Promise<void> {
     } else if (loginResponse && loginResponse.success) {
         CommonComponent.showMessage('✅ ' + (loginResponse.message || 'Login successful'), 'success');
         setTimeout(() => {
-            router.navigate('/home');
+            const redirect = localStorage.getItem('postAuthRedirect');
+			if (redirect) {
+				localStorage.removeItem('postAuthRedirect');
+				router.navigate(redirect);
+			} else {
+				router.navigate('/home');
+			}
         }, 500);
     } else if (loginResponse && loginResponse.error) {
         CommonComponent.showMessage(`❌ ${loginResponse.error}`, 'error');
     }
 }
-
-

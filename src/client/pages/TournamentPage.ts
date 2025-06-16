@@ -67,7 +67,7 @@ export async function renderTournamentPage() {
   wrapper.appendChild(canvasContainer);
   startPongInContainer(
     canvasContainer,
-    '', 'Player 1', 'Player 2', () => {}, Date.now().toString()
+    '', 'Player 1', 'Player 2', () => {}, Date.now().toString(), "duo-local"
   );
   const canvas = canvasContainer.querySelector('canvas') as HTMLCanvasElement | null;
   if (canvas) canvas.classList.add('blur-xs');

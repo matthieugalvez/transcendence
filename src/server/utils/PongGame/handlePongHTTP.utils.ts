@@ -6,7 +6,11 @@ import { createGameRoom, getGameRoom } from '../../game/gameRooms';
 /** Création d’une nouvelle partie via HTTP (pour CLI) */
 export async function handleStartGame(request: FastifyRequest, reply: FastifyReply) {
   const gameId = uuidv4();
-  const game = createGameRoom(gameId);
+  let difficulty = (request.body as any)?.difficulty || 'MEDIUM';
+  let game = getGameRoom(gameId);
+  if (!game) {
+    game = createGameRoom(gameId, difficulty);
+  }
   return reply.send({ success: true, gameId });
 }
 

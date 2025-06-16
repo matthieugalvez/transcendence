@@ -6,14 +6,11 @@ import { SidebarComponent } from "../components/sidebar.component";
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
-import { getShareableLink } from '../utils/game.utils';
 
 // memoriser etat de la partie en cours
 let pongHandle: { start: () => void; socket: any } | null = null;
 // etat de pause
 let pauseState = { value: false };
-// gameId
-let currentOnlineGameId: string;
 
 // Sous-fonction pour le wrapper principal
 function createMainWrapper(): HTMLDivElement {
@@ -91,27 +88,12 @@ export async function renderPongGamePage() {
   gameContainer.className = 'relative z-0';
   wrapper.appendChild(gameContainer);
 
-  // IMAGE DE FOND PONG avant toute partie
+  // screen du jeu avant toute partie
   const previewImg = document.createElement('img');
   previewImg.src = '../assets/gameimg/screen-pongGame.png';
   previewImg.alt = 'Pong preview';
-  previewImg.className = 'rounded-md w-[800px] h-[600px] object-cover opacity-70 blur-xs transition-all';
+  previewImg.className = 'rounded-md w-[800px] h-[610px] mt-15 opacity-70 blur-xs transition-all';
   gameContainer.appendChild(previewImg);
-
-  // const gameId = Date.now().toString();
-
-  // pongHandle = startPongInContainer(
-  //   gameContainer,
-  //   matchTitle,
-  //   leftPlayer,
-  //   rightPlayer,
-  //   (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-  //   gameId,
-  // );
-  // const { socket } = pongHandle;
-
-  // const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
-  // if (canvas) canvas.classList.add('blur-xs');
 
   createGameControls(
     wrapper,
@@ -120,7 +102,11 @@ export async function renderPongGamePage() {
       GameSettingsComponent.render('solo', {
         onStartGame: async () => {
           if (previewImg.parentNode) previewImg.remove();
-          const res = await fetch('/api/game/start', { method: 'POST' });
+          const res = await fetch('/api/game/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+          });
           const { gameId } = await res.json();
           pongHandle = startPongInContainer(
             gameContainer,
@@ -129,12 +115,11 @@ export async function renderPongGamePage() {
             rightPlayer,
             (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
             gameId,
+            "solo"
           );
           const { socket } = pongHandle;
-          // if (canvas) canvas.classList.remove('blur-xs');
           pongHandle?.start();
-          // masquer le bouton "start"
-          GameSettingsComponent.render('solo-start', {
+          GameSettingsComponent.render('solo-start', { // masquer le bouton "start"
             onPauseGame: () => {
               pauseState.value = !pauseState.value;
               if (socket && socket.readyState === socket.OPEN) {
@@ -163,12 +148,16 @@ export async function renderPongGamePage() {
           // --- LOCAL ---
           if (mode === 'duo-local') {
             if (previewImg.parentNode) previewImg.remove();
-            const res = await fetch('/api/game/start', { method: 'POST' });
+            const res = await fetch('/api/game/start', { 
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+            });
             const { gameId } = await res.json();
             pongHandle = startPongInContainer(
               gameContainer, matchTitle, leftPlayer, rightPlayer,
               (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-              gameId
+              gameId, "duo-local"
             );
             pongHandle?.start();
             GameSettingsComponent.render('solo-start', {
@@ -179,42 +168,24 @@ export async function renderPongGamePage() {
                   socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
                 }
               },
+              onDifficultyChange: (difficulty) => {
+                if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+                  pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+                }
+              },
               onRestartGame: () => renderPongGamePage()
             });
           }
           // --- ONLINE ---
           else if (mode === 'duo-online') {
             // if (previewImg.parentNode) previewImg.remove();
-            const res = await fetch('/api/game/start', { method: 'POST' });
-            const { gameId } = await res.json();
-            currentOnlineGameId = gameId;
-            // const link = getShareableLink(currentOnlineGameId);
-
-            // Affiche settings duo-online avec le vrai lien
-            GameSettingsComponent.render('duo-online', {
-              getOnlineLink: () => {
-                return getShareableLink(currentOnlineGameId);
-              },
-              onCopyLink: (link) => navigator.clipboard.writeText(link),
-              onStartGame: async () => {
-                pongHandle = startPongInContainer(
-                  gameContainer, matchTitle, leftPlayer, rightPlayer,
-                  (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-                  currentOnlineGameId
-                );
-                pongHandle?.start();
-                GameSettingsComponent.render('solo-start', {
-                  onPauseGame: () => { 
-                    pauseState.value = !pauseState.value;
-                    const socket = pongHandle?.socket;
-                    if (socket && socket.readyState === socket.OPEN) {
-                      socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-                    }
-                  },
-                  onRestartGame: () => renderPongGamePage()
-                });
-              }
+            const res = await fetch('/api/game/start', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
             });
+            const { gameId } = await res.json();
+            router.navigate(`/game/online/${gameId}`);
           }
         }
       });
@@ -223,143 +194,3 @@ export async function renderPongGamePage() {
     () => router.navigate('/tournament')
   );
 }
-
-// export async function renderPongGamePage() {
-//   // clean page
-//   document.body.innerHTML = '';
-//   document.title = 'Pong';
-
-//   // get user
-//   const user = await UserService.getCurrentUser();
-//   const leftPlayer = user?.name || "Player 1";
-//   const rightPlayer = "Player 2";
-//   const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
-
-//   // layout de base
-//   SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true });
-//   BackgroundComponent.applyNormalGradientLayout();
-//   GameSettingsComponent.render('initial');
-
-//   const wrapper = createMainWrapper();
-//   const gameContainer = document.createElement('div');
-//   gameContainer.className = 'relative z-0';
-//   wrapper.appendChild(gameContainer);
-
-//   // IMAGE DE FOND PONG avant toute partie
-//   const previewImg = document.createElement('img');
-//   previewImg.src = '../assets/gameimg/screen-pongGame.png';
-//   previewImg.alt = 'Pong preview';
-//   previewImg.className = 'rounded-md w-[800px] h-[600px] object-cover opacity-70 blur-xs transition-all';
-//   gameContainer.appendChild(previewImg);
-
-//   // const gameId = Date.now().toString();
-
-//   // pongHandle = startPongInContainer(
-//   //   gameContainer,
-//   //   matchTitle,
-//   //   leftPlayer,
-//   //   rightPlayer,
-//   //   (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-//   //   gameId,
-//   // );
-//   // const { socket } = pongHandle;
-
-//   // const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
-//   // if (canvas) canvas.classList.add('blur-xs');
-
-//   createGameControls(
-//     wrapper,
-//     // --- Callback SOLO ---
-//     async () => {
-//       GameSettingsComponent.render('solo', {
-//         onStartGame: async () => {
-//           if (previewImg.parentNode) previewImg.remove();
-//           const res = await fetch('/api/game/start', { method: 'POST' });
-//           const { gameId } = await res.json();
-//           pongHandle = startPongInContainer(
-//             gameContainer,
-//             matchTitle,
-//             leftPlayer,
-//             rightPlayer,
-//             (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-//             gameId,
-//           );
-//           const { socket } = pongHandle;
-//           // if (canvas) canvas.classList.remove('blur-xs');
-//           pongHandle?.start();
-//           // masquer le bouton "start"
-//           GameSettingsComponent.render('solo-start', {
-//             onPauseGame: () => {
-//               pauseState.value = !pauseState.value;
-//               if (socket && socket.readyState === socket.OPEN) {
-//                 socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-//               }
-//             },
-//             onRestartGame: () => {
-//               renderPongGamePage();
-//             },
-//           });
-//         },
-//         onRestartGame: () => {
-//           renderPongGamePage();
-//         },
-//         onDifficultyChange: (difficulty) => {
-//           if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-//             pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-//           }
-//         }
-//       });
-//     },
-//     // --- Callback DUO ---
-//     async () => {
-//       GameSettingsComponent.render('duo', {
-//         onStartGame: async () => {
-//           if (previewImg.parentNode) previewImg.remove();
-//           const res = await fetch('/api/game/start', { method: 'POST' });
-//           const { gameId } = await res.json();
-//           currentOnlineGameId = gameId;
-//           pongHandle = startPongInContainer(
-//             gameContainer,
-//             matchTitle,
-//             leftPlayer,
-//             rightPlayer,
-//             (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
-//             gameId,
-//           );
-//           const { socket } = pongHandle;
-//           // if (canvas) canvas.classList.remove('blur-xs');
-//           pongHandle?.start();
-//           GameSettingsComponent.render('solo-start', {
-//             onPauseGame: () => {
-//               pauseState.value = !pauseState.value;
-//               if (socket && socket.readyState === socket.OPEN) {
-//                 socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-//               }
-//             },
-//             onRestartGame: () => {
-//               renderPongGamePage();
-//             },
-//           });
-//         },
-//         onRestartGame: () => {
-//           renderPongGamePage();
-//         },
-//         onDifficultyChange: (difficulty) => {
-//           if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-//             pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-//           }
-//         },
-//         // ONLINE
-//         getOnlineLink: () => {
-//           console.log('[getOnlineLink] appelé, currentOnlineGameId =', currentOnlineGameId);
-//           return getShareableLink(currentOnlineGameId);
-//         },
-//         onCopyLink: (link) => {
-//           navigator.clipboard.writeText(link);
-//         }
-//       });
-//     },
-//     // --- TOURNOI ---
-//     () => router.navigate('/tournament')
-//   );
-// }

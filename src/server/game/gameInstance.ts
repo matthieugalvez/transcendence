@@ -17,6 +17,8 @@ export class GameInstance {
     // pour pause/resume
     private isPaused: boolean = false;
     private currentBallSpeed: number = 380;
+    // Players
+    private playerNames: { [id: number]: string } = {};
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -39,10 +41,10 @@ export class GameInstance {
     private readonly canvasWidth = 800;
     private readonly canvasHeight = 600;
     private readonly paddleSpeed = 400; // px/sec
-    // private readonly ballSpeed = 300; // px/sec
 
-    constructor(gameId: string) {
+    constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
         this.gameId = gameId;
+        this.setDifficulty(difficulty);
         // initial pos of paddles
         this.paddle1Pos = { x: 20, y: (this.canvasHeight - this.paddleHeight) / 2};
         this.paddle2Pos = { x: this.canvasWidth - 20 - this.paddleWidth, y: (this.canvasHeight - this.paddleHeight) / 2 };
@@ -54,16 +56,18 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket): number | 'spectator' {
+    public addClient(ws: WebSocket, username?: string): number | 'spectator' {
         // Déjà un joueur 1 ? Si non, c'est lui.
         if (!this.playerSockets[1]) {
             this.playerSockets[1] = ws;
+            this.playerNames[1] = username || "Player 1";
             this.setupDisconnect(ws, 1);
             return 1;
         }
         // Sinon, joueur 2.
         if (!this.playerSockets[2]) {
             this.playerSockets[2] = ws;
+            this.playerNames[2] = username || "Player 2";
             this.setupDisconnect(ws, 2);
             return 2;
         }
@@ -100,6 +104,7 @@ export class GameInstance {
     // start game
     public start() {
         this.isRunning = true;
+        this.resetBall();
     }
     // pause game
     public pause() {
@@ -222,7 +227,7 @@ export class GameInstance {
         return false;
     }
 
-    private buildState(isRunning: boolean): GameState {
+    private buildState(isRunning: boolean): GameState & { connectedPlayers: number[], playerNames?: { 1: string, 2: string } } {
         return {
             paddle1: {
                 x: this.paddle1Pos.x,
@@ -249,6 +254,14 @@ export class GameInstance {
             },
             isRunning: this.isRunning && isRunning,
             isPaused: this.isPaused,
+            connectedPlayers: [
+                this.playerSockets[1] ? 1 : null,
+                this.playerSockets[2] ? 2 : null,
+            ].filter(Boolean) as number[],
+            playerNames: {
+                1: this.playerNames?.[1] ?? 'Player 1',
+                2: this.playerNames?.[2] ?? 'Player 2',
+            }
         };
     }
 
@@ -256,11 +269,6 @@ export class GameInstance {
     private broadcastState(isRunning: boolean) {
         const state = this.buildState(isRunning);
         const message = JSON.stringify(state);
-        // this.players.forEach((ws) => {
-        // if (ws.readyState === ws.OPEN) {
-        //     ws.send(message);
-        // }
-        // });
         Object.values(this.playerSockets).forEach(ws => {
             if (ws && ws.readyState === ws.OPEN) ws.send(message);
         });

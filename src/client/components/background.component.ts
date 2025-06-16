@@ -12,7 +12,7 @@ export class BackgroundComponent {
     // Create the main gradient background layer with HomePage brand colors
     const gradientLayer = document.createElement('div');
     gradientLayer.className = `
-      absolute inset-0
+      absolute inset-0 z-1
       bg-gradient-to-br from-[#7101b2] via-[#8217c1] to-[#ffae45f2]
       animate-gradient
       bg-[length:400%_400%]
