@@ -33,6 +33,10 @@ static async saveSettings(): Promise<void> {
                 hasChanges = true;
                 successes.push('✅ Display name updated successfully!');
                 usernameInput.value = ''; // Clear the input
+				setTimeout(() => {
+					window.location.reload();
+				}, 300);
+
             } else {
                 // Handle detailed validation errors for username - same as AuthComponent
                 this.handleUserUpdateError(usernameResult, '', errors);
