@@ -202,7 +202,7 @@ export class AuthController {
 			}
 
 			// Verify refresh token
-			const decoded = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: number };
+			const decoded = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: string };
 
 			// Check if refresh token exists in database
 			const user = await UserService.getUserById(decoded.userId);
@@ -501,7 +501,7 @@ export class AuthController {
 
 			// Verify temporary token is valid
 			try {
-				const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+				const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: string, purpose: string };
 
 				if (decoded.purpose !== '2fa_pending_oauth') {
 					return Send.unauthorized(reply, 'Invalid OAuth session');
@@ -533,7 +533,7 @@ export class AuthController {
 			}
 
 			// Verify temporary token
-			const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+			const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: string, purpose: string };
 
 			if (decoded.purpose !== '2fa_pending_oauth') {
 				return Send.unauthorized(reply, 'Invalid verification session');

@@ -29,13 +29,14 @@ export async function SettingsPage(): Promise<void> {
 		// Only render sidebar and main content if authentication succeeds
 		SidebarComponent.render({
 			userName: user.displayName,
+			avatarUrl: user.avatar,
 			showStats: true,
 			showSettings: false, // Don't show settings button on settings page
 			showBackHome: true
 		});
 
 		// Render the main content with user data
-		await SettingsRender.renderMainContent(user.displayName || user.name);
+		await SettingsRender.renderMainContent(user.displayName || user.name, user.avatar);
 
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);

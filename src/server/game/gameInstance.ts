@@ -1,7 +1,7 @@
 import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
 import { removeGameRoom } from './gameRooms';
- 
+
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -18,7 +18,7 @@ export class GameInstance {
     private isPaused: boolean = false;
     private currentBallSpeed: number = 380;
     // Players
-    private playerNames: { [id: number]: string } = {};
+    private playerNames: { [id: string]: string } = {};
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -93,7 +93,7 @@ export class GameInstance {
         return this.buildState(true);
     }
     // when player moves
-    public onClientAction(playerId: number, action: 'up' | 'down') {
+    public onClientAction(playerId: string, action: 'up' | 'down') {
         const dt = 1 / 60;
         if (playerId === 1) {
             this.movePaddle(this.paddle1Pos, action, dt);
@@ -134,7 +134,7 @@ export class GameInstance {
             vy: this.currentBallSpeed * Math.sin(angle),
         };
     }
-    // if no player we stop the instance    
+    // if no player we stop the instance
     private destroy() {
         if (this.intervalHandle) {
             clearInterval(this.intervalHandle);

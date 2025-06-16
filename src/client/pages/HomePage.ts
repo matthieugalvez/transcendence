@@ -33,6 +33,7 @@ export async function RenderHomePage(): Promise<void> {
 			userName: user.displayName,
 			showStats: true,
 			showSettings: true,
+			avatarUrl: user.avatar,
 			showBackHome: false
 		});
 

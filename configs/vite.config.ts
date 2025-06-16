@@ -16,6 +16,7 @@ export default defineConfig({
 					'*': ''
 				}
 			},
+			'/avatars': 'http://localhost:3000',
 			'/health': {
 				target: 'http://localhost:3000',
 				changeOrigin: true,

@@ -1,6 +1,13 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { UserService } from '../services/users.service'
 import { ResponseUtils as Send } from '../utils/response.utils'
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+import path from 'path'; // Add this import
+import fs from 'fs';
+
+const pump = promisify(pipeline); // Add this line
+
 
 export class UserController {
 	static async getAllUsers(request: FastifyRequest, reply: FastifyReply) {
@@ -53,12 +60,19 @@ export class UserController {
 			if (!user) {
 				return Send.notFound(reply, 'User not found');
 			}
+			// AVATAR
+			let avatarUrl = user.avatar;
+			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+				// Extract filename from path
+				const filename = avatarUrl.replace('./db/users/', '');
+				avatarUrl = `/avatars/${filename}`;
+			}
 
 			const userData = {
 				id: user.id,
 				name: user.name,
 				displayName: user.displayName,
-				avatar: user.avatar,
+				avatar: avatarUrl,
 				created_at: user.created_at,
 				updated_at: user.updated_at // Fix: was update_at
 			};
@@ -165,4 +179,58 @@ export class UserController {
 
 		return Send.success(reply, {}, 'Avatar link succes');
 	}
+
+    static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const userId = (request as any).userId;
+
+            if (!userId) {
+                return Send.unauthorized(reply, 'Authentication required');
+            }
+
+            // Get the uploaded file
+            const data = await request.file();
+
+            if (!data) {
+                return Send.badRequest(reply, 'No file uploaded');
+            }
+
+            // Validate file type
+            if (!data.mimetype.startsWith('image/')) {
+                return Send.badRequest(reply, 'Only image files are allowed');
+            }
+
+            // Validate file size (5MB limit)
+            const fileSize = parseInt(request.headers['content-length'] || '0');
+            if (fileSize > 5 * 1024 * 1024) {
+                return Send.badRequest(reply, 'File size must be less than 5MB');
+            }
+
+            // Create upload directory if it doesn't exist
+            const uploadDir = path.join(process.cwd(), 'src/server/db/users');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            // Generate filename
+            const fileExtension = path.extname(data.filename || '');
+            const fileName = `${userId}${fileExtension || '.png'}`;
+            const filePath = path.join(uploadDir, fileName);
+
+            // Save the file
+            await pump(data.file, fs.createWriteStream(filePath));
+
+            // Update user's avatar path in database
+            const avatarUrl = `/avatars/${fileName}`;
+            await UserService.updateUserAvatar(userId, avatarUrl);
+
+            return Send.success(reply, {
+                avatarUrl: avatarUrl
+            }, 'Avatar uploaded successfully');
+
+        } catch (error) {
+            console.error('Avatar upload error:', error);
+            return Send.internalError(reply, 'Failed to upload avatar');
+        }
+    }
 }

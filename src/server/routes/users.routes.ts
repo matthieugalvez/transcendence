@@ -3,8 +3,14 @@ import { userSchema } from '../validations/auth.schema'
 import ValidationMiddleware from '../middlewares/validation.middleware'
 import { UserController } from '../controllers/user.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+
+const pump = promisify(pipeline);
 
 export default async function userRoutes(fastify: FastifyInstance) {
+
+	 await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
 	fastify.get('/users', {
 		preHandler: [AuthMiddleware.authenticateUser]
@@ -33,6 +39,13 @@ export default async function userRoutes(fastify: FastifyInstance) {
 			ValidationMiddleware.validateBody(userSchema.updatePassword)
 		]
 	}, UserController.changeUserPassword);
+
+	fastify.post('/me/avatar', {
+		preHandler:
+			[AuthMiddleware.authenticateUser]
+	}, UserController.uploadAvatar);
+
+
 
 	fastify.get('/check-display-name', {
 		preHandler: AuthMiddleware.authenticateUser

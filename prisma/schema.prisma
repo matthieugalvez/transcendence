@@ -8,37 +8,36 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email          String   @unique
+  id            String   @id @default(uuid()) // Changed from Int to String with UUID
+  email         String   @unique
   displayName   String?
   password_hash String
-  provider      String   @default("local") // "local" or "google"
+  provider      String   @default("local")
   refreshToken  String?
   twoFAEnabled  Boolean  @default(false)
   twoFASecret   String?
-  avatar		String	@default("./db/users/default")
+  avatar        String   @default("/avatars/default.svg")
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  // Relations
+  // Relations - update foreign keys to String
   player1_sessions GameSession[] @relation("Player1Sessions")
   player2_sessions GameSession[] @relation("Player2Sessions")
 
   @@map("users")
 }
 
-
 model GameSession {
-  id            Int      @id @default(autoincrement())
-  player1_id    Int
-  player2_id    Int
+  id            String   @id @default(uuid()) // Changed from Int to String with UUID
+  player1_id    String   // Changed from Int to String
+  player2_id    String   // Changed from Int to String
   player1_score Int
   player2_score Int
-  winner_id     Int?
+  winner_id     String?  // Changed from Int? to String?
   created_at    DateTime @default(now())
   status        String   @default("completed")
 
-  // Relations
+  // Relations - update to use String IDs
   player1 User @relation("Player1Sessions", fields: [player1_id], references: [id])
   player2 User @relation("Player2Sessions", fields: [player2_id], references: [id])
 

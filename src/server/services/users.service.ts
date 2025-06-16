@@ -9,7 +9,7 @@ export class UserService {
 		})
 	}
 
-	static async getUserById(id: number) {
+	static async getUserById(id: string) {
 		return await prisma.user.findUnique({
 			where: { id }
 		})
@@ -30,7 +30,7 @@ export class UserService {
 		});
 	}
 
-	static async updateUserName(userId: number, newDisplayName: string): Promise<User | null> {
+	static async updateUserName(userId: string, newDisplayName: string): Promise<User | null> {
 		try {
 			// Validation is handled by middleware, so we can remove it here
 			const updatedUser = await prisma.user.update({
@@ -45,7 +45,7 @@ export class UserService {
 		}
 	}
 
-	static async updateUserPassword(userId: number, newPassword: string): Promise<boolean> {
+	static async updateUserPassword(userId: string, newPassword: string): Promise<boolean> {
 		try {
 			// Validation is handled by middleware, so we can remove it here
 			const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -95,14 +95,26 @@ export class UserService {
 		}
 	}
 
-	static async getUserAvatar(userId: number): Promise<string | null> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            avatar: true
-        }
-    });
+	static async getUserAvatar(userId: string): Promise<string | null> {
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				avatar: true
+			}
+		});
 
-    return user?.avatar || null;
+		return user?.avatar || null;
+	}
+
+	static async updateUserAvatar(userId: string, avatarPath: string): Promise<void> {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { avatar: avatarPath }
+        });
+    } catch (error) {
+        console.error('Error updating user avatar:', error);
+        throw error;
+    }
 }
 }
