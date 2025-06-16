@@ -244,6 +244,7 @@ export class UserService {
 
 				// Show success message
 				CommonComponent.showMessage('✅ Avatar updated successfully', 'success');
+				window.location.reload();
 
 				// Update sidebar avatar
 				const sidebarAvatar = document.querySelector('nav img') as HTMLImageElement;
