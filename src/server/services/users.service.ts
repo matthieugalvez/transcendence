@@ -105,4 +105,22 @@ export class UserService {
 
     return user?.avatar || null;
 }
+	static async getChatSession(UserId: number, OtherId: number) {
+		try {
+			return await prisma.user.findUnique({
+				select: {
+					chatsessions: {
+						OR: [
+							{ u1_id: OtherId },
+							{ u2_id: OtherId },
+						],
+					},
+				}
+			})
+		}
+		catch (error) {
+			console.error('Error finding chat session:', error);
+			throw error;
+		}
+	}
 }

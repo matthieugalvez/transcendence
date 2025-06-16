@@ -21,23 +21,31 @@ model User {
   updated_at    DateTime @updatedAt
 
   // Relations
-  ChatSessions ChatSession[]
+  chatsessions ChatSession[]
 
   @@map("users")
 }
 
-model ChatSession {
-  id			Int			@id @default(autoincrement())
-  player1_id	Int
-  p1_last_fetch	DateTime	@default(@date(0))
-  player2_id	Int
-  p1_last_fetch	DateTime	@default(@date(0))
-  created_at	DateTime	@default(now())
-  updated_at	DateTime	@updatedAt
+model	ChatSession {
+	id				Int			@id @default(autoincrement())
+	u1_id			Int
+	u1_last_fetch	DateTime	@default(@date(0))
+	u2_id			Int
+	u2_last_fetch	DateTime	@default(@date(0))
+	created_at		DateTime	@default(now())
+	updated_at		DateTime	@updatedAt
 
-  // Relations
-  player1 User @relation("ChatSessions", fields: [player2_id], references: [id])
-  player2 User @relation("ChatSessions", fields: [player1_id], references: [id])
+	// Relations
+	messages		Message[]
 
-  @@map("chat_sessions")
+	@@map("chat_sessions")
+}
+
+model	Message {
+	id			Int			@id @default(autoincrement())
+	session_id	Int
+	sender_id	Int
+	reciever_id	Int
+	created_at	DateTime	@default(now())
+	content		String
 }
