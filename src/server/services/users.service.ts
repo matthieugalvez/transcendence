@@ -94,4 +94,15 @@ export class UserService {
 			throw error;
 		}
 	}
+
+	static async getUserAvatar(userId: number): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            avatar: true
+        }
+    });
+
+    return user?.avatar || null;
+}
 }
