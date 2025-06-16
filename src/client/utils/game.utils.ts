@@ -1,221 +1,228 @@
-import type { GameState } from '../types/game.types';
+import { GameState } from '../types/game.types';
+import { renderGame } from '../renders/game.render';
+import { CommonComponent } from '../components/common.component';
 
-export function startPongInContainer(
-	container: HTMLDivElement,
-	title: string,
-	player1Name: string,
-	player2Name: string,
-	onGameEnd: (winnerName: string) => void,
-	gameId: string
-): void {
-	// Clear container
-	container.innerHTML = '';
+// type pour le callback de fin de match
+type FinishCallback = (winnerAlias: string) => void;
 
-	// Create game title
-	const titleElement = document.createElement('h2');
-	titleElement.textContent = title;
-	titleElement.className = 'text-2xl font-bold text-center mb-4';
-	container.appendChild(titleElement);
-
-	// Create canvas for the game
-	const canvas = document.createElement('canvas');
-	canvas.width = 800;
-	canvas.height = 600;
-	canvas.className = 'border border-gray-400 bg-black mx-auto block';
-	container.appendChild(canvas);
-
-	// Score display
-	const scoreDiv = document.createElement('div');
-	scoreDiv.className = 'text-center mt-4 text-xl font-bold';
-	scoreDiv.innerHTML = `${player1Name}: <span id="score1">0</span> - ${player2Name}: <span id="score2">0</span>`;
-	container.appendChild(scoreDiv);
-
-	// Instructions
-	const instructions = document.createElement('div');
-	instructions.className = 'text-center mt-2 text-sm text-gray-600';
-	instructions.innerHTML = `
-    <p>${player1Name}: W (up) / S (down) | ${player2Name}: ↑ (up) / ↓ (down)</p>
-  `;
-	container.appendChild(instructions);
-
-	// Initialize the game
-	const pongGame = new PongGame(canvas, player1Name, player2Name, onGameEnd, gameId);
-	pongGame.start();
+export interface PongHandle {
+  start: () => void;
 }
 
-class PongGame {
-	private canvas: HTMLCanvasElement;
-	private ctx: CanvasRenderingContext2D;
-	private ws: WebSocket | null = null;
-	private gameState: GameState | null = null;
-	private player1Name: string;
-	private player2Name: string;
-	private onGameEnd: (winnerName: string) => void;
-	private gameId: string;
-	private animationId: number | null = null;
+// --- WebSocket handler ---
+function createGameWebSocket(
+  gameId: string,
+  ctx: CanvasRenderingContext2D,
+  leftPlayer: string,
+  rightPlayer: string,
+  onFinish: FinishCallback
+) {
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  // const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
+  const port = 3000;
+  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+  // localStorage.setItem('postAuthRedirect', socketUrl);
+  const socket = new WebSocket(socketUrl);
 
-	constructor(
-		canvas: HTMLCanvasElement,
-		player1Name: string,
-		player2Name: string,
-		onGameEnd: (winnerName: string) => void,
-		gameId: string
-	) {
-		this.canvas = canvas;
-		this.ctx = canvas.getContext('2d')!;
-		this.player1Name = player1Name;
-		this.player2Name = player2Name;
-		this.onGameEnd = onGameEnd;
-		this.gameId = gameId;
-	}
+  let playerId = null;
+  let isSpectator = false;
+  let wasRunning = false;
+  let wasPaused = false;
 
-	start(): void {
-		this.connectWebSocket();
-		this.setupKeyboardControls();
-		this.render();
-	}
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'playerId') {
+        playerId = data.playerId;
+        isSpectator = (playerId === 'spectator');
+        // Ici, affiche overlay ou message spectateur si tu veux
+        return;
+      }
+      // Sinon c'est un GameState
+      const state = data;
+      renderGame(ctx, state);
 
-	private connectWebSocket(): void {
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//${window.location.host}/api/game/ws/${this.gameId}`;
+      if (wasRunning && !state.isRunning && !state.isPaused) {
+        const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
+        setTimeout(() => onFinish(winnerAlias), 150);
+      }
+      wasRunning = state.isRunning;
+      wasPaused = state.isPaused;
+    } catch (err) {
+      // message inconnu, tu peux log
+    }
+  });
 
-		this.ws = new WebSocket(wsUrl);
+  socket.addEventListener('close', () => {
+    alert("La partie est terminée, inaccessible, ou pleine.");
+    window.location.reload();
+  });
 
-		this.ws.onmessage = (event) => {
-			try {
-				this.gameState = JSON.parse(event.data) as GameState;
-				this.updateScore();
+  // Expose ces méthodes pour le reste du code
+  return {
+    socket,
+    getPlayerId: () => playerId,
+    isSpectator: () => isSpectator,
+  };
+}
 
-				if (!this.gameState.isRunning) {
-					this.endGame();
-				}
-			} catch (error) {
-				console.error('Error parsing WebSocket message:', error);
-			}
-		};
+// --- Clavier handler ---
+function setupKeyboardHandlers(
+  socket: WebSocket,
+  keysPressed: Record<string, boolean>
+) {
+  window.addEventListener('keydown', (e) => {
+    keysPressed[e.code] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    keysPressed[e.code] = false;
+  });
+}
 
-		this.ws.onerror = (error) => {
-			console.error('WebSocket error:', error);
-		};
+// --- Boucle de polling des touches ---
+function startClientInputLoop(
+  socket: WebSocket,
+  keysPressed: Record<string, boolean>,
+  getPlayerId,
+  mode: 'duo-local' | 'duo-online' | 'solo'
+) {
+  function frame() {
+    // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+    const pId = getPlayerId();
+    if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
+      if (mode === 'duo-online') {
+        if (pId === 1) {
+          if (keysPressed['KeyW']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+          } else if (keysPressed['KeyS']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+          }
+        }
+        else if (pId === 2) {
+          if (keysPressed['ArrowUp']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+          } else if (keysPressed['ArrowDown']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+          }
+        }
+      } else {
+        if (keysPressed['KeyW']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+        } else if (keysPressed['KeyS']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+        }
+        if (keysPressed['ArrowUp']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+        } else if (keysPressed['ArrowDown']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+        }
+      }
+      
+    }
+    requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
+  }
+  requestAnimationFrame(frame);
+}
 
-		this.ws.onclose = () => {
-			console.log('WebSocket connection closed');
-		};
-	}
 
-	private setupKeyboardControls(): void {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+// --- Création du jeu et intégration au DOM ---
+export function startPongInContainer(
+  container: HTMLDivElement,
+  matchTitle: string,
+  leftPlayer: string,
+  rightPlayer: string,
+  onFinish: FinishCallback,
+  gameId: string,
+  mode: 'duo-local' | 'duo-online' | 'solo' = 'solo',
+): PongHandle & { socket: WebSocket } {
+  // Titre
+  const title = document.createElement('h2');
+  title.textContent = "Ready to pong?";
+  title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
+  container.appendChild(title);
 
-			let playerId: number | null = null;
-			let action: 'up' | 'down' | null = null;
+  // Canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 800;
+  canvas.height = 600;
+  canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
+  container.appendChild(canvas);
 
-			switch (event.key.toLowerCase()) {
-				case 'w':
-					playerId = 1;
-					action = 'up';
-					break;
-				case 's':
-					playerId = 1;
-					action = 'down';
-					break;
-				case 'arrowup':
-					playerId = 2;
-					action = 'up';
-					break;
-				case 'arrowdown':
-					playerId = 2;
-					action = 'down';
-					break;
-			}
+  const ctx = canvas.getContext('2d')!;
+  if (!ctx) throw new Error('Impossible de récupérer le context 2D');
 
-			if (playerId && action) {
-				event.preventDefault();
-				this.ws.send(JSON.stringify({ playerId, action }));
-			}
-		};
+  // WebSocket
+  // const socket = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
+  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
+  const { socket, getPlayerId, isSpectator } = wsHandler;
 
-		document.addEventListener('keydown', handleKeyDown);
-	}
+  // Gestion clavier différée (pas avant .start())
+  let keyboardHandlerStarted = false;
+  const keysPressed: Record<string, boolean> = {};
 
-	private render(): void {
-		// Clear canvas
-		this.ctx.fillStyle = '#000000';
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  function start() {
+    if (!keyboardHandlerStarted && !isSpectator()) {
+      title.textContent = matchTitle;
+      setupKeyboardHandlers(socket, keysPressed);
+      startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+      keyboardHandlerStarted = true;
+    }
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: 'start' }));
+    } else {
+      socket.addEventListener('open', () => {
+        socket.send(JSON.stringify({ action: 'start' }));
+      });
+    }
+  }
 
-		if (this.gameState) {
-			// Draw center line
-			this.ctx.setLineDash([5, 15]);
-			this.ctx.strokeStyle = '#ffffff';
-			this.ctx.lineWidth = 2;
-			this.ctx.beginPath();
-			this.ctx.moveTo(this.canvas.width / 2, 0);
-			this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
-			this.ctx.stroke();
-			this.ctx.setLineDash([]);
+  return { start, socket };
+}
 
-			// Draw paddles
-			this.ctx.fillStyle = '#ffffff';
-			this.ctx.fillRect(
-				this.gameState.paddle1.x,
-				this.gameState.paddle1.y,
-				this.gameState.paddle1.width,
-				this.gameState.paddle1.height
-			);
-			this.ctx.fillRect(
-				this.gameState.paddle2.x,
-				this.gameState.paddle2.y,
-				this.gameState.paddle2.width,
-				this.gameState.paddle2.height
-			);
+// --- Overlay de fin de partie ---
+// Optionnel : Déplacer ce composant dans `src/client/components/gameover.overlay.ts`
+export function showGameOverOverlay(
+  parent: HTMLElement,
+  winner: string,
+  onReplay: () => void
+) {
+  const ov = document.createElement('div');
+  ov.className = `
+    absolute inset-0 flex flex-col items-center justify-center
+    space-y-4 z-20
+  `.replace(/\s+/g, ' ').trim();
+  parent.appendChild(ov);
 
-			// Draw ball
-			this.ctx.beginPath();
-			this.ctx.arc(
-				this.gameState.ball.x,
-				this.gameState.ball.y,
-				this.gameState.ball.radius,
-				0,
-				Math.PI * 2
-			);
-			this.ctx.fill();
-		} else {
-			// Draw loading message
-			this.ctx.fillStyle = '#ffffff';
-			this.ctx.font = '24px Arial';
-			this.ctx.textAlign = 'center';
-			this.ctx.fillText(
-				'Connecting to game server...',
-				this.canvas.width / 2,
-				this.canvas.height / 2
-			);
-		}
+  const canvas = parent.querySelector('canvas');
+  if (canvas) canvas.classList.add('blur-xs');
 
-		this.animationId = requestAnimationFrame(() => this.render());
-	}
+  const panel = document.createElement('div');
+  panel.style.backgroundColor = "#362174";
+  panel.className = `
+    text-center backdrop-blur-2xl
+    rounded-lg p-6
+    border-2 border-black
+    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+  `;
+  ov.appendChild(panel);
 
-	private updateScore(): void {
-		if (this.gameState) {
-			const score1Element = document.getElementById('score1');
-			const score2Element = document.getElementById('score2');
+  const msg = document.createElement('p');
+  msg.textContent = `${winner} won! 🎉`;
+  msg.className = `
+    text-2xl text-white
+    font-["Canada-big"] mb-4
+  `;
+  panel.appendChild(msg);
 
-			if (score1Element) score1Element.textContent = this.gameState.score1.toString();
-			if (score2Element) score2Element.textContent = this.gameState.score2.toString();
-		}
-	}
+  const replay = CommonComponent.createStylizedButton('Play Again', 'blue');
+  replay.onclick = () => {
+    if (canvas) canvas.classList.remove('blur-xs');
+    ov.remove();
+    onReplay();
+  };
+  panel.appendChild(replay);
+}
 
-	private endGame(): void {
-		if (this.animationId) {
-			cancelAnimationFrame(this.animationId);
-		}
-
-		if (this.ws) {
-			this.ws.close();
-		}
-
-		if (this.gameState) {
-			const winner = this.gameState.score1 > this.gameState.score2 ? this.player1Name : this.player2Name;
-			this.onGameEnd(winner);
-		}
-	}
+export function getShareableLink(gameId: string) {
+  return `${window.location.origin}/game/online/${gameId}`;
 }

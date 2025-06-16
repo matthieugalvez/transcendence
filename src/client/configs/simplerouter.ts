@@ -2,19 +2,61 @@
 // En les stockant dans une map de route
 //Vu qu'ensuite niveau back on interagit juste avec les endpoints (post/get fastify)
 
-import { renderNotFoundPage } from '../pages/NotFoundPage';
+// import { renderNotFoundPage } from '../pages/NotFoundPage';
+
+// class SimpleRouter {
+//   private routes: Map<string, () => void> = new Map();
+
+//   constructor() {
+//     window.addEventListener('popstate', () => {
+//       this.handleRoute(window.location.pathname);
+//     });
+//   }
+
+//   register(path: string, handler: () => void) {
+//     this.routes.set(path, handler);
+//   }
+
+//   navigate(path: string) {
+//     window.history.pushState({}, '', path);
+//     this.handleRoute(path);
+//   }
+
+//   private handleRoute(path: string) {
+// 	  document.body.innerHTML = '';
+//     const handler = this.routes.get(path);
+//     if (handler) {
+//       handler();
+//     }
+//     else {
+//       this.renderNotFound();
+//     }
+//   }
+
+//   // évite d’avoir tout le code 404 chargé si l’utilisateur ne tombe jamais sur cette page
+//   private renderNotFound() {
+//     import('../pages/NotFoundPage').then((module) => {
+//       module.renderNotFoundPage();
+//     });
+//   }
+
+//   start() {
+//     this.handleRoute(window.location.pathname || '/');
+//   }
+// }
+
+// export const router = new SimpleRouter();
 
 class SimpleRouter {
-  private routes: Map<string, () => void> = new Map();
+  private routes: { pattern: RegExp; paramNames: string[]; handler: (params: Record<string, string>) => void }[] = [];
 
-  constructor() {
-    window.addEventListener('popstate', () => {
-      this.handleRoute(window.location.pathname);
-    });
-  }
-
-  register(path: string, handler: () => void) {
-    this.routes.set(path, handler);
+  register(path: string, handler: (params?: Record<string, string>) => void) {
+    const paramNames: string[] = [];
+    const pattern = new RegExp('^' + path.replace(/:([^/]+)/g, (_, name) => {
+      paramNames.push(name);
+      return '([^/]+)';
+    }) + '$');
+    this.routes.push({ pattern, paramNames, handler });
   }
 
   navigate(path: string) {
@@ -23,17 +65,19 @@ class SimpleRouter {
   }
 
   private handleRoute(path: string) {
-	  document.body.innerHTML = '';
-    const handler = this.routes.get(path);
-    if (handler) {
-      handler();
+    document.body.innerHTML = '';
+    for (const { pattern, paramNames, handler } of this.routes) {
+      const match = pattern.exec(path);
+      if (match) {
+        const params: Record<string, string> = {};
+        paramNames.forEach((name, i) => params[name] = match[i + 1]);
+        handler(params);
+        return;
+      }
     }
-    else {
-      this.renderNotFound();
-    }
+    this.renderNotFound();
   }
 
-  // évite d’avoir tout le code 404 chargé si l’utilisateur ne tombe jamais sur cette page
   private renderNotFound() {
     import('../pages/NotFoundPage').then((module) => {
       module.renderNotFoundPage();

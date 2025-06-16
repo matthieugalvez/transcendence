@@ -78,15 +78,16 @@ export class CommonComponent {
 		return button;
 	}
 
-	static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'gray' = 'blue'): HTMLButtonElement {
-		const button = document.createElement('button');
-		button.textContent = text;
+static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'orange' | 'gray' = 'blue'): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.textContent = text;
 
 		const colorClasses = {
 			blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
 			purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
 			gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
-			red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300'
+			red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300',
+			orange: 'bg-orange-500 hover:bg-orange-700 focus:ring-orange-300',
 		};
 
 		button.className = `

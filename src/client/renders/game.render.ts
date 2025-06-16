@@ -1,134 +1,129 @@
-import '../styles.css';
-import { BackgroundComponent } from '../components/background.component';
-import { startPongInContainer, showGameOverOverlay } from './game/utils';
-import { SidebarComponent } from "../components/sidebar.component";
-import { UserService } from '../services/user.service';
-import { CommonComponent } from '../components/common.component';
-import { router } from '../configs/simplerouter';
+import { GameState } from '../types/game.types';
 
-export async function renderGamePage() {
-	// clean
-	document.body.innerHTML = '';
-
-	// creation page
-	document.title = 'Pong';
-
-	try {
-		// get user name - if this fails, we handle it in catch block
-		const user = await UserService.getCurrentUser();
-		const leftPlayer = user?.name || "Player 1";
-		const rightPlayer = "Player 2";
-		const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
-
-		// sidebar + gradiant bg
-		SidebarComponent.render({ userName: user.name, showStats: true, showBackHome: true, showSettings: true });
-		BackgroundComponent.applyNormalGradientLayout();
-
-		const wrapper = document.createElement('div');
-		wrapper.className = `
-      ml-60 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
-    `.replace(/\s+/g, ' ').trim();
-		document.body.appendChild(wrapper);
-
-		const gameContainer = document.createElement('div');
-		gameContainer.className = 'relative z-0';
-		wrapper.appendChild(gameContainer);
-
-		// initialise sans lancer
-		const gameId = Date.now().toString();
-		const pongHandle = startPongInContainer(
-			gameContainer,
-			matchTitle,
-			leftPlayer,
-			rightPlayer,
-			(winner) => {
-				showGameOverOverlay(gameContainer, winner, () => {
-					// Restart game logic
-					pongHandle.restart();
-				});
-			},
-			gameId
-		);
-
-		// Controls sous le jeu
-		const controls = document.createElement('div');
-		controls.className = 'absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-10';
-
-		const startBtn = CommonComponent.createStylizedButton('Start Game', 'green');
-		startBtn.onclick = () => pongHandle.start();
-		controls.appendChild(startBtn);
-
-		const pauseBtn = CommonComponent.createStylizedButton('Pause', 'yellow');
-		pauseBtn.onclick = () => pongHandle.pause();
-		controls.appendChild(pauseBtn);
-
-		const resetBtn = CommonComponent.createStylizedButton('Reset', 'red');
-		resetBtn.onclick = () => pongHandle.restart();
-		controls.appendChild(resetBtn);
-
-		const tourBtn = CommonComponent.createStylizedButton('Tournament', 'purple');
-		tourBtn.onclick = () => router.navigate('/tournament');
-		controls.appendChild(tourBtn);
-
-		wrapper.appendChild(controls);
-
-	} catch (error) {
-		console.error('Failed to fetch user data:', error);
-
-		// Show error and redirect to auth - same as SettingsRender
-		handleAuthError();
-	}
+// --- Fonctions utilitaires de dessin ---
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  borderColor?: string,
+  borderWidth: number = 4
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+  if (borderColor) {
+    ctx.save();
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
-/**
- * Handle authentication error - same as SettingsRender.handleAuthError
- */
-function handleAuthError(): void {
-	// Clear any existing content first
-	document.body.innerHTML = '';
+function drawBackground(ctx: CanvasRenderingContext2D) {
+  const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, ctx.canvas.height);
+  gradient.addColorStop(0, "#8136c2");   // violet
+  gradient.addColorStop(0.5, "#b946ef"); // magenta
+  gradient.addColorStop(1, "#ffb36c");   // orange
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
 
-	// Apply background
-	BackgroundComponent.applyCenteredGradientLayout();
+function drawCenterLine(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = '#FFA940';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 18]);
+  ctx.beginPath();
+  ctx.moveTo(ctx.canvas.width / 2, 0);
+  ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
 
-	// Show error message and redirect to auth
-	const errorContainer = document.createElement('div');
-	errorContainer.className = `
-      bg-white/90 backdrop-blur-md
-      border-2 border-red-500
-      rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-      max-w-lg w-full mx-4 text-center
-    `.replace(/\s+/g, ' ').trim();
+function drawPaddle(ctx: CanvasRenderingContext2D, rect, color, borderColor) {
+  ctx.save();
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = color;
+  drawRoundedRect(ctx, rect.x, rect.y, rect.width, rect.height, 5, borderColor, 1.5);
+  ctx.restore();
+}
 
-	const errorIcon = document.createElement('div');
-	errorIcon.textContent = '🔒';
-	errorIcon.className = 'text-4xl mb-4';
+function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) {
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
 
-	const errorTitle = document.createElement('h2');
-	errorTitle.textContent = 'Authentication Required';
-	errorTitle.className = `
-        font-['Canada-big'] uppercase font-bold
-        text-2xl text-center mb-2
-        text-red-600
-        select-none
-    `.replace(/\s+/g, ' ').trim();
+function drawScores(ctx: CanvasRenderingContext2D, score1: number, score2: number) {
+  ctx.save();
+  ctx.font = '80px Canada-big';
 
-	const errorText = document.createElement('p');
-	errorText.textContent = 'You need to be logged in to play games.';
-	errorText.className = 'text-red-600 font-semibold mb-6';
+  const xCenter = ctx.canvas.width / 2;
+  const score1Text = score1.toString();
+  const score2Text = score2.toString();
+  const score1Width = ctx.measureText(score1Text).width;
+  const gap = 60;
+  const y = 90;
 
-	const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
-	loginButton.addEventListener('click', () => {
-		router.navigate('/auth');
-	});
+  // Score gauche
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = '#8024ab';
+  ctx.shadowBlur = 18;
+  ctx.strokeStyle = 'purple';
+  ctx.lineWidth = 3;
+  ctx.strokeText(score1Text, xCenter - gap - score1Width, y);
+  ctx.fillText(score1Text, xCenter - gap - score1Width, y);
 
-	errorContainer.appendChild(errorIcon);
-	errorContainer.appendChild(errorTitle);
-	errorContainer.appendChild(errorText);
-	errorContainer.appendChild(loginButton);
-	document.body.appendChild(errorContainer);
+  // Score droit
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = '#FFA940';
+  ctx.shadowBlur = 18;
+  ctx.strokeStyle = '#db8e30';
+  ctx.lineWidth = 2;
+  ctx.strokeText(score2Text, xCenter + gap, y);
+  ctx.fillText(score2Text, xCenter + gap, y);
 
-	// Auto-redirect after 3 seconds
-	setTimeout(() => {
-		router.navigate('/auth');
-	}, 3000);
+  ctx.restore();
+}
+
+// --- Fonction principale de rendu ---
+export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): void {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  drawBackground(ctx);
+  drawCenterLine(ctx);
+  drawPaddle(ctx, state.paddle1, "#FFA940", "#ffc56e");
+  drawPaddle(ctx, state.paddle2, "#B946EF", "#d579fc");
+  drawBall(ctx, state.ball.x, state.ball.y, state.ball.radius);
+  drawScores(ctx, state.score1, state.score2);
+
+  // Affichage de "Paused" si jeu en pause
+  if (state.isPaused) {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, ctx.canvas.height / 2 - 60, ctx.canvas.width, 120);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#FFF";
+    ctx.font = "70px Orbitron, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PAUSED", ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
+    ctx.restore();
+  }
 }

@@ -17,3 +17,6 @@ data/
 # .env
 # .env.local
 # .env.*.local
+
+# mac variables
+.DS_Store
