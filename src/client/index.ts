@@ -10,6 +10,7 @@ import { renderTournamentPage } from './pages/TournamentPage';
 import { RenderHomePage } from './pages/HomePage';
 import { OnboardingPage  } from './pages/OnboardingPage';
 import { oauth2FAPage } from './pages/OAuth2FAPage';
+import { renderJoinPage } from './pages/JoinPage';
 
 function startSPA() {
     router.register('/', renderIndexPage);
@@ -19,6 +20,7 @@ function startSPA() {
     router.register('/game', renderPongGamePage);
     router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
+    router.register('/game/online/:gameId', renderJoinPage);
     router.start();
 }
 

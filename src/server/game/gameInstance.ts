@@ -1,6 +1,7 @@
 import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
-
+import { removeGameRoom } from './gameRooms';
+ 
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -30,7 +31,8 @@ export class GameInstance {
     private score2: number = 0;
     private readonly maxScore: number = 5;
     // List of connected websockets(players)
-    private players: Set<WebSocket> = new Set();
+    private spectators: Set<WebSocket> = new Set();
+    private playerSockets: { [playerId: number]: WebSocket | null } = { 1: null, 2: null };
     // Tick interval
     private intervalHandle?: NodeJS.Timeout;
     // Parameters that won't change
@@ -52,12 +54,33 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addPlayer(ws: WebSocket) {
-        this.players.add(ws);
+    public addClient(ws: WebSocket): number | 'spectator' {
+        // Déjà un joueur 1 ? Si non, c'est lui.
+        if (!this.playerSockets[1]) {
+            this.playerSockets[1] = ws;
+            this.setupDisconnect(ws, 1);
+            return 1;
+        }
+        // Sinon, joueur 2.
+        if (!this.playerSockets[2]) {
+            this.playerSockets[2] = ws;
+            this.setupDisconnect(ws, 2);
+            return 2;
+        }
+        // Ajout spectateur
+        this.spectators.add(ws);
         ws.on('close', () => {
-            this.players.delete(ws);
-            if (this.players.size === 0) {
+            this.spectators.delete(ws);
+            // (optionnel) : check si plus personne = destroy ?
+        });
+        return 'spectator';
+    }
+    private setupDisconnect(ws: WebSocket, id: number) {
+        ws.on('close', () => {
+            this.playerSockets[id] = null;
+            if (!this.playerSockets[1] && !this.playerSockets[2]) {
                 this.destroy();
+                removeGameRoom(this.gameId);
             }
         });
     }
@@ -233,10 +256,16 @@ export class GameInstance {
     private broadcastState(isRunning: boolean) {
         const state = this.buildState(isRunning);
         const message = JSON.stringify(state);
-        this.players.forEach((ws) => {
-        if (ws.readyState === ws.OPEN) {
-            ws.send(message);
-        }
+        // this.players.forEach((ws) => {
+        // if (ws.readyState === ws.OPEN) {
+        //     ws.send(message);
+        // }
+        // });
+        Object.values(this.playerSockets).forEach(ws => {
+            if (ws && ws.readyState === ws.OPEN) ws.send(message);
+        });
+        this.spectators.forEach(ws => {
+            if (ws.readyState === ws.OPEN) ws.send(message);
         });
     }
     // place ball in center after a point and randomly change direction

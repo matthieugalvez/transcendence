@@ -98,7 +98,8 @@ export class GameSettingsComponent {
             localBtn.onclick = () => GameSettingsComponent.render('duo-local', callbacks);
 
             const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
-            onlineBtn.onclick = () => GameSettingsComponent.render('duo-online', callbacks);
+            onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
+            // onlineBtn.onclick = () => GameSettingsComponent.render('duo-online', callbacks);
 
             chooseMode.appendChild(localBtn);
             chooseMode.appendChild(onlineBtn);

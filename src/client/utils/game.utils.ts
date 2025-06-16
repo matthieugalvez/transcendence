@@ -16,30 +16,53 @@ function createGameWebSocket(
   leftPlayer: string,
   rightPlayer: string,
   onFinish: FinishCallback
-): WebSocket {
+) {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
+  // const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
+  const port = 3000;
+  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
   const socket = new WebSocket(socketUrl);
 
+  let playerId = null;
+  let isSpectator = false;
   let wasRunning = false;
   let wasPaused = false;
-  socket.addEventListener('message', (event) => {
-    const state: GameState = JSON.parse(event.data);
-    renderGame(ctx, state);
 
-    if (wasRunning && !state.isRunning && !state.isPaused) {
-      const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
-      setTimeout(() => onFinish(winnerAlias), 150);
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'playerId') {
+        playerId = data.playerId;
+        isSpectator = (playerId === 'spectator');
+        // Ici, affiche overlay ou message spectateur si tu veux
+        return;
+      }
+      // Sinon c'est un GameState
+      const state = data;
+      renderGame(ctx, state);
+
+      if (wasRunning && !state.isRunning && !state.isPaused) {
+        const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
+        setTimeout(() => onFinish(winnerAlias), 150);
+      }
+      wasRunning = state.isRunning;
+      wasPaused = state.isPaused;
+    } catch (err) {
+      // message inconnu, tu peux log
     }
-    wasRunning = state.isRunning;
-    wasPaused = state.isPaused;
   });
 
   socket.addEventListener('close', () => {
-    console.warn('WebSocket fermé pour gameId=', gameId);
+    alert("La partie est terminée, inaccessible, ou pleine.");
+    window.location.reload();
   });
 
-  return socket;
+  // Expose ces méthodes pour le reste du code
+  return {
+    socket,
+    getPlayerId: () => playerId,
+    isSpectator: () => isSpectator,
+  };
 }
 
 // --- Clavier handler ---
@@ -59,9 +82,12 @@ function setupKeyboardHandlers(
 function startClientInputLoop(
   socket: WebSocket,
   keysPressed: Record<string, boolean>,
+  getPlayerId
 ) {
   function frame() {
-    if (socket.readyState === WebSocket.OPEN) {
+    // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+    const pId = getPlayerId();
+    if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
       if (keysPressed['KeyW']) {
         socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
       } else if (keysPressed['KeyS']) {
@@ -73,10 +99,11 @@ function startClientInputLoop(
         socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
       }
     }
-    requestAnimationFrame(frame);
+    requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
   }
   requestAnimationFrame(frame);
 }
+
 
 // --- Création du jeu et intégration au DOM ---
 export function startPongInContainer(
@@ -104,17 +131,19 @@ export function startPongInContainer(
   if (!ctx) throw new Error('Impossible de récupérer le context 2D');
 
   // WebSocket
-  const socket = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
+  // const socket = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
+  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
+  const { socket, getPlayerId, isSpectator } = wsHandler;
 
   // Gestion clavier différée (pas avant .start())
   let keyboardHandlerStarted = false;
   const keysPressed: Record<string, boolean> = {};
 
   function start() {
-    if (!keyboardHandlerStarted) {
+    if (!keyboardHandlerStarted && !isSpectator()) {
       title.textContent = matchTitle;
       setupKeyboardHandlers(socket, keysPressed);
-      startClientInputLoop(socket, keysPressed);
+      startClientInputLoop(socket, keysPressed, getPlayerId);
       keyboardHandlerStarted = true;
     }
     if (socket.readyState === WebSocket.OPEN) {
@@ -174,6 +203,10 @@ export function showGameOverOverlay(
 }
 
 // peut etre a mettre ailleurs
-export function getShareableLink(gameId) {
-  return `${window.location.origin}/game?gameId=${gameId}`;
+// export function getShareableLink(gameId) {
+//   return `${window.location.origin}/game?gameId=${gameId}`;
+// }
+export function getShareableLink(gameId: string) {
+  return `${window.location.origin}/game/online/${gameId}`;
 }
+
