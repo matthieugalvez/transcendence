@@ -170,62 +170,62 @@ export class GameInstance {
         this.broadcastState(true);
     }
 
-    private moveBall() {
-        const dt = 1 / 60;
-        this.ballPos.x += this.ballVel.vx * dt;
-        this.ballPos.y += this.ballVel.vy * dt;
+	private moveBall() {
+		const dt = 1 / 60;
+		this.ballPos.x += this.ballVel.vx * dt;
+		this.ballPos.y += this.ballVel.vy * dt;
 
-        // Rebond sur le plafond
-        if (this.ballPos.y - this.ballRadius <= 0) {
-            this.ballPos.y = this.ballRadius;
-            this.ballVel.vy = -this.ballVel.vy;
-        }
-        // Rebond sur le sol
-        if (this.ballPos.y + this.ballRadius >= this.canvasHeight) {
-            this.ballPos.y = this.canvasHeight - this.ballRadius;
-            this.ballVel.vy = -this.ballVel.vy;
-        }
-    }
+		// Rebond sur le plafond
+		if (this.ballPos.y - this.ballRadius <= 0) {
+			this.ballPos.y = this.ballRadius;
+			this.ballVel.vy = -this.ballVel.vy;
+		}
+		// Rebond sur le sol
+		if (this.ballPos.y + this.ballRadius >= this.canvasHeight) {
+			this.ballPos.y = this.canvasHeight - this.ballRadius;
+			this.ballVel.vy = -this.ballVel.vy;
+		}
+	}
 
-    private checkCollisions() {
-        // Collision avec paddle1
-        if (
-        this.ballPos.x - this.ballRadius <= this.paddle1Pos.x + this.paddleWidth &&
-        this.ballPos.x + this.ballRadius >= this.paddle1Pos.x &&
-        this.ballPos.y + this.ballRadius >= this.paddle1Pos.y &&
-        this.ballPos.y - this.ballRadius <= this.paddle1Pos.y + this.paddleHeight
-        ) {
-            this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
-            this.ballVel.vx = -this.ballVel.vx;
-        }
-        // Collision avec paddle2
-        if (
-        this.ballPos.x + this.ballRadius >= this.paddle2Pos.x &&
-        this.ballPos.x - this.ballRadius <= this.paddle2Pos.x + this.paddleWidth &&
-        this.ballPos.y + this.ballRadius >= this.paddle2Pos.y &&
-        this.ballPos.y - this.ballRadius <= this.paddle2Pos.y + this.paddleHeight
-        ) {
-            this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
-            this.ballVel.vx = -this.ballVel.vx;
-        }
-    }
+	private checkCollisions() {
+		// Collision avec paddle1
+		if (
+			this.ballPos.x - this.ballRadius <= this.paddle1Pos.x + this.paddleWidth &&
+			this.ballPos.x + this.ballRadius >= this.paddle1Pos.x &&
+			this.ballPos.y + this.ballRadius >= this.paddle1Pos.y &&
+			this.ballPos.y - this.ballRadius <= this.paddle1Pos.y + this.paddleHeight
+		) {
+			this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
+			this.ballVel.vx = -this.ballVel.vx;
+		}
+		// Collision avec paddle2
+		if (
+			this.ballPos.x + this.ballRadius >= this.paddle2Pos.x &&
+			this.ballPos.x - this.ballRadius <= this.paddle2Pos.x + this.paddleWidth &&
+			this.ballPos.y + this.ballRadius >= this.paddle2Pos.y &&
+			this.ballPos.y - this.ballRadius <= this.paddle2Pos.y + this.paddleHeight
+		) {
+			this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
+			this.ballVel.vx = -this.ballVel.vx;
+		}
+	}
 
-    private checkScoreAndReset() {
-        if (this.ballPos.x - this.ballRadius <= 0) {
-            this.score2++;
-            this.resetBall();
-        } else if (this.ballPos.x + this.ballRadius >= this.canvasWidth) {
-            this.score1++;
-            this.resetBall();
-        }
-    }
+	private checkScoreAndReset() {
+		if (this.ballPos.x - this.ballRadius <= 0) {
+			this.score2++;
+			this.resetBall();
+		} else if (this.ballPos.x + this.ballRadius >= this.canvasWidth) {
+			this.score1++;
+			this.resetBall();
+		}
+	}
 
-    private checkEndOfGame(): boolean {
-        if (this.score1 >= this.maxScore || this.score2 >= this.maxScore) {
-            return true;
-        }
-        return false;
-    }
+	private checkEndOfGame(): boolean {
+		if (this.score1 >= this.maxScore || this.score2 >= this.maxScore) {
+			return true;
+		}
+		return false;
+	}
 
     private buildState(isRunning: boolean): GameState & { connectedPlayers: number[], playerNames?: { 1: string, 2: string } } {
         return {

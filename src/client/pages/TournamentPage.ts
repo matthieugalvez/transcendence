@@ -58,8 +58,8 @@ export async function renderTournamentPage() {
     ml-40 w-[calc(100%-15rem)] min-h-screen
     flex items-center justify-center
     p-8 relative
-  `.replace(/\s+/g,' ').trim();
-  document.body.appendChild(wrapper);
+  `.replace(/\s+/g, ' ').trim();
+		document.body.appendChild(wrapper);
 
   // Canvas de fond inactif (juste le visuel)
   const canvasContainer = document.createElement('div');

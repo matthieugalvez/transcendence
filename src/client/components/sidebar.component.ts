@@ -7,13 +7,14 @@ export interface SidebarOptions {
   userName: string;
   avatarUrl?: string;
   showStats?: boolean;
+  showSettings?: boolean;
   showBackHome?: boolean;
 }
 
 export class SidebarComponent {
   static render(opts: SidebarOptions): HTMLDivElement {
-    const { userName, avatarUrl, showStats = false, showBackHome = false } = opts;
-    const sidebar = document.createElement("nav") as HTMLDivElement;
+    const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false } = opts;
+    const sidebar = document.createElement("nav");
     sidebar.className = `
         fixed left-10 top-10 h-[90%] w-80
         bg-blue-950/70 backdrop-blur-2xl
@@ -94,11 +95,15 @@ export class SidebarComponent {
         });
         bottomContainer.appendChild(backButton);
     }
-    const settingBtn = CommonComponent.createStylizedButton("Settings", "purple");
-    settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
-    settingBtn.addEventListener("click", async () => {
-    setTimeout(() => router.navigate("/settings"), 300);
-    });
+	if (showSettings) {
+			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
+			settingBtn.addEventListener("click", async () => {
+			setTimeout(() => router.navigate("/settings"), 300);
+			});
+    bottomContainer.appendChild(settingBtn);
+
+	}
 
     // Logout button
     const logoutBtn = CommonComponent.createStylizedButton("Logout", "red");
@@ -110,7 +115,6 @@ export class SidebarComponent {
             setTimeout(() => router.navigate("/auth"), 300);
         }
     });
-    bottomContainer.appendChild(settingBtn);
     bottomContainer.appendChild(logoutBtn);
     sidebar.appendChild(bottomContainer);
     document.body.appendChild(sidebar);
