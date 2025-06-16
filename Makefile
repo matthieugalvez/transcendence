@@ -73,6 +73,7 @@ db-studio:
 
 # Development helpers
 restart: clean build-dev
+	npm cache clean --force
 
 # Show what will be cleaned (dry run)
 clean-preview:

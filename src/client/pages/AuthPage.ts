@@ -5,7 +5,7 @@ import { AuthComponent } from '../components/auth.component';
 import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component';
 
-let nameInput: HTMLInputElement;
+let emailInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;
 let signupButton: HTMLButtonElement;
 let loginButton: HTMLButtonElement;
@@ -35,7 +35,7 @@ export async function authPage(): Promise<void> {
 	// Render the page and get form elements
 	const formElements = AuthRender.renderSignupPage();
 
-	nameInput = formElements.nameInput;
+	emailInput = formElements.emailInput;
 	passwordInput = formElements.passwordInput;
 	signupButton = formElements.signupButton;
 	loginButton = formElements.loginButton;
@@ -44,7 +44,7 @@ export async function authPage(): Promise<void> {
 	setupEventListeners();
 
 	// Focus on name input
-	nameInput.focus();
+	emailInput.focus();
 }
 
 /**
@@ -60,17 +60,29 @@ function setupEventListeners(): void {
  * Handle signup button click - includes navigation logic
  */
 async function onSignupClick(): Promise<void> {
-	const name = nameInput.value.trim();
+	const email = emailInput.value.trim();
 	const password = passwordInput.value.trim();
 
-	if (!AuthComponent.validateInput(name, password)) {
+	if (!AuthComponent.validateInput(email, password)) {
 		return;
 	}
 
-	const success = await AuthComponent.signupUser(name, password);
+	// DEPRECATED FOR UX FLOW Better to ask once the account is created, need to check on all pages.
+	// Show display name modal BEFORE creating user
+	// const displayName = await AuthRender.showDisplayNameModal(false);
+
+	// if (!displayName) {
+	//     // User cancelled, no account is created
+	//     CommonComponent.showMessage('⚠️ Account creation cancelled', 'warning');
+	//     return;
+	// }
+
+	// Now create user with display name in one step
+	const success = await AuthComponent.signupUser(email, password);
+	//const success = await AuthComponent.signupUserWithDisplayName(name, password, displayName);
 
 	if (success) {
-		// Page-level navigation logic
+		// Navigate to home after successful signup
 		setTimeout(() => {
 			router.navigate('/home');
 		}, 500);
@@ -78,42 +90,42 @@ async function onSignupClick(): Promise<void> {
 }
 
 async function onLoginClick(): Promise<void> {
-    const name = nameInput.value.trim();
-    const password = passwordInput.value.trim();
+	const email = emailInput.value.trim();
+	const password = passwordInput.value.trim();
 
-    if (!AuthComponent.validateInput(name, password)) {
-        return;
-    }
+	if (!AuthComponent.validateInput(email, password)) {
+		return;
+	}
 
-    let loginResponse = await AuthComponent.loginUser(name, password);
+	let loginResponse = await AuthComponent.loginUser(email, password);
 
-    if (
-        loginResponse &&
-        (loginResponse.error === '2FA Code is missing' || loginResponse.error === 'Invalid 2FA Code')
-    ) {
-        let initialError = loginResponse.error === '2FA Code is missing' ? loginResponse.error : undefined;
-        await AuthRender.show2FAModal(async (code, setError) => {
-            const response = await AuthComponent.loginUser(name, password, code);
-            if (response && response.success) {
-                CommonComponent.showMessage('✅ ' + (response.message || 'Login successful'), 'success');
-                setTimeout(() => {
-                    router.navigate('/home');
-                }, 500);
-                return true; // Close modal
-            } else if (response && response.error) {
-                setError(response.error);
-                return false;
-            }
-            return false;
-        }, initialError);
-    } else if (loginResponse && loginResponse.success) {
-        CommonComponent.showMessage('✅ ' + (loginResponse.message || 'Login successful'), 'success');
-        setTimeout(() => {
-            router.navigate('/home');
-        }, 500);
-    } else if (loginResponse && loginResponse.error) {
-        CommonComponent.showMessage(`❌ ${loginResponse.error}`, 'error');
-    }
+	if (
+		loginResponse &&
+		(loginResponse.error === '2FA Code is missing' || loginResponse.error === 'Invalid 2FA Code')
+	) {
+		let initialError = loginResponse.error === '2FA Code is missing' ? loginResponse.error : undefined;
+		await AuthRender.show2FAModal(async (code, setError) => {
+			const response = await AuthComponent.loginUser(email, password, code);
+			if (response && response.success) {
+				CommonComponent.showMessage('✅ ' + (response.message || 'Login successful'), 'success');
+				setTimeout(() => {
+					router.navigate('/home');
+				}, 500);
+				return true; // Close modal
+			} else if (response && response.error) {
+				setError(response.error);
+				return false;
+			}
+			return false;
+		}, initialError);
+	} else if (loginResponse && loginResponse.success) {
+		CommonComponent.showMessage('✅ ' + (loginResponse.message || 'Login successful'), 'success');
+		setTimeout(() => {
+			router.navigate('/home');
+		}, 500);
+	} else if (loginResponse && loginResponse.error) {
+		CommonComponent.showMessage(`❌ ${loginResponse.error}`, 'error');
+	}
 }
 
 

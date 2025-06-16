@@ -5,15 +5,27 @@ import qrcode from 'qrcode'
 
 
 export class AuthService {
-	static async createUser(name: string, password: string) {
+	static async createUser(email: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
 
 		return await prisma.user.create({
 			data: {
-				name: name.trim(),
+				email: email.toLowerCase().trim(),
+				displayName: '',
 				password_hash
 			}
 		})
+	}
+
+	static async createGoogleUserPending(email: string, defaultName: string) {
+		return await prisma.user.create({
+			data: {
+				email: email,
+				displayName: null, // Will be set during setup
+				password_hash: '', // No password for Google users
+				provider: 'google'
+			}
+		});
 	}
 
 	/**
@@ -29,11 +41,11 @@ export class AuthService {
 	/**
 	 * Verify user credentials and return user if valid
 	 */
-	static async verifyUser(name: string, password: string) {
+	static async verifyUser(email: string, password: string) {
 		try {
 			// Get the user by name
 			const user = await prisma.user.findUnique({
-				where: { name }
+				where: { email: email.toLocaleLowerCase().trim() }
 			})
 
 			// If user doesn't exist
@@ -134,8 +146,8 @@ export class AuthService {
 		// Create user without password since they login via Google
 		const user = await prisma.user.create({
 			data: {
-				name: email, // Use email as username
-				displayName: displayName || email,
+				email: email.toLocaleLowerCase().trim(), // Use email as username
+				displayName: '',
 				password_hash: '', // Empty for OAuth users
 				provider: 'google'
 			}
