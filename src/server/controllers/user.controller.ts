@@ -10,7 +10,7 @@ export class UserController {
 			const userData = {
 				users: users.map(user => ({
 					id: user.id,
-					name: user.name,
+					name: user.email,
 					displayName: user.displayName,
 					created_at: user.created_at,
 					updated_at: user.updated_at
@@ -56,7 +56,7 @@ export class UserController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
+				name: user.email,
 				displayName: user.displayName,
 				avatar: user.avatar,
 				created_at: user.created_at,
@@ -95,7 +95,7 @@ export class UserController {
 
 			const userData = {
 				id: updatedUser.id,
-				name: updatedUser.name,
+				name: updatedUser.email,
 				displayName: updatedUser.displayName,
 				created_at: updatedUser.created_at,
 				updated_at: updatedUser.updated_at

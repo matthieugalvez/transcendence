@@ -1,21 +1,32 @@
 import { prisma } from '../db'
-import { User } from '@prisma/client'
-import { ChatSession } from '@prisma/client'
 
 export class ChatService {
-
-	static async	createChat(u1_id: number, u2_id: number) {
-		return await prisma.user.create({
+	static async	createMessage(sender_id: number, reciever_id: number, content: string) {
+		return await prisma.message.create({
 			data: {
-				u1_id,
-				u2_id
+				sender_id,
+				reciever_id,
+				content
 			}
+		});
+	}
+
+	static async	editMessage(id: number, content: string) {
+		return await prisma.message.update({
+			where: { id },
+			data: { content }
 		})
 	}
 
-	static async	getChatbyId(id: number) {
-		return await prisma.chatsession.findUnique({
-			where: { id }
+	static async	getSendMessages(sender_id: number) {
+		return await prisma.message.findMany({
+			where: { sender_id }
+		})
+	}
+
+	static async	getRecievedMessages(reciever_id: number) {
+		return await prisma.message.findMany({
+			where: { reciever_id }
 		})
 	}
 }

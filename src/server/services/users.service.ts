@@ -22,7 +22,7 @@ export class UserService {
 		return await prisma.user.findMany({
 			select: {
 				id: true,
-				name: true,
+				email: true,
 				displayName: true,
 				created_at: true,
 				updated_at: true
@@ -104,23 +104,5 @@ export class UserService {
     });
 
     return user?.avatar || null;
-}
-	static async getChatSession(UserId: number, OtherId: number) {
-		try {
-			return await prisma.user.findUnique({
-				select: {
-					chatsessions: {
-						OR: [
-							{ u1_id: OtherId },
-							{ u2_id: OtherId },
-						],
-					},
-				}
-			})
-		}
-		catch (error) {
-			console.error('Error finding chat session:', error);
-			throw error;
-		}
 	}
 }

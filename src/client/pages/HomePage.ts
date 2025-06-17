@@ -4,7 +4,7 @@ import { SidebarComponent } from "../components/sidebar.component";
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { AuthRender } from '../renders/auth.render';
+//import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
 
 

@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
 
-
 export class AuthService {
 	static async createUser(email: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
@@ -92,7 +91,7 @@ export class AuthService {
 		}
 
 		const issuer = 'Transcendence';
-		const label = `${issuer}:${user.name}`;
+		const label = `${issuer}:${user.displayName}`;
 		const secret = speakeasy.generateSecret({
 			name: label,
 			issuer: issuer,
@@ -147,7 +146,7 @@ export class AuthService {
 		const user = await prisma.user.create({
 			data: {
 				email: email.toLocaleLowerCase().trim(), // Use email as username
-				displayName: '',
+				displayName,
 				password_hash: '', // Empty for OAuth users
 				provider: 'google'
 			}

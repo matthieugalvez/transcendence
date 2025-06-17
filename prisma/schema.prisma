@@ -7,45 +7,35 @@ datasource db {
   url      = "file:./transcendence.db"
 }
 
-model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  displayName   String?
-  password_hash String
-  provider      String   @default("local") // "local" or "google"
-  refreshToken  String?
-  twoFAEnabled  Boolean  @default(false)
-  twoFASecret   String?
-  avatar		String	@default("./db/users/default")
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  // Relations
-  chatsessions ChatSession[]
-
-  @@map("users")
-}
-
-model	ChatSession {
+model	User {
 	id				Int			@id @default(autoincrement())
-	u1_id			Int
-	u1_last_fetch	DateTime	@default(@date(0))
-	u2_id			Int
-	u2_last_fetch	DateTime	@default(@date(0))
+	email			String		@unique
+	displayName		String?
+	password_hash	String
+	provider		String		@default("local") // "local" or "google"
+	refreshToken	String?
+	twoFAEnabled	Boolean		@default(false)
+	twoFASecret		String?
+	avatar			String		@default("./db/users/default")
 	created_at		DateTime	@default(now())
 	updated_at		DateTime	@updatedAt
 
-	// Relations
-	messages		Message[]
+	messages_send		Message[]	@relation("sender")
+	messages_recieved	Message[]	@relation("reciever")
 
-	@@map("chat_sessions")
+	@@map("users")
 }
 
 model	Message {
 	id			Int			@id @default(autoincrement())
-	session_id	Int
 	sender_id	Int
 	reciever_id	Int
 	created_at	DateTime	@default(now())
+	updated_at	DateTime	@updatedAt
 	content		String
+
+	sender		User	@relation("sender", fields: [sender_id], references: [id])
+	reciever	User	@relation("reciever", fields: [reciever_id], references: [id])
+
+	@@map("messages")
 }

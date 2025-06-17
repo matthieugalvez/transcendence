@@ -20,7 +20,7 @@ function startSPA() {
     router.register('/game', renderPongGamePage);
     router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
-	router.register('/game/online/:gameId', renderJoinPage);
+	router.register('/game/online/:gameId', renderJoinPage());
     router.start();
 }
 
