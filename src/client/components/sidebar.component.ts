@@ -11,7 +11,7 @@ export interface SidebarOptions {
 }
 
 export class SidebarComponent {
-  static render(opts: SidebarOptions): HTMLDivElement {
+  static render(opts: SidebarOptions) {
     const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false } = opts;
     const sidebar = document.createElement("nav");
     sidebar.className = `

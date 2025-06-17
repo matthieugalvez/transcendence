@@ -16,7 +16,7 @@ let isrendered = true;
 async function getUsername() {
   try {
     const user = await UserService.getCurrentUser();
-    return user?.name || "";
+    return user?.displayName || "";
   } catch {
     return "";
   }
@@ -44,7 +44,7 @@ export async function renderJoinPage(params: { gameId: string }) {
   // Only render UI if user is authenticated
   try {
   AuthComponent.checkAndHandleDisplayName();
-  SidebarComponent.render({ userName: user?.displayName || '', showStats: false, showBackHome: true });
+  SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
   BackgroundComponent.applyNormalGradientLayout();
   } catch(error) {
 	CommonComponent.handleAuthError();
@@ -63,13 +63,13 @@ export async function renderJoinPage(params: { gameId: string }) {
   const myUsername = await getUsername();
 
   // --- Etats de la partie ---
-  // let playerId: number | 'spectator' | null = null;
-  let hostUsername = '';
-  let guestUsername = '';
+  let playerId: number | 'spectator' | null = null;
+  let hostUsername = 'Player 1';
+  let guestUsername = 'Player 2';
 
-  let playerId: string | 'spectator' | null = null;
-  if (playerId === 1) hostUsername = user?.name;
-  if (playerId === 2) guestUsername = user?.name;
+  // let playerId: string | 'spectator' | null = null;
+  if (playerId === 1) hostUsername = user?.displayName;
+  if (playerId === 2) guestUsername = user?.displayName;
 
   // --- Attente de la websocket ---
   const matchTitle = `${hostUsername} vs ${guestUsername}`;

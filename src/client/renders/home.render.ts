@@ -16,7 +16,7 @@ export class HomeRender {
     try {
       const user = await UserService.getCurrentUser();
       // loader.remove();
-      this.renderMainContent(container, user.name);
+      this.renderMainContent(container, user.displayName);
     } catch {
       // loader.remove();
       this.handleAuthError(container);

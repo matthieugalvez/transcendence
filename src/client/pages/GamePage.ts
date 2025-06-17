@@ -93,6 +93,7 @@ export async function GamePageCheck() {
       // Only render sidebar and main content if authentication succeeds
       SidebarComponent.render({
         userName: user.displayName,
+        avatarUrl: user.avatar,
         showStats: true,
         showSettings: true,
         showBackHome: false
@@ -122,7 +123,7 @@ export async function renderPongGamePage() {
   const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
   // layout de base
-  SidebarComponent.render({ userName: user.name, showStats:true, showBackHome:true });
+  SidebarComponent.render({ userName: user.displayName, avatarUrl: user.avatar, showStats:true, showBackHome:true });
   BackgroundComponent.applyNormalGradientLayout();
   GameSettingsComponent.render('initial');
 
@@ -135,7 +136,7 @@ export async function renderPongGamePage() {
   const previewImg = document.createElement('img');
   previewImg.src = '../assets/gameimg/screen-pongGame.png';
   previewImg.alt = 'Pong preview';
-  previewImg.className = 'rounded-md w-[800px] h-[610px] mt-15 opacity-70 blur-xs transition-all';
+  previewImg.className = 'w-[800px] h-[610px] mt-15 opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
   gameContainer.appendChild(previewImg);
 
   createGameControls(
