@@ -22,7 +22,7 @@ export class	ChatService {
 				throw new Error(received_data.error || 'Failed to get received messages');
 			}
 
-			return send_data && received_data;
+			return send_data.data.users && received_data.data.users;
 		}
 		catch (error) {
 			console.error('Error fetching messages:', error);
