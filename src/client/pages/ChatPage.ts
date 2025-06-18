@@ -12,7 +12,9 @@ export async function renderChatPage() {
 
 	let		user = await UserService.getCurrentUser();
 	ChatService.postMessage(user.id, 'test');
-	const	messages = ChatService.getAllMessages();
+	ChatService.editMessage(1, 'edit test');
+	const	messages = await ChatService.getAllMessages();
+	console.log(messages);
 //	const	send_box = document.createElement('div');
 //	send_box.className = 'container';
 }

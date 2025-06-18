@@ -12,7 +12,7 @@ export class	ChatController {
 			const messagesData = {
 				users: messages.map(message => ({
 					id: message.id,
-					sender_id: message.id,
+					sender_id: message.sender_id,
 					receiver_id: message.receiver_id,
 					created_at: message.created_at,
 					updated_at: message.updated_at,
@@ -38,7 +38,7 @@ export class	ChatController {
 			const messagesData = {
 				users: messages.map(message => ({
 					id: message.id,
-					sender_id: message.id,
+					sender_id: message.sender_id,
 					receiver_id: message.receiver_id,
 					created_at: message.created_at,
 					updated_at: message.updated_at,
@@ -72,10 +72,9 @@ export class	ChatController {
 
 	static async	editMessage(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const	messageId = ( request as any ).messageId;
-			const	{ content } = request.body as { content: string };
+			const	{ message_id, content } = request.body as { message_id: number, content: string };
 
-			const	Message = await ChatService.editMessage(messageId, content);
+			const	Message = await ChatService.editMessage(message_id, content);
 
 			return Send.success(reply, Message, 'Edited message successfully');
 		}

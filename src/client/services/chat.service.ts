@@ -22,7 +22,7 @@ export class	ChatService {
 				throw new Error(received_data.error || 'Failed to get received messages');
 			}
 
-			return send_data.data.messages && received_data.data.messages;
+			return send_data && received_data;
 		}
 		catch (error) {
 			console.error('Error fetching messages:', error);
@@ -63,8 +63,8 @@ export class	ChatService {
 	}
 
 	static async	editMessage(message_id: number, content: string): Promise<{	success: boolean,
-																					error?: string,
-																					details?: any[] }> {
+																				error?: string,
+																				details?: any[] }> {
 		try {
 			const	response = await ApiClient.authenticatedFetch('/api/chat/edit', {
 				method: 'POST',

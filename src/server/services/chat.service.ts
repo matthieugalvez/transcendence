@@ -14,7 +14,7 @@ export class ChatService {
 	static async	editMessage(id: number, content: string) {
 		return await prisma.message.update({
 			where: { id },
-			data: { content }
+			data: { content },
 		})
 	}
 
