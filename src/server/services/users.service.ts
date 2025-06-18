@@ -118,20 +118,41 @@ export class UserService {
 		}
 	}
 
-    static async searchUsers(query: string, limit: number = 10) {
-        return await prisma.user.findMany({
-            where: {
-                displayName: {
-                    contains: query
-                    // Remove mode: 'insensitive' since it's not supported for this field type
-                }
-            },
-            select: {
-                id: true,
-                displayName: true,
-                avatar: true
-            },
-            take: limit
-        });
-    }
+	static async searchUsers(query: string, limit: number = 10) {
+		return await prisma.user.findMany({
+			where: {
+				displayName: {
+					contains: query
+					// Remove mode: 'insensitive' since it's not supported for this field type
+				}
+			},
+			select: {
+				id: true,
+				displayName: true,
+				avatar: true
+			},
+			take: limit
+		});
+	}
+}
+
+// Online users management (outside the class)
+export namespace UserOnline {
+	const onlineUsers = new Map<string, WebSocket>();
+
+	export function addOnlineUser(userId: string, ws: WebSocket) {
+		onlineUsers.set(userId, ws);
+	}
+
+	export function removeOnlineUser(userId: string) {
+		onlineUsers.delete(userId);
+	}
+
+	export function isUserOnline(userId: string): boolean {
+		return onlineUsers.has(userId);
+	}
+
+	export function getOnlineUsers(): string[] {
+		return Array.from(onlineUsers.keys());
+	}
 }

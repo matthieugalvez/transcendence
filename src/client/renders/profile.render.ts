@@ -67,6 +67,24 @@ export class ProfileRender {
             bg-clip-text text-transparent mb-2
         `;
 
+		const statusDot = document.createElement('span');
+		statusDot.style.display = 'inline-block';
+		statusDot.style.width = '12px';
+		statusDot.style.height = '12px';
+		statusDot.style.borderRadius = '50%';
+		statusDot.style.background = 'gray';
+		statusDot.title = 'Checking status...';
+
+		UserService.checkUserOnline(user.id).then(isOnline => {
+			statusDot.style.background = isOnline ? 'green' : 'red';
+			statusDot.title = isOnline ? 'Online' : 'Offline';
+			    console.log(`User ${user.displayName || user.name} (${user.id}) is ${isOnline ? 'online' : 'offline'}`);
+
+		});
+
+		userInfo.appendChild(statusDot);
+
+
 		const username = document.createElement('p');
 		username.textContent = `@${user.displayName}`;
 		username.className = 'text-gray-600 text-lg mb-2';
@@ -130,84 +148,84 @@ export class ProfileRender {
 		return section;
 	}
 
-private static async createActionsSection(user: any): Promise<HTMLElement> {
-    const section = document.createElement('div');
-    section.className = 'border-t pt-6';
+	private static async createActionsSection(user: any): Promise<HTMLElement> {
+		const section = document.createElement('div');
+		section.className = 'border-t pt-6';
 
-    const title = document.createElement('h3');
-    title.textContent = 'Actions';
-    title.className = 'text-xl font-bold mb-4 text-gray-800';
+		const title = document.createElement('h3');
+		title.textContent = 'Actions';
+		title.className = 'text-xl font-bold mb-4 text-gray-800';
 
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'flex space-x-4';
+		const buttonContainer = document.createElement('div');
+		buttonContainer.className = 'flex space-x-4';
 
-    let status: string = 'none';
-    let requestId: string | undefined = undefined;
-    try {
-        const friendship = await UserService.getFriendshipStatus(user.id);
-        status = friendship.status;
-        requestId = friendship.requestId;
-    } catch (e) {}
+		let status: string = 'none';
+		let requestId: string | undefined = undefined;
+		try {
+			const friendship = await UserService.getFriendshipStatus(user.id);
+			status = friendship.status;
+			requestId = friendship.requestId;
+		} catch (e) { }
 
-    if (status === 'friends') {
-        const removeBtn = CommonComponent.createStylizedButton('Remove Friend', 'red');
-        removeBtn.onclick = async () => {
-            removeBtn.disabled = true;
-            removeBtn.textContent = 'Removing...';
-            try {
-                await UserService.removeFriend(user.id);
-                removeBtn.textContent = 'Removed';
-            } catch {
-                removeBtn.textContent = 'Remove Friend';
-                CommonComponent.showMessage('❌ Failed to remove friend', 'error');
-            } finally {
-                removeBtn.disabled = false;
-            }
-        };
-        buttonContainer.appendChild(removeBtn);
-    } else if (status === 'pending') {
-        const pendingBtn = CommonComponent.createStylizedButton('Request Pending', 'gray');
-        pendingBtn.disabled = true;
-        buttonContainer.appendChild(pendingBtn);
-    } else if (status === 'incoming' && requestId) {
-        const acceptBtn = CommonComponent.createStylizedButton('Accept Friend Request', 'blue');
-        acceptBtn.onclick = async () => {
-            acceptBtn.disabled = true;
-            acceptBtn.textContent = 'Accepting...';
-            try {
-                await UserService.acceptFriendRequest(requestId);
-                acceptBtn.textContent = 'Accepted!';
-            } catch {
-                acceptBtn.textContent = 'Accept Friend Request';
-                CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
-            } finally {
-                acceptBtn.disabled = false;
-            }
-        };
-        buttonContainer.appendChild(acceptBtn);
-    } else {
-        const addFriendBtn = CommonComponent.createStylizedButton('Add Friend', 'blue');
-        addFriendBtn.onclick = async () => {
-            addFriendBtn.disabled = true;
-            addFriendBtn.textContent = 'Sending...';
-            try {
-                await UserService.addFriend(user.id);
-                addFriendBtn.textContent = 'Request Sent!';
-            } catch {
-                addFriendBtn.textContent = 'Add Friend';
-                CommonComponent.showMessage('❌ Failed to send friend request', 'error');
-            } finally {
-                addFriendBtn.disabled = false;
-            }
-        };
-        buttonContainer.appendChild(addFriendBtn);
-    }
+		if (status === 'friends') {
+			const removeBtn = CommonComponent.createStylizedButton('Remove Friend', 'red');
+			removeBtn.onclick = async () => {
+				removeBtn.disabled = true;
+				removeBtn.textContent = 'Removing...';
+				try {
+					await UserService.removeFriend(user.id);
+					removeBtn.textContent = 'Removed';
+				} catch {
+					removeBtn.textContent = 'Remove Friend';
+					CommonComponent.showMessage('❌ Failed to remove friend', 'error');
+				} finally {
+					removeBtn.disabled = false;
+				}
+			};
+			buttonContainer.appendChild(removeBtn);
+		} else if (status === 'pending') {
+			const pendingBtn = CommonComponent.createStylizedButton('Request Pending', 'gray');
+			pendingBtn.disabled = true;
+			buttonContainer.appendChild(pendingBtn);
+		} else if (status === 'incoming' && requestId) {
+			const acceptBtn = CommonComponent.createStylizedButton('Accept Friend Request', 'blue');
+			acceptBtn.onclick = async () => {
+				acceptBtn.disabled = true;
+				acceptBtn.textContent = 'Accepting...';
+				try {
+					await UserService.acceptFriendRequest(requestId);
+					acceptBtn.textContent = 'Accepted!';
+				} catch {
+					acceptBtn.textContent = 'Accept Friend Request';
+					CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
+				} finally {
+					acceptBtn.disabled = false;
+				}
+			};
+			buttonContainer.appendChild(acceptBtn);
+		} else {
+			const addFriendBtn = CommonComponent.createStylizedButton('Add Friend', 'blue');
+			addFriendBtn.onclick = async () => {
+				addFriendBtn.disabled = true;
+				addFriendBtn.textContent = 'Sending...';
+				try {
+					await UserService.addFriend(user.id);
+					addFriendBtn.textContent = 'Request Sent!';
+				} catch {
+					addFriendBtn.textContent = 'Add Friend';
+					CommonComponent.showMessage('❌ Failed to send friend request', 'error');
+				} finally {
+					addFriendBtn.disabled = false;
+				}
+			};
+			buttonContainer.appendChild(addFriendBtn);
+		}
 
-    section.appendChild(title);
-    section.appendChild(buttonContainer);
+		section.appendChild(title);
+		section.appendChild(buttonContainer);
 
-    return section;
-}
+		return section;
+	}
 
 	private static createEditSection(): HTMLElement {
 		const section = document.createElement('div');

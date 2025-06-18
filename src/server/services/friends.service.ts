@@ -84,10 +84,10 @@ static async getFriendshipStatus(userId: string, otherUserId: string) {
             status = 'friends';
         } else if (friendship.status === 'PENDING') {
             if (friendship.senderId === userId) {
-                status = 'pending'; // You sent the request
+                status = 'pending';
                 requestId = friendship.id;
             } else if (friendship.receiverId === userId) {
-                status = 'incoming'; // You received the request
+                status = 'incoming';
                 requestId = friendship.id;
             }
         }

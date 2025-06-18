@@ -5,10 +5,18 @@ import { UserController } from '../controllers/user.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
+import { handleOnlineStatusWebsocket } from '../config/websocket.config'
+import ws from 'ws';
 
 const pump = promisify(pipeline);
 
 export default async function userRoutes(fastify: FastifyInstance) {
+	const server = fastify.server;
+	const wss = new ws.Server({ server });
+	wss.on('connection', (ws, req) => {
+		handleOnlineStatusWebsocket(ws, req);
+		// You can call other handlers here as needed
+	});
 
 	await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
@@ -61,5 +69,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.searchUsers);
 
-
+	fastify.get('/users/:userId/online', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, UserController.getOnlineStatus);
 }

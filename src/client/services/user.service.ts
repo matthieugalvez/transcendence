@@ -365,6 +365,21 @@ export class UserService {
 			{ method: 'PUT' }
 		);
 		const data = await response.json();
-		if (!data.success) throw new Error(data.error || 'Failed to accept friend request');
+		if (!data.success)
+			throw new Error(data.error || 'Failed to accept friend request');
+	}
+
+	static async checkUserOnline(userId: string): Promise<boolean> {
+		try {
+			const response = await ApiClient.authenticatedFetch(
+				`/api/users/${encodeURIComponent(userId)}/online`,
+				{ method: 'GET' }
+			);
+			const data = await response.json();
+			return !!data.online;
+		} catch (error) {
+			console.error('Error checking user online status:', error);
+			return false;
+		}
 	}
 }
