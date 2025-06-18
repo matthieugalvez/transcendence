@@ -65,6 +65,7 @@ export class GameInstance {
             this.playerSockets[1] = ws;
             this.playerNames[1] = username || "Player 1";
             this.setupDisconnect(ws, 1);
+            this.broadcastState(this.isRunning);
             return 1;
         }
         // Sinon, joueur 2.
@@ -72,6 +73,7 @@ export class GameInstance {
             this.playerSockets[2] = ws;
             this.playerNames[2] = username || "Player 2";
             this.setupDisconnect(ws, 2);
+            this.broadcastState(this.isRunning);
             return 2;
         }
         return null;
@@ -79,6 +81,7 @@ export class GameInstance {
     private setupDisconnect(ws: WebSocket, id: number) {
         ws.on('close', () => {
             this.playerSockets[id] = null;
+            this.broadcastState(this.isRunning);
             if (!this.playerSockets[1] && !this.playerSockets[2]) {
                 this.destroy();
                 removeGameRoom(this.gameId);
@@ -104,6 +107,11 @@ export class GameInstance {
     public start() {
         this.isRunning = true;
         this.resetBall();
+        if (this.pauseTimeoutHandle) {
+            clearTimeout(this.pauseTimeoutHandle);
+            this.pauseTimeoutHandle = null;
+        }
+        this.broadcastState(true);
     }
     // pause game
     public pause() {
@@ -136,7 +144,8 @@ export class GameInstance {
         this.playerSockets[+playerId] = ws;
         this.setupDisconnect(ws, +playerId);
         this.cancelPauseOnReconnect();
-        this.broadcastState(true);
+        // this.broadcastState(true);
+        this.broadcastState(this.isRunning);  
         // ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Waiting for host to restart the game." }));
         this.broadcastPlayerReconnected(+playerId);
         ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Game resumes." }));
@@ -311,11 +320,11 @@ export class GameInstance {
         if (this.pauseTimeoutHandle) {
             clearTimeout(this.pauseTimeoutHandle);
             this.pauseTimeoutHandle = null;
-            // this.isPaused = false;
         }
         if (this.playerSockets[1] && this.playerSockets[2]) {
             this.isPaused = false;
-            this.broadcastPause("Both players reconnected. Host can restart the game.");
+            // this.broadcastPause("Both players reconnected. Host can restart the game.");s
+            this.broadcastState(this.isRunning);
         }
         // this.broadcastPause("The other player is back. Waiting for the host to restart the game.");
     }

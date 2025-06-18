@@ -7,12 +7,14 @@ import { router } from "../configs/simplerouter";
 import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { hideOverlay } from '../utils/game.utils';
+import { resourceLimits } from 'worker_threads';
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
 let bothPlayersConnected = false;
 let isrendered = true;
 let hasHadDisconnection = false;
+let resumeAlertShown = false;
 
 // Nouvelle fonction utilitaire pour récupérer le username connecté
 async function getUsername() {
@@ -127,57 +129,31 @@ export async function renderJoinPage(params: { gameId: string }) {
         hasHadDisconnection = true;
       }
 
-      if (data.type === 'resume') {
-        hideOverlay();
-        // Remets le message qui explique que le host doit relancer la partie
-        // if (playerId === 1) { 
-        //   alert("The other player is back. Click Start Game to resume.");
-        //   renderSettingsBar(); // ou réappelle ta bar settings
-        // } else {
-        //   waiting.textContent = "Waiting for the host to restart the game...";
-        // }
-        return;
-      }
-
-      // if ("connectedPlayers" in data) {
-      //   bothPlayersConnected = data.connectedPlayers.length === 2;
-
-      //   if (bothPlayersConnected && !gameStarted && hasHadDisconnection) {
-      //     const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
-      //     if (canvas) canvas.classList.add('blur-xs');
-      //     if (playerId === 1) {
-      //       // Host : propose de relancer
-      //       alert("Both players are back. Click Start Game to continue.");
-      //       renderSettingsBar();
-      //     } else {
-      //       // Guest : attend le host
-      //       waiting.textContent = "Waiting for the host to restart the game...";
-      //     }
-      //   }
-      // }
-
-      if (data.type === 'playerReconnected') {
-        console.log(data.message); // Pour debug
-        bothPlayersConnected = true; // On sait que les deux sont revenus
-
-        if (data.playerId !== playerId) {
-          alert("The other player has reconnected. Click Start Game to resume.");
-          renderSettingsBar();
-        } else if (playerId === 2) {
-          waiting.textContent = "Waiting for the host to restart the game...";
-        }
-      }
-
-
-      // GameState envoyé par le serveur à chaque frame
       // On regarde si les deux joueurs sont connectés :
       if (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data) {
-        // Quand 2 joueurs sont connectés, le serveur commence à broadcast
         bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
-        if (data.connectedPlayers.length === 2 && isrendered == true) {
+
+        // SI les deux joueurs sont connectés ET il y a eu une déco
+        if (bothPlayersConnected && !gameStarted && hasHadDisconnection) {
+          const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
+          if (canvas) canvas.classList.add('blur-xs');
+          if (playerId === 1 && !resumeAlertShown) {
+            alert("Both players are back. Click Start Game to continue.");
+            renderSettingsBar();
+            resumeAlertShown = true;
+            hideOverlay();
+          } else {
+            waiting.textContent = "Waiting for the host to restart the game...";
+            hideOverlay();
+          }
+        }
+        
+        // rendu classique debut de partie
+        if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
           renderSettingsBar();
           isrendered = false;
         }
+
         // On met à jour le message d’attente
         if (playerId === 1 || playerId === 2) {
           waiting.textContent = data.isRunning
@@ -190,6 +166,8 @@ export async function renderJoinPage(params: { gameId: string }) {
             if (canvas) canvas.classList.remove('blur-xs');
             waiting.remove();
             gameStarted = true;
+            resumeAlertShown = false;
+            hideOverlay();
           }
         }
       }
