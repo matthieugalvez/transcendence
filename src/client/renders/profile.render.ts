@@ -2,6 +2,7 @@ import { CommonComponent } from '../components/common.component';
 import { UserComponent } from '../components/user.component';
 import { router } from '../configs/simplerouter';
 import { UserService } from '../services/user.service';
+import { WebSocketService } from '../services/websocket.service'
 
 export class ProfileRender {
 	static async renderProfileContent(user: any, isOwnProfile: boolean): Promise<void> {
@@ -75,12 +76,12 @@ export class ProfileRender {
 		statusDot.style.background = 'gray';
 		statusDot.title = 'Checking status...';
 
-		UserService.checkUserOnline(user.id).then(isOnline => {
-			statusDot.style.background = isOnline ? 'green' : 'red';
-			statusDot.title = isOnline ? 'Online' : 'Offline';
-			    console.log(`User ${user.displayName || user.name} (${user.id}) is ${isOnline ? 'online' : 'offline'}`);
 
-		});
+		// Get initial status synchronously
+		const isOnline = WebSocketService.getInstance().isUserOnline(user.id);
+		statusDot.style.background = isOnline ? 'green' : 'red';
+		statusDot.title = isOnline ? 'Online' : 'Offline';
+		console.log(`Online status ? ${isOnline}`);
 
 		userInfo.appendChild(statusDot);
 

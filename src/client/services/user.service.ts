@@ -1,6 +1,6 @@
 import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component'
-
+import { WebSocketService} from '../services/websocket.service'
 
 
 
@@ -37,6 +37,8 @@ export class UserService {
 				throw new Error(data.error || 'Failed to get user data');
 			}
 
+			// User log on appelle la websocket
+			WebSocketService.getInstance()
 			return data.data;
 		} catch (error) {
 			console.error('Error fetching current user:', error);
@@ -369,17 +371,7 @@ export class UserService {
 			throw new Error(data.error || 'Failed to accept friend request');
 	}
 
-	static async checkUserOnline(userId: string): Promise<boolean> {
-		try {
-			const response = await ApiClient.authenticatedFetch(
-				`/api/users/${encodeURIComponent(userId)}/online`,
-				{ method: 'GET' }
-			);
-			const data = await response.json();
-			return !!data.online;
-		} catch (error) {
-			console.error('Error checking user online status:', error);
-			return false;
-		}
-	}
+  static checkUserOnline(userId: string): boolean {
+    return WebSocketService.getInstance().isUserOnline(userId);
+  }
 }

@@ -24,6 +24,10 @@ export default defineConfig({
 			'/ws/pong': {
 				target: 'ws://localhost:3000',
 				ws: true,
+			},
+			'/ws/status': {
+				target: 'ws://localhost:3000',
+				ws: true
 			}
 		}
 	},

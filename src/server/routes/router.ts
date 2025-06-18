@@ -21,7 +21,7 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
 		await fastify.register(friendsRoutes)
 	}, { prefix: '/api' })
-
+	
     app.get('/avatars/:filename', async (request, reply) => {
         const { filename } = request.params as { filename: string };
         const avatarPath = path.join(process.cwd(), 'src/server/db/users', filename);

@@ -138,21 +138,49 @@ export class UserService {
 
 // Online users management (outside the class)
 export namespace UserOnline {
-	const onlineUsers = new Map<string, WebSocket>();
+  const onlineUsers = new Map<string, WebSocket>();
 
-	export function addOnlineUser(userId: string, ws: WebSocket) {
-		onlineUsers.set(userId, ws);
-	}
+  export function addOnlineUser(userId: string, ws: WebSocket) {
+    onlineUsers.set(userId, ws);
+    console.log(`Added user ${userId} to online users. Total online: ${onlineUsers.size}`);
+  }
 
-	export function removeOnlineUser(userId: string) {
-		onlineUsers.delete(userId);
-	}
+  export function removeOnlineUser(userId: string) {
+    const removed = onlineUsers.delete(userId);
+    console.log(`Removed user ${userId} from online users: ${removed}. Total online: ${onlineUsers.size}`);
+  }
 
-	export function isUserOnline(userId: string): boolean {
-		return onlineUsers.has(userId);
-	}
+  export function isUserOnline(userId: string): boolean {
+    return onlineUsers.has(userId);
+  }
 
-	export function getOnlineUsers(): string[] {
-		return Array.from(onlineUsers.keys());
-	}
+  export function getOnlineUsers(): string[] {
+    return Array.from(onlineUsers.keys());
+  }
+
+  export function broadcastToAll(message: string) {
+    console.log(`Broadcasting to ${onlineUsers.size} users`);
+    let sentCount = 0;
+
+    onlineUsers.forEach((ws, userId) => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(message);
+          sentCount++;
+        } catch (error) {
+          console.error(`Failed to send to user ${userId}:`, error);
+          // Clean up invalid connections
+          onlineUsers.delete(userId);
+        }
+      } else if (ws) {
+        console.log(`User ${userId} socket not open, state: ${ws.readyState}`);
+        // Clean up closed connections
+        if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+          onlineUsers.delete(userId);
+        }
+      }
+    });
+
+    console.log(`Successfully sent message to ${sentCount} users`);
+  }
 }
