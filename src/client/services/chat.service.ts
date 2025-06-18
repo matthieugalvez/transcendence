@@ -3,26 +3,26 @@ import { ApiClient } from '../utils/apiclient.utils';
 export class	ChatService {
 	static async	getAllMessages(): Promise<Array<{	id: number,
 														sender_id: number,
-														reciever_id: number,
+														receiver_id: number,
 														created_at: number,
 														updated_at: number,
 														content: string }>> {
 		try {
-			const	send_response = await ApiClient.authenticatedFetch('api/chat/:send-messages');
+			const	send_response = await ApiClient.authenticatedFetch('/api/chat/send-messages');
 			const	send_data = await send_response.json();
 			
 			if (!send_data.success) {
 				throw new Error(send_data.error || 'Failed to get send messages');
 			}
 
-			const	recieved_response = await ApiClient.authenticatedFetch('api/chat/:recieved-messages');
-			const	recieved_data = await recieved_response.json();
+			const	received_response = await ApiClient.authenticatedFetch('/api/chat/received-messages');
+			const	received_data = await received_response.json();
 
-			if (!recieved_data.success) {
-				throw new Error(recieved_data.error || 'Failed to get recieved messages');
+			if (!received_data.success) {
+				throw new Error(received_data.error || 'Failed to get received messages');
 			}
 
-			return send_data.data && recieved_data.data;
+			return send_data.data.messages && received_data.data.messages;
 		}
 		catch (error) {
 			console.error('Error fetching messages:', error);
@@ -30,16 +30,16 @@ export class	ChatService {
 		}
 	}
 
-	static async	postMessage(reciever_id: number, content: string): Promise<{	success: boolean,
+	static async	postMessage(receiver_id: number, content: string): Promise<{	success: boolean,
 																					error?: string,
 																					details?: any[] }> {
 		try {
-			const	response = await ApiClient.authenticatedFetch('/api/chat/:post', {
+			const	response = await ApiClient.authenticatedFetch('/api/chat/post', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ reciever_id, content })
+				body: JSON.stringify({ receiver_id, content })
 			});
 			const	data = await response.json();
 
@@ -66,7 +66,7 @@ export class	ChatService {
 																					error?: string,
 																					details?: any[] }> {
 		try {
-			const	response = await ApiClient.authenticatedFetch('/api/chat/:edit', {
+			const	response = await ApiClient.authenticatedFetch('/api/chat/edit', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

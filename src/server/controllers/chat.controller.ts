@@ -7,9 +7,21 @@ export class	ChatController {
 		try {
 			const	userId = ( request as any ).userId;
 
-			const	SendMessages = await ChatService.getSendMessages(userId);
+			const	messages = await ChatService.getSendMessages(userId);
+			
+			const messagesData = {
+				users: messages.map(message => ({
+					id: message.id,
+					sender_id: message.id,
+					receiver_id: message.receiver_id,
+					created_at: message.created_at,
+					updated_at: message.updated_at,
+					content: message.content
+				})),
+				count: messages.length
+			}
 
-			return Send.success(reply, SendMessages, 'Send Messages retrieved successfully');
+			return Send.success(reply, messagesData, 'Send Messages retrieved successfully');
 		}
 		catch (error) {
 			console.error('Error fetching send messages:', error);
@@ -17,26 +29,38 @@ export class	ChatController {
 		}
 	}
 
-	static async	getRecievedMessages(request: FastifyRequest, reply: FastifyReply) {
+	static async	getReceivedMessages(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
 
-			const	RecievedMessages = await ChatService.getRecievedMessages(userId);
+			const	messages = await ChatService.getReceivedMessages(userId);
 
-			return Send.success(reply, RecievedMessages, 'Recieved Messages retrieved successfully');
+			const messagesData = {
+				users: messages.map(message => ({
+					id: message.id,
+					sender_id: message.id,
+					receiver_id: message.receiver_id,
+					created_at: message.created_at,
+					updated_at: message.updated_at,
+					content: message.content
+				})),
+				count: messages.length
+			}
+
+			return Send.success(reply, messagesData, 'Received Messages retrieved successfully');
 		}
 		catch (error) {
-			console.error('Error fetching recieved messages:', error);
-			return Send.internalError(reply, 'Failed to fetch recieved messages');
+			console.error('Error fetching received messages:', error);
+			return Send.internalError(reply, 'Failed to fetch received messages');
 		}
 	}
 
 	static async	postMessage(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
-			const	{ reciever_id, content } = request.body as { reciever_id: number, content: string };
+			const	{ receiver_id, content } = request.body as { receiver_id: number, content: string };
 
-			const	NewMessage = await ChatService.createMessage(userId, reciever_id, content);
+			const	NewMessage = await ChatService.createMessage(userId, receiver_id, content);
 
 			return Send.created(reply, NewMessage, 'Message created successfully');
 		}

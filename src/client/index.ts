@@ -11,6 +11,7 @@ import { RenderHomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { oauth2FAPage } from './pages/OAuth2FAPage';
 import { renderJoinPage } from './pages/JoinPage';
+import { renderChatPage } from './pages/ChatPage';
 
 function startSPA() {
     router.register('/', renderIndexPage);
@@ -20,7 +21,8 @@ function startSPA() {
     router.register('/game', renderPongGamePage);
     router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
-	router.register('/game/online/:gameId', renderJoinPage());
+	router.register('/game/online/:gameId', renderJoinPage);
+	router.register('/chat', async() => await renderChatPage());
     router.start();
 }
 

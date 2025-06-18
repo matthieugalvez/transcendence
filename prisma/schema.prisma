@@ -21,7 +21,7 @@ model	User {
 	updated_at		DateTime	@updatedAt
 
 	messages_send		Message[]	@relation("sender")
-	messages_recieved	Message[]	@relation("reciever")
+	messages_received	Message[]	@relation("receiver")
 
 	@@map("users")
 }
@@ -29,13 +29,13 @@ model	User {
 model	Message {
 	id			Int			@id @default(autoincrement())
 	sender_id	Int
-	reciever_id	Int
+	receiver_id	Int
 	created_at	DateTime	@default(now())
 	updated_at	DateTime	@updatedAt
 	content		String
 
 	sender		User	@relation("sender", fields: [sender_id], references: [id])
-	reciever	User	@relation("reciever", fields: [reciever_id], references: [id])
+	receiver	User	@relation("receiver", fields: [receiver_id], references: [id])
 
 	@@map("messages")
 }

@@ -5,6 +5,7 @@ import { registerPongWebSocket } from './game.routes'
 import healthRoutes from './health.routes'
 import userRoutes from './users.routes'
 import authRoutes from './auth.routes'
+import chatRoutes from './chat.route'
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
@@ -15,6 +16,7 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(authRoutes, { prefix: '/auth' })
 		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
+		await fastify.register(chatRoutes, { prefix: '/chat' });
 	}, { prefix: '/api' })
 
 	console.log('✅ Routes registered')
