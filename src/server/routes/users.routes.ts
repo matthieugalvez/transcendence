@@ -10,7 +10,7 @@ const pump = promisify(pipeline);
 
 export default async function userRoutes(fastify: FastifyInstance) {
 
-	 await fastify.register(import('@fastify/multipart'));
+	await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
 	fastify.get('/users', {
 		preHandler: [AuthMiddleware.authenticateUser]
@@ -45,9 +45,21 @@ export default async function userRoutes(fastify: FastifyInstance) {
 			[AuthMiddleware.authenticateUser]
 	}, UserController.uploadAvatar);
 
-
-
 	fastify.get('/check-display-name', {
 		preHandler: AuthMiddleware.authenticateUser
 	}, UserController.checkDisplayNameAvailability);
+
+	// fastify.get('/users/profile/:userId', {
+	// 	preHandler: [AuthMiddleware.authenticateUser]
+	// }, UserController.getUserProfile);
+
+	fastify.get('/users/profile/:displayName', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, UserController.getUserProfileByDisplayName);
+
+	fastify.get('/users/search', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, UserController.searchUsers);
+
+
 }

@@ -233,4 +233,119 @@ export class UserController {
             return Send.internalError(reply, 'Failed to upload avatar');
         }
     }
+
+	static async getUserProfile(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { userId } = request.params as { userId: string };
+            const requesterId = (request as any).userId;
+
+            if (!requesterId) {
+                return Send.unauthorized(reply, 'Authentication required');
+            }
+
+            const user = await UserService.getUserById(userId);
+
+            if (!user) {
+                return Send.notFound(reply, 'User not found');
+            }
+
+            // Handle avatar URL
+            let avatarUrl = user.avatar;
+            if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+                const filename = avatarUrl.replace('./db/users/', '');
+                avatarUrl = `/avatars/${filename}`;
+            }
+
+            const userData = {
+                id: user.id,
+                name: user.name,
+                displayName: user.displayName,
+                avatar: avatarUrl,
+                created_at: user.created_at,
+                updated_at: user.updated_at
+            };
+
+            return Send.success(reply, userData, 'User profile retrieved successfully');
+
+        } catch (error) {
+            console.error('Get user profile error:', error);
+            return Send.internalError(reply, 'Failed to get user profile');
+        }
+    }
+
+ static async searchUsers(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const userId = (request as any).userId;
+            const { q: query, limit = 10 } = request.query as { q: string; limit?: number };
+
+            if (!userId) {
+                return Send.unauthorized(reply, 'Authentication required');
+            }
+
+            if (!query || query.trim().length < 2) {
+                return Send.badRequest(reply, 'Search query must be at least 2 characters');
+            }
+
+            const users = await UserService.searchUsers(query.trim(), Math.min(limit, 20));
+
+            const userData = users.map(user => ({
+                id: user.id,
+                displayName: user.displayName,
+                avatar: user.avatar?.startsWith('./db/users/')
+                    ? `/avatars/${user.avatar.replace('./db/users/', '')}`
+                    : user.avatar
+            }));
+
+            return Send.success(reply, userData, 'Users search completed');
+
+        } catch (error) {
+            console.error('Search users error:', error);
+            return Send.internalError(reply, 'Failed to search users');
+        }
+    }
+
+
+	    static async getUserProfileByDisplayName(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const { displayName } = request.params as { displayName: string };
+            const requesterId = (request as any).userId;
+
+            if (!requesterId) {
+                return Send.unauthorized(reply, 'Authentication required');
+            }
+
+            // Decode the displayName in case it has special characters
+            const decodedDisplayName = decodeURIComponent(displayName);
+
+            const user = await UserService.getUserByDisplayName(decodedDisplayName);
+
+            if (!user) {
+                return Send.notFound(reply, 'User not found');
+            }
+
+            // Handle avatar URL - same as existing method
+            let avatarUrl = user.avatar;
+            if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+                const filename = avatarUrl.replace('./db/users/', '');
+                avatarUrl = `/avatars/${filename}`;
+            }
+
+            const userData = {
+                id: user.id,
+                name: user.name,
+                displayName: user.displayName,
+                avatar: avatarUrl,
+                created_at: user.created_at,
+                updated_at: user.updated_at
+            };
+
+            return Send.success(reply, userData, 'User profile retrieved successfully');
+
+        } catch (error) {
+            console.error('Get user profile by displayName error:', error);
+            return Send.internalError(reply, 'Failed to get user profile');
+        }
+    }
+
+
 }

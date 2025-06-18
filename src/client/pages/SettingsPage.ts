@@ -32,7 +32,8 @@ export async function SettingsPage(): Promise<void> {
 			avatarUrl: user.avatar,
 			showStats: true,
 			showSettings: false, // Don't show settings button on settings page
-			showBackHome: true
+			showBackHome: true,
+			showUserSearch: true
 		});
 
 		// Render the main content with user data

@@ -107,14 +107,31 @@ export class UserService {
 	}
 
 	static async updateUserAvatar(userId: string, avatarPath: string): Promise<void> {
-    try {
-        await prisma.user.update({
-            where: { id: userId },
-            data: { avatar: avatarPath }
+		try {
+			await prisma.user.update({
+				where: { id: userId },
+				data: { avatar: avatarPath }
+			});
+		} catch (error) {
+			console.error('Error updating user avatar:', error);
+			throw error;
+		}
+	}
+
+    static async searchUsers(query: string, limit: number = 10) {
+        return await prisma.user.findMany({
+            where: {
+                displayName: {
+                    contains: query
+                    // Remove mode: 'insensitive' since it's not supported for this field type
+                }
+            },
+            select: {
+                id: true,
+                displayName: true,
+                avatar: true
+            },
+            take: limit
         });
-    } catch (error) {
-        console.error('Error updating user avatar:', error);
-        throw error;
     }
-}
 }
