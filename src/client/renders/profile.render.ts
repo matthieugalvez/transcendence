@@ -142,9 +142,11 @@ private static async createActionsSection(user: any): Promise<HTMLElement> {
     buttonContainer.className = 'flex space-x-4';
 
     let status: string = 'none';
+    let requestId: string | undefined = undefined;
     try {
         const friendship = await UserService.getFriendshipStatus(user.id);
         status = friendship.status;
+        requestId = friendship.requestId;
     } catch (e) {}
 
     if (status === 'friends') {
@@ -167,6 +169,22 @@ private static async createActionsSection(user: any): Promise<HTMLElement> {
         const pendingBtn = CommonComponent.createStylizedButton('Request Pending', 'gray');
         pendingBtn.disabled = true;
         buttonContainer.appendChild(pendingBtn);
+    } else if (status === 'incoming' && requestId) {
+        const acceptBtn = CommonComponent.createStylizedButton('Accept Friend Request', 'blue');
+        acceptBtn.onclick = async () => {
+            acceptBtn.disabled = true;
+            acceptBtn.textContent = 'Accepting...';
+            try {
+                await UserService.acceptFriendRequest(requestId);
+                acceptBtn.textContent = 'Accepted!';
+            } catch {
+                acceptBtn.textContent = 'Accept Friend Request';
+                CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
+            } finally {
+                acceptBtn.disabled = false;
+            }
+        };
+        buttonContainer.appendChild(acceptBtn);
     } else {
         const addFriendBtn = CommonComponent.createStylizedButton('Add Friend', 'blue');
         addFriendBtn.onclick = async () => {

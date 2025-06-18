@@ -29,7 +29,8 @@ export class FriendsController {
 				return Send.unauthorized(reply, 'Authentication required');
 			}
 
-			const result = await FriendService.sendFriendRequest(Number(userId), Number(recipientId));
+			// Use string IDs directly
+			const result = await FriendService.sendFriendRequest(userId, recipientId);
 			return Send.created(reply, result, 'Friend request sent successfully');
 
 		} catch (error) {
@@ -59,14 +60,14 @@ export class FriendsController {
 		}
 	}
 
-	static async getFriendshipStatus(request: FastifyRequest, reply: FastifyReply) {
+	static async getFriendshipStatus(request, reply) {
 		const userId = (request as any).userId;
-		const { otherUserId } = request.params as { otherUserId : string};
-		const status = await FriendService.getFriendshipStatus(userId, otherUserId);
-		return Send.success(reply, { status });
+		const { otherUserId } = request.params;
+		const { status, requestId } = await FriendService.getFriendshipStatus(userId, otherUserId);
+		return Send.success(reply, { status, requestId });
 	}
 
-	static async removeFriend(request: FastifyRequest, reply: FastifyReply)  {
+	static async removeFriend(request: FastifyRequest, reply: FastifyReply) {
 		const userId = (request as any).userId;
 		const { friendId } = request.params as { friendId: string };
 		await FriendService.removeFriend(userId, friendId);

@@ -4,19 +4,19 @@ import { FriendshipStatus } from '@prisma/client'
 
 export class FriendService {
   // Send friend request
-  static async sendFriendRequest(senderId: number, receiverId: number) {
+static async sendFriendRequest(senderId: string, receiverId: string) {
     if (senderId === receiverId) {
-      throw new Error("Cannot send friend request to yourself");
+        throw new Error("Cannot send friend request to yourself");
     }
 
     return await prisma.friendship.create({
-      data: {
-        senderId,
-        receiverId,
-        status: FriendshipStatus.PENDING
-      }
+        data: {
+            senderId,
+            receiverId,
+            status: FriendshipStatus.PENDING
+        }
     });
-  }
+}
 
   // Accept friend request
   static async acceptFriendRequest(friendshipId: string) {
@@ -66,37 +66,33 @@ export class FriendService {
     });
   }
 
-   static async getFriendshipStatus(userId: string, otherUserId: string) {
-        const friendship = await prisma.friendship.findFirst({
-            where: {
-                OR: [
-                    { senderId: userId, receiverId: otherUserId, status: 'ACCEPTED' },
-                    { senderId: otherUserId, receiverId: userId, status: 'ACCEPTED' }
-                ]
+static async getFriendshipStatus(userId: string, otherUserId: string) {
+    const friendship = await prisma.friendship.findFirst({
+        where: {
+            OR: [
+                { senderId: userId, receiverId: otherUserId },
+                { senderId: otherUserId, receiverId: userId }
+            ]
+        }
+    });
+
+    let status: 'friends' | 'pending' | 'incoming' | 'none' = 'none';
+    let requestId: string | undefined = undefined;
+
+    if (friendship) {
+        if (friendship.status === 'ACCEPTED') {
+            status = 'friends';
+        } else if (friendship.status === 'PENDING') {
+            if (friendship.senderId === userId) {
+                status = 'pending'; // You sent the request
+                requestId = friendship.id;
+            } else if (friendship.receiverId === userId) {
+                status = 'incoming'; // You received the request
+                requestId = friendship.id;
             }
-        });
-        if (friendship) return 'friends';
-        // Optionally check for pending requests
-        const pending = await prisma.friendship.findFirst({
-            where: {
-                OR: [
-                    { senderId: userId, receiverId: otherUserId, status: 'PENDING' },
-                    { senderId: otherUserId, receiverId: userId, status: 'PENDING' }
-                ]
-            }
-        });
-        if (pending) return 'pending';
-        return 'none';
+        }
     }
 
-    static async removeFriend(userId: string, friendId: string) {
-        await prisma.friendship.deleteMany({
-            where: {
-                OR: [
-                    { senderId: userId, receiverId: friendId, status: 'ACCEPTED' },
-                    { senderId: friendId, receiverId: userId, status: 'ACCEPTED' }
-                ]
-            }
-        });
-    }
+    return { status, requestId };
+}
 }
