@@ -14,8 +14,8 @@ export class	ChatController {
 					id: message.id,
 					sender_id: message.sender_id,
 					receiver_id: message.receiver_id,
-					created_at: message.created_at,
-					updated_at: message.updated_at,
+					created_at: message.created_at.toUTCString(),
+					updated_at: message.updated_at.toUTCString(),
 					content: message.content
 				})),
 				count: messages.length
@@ -40,8 +40,8 @@ export class	ChatController {
 					id: message.id,
 					sender_id: message.sender_id,
 					receiver_id: message.receiver_id,
-					created_at: message.created_at,
-					updated_at: message.updated_at,
+					created_at: message.created_at.toUTCString(),
+					updated_at: message.updated_at.toUTCString(),
 					content: message.content
 				})),
 				count: messages.length
