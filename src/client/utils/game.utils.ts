@@ -15,30 +15,66 @@ function createGameWebSocket(
   ctx: CanvasRenderingContext2D,
   leftPlayer: string,
   rightPlayer: string,
-  onFinish: FinishCallback
+  onFinish: FinishCallback,
+  mode: 'duo-local' | 'duo-online' | 'solo'
 ) {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  // const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
   const port = 3000;
-  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
-  // localStorage.setItem('postAuthRedirect', socketUrl);
+  // recuperer token du localstorage s'il existe
+  const playerToken = localStorage.getItem('playerToken');
+  // On ne passe un token QUE si on tente une reconnexion
+  const shouldSendToken = (mode === 'duo-online') && !!playerToken;
+  const queryPart = shouldSendToken ? `?playerToken=${playerToken}` : '';
+  // const queryPart = (mode === 'duo-online' && playerToken) ? `?playerToken=${playerToken}` : '';
+  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}${queryPart}`;
+  // const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}${playerToken ? `?playerToken=${playerToken}` : ''}`;
   const socket = new WebSocket(socketUrl);
 
   let playerId = null;
-  let isSpectator = false;
   let wasRunning = false;
   let wasPaused = false;
 
   socket.addEventListener('message', (event) => {
     try {
-      const data = JSON.parse(event.data);
-      if (data.type === 'playerId') {
-        playerId = data.playerId;
-        isSpectator = (playerId === 'spectator');
-        // Ici, affiche overlay ou message spectateur si tu veux
+      if (typeof event.data !== 'string') {
+        console.warn('WS non-string message ignored:', event.data);
         return;
       }
-      // Sinon c'est un GameState
+      console.log('WS raw message:', event.data);
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'playerToken') {
+        playerId = data.playerId;
+        localStorage.setItem('playerToken', data.playerToken);
+        localStorage.setItem('playerId', String(data.playerId));
+        return;
+      }
+      // si deconnexion
+      if (data.type === 'pause') {
+        showOverlay(data.message);
+        return;
+      }
+      // si reconnexion
+      if (data.type === 'resume') {
+        hideOverlay();
+        return;
+      }
+      // si deconnexion sans reconnexion
+      if (data.type === 'end') {
+        alert(data.message);
+        localStorage.removeItem('playerToken');
+        localStorage.removeItem('playerId');
+        window.location.href = '/home';
+        return;
+      }
+
+      if (data.type === 'error') {
+        console.error('Server error:', data.error);
+        alert(`Error: ${data.error}`);
+        window.location.href = '/home';
+        return;
+      }
+
       const state = data;
       renderGame(ctx, state);
 
@@ -49,20 +85,19 @@ function createGameWebSocket(
       wasRunning = state.isRunning;
       wasPaused = state.isPaused;
     } catch (err) {
-      // message inconnu, tu peux log
+      console.error('WS message parse error:', err);
     }
   });
 
   socket.addEventListener('close', () => {
-    alert("La partie est terminée, inaccessible, ou pleine.");
+    alert("The game has ended or is no longer accessible.");
     window.location.reload();
   });
 
   // Expose ces méthodes pour le reste du code
   return {
     socket,
-    getPlayerId: () => playerId,
-    isSpectator: () => isSpectator,
+    getPlayerId: () => playerId
   };
 }
 
@@ -124,7 +159,6 @@ function startClientInputLoop(
   requestAnimationFrame(frame);
 }
 
-
 // --- Création du jeu et intégration au DOM ---
 export function startPongInContainer(
   container: HTMLDivElement,
@@ -152,16 +186,15 @@ export function startPongInContainer(
   if (!ctx) throw new Error('Impossible de récupérer le context 2D');
 
   // WebSocket
-  // const socket = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
-  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
-  const { socket, getPlayerId, isSpectator } = wsHandler;
+  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
+  const { socket, getPlayerId } = wsHandler;
 
   // Gestion clavier différée (pas avant .start())
   let keyboardHandlerStarted = false;
   const keysPressed: Record<string, boolean> = {};
 
   function start() {
-    if (!keyboardHandlerStarted && !isSpectator()) {
+    if (!keyboardHandlerStarted) {
       title.textContent = matchTitle;
       setupKeyboardHandlers(socket, keysPressed);
       startClientInputLoop(socket, keysPressed, getPlayerId, mode);
@@ -224,5 +257,42 @@ export function showGameOverOverlay(
 }
 
 export function getShareableLink(gameId: string) {
+  const playerToken = localStorage.getItem('playerToken');
+  if (playerToken) {
+    return `${window.location.origin}/game/online/${gameId}?playerToken=${playerToken}`;
+  }
   return `${window.location.origin}/game/online/${gameId}`;
+}
+
+// --- Fonctions pour overlay en cas de deco/reco ---
+function showOverlay(message: string) {
+  let overlay = document.getElementById('game-overlay') as HTMLDivElement | null;
+
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'game-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    overlay.style.color = 'white';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.fontSize = '24px';
+    overlay.style.zIndex = '1000';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.textContent = message;
+  overlay.style.display = 'flex';
+}
+
+export function hideOverlay() {
+  const overlay = document.getElementById('game-overlay') as HTMLDivElement | null;
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
 }

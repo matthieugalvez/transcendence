@@ -6,11 +6,13 @@ import { UserService } from '../services/user.service';
 import { router } from "../configs/simplerouter";
 import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
+import { hideOverlay } from '../utils/game.utils';
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
 let bothPlayersConnected = false;
 let isrendered = true;
+let hasHadDisconnection = false;
 
 // Nouvelle fonction utilitaire pour récupérer le username connecté
 async function getUsername() {
@@ -43,12 +45,15 @@ export async function renderJoinPage(params: { gameId: string }) {
 
   // Only render UI if user is authenticated
   try {
-  AuthComponent.checkAndHandleDisplayName();
-  SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
-  BackgroundComponent.applyNormalGradientLayout();
+    AuthComponent.checkAndHandleDisplayName();
+    SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
+    BackgroundComponent.applyNormalGradientLayout();
   } catch(error) {
-	CommonComponent.handleAuthError();
+	  CommonComponent.handleAuthError();
   }
+
+  localStorage.removeItem('playerToken');
+  localStorage.removeItem('playerId');
 
   // Wrapper principal
   const wrapper = document.createElement('div');
@@ -63,11 +68,11 @@ export async function renderJoinPage(params: { gameId: string }) {
   const myUsername = await getUsername();
 
   // --- Etats de la partie ---
-  let playerId: number | 'spectator' | null = null;
+  let playerId: number | null = null;
   let hostUsername = 'Player 1';
   let guestUsername = 'Player 2';
 
-  // let playerId: string | 'spectator' | null = null;
+  // let playerId: string | null = null;
   if (playerId === 1) hostUsername = user?.displayName;
   if (playerId === 2) guestUsername = user?.displayName;
 
@@ -106,7 +111,7 @@ export async function renderJoinPage(params: { gameId: string }) {
       const data = JSON.parse(event.data);
 
       // PlayerId : host (1), guest (2), spectator
-      if (data.type === 'playerId') {
+      if (data.type === 'playerToken') {
         playerId = data.playerId;
         // On assigne le username côté front localement
         if (playerId === 1) {
@@ -117,6 +122,52 @@ export async function renderJoinPage(params: { gameId: string }) {
         // Render de la settings bar (host = player 1)
         renderSettingsBar();
       }
+
+      if (data.type === 'pause' && data.reason === 'disconnect') {
+        hasHadDisconnection = true;
+      }
+
+      if (data.type === 'resume') {
+        hideOverlay();
+        // Remets le message qui explique que le host doit relancer la partie
+        // if (playerId === 1) { 
+        //   alert("The other player is back. Click Start Game to resume.");
+        //   renderSettingsBar(); // ou réappelle ta bar settings
+        // } else {
+        //   waiting.textContent = "Waiting for the host to restart the game...";
+        // }
+        return;
+      }
+
+      // if ("connectedPlayers" in data) {
+      //   bothPlayersConnected = data.connectedPlayers.length === 2;
+
+      //   if (bothPlayersConnected && !gameStarted && hasHadDisconnection) {
+      //     const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
+      //     if (canvas) canvas.classList.add('blur-xs');
+      //     if (playerId === 1) {
+      //       // Host : propose de relancer
+      //       alert("Both players are back. Click Start Game to continue.");
+      //       renderSettingsBar();
+      //     } else {
+      //       // Guest : attend le host
+      //       waiting.textContent = "Waiting for the host to restart the game...";
+      //     }
+      //   }
+      // }
+
+      if (data.type === 'playerReconnected') {
+        console.log(data.message); // Pour debug
+        bothPlayersConnected = true; // On sait que les deux sont revenus
+
+        if (data.playerId !== playerId) {
+          alert("The other player has reconnected. Click Start Game to resume.");
+          renderSettingsBar();
+        } else if (playerId === 2) {
+          waiting.textContent = "Waiting for the host to restart the game...";
+        }
+      }
+
 
       // GameState envoyé par le serveur à chaque frame
       // On regarde si les deux joueurs sont connectés :
@@ -150,7 +201,9 @@ export async function renderJoinPage(params: { gameId: string }) {
     if (playerId === 1) {
       GameSettingsComponent.render('duo-online', {
         getOnlineLink: () => getShareableLink(gameId),
-        onCopyLink: (link) => navigator.clipboard.writeText(link),
+        onCopyLink: async (link) => {
+          navigator.clipboard.writeText(link)
+        },
         canStart: () => bothPlayersConnected,
         onStartGame: async () => {
           pongHandle?.socket.send(JSON.stringify({ action: 'start' }));

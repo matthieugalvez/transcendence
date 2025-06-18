@@ -1,6 +1,7 @@
 import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
 import { removeGameRoom } from './gameRooms';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
@@ -17,6 +18,9 @@ export class GameInstance {
     // pour pause/resume
     private isPaused: boolean = false;
     private currentBallSpeed: number = 380;
+    // pour gerer deconnexions en remote
+    private playerTokens: { [playerId: number]: string } = {};
+    private pauseTimeoutHandle: NodeJS.Timeout | null = null;
     // Players
     private playerNames: { [id: string]: string } = {};
     // Paddles
@@ -33,7 +37,6 @@ export class GameInstance {
     private score2: number = 0;
     private readonly maxScore: number = 5;
     // List of connected websockets(players)
-    private spectators: Set<WebSocket> = new Set();
     private playerSockets: { [playerId: number]: WebSocket | null } = { 1: null, 2: null };
     // Tick interval
     private intervalHandle?: NodeJS.Timeout;
@@ -56,7 +59,7 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username?: string): number | 'spectator' {
+    public addClient(ws: WebSocket, username?: string) {
         // Déjà un joueur 1 ? Si non, c'est lui.
         if (!this.playerSockets[1]) {
             this.playerSockets[1] = ws;
@@ -71,13 +74,7 @@ export class GameInstance {
             this.setupDisconnect(ws, 2);
             return 2;
         }
-        // Ajout spectateur
-        this.spectators.add(ws);
-        ws.on('close', () => {
-            this.spectators.delete(ws);
-            // (optionnel) : check si plus personne = destroy ?
-        });
-        return 'spectator';
+        return null;
     }
     private setupDisconnect(ws: WebSocket, id: number) {
         ws.on('close', () => {
@@ -85,6 +82,8 @@ export class GameInstance {
             if (!this.playerSockets[1] && !this.playerSockets[2]) {
                 this.destroy();
                 removeGameRoom(this.gameId);
+            } else {
+                this.startPauseOnDisconnect();
             }
         });
     }
@@ -93,7 +92,7 @@ export class GameInstance {
         return this.buildState(true);
     }
     // when player moves
-    public onClientAction(playerId: string, action: 'up' | 'down') {
+    public onClientAction(playerId: number, action: 'up' | 'down') {
         const dt = 1 / 60;
         if (playerId === 1) {
             this.movePaddle(this.paddle1Pos, action, dt);
@@ -122,6 +121,26 @@ export class GameInstance {
         else if (difficulty === 'MEDIUM') this.currentBallSpeed = 380;
         else if (difficulty === 'HARD') this.currentBallSpeed = 480;
         this.ballVel = this.randomBallVel();
+    }
+    // Génère un token unique pour le joueur et l'associe
+    public assignTokenToPlayer(playerId: number): string {
+        const token = uuidv4();
+        this.playerTokens[playerId] = token;
+        return token;
+    }
+    // Essaye de reconnecter un joueur en cas de deconnexion
+    public tryReconnectPlayer(token: string, ws: WebSocket): boolean {
+        const playerId = Object.keys(this.playerTokens).find(id => this.playerTokens[+id] === token);
+        if (!playerId) return false;
+
+        this.playerSockets[+playerId] = ws;
+        this.setupDisconnect(ws, +playerId);
+        this.cancelPauseOnReconnect();
+        this.broadcastState(true);
+        // ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Waiting for host to restart the game." }));
+        this.broadcastPlayerReconnected(+playerId);
+        ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Game resumes." }));
+        return true;
     }
 
     /** ----------- PRIVATE METHODS ------------ */
@@ -272,13 +291,63 @@ export class GameInstance {
         Object.values(this.playerSockets).forEach(ws => {
             if (ws && ws.readyState === ws.OPEN) ws.send(message);
         });
-        this.spectators.forEach(ws => {
-            if (ws.readyState === ws.OPEN) ws.send(message);
-        });
     }
     // place ball in center after a point and randomly change direction
     private resetBall() {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
+    }
+
+    private startPauseOnDisconnect() {
+        this.isPaused = true;
+        this.broadcastPause("Waiting for the other player to reconnect...");
+
+        this.pauseTimeoutHandle = setTimeout(() => {
+            this.endGameDueToDisconnect();
+        }, 20000);  // 20 sec
+    }
+
+    private cancelPauseOnReconnect() {
+        if (this.pauseTimeoutHandle) {
+            clearTimeout(this.pauseTimeoutHandle);
+            this.pauseTimeoutHandle = null;
+            // this.isPaused = false;
+        }
+        if (this.playerSockets[1] && this.playerSockets[2]) {
+            this.isPaused = false;
+            this.broadcastPause("Both players reconnected. Host can restart the game.");
+        }
+        // this.broadcastPause("The other player is back. Waiting for the host to restart the game.");
+    }
+
+    private endGameDueToDisconnect() {
+        this.broadcastEnd("The other player did not reconnect. The game is over.");
+        this.destroy();
+        removeGameRoom(this.gameId);
+    }
+
+    private broadcastPause(message: string) {
+        const payload = JSON.stringify({ type: 'pause', reason: 'disconnect', message });
+        this.broadcastToAll(payload);
+    }
+
+    private broadcastEnd(message: string) {
+        const payload = JSON.stringify({ type: 'end', reason: 'player_left', message });
+        this.broadcastToAll(payload);
+    }
+
+    private broadcastToAll(payload: string) {
+        Object.values(this.playerSockets).forEach(ws => {
+            if (ws && ws.readyState === ws.OPEN) ws.send(payload);
+        });
+    }
+
+    private broadcastPlayerReconnected(playerId: number) {
+    const payload = JSON.stringify({ 
+        type: 'playerReconnected', 
+        playerId,
+        message: `Player ${playerId} has reconnected.` 
+    });
+    this.broadcastToAll(payload);
     }
 }

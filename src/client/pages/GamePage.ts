@@ -229,6 +229,8 @@ export async function renderPongGamePage() {
               body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
             });
             const { gameId } = await res.json();
+            localStorage.removeItem('playerToken');
+            localStorage.removeItem('playerId');
             router.navigate(`/game/online/${gameId}`);
           }
         }

@@ -4,6 +4,7 @@ import { addPlayerToRoom, createGameRoom, getGameRoom } from '../../game/gameRoo
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
   const gameId = req.params.gameId;
+  const playerToken = req.query.playerToken as string | undefined;
 
   // 1.1 Récupérer ou créer l’instance GameInstance
   let game = getGameRoom(gameId);
@@ -13,21 +14,30 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
     return;
   }
 
-  // 1.2 Ajouter ce client dans l’instance (player ou spectator)
-  // game.addPlayer(ws);
-  let role = addPlayerToRoom(gameId, ws); // number (1, 2) ou 'spectator'
+  // 1.2 En cas de deco, essayer de reconnecter le joueur
+  if (playerToken) {
+    const success = game.tryReconnectPlayer(playerToken, ws);
+    if (!success) {
+        ws.send(JSON.stringify({ type: 'error', error: 'invalid_token' }));
+        ws.close();
+    }
+    return;
+  }
+
+  // 1.3 Ajouter ce client dans l’instance
+  let role = addPlayerToRoom(gameId, ws);
   if (role == null) {
     ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
     ws.close();
     return;
   }
-  ws.send(JSON.stringify({ type: 'playerId', playerId: role }));
+  const token = game.assignTokenToPlayer(role);
+  ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
 
-  // 1.3 Quand on reçoit un message WS, on l’interprète
+  // 1.4 Quand on reçoit un message WS, on l’interprète
   ws.on('message', (data: string) => {
     try {
       const msg = JSON.parse(data);
-      if (role === 'spectator') return; // spectateur peuvent pas agir dans la room
       if (msg.action === 'start') {
         game.start(); // demarre partie
         return;
@@ -52,5 +62,5 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
       console.error('WS message parse error:', err);
     }
   });
-  // 1.4 La destruction de l’instance se fera automatiquement quand il n’y a plus de sockets
+  // 1.5 La destruction de l’instance se fera automatiquement quand il n’y a plus de sockets
 }

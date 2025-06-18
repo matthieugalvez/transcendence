@@ -30,10 +30,10 @@ export function removeGameRoom(gameId: string): void {
 /**
  * Ajoute un joueur (WebSocket) à la partie
  */
-export function addPlayerToRoom(gameId: string, ws: WebSocket): number | 'spectator' | null {
+export function addPlayerToRoom(gameId: string, ws: WebSocket): number | null {
     const game = getGameRoom(gameId);
     if (!game) return null;
-    return game.addClient(ws); // 1, 2 ou 'spectator'
+    return game.addClient(ws); // 1, 2
 }
 
 export { gameRooms };
