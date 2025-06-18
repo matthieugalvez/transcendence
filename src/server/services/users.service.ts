@@ -142,12 +142,12 @@ export namespace UserOnline {
 
   export function addOnlineUser(userId: string, ws: WebSocket) {
     onlineUsers.set(userId, ws);
-    console.log(`Added user ${userId} to online users. Total online: ${onlineUsers.size}`);
+    console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
   }
 
   export function removeOnlineUser(userId: string) {
-    const removed = onlineUsers.delete(userId);
-    console.log(`Removed user ${userId} from online users: ${removed}. Total online: ${onlineUsers.size}`);
+    const result = onlineUsers.delete(userId);
+    console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
   }
 
   export function isUserOnline(userId: string): boolean {
@@ -163,21 +163,17 @@ export namespace UserOnline {
     let sentCount = 0;
 
     onlineUsers.forEach((ws, userId) => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        try {
+      try {
+        if (ws.readyState === WebSocket.OPEN) {
           ws.send(message);
           sentCount++;
-        } catch (error) {
-          console.error(`Failed to send to user ${userId}:`, error);
-          // Clean up invalid connections
+        } else if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+          // Clean up closed connections
           onlineUsers.delete(userId);
         }
-      } else if (ws) {
-        console.log(`User ${userId} socket not open, state: ${ws.readyState}`);
-        // Clean up closed connections
-        if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-          onlineUsers.delete(userId);
-        }
+      } catch (error) {
+        console.error(`Error sending to user ${userId}:`, error);
+        onlineUsers.delete(userId);
       }
     });
 

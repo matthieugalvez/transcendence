@@ -6,53 +6,39 @@ import AuthMiddleware from '../middlewares/auth.middleware'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import { UserOnline } from '../services/users.service'
-import jwt from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import authConfig from '../config/auth.config';
 const pump = promisify(pipeline);
 
 
 export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
-  const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret';
-
   fastify.get('/ws/status', {
     websocket: true
   }, async (connection, req) => {
     let userId;
 
     try {
-      // Check for cookie in the request
+      // Extract authentication from cookies
       const token = req.cookies?.accessToken;
+
       if (token) {
         try {
-          // Use jsonwebtoken directly with appropriate secret
-          const decoded = jsonwebtoken.verify(token, JWT_SECRET) as { userId: string };
+          // Use your existing jwt verification with the secret from authConfig
+          const decoded = jsonwebtoken.verify(token, authConfig.secret);
           userId = decoded.userId;
           console.log('WebSocket authenticated user:', userId);
         } catch (jwtError) {
           console.error('Invalid JWT token in cookie:', jwtError);
         }
       } else {
-        // Try header-based auth as fallback
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-          const headerToken = authHeader.substring(7);
-          try {
-            const decoded = jsonwebtoken.verify(headerToken, JWT_SECRET) as { userId: string };
-            userId = decoded.userId;
-            console.log('WebSocket authenticated with header token');
-          } catch (err) {
-            console.error('Invalid authorization header token');
-          }
-        } else {
-          console.log('No authentication token found');
-        }
+        console.log('No access token in cookies');
       }
     } catch (error) {
       console.error('Error authenticating WebSocket connection:', error);
     }
 
-    if (!userId) {
-      console.log('WebSocket connection rejected: Missing or invalid authentication');
+    if (!userId || !connection?.socket) {
+      console.log('WebSocket connection rejected: Missing authentication or invalid socket');
       if (connection?.socket) {
         connection.socket.close(1008, 'Unauthorized');
       }
@@ -61,40 +47,39 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
     console.log(`User ${userId} connected to online status WebSocket`);
 
-    // Add the user to online list
-    if (connection?.socket) {
-      UserOnline.addOnlineUser(userId, connection.socket);
+    // Add this user to online users list
+    UserOnline.addOnlineUser(userId, connection.socket);
 
-      // Broadcast online status
+    // Broadcast online status
+    try {
+      UserOnline.broadcastToAll(JSON.stringify({
+        type: 'status',
+        userId: userId,
+        online: true
+      }));
+    } catch (error) {
+      console.error('Error broadcasting online status:', error);
+    }
+
+    // Handle disconnect
+    connection.socket.on('close', () => {
+      console.log(`User ${userId} disconnected from online status WebSocket`);
+      UserOnline.removeOnlineUser(userId);
+
+      // Broadcast offline status
       try {
         UserOnline.broadcastToAll(JSON.stringify({
           type: 'status',
           userId: userId,
-          online: true
+          online: false
         }));
       } catch (error) {
-        console.error('Error broadcasting online status:', error);
+        console.error('Error broadcasting offline status:', error);
       }
-
-      // Handle disconnect
-      connection.socket.on('close', () => {
-        console.log(`User ${userId} disconnected from online status WebSocket`);
-        UserOnline.removeOnlineUser(userId);
-
-        // Broadcast offline status
-        try {
-          UserOnline.broadcastToAll(JSON.stringify({
-            type: 'status',
-            userId: userId,
-            online: false
-          }));
-        } catch (error) {
-          console.error('Error broadcasting offline status:', error);
-        }
-      });
-    }
+    });
   });
 }
+
 export default async function userRoutes(fastify: FastifyInstance) {
 
 	await fastify.register(import('@fastify/multipart'));

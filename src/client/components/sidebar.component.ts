@@ -78,13 +78,13 @@ export class SidebarComponent {
 			const searchContainer = document.createElement('div');
 			searchContainer.className = 'w-full mb-4';
 
-			const searchTitle = document.createElement('h3');
-			searchTitle.textContent = 'Find Users';
-			searchTitle.className = `
-            font-['Orbitron'] text-white text-sm font-medium mb-2
-            text-center
-        `;
-			searchContainer.appendChild(searchTitle);
+		// 	const searchTitle = document.createElement('h3');
+		// 	searchTitle.textContent = 'Find Users';
+		// 	searchTitle.className = `
+        //     font-['Orbitron'] text-white text-sm font-medium mb-2
+        //     text-center
+        // `;
+		// 	searchContainer.appendChild(searchTitle);
 
 			// Render the user search component
 			UserSearchComponent.render(searchContainer);
@@ -93,14 +93,14 @@ export class SidebarComponent {
 		}
 
 		// provisoire
-		const subtitle = document.createElement('p');
-		subtitle.textContent = 'statistics of user here to logout button';
-		subtitle.className = `
-      font-['Orbitron'] text-center text-white
-      text-sm font-medium mb-8
-    `.replace(/\s+/g, ' ').trim();
-		subtitle.style.letterSpacing = "0.05em";
-		sidebar.appendChild(subtitle);
+	// 	const subtitle = document.createElement('p');
+	// 	subtitle.textContent = 'statistics of user here to logout button';
+	// 	subtitle.className = `
+    //   font-['Orbitron'] text-center text-white
+    //   text-sm font-medium mb-8
+    // `.replace(/\s+/g, ' ').trim();
+	// 	subtitle.style.letterSpacing = "0.05em";
+	// 	sidebar.appendChild(subtitle);
 
 		// pousse les bouttons suivants tout en bas
 		const bottomContainer = document.createElement('div');
