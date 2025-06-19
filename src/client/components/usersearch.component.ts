@@ -53,7 +53,6 @@ export class UserSearchComponent {
                              class="w-5 h-5 rounded-full border-2 border-purple-500">
                         <div>
                             <p class="font-bold">${user.displayName}</p>
-                            <p class="text-sm text-gray-600">@${user.displayName}</p>
                         </div>
                     </div>
                     <button class="px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700">

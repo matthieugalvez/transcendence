@@ -116,9 +116,9 @@ export class ProfileRender {
   userInfo.appendChild(statusDot);
 
 
-		const username = document.createElement('p');
-		username.textContent = `@${user.displayName}`;
-		username.className = 'text-gray-600 text-lg mb-2';
+		// const username = document.createElement('p');
+		// username.textContent = `@${user.displayName}`;
+		// username.className = 'text-gray-600 text-lg mb-2';
 
 		const joinDate = document.createElement('p');
 		const date = new Date(user.created_at).toLocaleDateString();
@@ -126,7 +126,7 @@ export class ProfileRender {
 		joinDate.className = 'text-gray-500 text-sm';
 
 		userInfo.appendChild(displayName);
-		userInfo.appendChild(username);
+		// userInfo.appendChild(username);
 		userInfo.appendChild(joinDate);
 
 		header.appendChild(avatar);
@@ -141,7 +141,7 @@ export class ProfileRender {
 
 		const title = document.createElement('h2');
 		title.textContent = 'Profile Information';
-		title.className = 'text-2xl font-bold mb-4 text-gray-800';
+		title.className = ` font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
 
 		const infoGrid = document.createElement('div');
 		infoGrid.className = 'grid grid-cols-2 gap-4';
@@ -266,13 +266,13 @@ export class ProfileRender {
 		// title.textContent = 'Quick Edit';
 		title.className = 'text-xl font-bold mb-4 text-gray-800';
 
-		const editButton = document.createElement('button');
-		editButton.textContent = 'Edit Profile';
-		editButton.className = `
-            px-6 py-2 bg-blue-600 text-white rounded-lg
-            hover:bg-blue-700 transition-colors
-            font-medium
-        `;
+		const editButton = CommonComponent.createStylizedButton('Edit profile', 'blue')
+		// editButton.textContent = 'Edit Profile';
+		// editButton.className = `
+        //     px-6 py-2 bg-blue-600 text-white rounded-lg
+        //     hover:bg-blue-700 transition-colors
+        //     font-medium
+        // `;
 		editButton.onclick = () => {
 			router.navigate('/settings');
 		};
