@@ -91,12 +91,14 @@ export async function GamePageCheck() {
       }
 
       // Only render sidebar and main content if authentication succeeds
-      SidebarComponent.render({
-        userName: user.displayName,
-        showStats: true,
-        showSettings: true,
-        showBackHome: false
-      });
+    SidebarComponent.render({
+      userName: user.displayName,
+      avatarUrl: user.avatar,
+      showStats: true,
+      showSettings: true,
+      showBackHome: false,
+      showUserSearch: true
+    });
 
       const main = document.createElement("div");
       main.className = "min-h-screen min-w-screen flex items-start justify-center";

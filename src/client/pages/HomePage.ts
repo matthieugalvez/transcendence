@@ -6,12 +6,17 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
+import { UserSearchComponent } from '../components/usersearch.component';
 
 
 export async function RenderHomePage(): Promise<void> {
 	document.title = "Home";
 	document.body.innerHTML = "";
 	BackgroundComponent.applyAnimatedGradient();
+
+
+
+
 
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
@@ -34,13 +39,20 @@ export async function RenderHomePage(): Promise<void> {
 			showStats: true,
 			showSettings: true,
 			avatarUrl: user.avatar,
-			showBackHome: false
+			showBackHome: false,
+			showUserSearch: true
 		});
+
+
 
 		const main = document.createElement("div");
 		main.className = "min-h-screen min-w-screen flex items-start justify-center";
 		document.body.appendChild(main);
+
+
+
 		await HomeRender.renderInto(main);
+
 
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);

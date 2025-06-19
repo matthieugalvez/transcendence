@@ -1,8 +1,11 @@
 import type { WebSocket } from 'ws';
 import { addPlayerToRoom, createGameRoom, getGameRoom } from '../../game/gameRooms';
+import { UserOnline } from '../../services/users.service';
 
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
+
+
   const gameId = req.params.gameId;
 
   // 1.1 Récupérer ou créer l’instance GameInstance
