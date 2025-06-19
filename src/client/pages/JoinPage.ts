@@ -1,13 +1,19 @@
-import { startPongInContainer, showGameOverOverlay, getShareableLink } from '../utils/game.utils';
 import { SidebarComponent } from "../components/sidebar.component";
 import { BackgroundComponent } from '../components/background.component';
 import { GameSettingsComponent } from '../components/game.component';
-import { UserService } from '../services/user.service';
-import { router } from "../configs/simplerouter";
 import { AuthComponent } from '../components/auth.component';
+import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { hideOverlay } from '../utils/game.utils';
-import { resourceLimits } from 'worker_threads';
+import { router } from "../configs/simplerouter";
+import { 
+  setCookie,
+  getCookie,
+  deleteCookie,
+  hideOverlay,
+  startPongInContainer,
+  showGameOverOverlay,
+  getShareableLink
+} from '../utils/game.utils';
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -54,9 +60,6 @@ export async function renderJoinPage(params: { gameId: string }) {
 	  CommonComponent.handleAuthError();
   }
 
-  localStorage.removeItem('playerToken');
-  localStorage.removeItem('playerId');
-
   // Wrapper principal
   const wrapper = document.createElement('div');
   wrapper.className = 'flex min-h-screen w-full items-center justify-center relative';
@@ -74,9 +77,17 @@ export async function renderJoinPage(params: { gameId: string }) {
   let hostUsername = 'Player 1';
   let guestUsername = 'Player 2';
 
-  // let playerId: string | null = null;
   if (playerId === 1) hostUsername = user?.displayName;
   if (playerId === 2) guestUsername = user?.displayName;
+
+  // S'assurer qu'on ne garde pas un vieux token si on entre dans une nouvelle room
+  const lastId = getCookie('lastGameId');
+  if (lastId && lastId !== gameId) {
+    deleteCookie(`pongPlayerToken-${getCookie('lastGameId')}`);
+    deleteCookie(`pongPlayerId-${getCookie('lastGameId')}`);
+  } else {
+    setCookie('lastGameId', gameId);
+  }
 
   // --- Attente de la websocket ---
   const matchTitle = `${hostUsername} vs ${guestUsername}`;
@@ -115,6 +126,8 @@ export async function renderJoinPage(params: { gameId: string }) {
       // PlayerId : host (1), guest (2), spectator
       if (data.type === 'playerToken') {
         playerId = data.playerId;
+        setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
+        setCookie(`pongPlayerId-${gameId}`, data.playerId);
         // On assigne le username côté front localement
         if (playerId === 1) {
           hostUsername = myUsername;
@@ -134,9 +147,7 @@ export async function renderJoinPage(params: { gameId: string }) {
         bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
 
         // SI les deux joueurs sont connectés ET il y a eu une déco
-        if (bothPlayersConnected && !gameStarted && hasHadDisconnection) {
-          const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
-          if (canvas) canvas.classList.add('blur-xs');
+        if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
           if (playerId === 1 && !resumeAlertShown) {
             alert("Both players are back. Click Start Game to continue.");
             renderSettingsBar();
@@ -152,6 +163,7 @@ export async function renderJoinPage(params: { gameId: string }) {
         if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
           renderSettingsBar();
           isrendered = false;
+          hideOverlay();
         }
 
         // On met à jour le message d’attente
@@ -182,7 +194,7 @@ export async function renderJoinPage(params: { gameId: string }) {
         onCopyLink: async (link) => {
           navigator.clipboard.writeText(link)
         },
-        canStart: () => bothPlayersConnected,
+        canStart: () => bothPlayersConnected && playerId === 1,
         onStartGame: async () => {
           pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
           GameSettingsComponent.render('solo-start', {
@@ -214,7 +226,6 @@ export async function renderJoinPage(params: { gameId: string }) {
         },
       });
     }
-    // Spectateur : rien
     else {
       GameSettingsComponent.render('initial', {
       });

@@ -9,6 +9,37 @@ export interface PongHandle {
   start: () => void;
 }
 
+// -- Useful functions for cookies ---
+export function setCookie(name: string, value: string, days = 2) {
+  const expires = new Date(Date.now() + days*864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+export function getCookie(name: string) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1]
+    ? decodeURIComponent(document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1] || '') : '';
+}
+export function deleteCookie(name: string) {
+  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
+// 
+function isGameState(data: any): data is GameState {
+  return data
+    && typeof data === "object"
+    && data.paddle1 && data.paddle2 && data.ball
+    && typeof data.paddle1.x === "number"
+    && typeof data.paddle2.x === "number"
+    && typeof data.ball.x === "number"
+    && typeof data.score1 === "number"
+    && typeof data.score2 === "number";
+}
+
 // --- WebSocket handler ---
 function createGameWebSocket(
   gameId: string,
@@ -20,15 +51,10 @@ function createGameWebSocket(
 ) {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const port = 3000;
-  // recuperer token du localstorage s'il existe
-  const playerToken = localStorage.getItem('playerToken');
-  // On ne passe un token QUE si on tente une reconnexion
-  const shouldSendToken = (mode === 'duo-online') && !!playerToken;
-  const queryPart = shouldSendToken ? `?playerToken=${playerToken}` : '';
-  // const queryPart = (mode === 'duo-online' && playerToken) ? `?playerToken=${playerToken}` : '';
-  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}${queryPart}`;
-  // const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}${playerToken ? `?playerToken=${playerToken}` : ''}`;
-  const socket = new WebSocket(socketUrl);
+  const playerToken = getCookie(`pongPlayerToken-${gameId}`);
+  let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+  if (playerToken) wsUrl += `?playerToken=${playerToken}`;
+  const socket = new WebSocket(wsUrl);
 
   let playerId = null;
   let wasRunning = false;
@@ -40,13 +66,15 @@ function createGameWebSocket(
         console.warn('WS non-string message ignored:', event.data);
         return;
       }
-      console.log('WS raw message:', event.data);
       const data = JSON.parse(event.data);
 
       if (data.type === 'playerToken') {
+        const currentToken = getCookie(`pongPlayerToken-${gameId}`);
+        if (!currentToken || currentToken !== data.playerToken) {
+          setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
+          setCookie(`pongPlayerId-${gameId}`, String(data.playerId));
+        }
         playerId = data.playerId;
-        localStorage.setItem('playerToken', data.playerToken);
-        localStorage.setItem('playerId', String(data.playerId));
         return;
       }
       // si deconnexion
@@ -62,12 +90,11 @@ function createGameWebSocket(
       // si deconnexion sans reconnexion
       if (data.type === 'end') {
         alert(data.message);
-        localStorage.removeItem('playerToken');
-        localStorage.removeItem('playerId');
+        deleteCookie(`pongPlayerToken-${gameId}`);
+        deleteCookie(`pongPlayerId-${gameId}`);
         window.location.href = '/home';
         return;
       }
-
       if (data.type === 'error') {
         console.error('Server error:', data.error);
         alert(`Error: ${data.error}`);
@@ -75,17 +102,27 @@ function createGameWebSocket(
         return;
       }
 
-      const state = data;
-      renderGame(ctx, state);
+      // const state = data;
+      // renderGame(ctx, state);
 
-      if (wasRunning && !state.isRunning && !state.isPaused) {
-        const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
-        setTimeout(() => onFinish(winnerAlias), 150);
+      // if (wasRunning && !state.isRunning && !state.isPaused) {
+      //   const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
+      //   setTimeout(() => onFinish(winnerAlias), 150);
+      // }
+      // wasRunning = state.isRunning;
+      // wasPaused = state.isPaused;
+      if (isGameState(data)) {
+        renderGame(ctx, data);
+
+        if (wasRunning && !data.isRunning && !data.isPaused) {
+          const winnerAlias = data.score1 > data.score2 ? leftPlayer : rightPlayer;
+          setTimeout(() => onFinish(winnerAlias), 150);
+        }
+        wasRunning = data.isRunning;
+        wasPaused = data.isPaused;
       }
-      wasRunning = state.isRunning;
-      wasPaused = state.isPaused;
     } catch (err) {
-      console.error('WS message parse error:', err);
+      console.error('WS message parse error1:', err);
     }
   });
 
@@ -189,17 +226,41 @@ export function startPongInContainer(
   const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
   const { socket, getPlayerId } = wsHandler;
 
-  // Gestion clavier différée (pas avant .start())
+  // Gestion clavier différée
   let keyboardHandlerStarted = false;
-  const keysPressed: Record<string, boolean> = {};
+  let keysPressed: Record<string, boolean> = {};
+  let inputLoopStarted = false;
+
+  function setupInputHandlers() {
+    // Nettoie anciens listeners si besoin
+    window.onkeydown = null;
+    window.onkeyup = null;
+    keysPressed = {};
+
+    setupKeyboardHandlers(socket, keysPressed);
+    startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+    inputLoopStarted = true;
+  }
+
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'playerToken') {
+        // Quand tu reçois le playerToken, lance (ou relance) la gestion input
+        if (!inputLoopStarted) {
+          setupInputHandlers();
+        }
+      }
+    } catch {}
+  });
 
   function start() {
-    if (!keyboardHandlerStarted) {
-      title.textContent = matchTitle;
-      setupKeyboardHandlers(socket, keysPressed);
-      startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-      keyboardHandlerStarted = true;
-    }
+    // if (!keyboardHandlerStarted) {
+    //   title.textContent = matchTitle;
+    //   setupKeyboardHandlers(socket, keysPressed);
+    //   startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+    //   keyboardHandlerStarted = true;
+    // }
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ action: 'start' }));
     } else {
@@ -257,7 +318,7 @@ export function showGameOverOverlay(
 }
 
 export function getShareableLink(gameId: string) {
-  const playerToken = localStorage.getItem('playerToken');
+  const playerToken = getCookie(`pongPlayerToken-${gameId}`);
   if (playerToken) {
     return `${window.location.origin}/game/online/${gameId}?playerToken=${playerToken}`;
   }

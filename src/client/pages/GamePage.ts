@@ -1,5 +1,5 @@
 import '../styles.css';
-import { startPongInContainer, showGameOverOverlay } from '../utils/game.utils';
+import { startPongInContainer, showGameOverOverlay, deleteCookie } from '../utils/game.utils';
 import { UserService } from '../services/user.service';
 import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
@@ -229,8 +229,8 @@ export async function renderPongGamePage() {
               body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
             });
             const { gameId } = await res.json();
-            localStorage.removeItem('playerToken');
-            localStorage.removeItem('playerId');
+            deleteCookie(`pongPlayerToken-${gameId}`);
+            deleteCookie(`pongPlayerId-${gameId}`);
             router.navigate(`/game/online/${gameId}`);
           }
         }
