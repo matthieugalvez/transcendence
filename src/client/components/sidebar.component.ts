@@ -10,11 +10,12 @@ export interface SidebarOptions {
 	showSettings?: boolean;
 	showBackHome?: boolean;
 	showUserSearch?: boolean;
+	showFriendsBtn?: boolean;
 }
 
 export class SidebarComponent {
 	static render(opts: SidebarOptions): HTMLDivElement {
-		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true} = opts;
+		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true} = opts;
 		const sidebar = document.createElement("nav");
 		sidebar.className = `
         fixed left-10 top-10 h-[90%] w-80
@@ -74,6 +75,16 @@ export class SidebarComponent {
 			sidebar.appendChild(statButton);
 		}
 
+
+		if (showFriendsBtn) {
+			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'blue');
+			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
+			friendsBtn.addEventListener('click', () => {
+				router.navigate('/friendlist');
+			});
+			sidebar.appendChild(friendsBtn);
+		}
+
 		if (showUserSearch) {
 			const searchContainer = document.createElement('div');
 			searchContainer.className = 'w-full mb-4';
@@ -91,6 +102,7 @@ export class SidebarComponent {
 
 			sidebar.appendChild(searchContainer);
 		}
+
 
 		// provisoire
 	// 	const subtitle = document.createElement('p');

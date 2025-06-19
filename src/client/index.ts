@@ -13,6 +13,7 @@ import { oauth2FAPage } from './pages/OAuth2FAPage';
 import { renderJoinPage } from './pages/JoinPage';
 import { ProfilePage } from './pages/UserProfilePage';
 import { UsersPage } from './pages/UserPage';
+import { FriendsPage } from './pages/FriendListPage'
 
 function startSPA() {
 	router.register('/', renderIndexPage);
@@ -26,6 +27,7 @@ function startSPA() {
 	router.register('/profile', async () => await ProfilePage()); // Own profile
     router.register('/profile/:displayName', async(params) => await ProfilePage({ displayName: params.displayName })); // Other user's profile by displayName
 	router.register('/users', async () => await UsersPage()); // Add this line
+	router.register('/friendlist', async () => await FriendsPage());
 
 	router.start();
 }

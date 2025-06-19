@@ -1,6 +1,6 @@
 import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component'
-import { WebSocketService} from '../services/websocket.service'
+import { WebSocketService } from '../services/websocket.service'
 
 
 
@@ -342,6 +342,22 @@ export class UserService {
 		}
 	}
 
+	static async getFriends(): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
+		try {
+			const response = await ApiClient.authenticatedFetch('/api/friends');
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to get friends');
+			}
+
+			return data.data;
+		} catch (error) {
+			console.error('Error fetching friends:', error);
+			throw new Error('Failed to fetch friends. Please try again.');
+		}
+	}
+
 	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
 		const data = await response.json();
@@ -371,7 +387,7 @@ export class UserService {
 			throw new Error(data.error || 'Failed to accept friend request');
 	}
 
-  static checkUserOnline(userId: string): boolean {
-    return WebSocketService.getInstance().isUserOnline(userId);
-  }
+	static checkUserOnline(userId: string): boolean {
+		return WebSocketService.getInstance().isUserOnline(userId);
+	}
 }
