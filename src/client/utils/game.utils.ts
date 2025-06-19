@@ -1,6 +1,7 @@
 import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
+import { router } from '../configs/simplerouter';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: string) => void;
@@ -310,9 +311,10 @@ export function showGameOverOverlay(
 
   const replay = CommonComponent.createStylizedButton('Play Again', 'blue');
   replay.onclick = () => {
-    if (canvas) canvas.classList.remove('blur-xs');
-    ov.remove();
-    onReplay();
+    // if (canvas) canvas.classList.remove('blur-xs');
+    // ov.remove();
+    // onReplay();
+    router.navigate('/game');
   };
   panel.appendChild(replay);
 }
