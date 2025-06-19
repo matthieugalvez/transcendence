@@ -20,7 +20,7 @@ export class WebSocketService {
 
     try {
       const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-      const port = location.port || '5173';
+      const port = 3000;
       const socketUrl = `${protocol}://${location.hostname}:${port}/ws/status`;
 
       console.log('Connecting to WebSocket:', socketUrl);

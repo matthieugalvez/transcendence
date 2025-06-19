@@ -164,11 +164,16 @@ export namespace UserOnline {
 
     onlineUsers.forEach((ws, userId) => {
       try {
-        if (ws.readyState === WebSocket.OPEN) {
+        // Fix: Check if ws exists and has readyState property
+        if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(message);
           sentCount++;
-        } else if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+        } else if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
           // Clean up closed connections
+          onlineUsers.delete(userId);
+        } else if (!ws) {
+          // Clean up null/undefined WebSocket references
+          console.log(`Removing null WebSocket for user ${userId}`);
           onlineUsers.delete(userId);
         }
       } catch (error) {

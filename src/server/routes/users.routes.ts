@@ -24,7 +24,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       if (token) {
         try {
           // Use your existing jwt verification with the secret from authConfig
-          const decoded = jsonwebtoken.verify(token, authConfig.secret);
+          const decoded = jsonwebtoken.verify(token, authConfig.secret) as { userId: string };
           userId = decoded.userId;
           console.log('WebSocket authenticated user:', userId);
         } catch (jwtError) {
@@ -37,9 +37,10 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       console.error('Error authenticating WebSocket connection:', error);
     }
 
-    if (!userId || !connection?.socket) {
-      console.log('WebSocket connection rejected: Missing authentication or invalid socket');
-      if (connection?.socket) {
+    // Fix: Check for userId and connection
+    if (!userId || !connection) {
+      console.log('WebSocket connection rejected: Missing authentication or invalid connection');
+      if (connection && connection.socket) {
         connection.socket.close(1008, 'Unauthorized');
       }
       return;
@@ -47,7 +48,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
     console.log(`User ${userId} connected to online status WebSocket`);
 
-    // Add this user to online users list
+    // Fix: Use connection.socket instead of connection directly
     UserOnline.addOnlineUser(userId, connection.socket);
 
     // Broadcast online status
@@ -61,8 +62,8 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       console.error('Error broadcasting online status:', error);
     }
 
-    // Handle disconnect
-    connection.socket.on('close', () => {
+    // Handle disconnect - Fix: Use connection.socket.on
+    connection.on('close', () => {
       console.log(`User ${userId} disconnected from online status WebSocket`);
       UserOnline.removeOnlineUser(userId);
 
@@ -76,6 +77,12 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       } catch (error) {
         console.error('Error broadcasting offline status:', error);
       }
+    });
+
+    // Handle errors
+    connection.on('error', (error) => {
+      console.error(`WebSocket error for user ${userId}:`, error);
+      UserOnline.removeOnlineUser(userId);
     });
   });
 }
