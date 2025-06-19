@@ -68,22 +68,52 @@ export class ProfileRender {
             bg-clip-text text-transparent mb-2
         `;
 
-		const statusDot = document.createElement('span');
-		statusDot.style.display = 'inline-block';
-		statusDot.style.width = '12px';
-		statusDot.style.height = '12px';
-		statusDot.style.borderRadius = '50%';
-		statusDot.style.background = 'gray';
-		statusDot.title = 'Checking status...';
+  const statusDot = document.createElement('span');
+  statusDot.setAttribute('data-user-status', user.id);
+  statusDot.style.display = 'inline-block';
+  statusDot.style.width = '12px';
+  statusDot.style.height = '12px';
+  statusDot.style.borderRadius = '50%';
+  statusDot.style.background = 'gray'; // Start with gray
+  statusDot.title = 'Checking status...';
 
+  const wsService = WebSocketService.getInstance();
 
-		// Get initial status synchronously
-		const isOnline = WebSocketService.getInstance().isUserOnline(user.id);
-		statusDot.style.background = isOnline ? 'green' : 'red';
-		statusDot.title = isOnline ? 'Online' : 'Offline';
-		console.log(`Online status ? ${isOnline}`);
+  // Set up status change listener
+  const cleanup = wsService.onStatusChange((userId, isOnline) => {
+    if (userId === user.id) {
+      statusDot.style.background = isOnline ? 'green' : 'red';
+      statusDot.title = isOnline ? 'Online' : 'Offline';
+      console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+    }
+  });
 
-		userInfo.appendChild(statusDot);
+  // Try to get initial status and wait for WebSocket connection
+  (async () => {
+    try {
+      // Wait for WebSocket to connect
+      const connected = await wsService.waitForConnection(3000);
+      if (connected) {
+        // Give it a moment for initial status messages to arrive
+        setTimeout(() => {
+          const isOnline = wsService.isUserOnline(user.id);
+          statusDot.style.background = isOnline ? 'green' : 'red';
+          statusDot.title = isOnline ? 'Online' : 'Offline';
+          console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+        }, 500);
+      } else {
+        // Connection failed, show offline
+        statusDot.style.background = 'red';
+        statusDot.title = 'Offline';
+      }
+    } catch (error) {
+      console.error('Error getting initial status:', error);
+      statusDot.style.background = 'red';
+      statusDot.title = 'Offline';
+    }
+  })();
+
+  userInfo.appendChild(statusDot);
 
 
 		const username = document.createElement('p');

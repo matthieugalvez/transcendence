@@ -18,12 +18,10 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
     let userId;
 
     try {
-      // Extract authentication from cookies
       const token = req.cookies?.accessToken;
 
       if (token) {
         try {
-          // Use your existing jwt verification with the secret from authConfig
           const decoded = jsonwebtoken.verify(token, authConfig.secret) as { userId: string };
           userId = decoded.userId;
           console.log('WebSocket authenticated user:', userId);
@@ -37,21 +35,46 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       console.error('Error authenticating WebSocket connection:', error);
     }
 
-    // Fix: Check for userId and connection
     if (!userId || !connection) {
       console.log('WebSocket connection rejected: Missing authentication or invalid connection');
-      if (connection && connection.socket) {
-        connection.socket.close(1008, 'Unauthorized');
-      }
       return;
     }
 
     console.log(`User ${userId} connected to online status WebSocket`);
 
-    // Fix: Use connection.socket instead of connection directly
-    UserOnline.addOnlineUser(userId, connection.socket);
+    // Add user to online list
+    UserOnline.addOnlineUser(userId, connection);
 
-    // Broadcast online status
+    // Send welcome message
+    try {
+      if (typeof connection.send === 'function') {
+        connection.send(JSON.stringify({
+          type: 'welcome',
+          message: 'Connected successfully',
+          userId: userId
+        }));
+        console.log('Welcome message sent successfully');
+      }
+    } catch (error) {
+      console.error('Error sending welcome message:', error);
+    }
+
+    // Send current online users list to the newly connected user
+    try {
+      const onlineUsers = UserOnline.getOnlineUsers();
+      for (const onlineUserId of onlineUsers) {
+        connection.send(JSON.stringify({
+          type: 'status',
+          userId: onlineUserId,
+          online: true
+        }));
+      }
+      console.log(`Sent ${onlineUsers.length} online users to ${userId}`);
+    } catch (error) {
+      console.error('Error sending online users list:', error);
+    }
+
+    // Broadcast that this user is now online to all other users
     try {
       UserOnline.broadcastToAll(JSON.stringify({
         type: 'status',
@@ -62,12 +85,11 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       console.error('Error broadcasting online status:', error);
     }
 
-    // Handle disconnect - Fix: Use connection.socket.on
+    // Handle disconnect
     connection.on('close', () => {
       console.log(`User ${userId} disconnected from online status WebSocket`);
       UserOnline.removeOnlineUser(userId);
 
-      // Broadcast offline status
       try {
         UserOnline.broadcastToAll(JSON.stringify({
           type: 'status',
@@ -79,7 +101,6 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
       }
     });
 
-    // Handle errors
     connection.on('error', (error) => {
       console.error(`WebSocket error for user ${userId}:`, error);
       UserOnline.removeOnlineUser(userId);
