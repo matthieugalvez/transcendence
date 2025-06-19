@@ -93,4 +93,36 @@ export class	ChatService {
 			};
 		}
 	}
+
+	static async	deleteMessage(message_id: number): Promise<{	success: boolean,
+															error?: string,
+															details?: any[] }> {
+		try {
+			const	response = await ApiClient.authenticatedFetch('/api/chat/delete', {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ message_id })
+			});
+			const	data = await response.json();
+
+			if (!data.success) {
+				return {
+					success: false,
+					error: data.error || 'failed to delete message',
+					details: data.details || []
+				};
+			}
+
+			return { success: true };
+		}
+		catch (error) {
+			console.error('Error deleting message:', error);
+			return {
+				success: false,
+				error: 'Failed to delete message'
+			};
+		}
+	}
 }

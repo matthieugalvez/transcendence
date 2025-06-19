@@ -18,4 +18,8 @@ export default async function	chatRoutes(fastify: FastifyInstance) {
 	fastify.post('/edit', {
 		preHandler: AuthMiddleware.authenticateUser
 	}, ChatController.editMessage);
+
+	fastify.delete('/delete', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, ChatController.deleteMessage);
 }

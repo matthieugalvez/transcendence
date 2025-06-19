@@ -83,4 +83,18 @@ export class	ChatController {
 			return Send.internalError(reply, 'Failed to edit message');
 		}
 	}
+
+	static async	deleteMessage(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const	{ message_id } = request.body as { message_id: number };
+
+			const	Message = await ChatService.deleteMessage(message_id);
+
+			return Send.success(reply, Message, 'Deleted message successfully');
+		}
+		catch (error) {
+			console.error('Error deleting message:', error);
+			return Send.internalError(reply, 'Failed to delete message');
+		}
+	}
 }

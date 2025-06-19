@@ -18,6 +18,12 @@ export class ChatService {
 		})
 	}
 
+	static async	deleteMessage(id: number) {
+		return await prisma.message.delete({
+			where: { id }
+		})
+	}
+
 	static async	getSendMessages(sender_id: number) {
 		return await prisma.message.findMany({
 			where: { sender_id }
