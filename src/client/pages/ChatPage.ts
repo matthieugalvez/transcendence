@@ -12,7 +12,7 @@ export async function renderChatPage() {
 
 	BackgroundComponent.applyCenteredGradientLayout();
 
-	const	title_box = document.createElement('nav');
+	const	title_box = document.createElement('div');
 	title_box.className = `
 		font-['Orbitron']
 		text-white font-semibold
@@ -31,15 +31,9 @@ export async function renderChatPage() {
 
 	document.body.appendChild(title_box);
 
-//	ChatService.postMessage(user.id, 'test');
 //	ChatService.editMessage(1, 'edit test');
 	let		messages = await ChatService.getAllMessages();
-	while (messages.length > 9)
-	{
-		await ChatService.deleteMessage(messages[0].id);
-		messages = await ChatService.getAllMessages();
-	}
-	const	send_box = document.createElement('nav');
+	const	send_box = document.createElement('div');
 	send_box.className = `
         fixed left-[2.5%] top-[7%] h-[65%] w-[46%]
         bg-amber-300/50
@@ -51,8 +45,9 @@ export async function renderChatPage() {
         flex flex-col items-start p-6
         space-y-4 z-11
     `.trim();
+	send_box.style.overflow = 'auto';
 
-	const	received_box = document.createElement('nav');
+	const	received_box = document.createElement('div');
 	received_box.className = `
         fixed right-[2.5%] top-[7%] h-[65%] w-[46%]
         bg-amber-300/50
@@ -64,6 +59,7 @@ export async function renderChatPage() {
         flex flex-col items-start p-6
         space-y-4 z-11
     `.trim();
+	received_box.style.overflow = 'auto';
 
 	for (const message of messages) {
 		if (message.sender_id == user.id)
@@ -110,11 +106,24 @@ export async function renderChatPage() {
 	`.replace(/\s+/g, ' ').trim()
 	prompt_area.placeholder = 'Type Message here...';
 
+	prompt_area.onkeydown = async (event) => {
+		console.log(event.key);
+		if (event.key === "Enter" && prompt_area.value.trim()) {
+			await ChatService.postMessage(user.id, prompt_area.value.trim());
+			location.reload();
+		}
+	};
+
 	const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
 	send_button.style.position = 'inherit';
 	send_button.style.right = '35px';
 	send_button.style.bottom = '35px';
-//	send_button.onclick();
+	send_button.onclick = async () => {
+		if (prompt_area.value.trim()) {
+			await ChatService.postMessage(user.id, prompt_area.value.trim());
+			location.reload();
+		}
+	};
 
 	prompt_box.appendChild(prompt_title);
 	prompt_box.appendChild(prompt_area);
@@ -123,30 +132,12 @@ export async function renderChatPage() {
 }
 
 function makeMsgBox(content_box: Element, message) {
-	const	send_box_date = document.createElement('nav');
-	send_box_date.className = `
-    font-['Orbitron']
-	relative top-[-70px] left-2
-    text-white font-semibold
-    bg-purple-900/50 backdrop-blur-2xl
-    border-2 border-black
-    rounded-lg text-lg transition-colors
-    focus:outline-none focus:ring-2
-    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    disabled:opacity-50 disabled:cursor-not-allowed
-    flex flex-col items-center justify-center
-  `.replace(/\s+/g, ' ').trim();
-	send_box_date.style.fontSize = '14px';
-	send_box_date.textContent = `
-		${message.created_at}
-	`;
-
-	const	send_box_content = document.createElement('nav');
+	const	send_box_content = document.createElement('div');
 	send_box_content.className = `
     font-['Orbitron']
     bg-purple-900/100 backdrop-blur-2xl
     left-10 w-[100%]
-    text-white font-semibold p-1
+    text-white font-semibold
     border-2 border-black
     rounded-lg text-lg transition-colors
     focus:outline-none focus:ring-2
@@ -154,15 +145,36 @@ function makeMsgBox(content_box: Element, message) {
     disabled:opacity-50 disabled:cursor-not-allowed
 	`.replace(/\s+/g, ' ').trim();
 	send_box_content.style.whiteSpace = 'pre-line';
-	send_box_date.style.margin = '-20px';
+	send_box_content.style.hyphens = 'auto';
 	send_box_content.textContent = `
 		${message.content}
 	`;
+
+	const	send_box_date = document.createElement('div');
+	send_box_date.className = `
+    font-['Orbitron']
+	absolute top-[-10px] left-[-10px]
+    text-white font-semibold
+    bg-purple-900/100 backdrop-blur-2xl
+    border-2 border-black
+    rounded-lg text-lg transition-colors
+    focus:outline-none focus:ring-2
+    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    disabled:opacity-50 disabled:cursor-not-allowed
+  `.replace(/\s+/g, ' ').trim();
+	send_box_date.style.fontSize = '14px';
+	send_box_date.textContent = `
+		${message.created_at}
+	`;
+	send_box_date.style.width = 'fit-content';
+	send_box_date.style.blockSize = 'fit-content';
+	send_box_date.style.whiteSpace = 'wrap';
+
+	send_box_content.appendChild(send_box_date);
 
 	const	margin = document.createElement('div');
 	margin.style.margin = '10px';
 
 	content_box.appendChild(send_box_content);
-	content_box.appendChild(send_box_date);
 	content_box.appendChild(margin);
 }
