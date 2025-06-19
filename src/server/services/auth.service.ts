@@ -92,7 +92,7 @@ export class AuthService {
 		}
 
 		const issuer = 'Transcendence';
-		const label = `${issuer}:${user.name}`;
+		const label = `${issuer}:${user.displayName}`;
 		const secret = speakeasy.generateSecret({
 			name: label,
 			issuer: issuer,

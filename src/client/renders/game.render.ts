@@ -105,6 +105,10 @@ function drawScores(ctx: CanvasRenderingContext2D, score1: number, score2: numbe
 
 // --- Fonction principale de rendu ---
 export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): void {
+  // if (!state.paddle1 || !state.paddle2 || !state.ball) {
+  //   // console.warn('GameState incomplet, render ignoré:', state);
+  //   return;
+  // }
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   drawBackground(ctx);
   drawCenterLine(ctx);

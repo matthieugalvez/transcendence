@@ -18,7 +18,8 @@ export async function renderTournamentPage() {
   // Sidebar et BG
   const user = await UserService.getCurrentUser();
   SidebarComponent.render({
-    userName: user.name,
+    userName: user.displayName,
+    avatarUrl: user.avatar,
     showStats: true,
     showBackHome: true
   });
