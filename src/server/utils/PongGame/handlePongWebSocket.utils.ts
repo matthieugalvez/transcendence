@@ -23,6 +23,8 @@ function attachMessageHandler(ws: WebSocket, game: GameInstance) {
 
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
+
+
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
 

@@ -6,6 +6,7 @@ export default defineConfig({
 	root: './src/client',
 	plugins: [tailwindcss()],
 	server: {
+		host: '0.0.0.0',
 		port: 5173, // Development server port
 		proxy: {
 			'/api': {
@@ -24,6 +25,10 @@ export default defineConfig({
 			'/ws/pong': {
 				target: 'ws://localhost:3000',
 				ws: true,
+			},
+			'/ws/status': {
+				target: 'ws://localhost:3000',
+				ws: true
 			}
 		}
 	},

@@ -107,14 +107,81 @@ export class UserService {
 	}
 
 	static async updateUserAvatar(userId: string, avatarPath: string): Promise<void> {
-    try {
-        await prisma.user.update({
-            where: { id: userId },
-            data: { avatar: avatarPath }
-        });
-    } catch (error) {
-        console.error('Error updating user avatar:', error);
-        throw error;
-    }
+		try {
+			await prisma.user.update({
+				where: { id: userId },
+				data: { avatar: avatarPath }
+			});
+		} catch (error) {
+			console.error('Error updating user avatar:', error);
+			throw error;
+		}
+	}
+
+	static async searchUsers(query: string, limit: number = 10) {
+		return await prisma.user.findMany({
+			where: {
+				displayName: {
+					contains: query
+					// Remove mode: 'insensitive' since it's not supported for this field type
+				}
+			},
+			select: {
+				id: true,
+				displayName: true,
+				avatar: true
+			},
+			take: limit
+		});
+	}
 }
+
+// Online users management (outside the class)
+export namespace UserOnline {
+  const onlineUsers = new Map<string, WebSocket>();
+
+  export function addOnlineUser(userId: string, ws: WebSocket) {
+    onlineUsers.set(userId, ws);
+    console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
+  }
+
+  export function removeOnlineUser(userId: string) {
+    const result = onlineUsers.delete(userId);
+    console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
+  }
+
+  export function isUserOnline(userId: string): boolean {
+    return onlineUsers.has(userId);
+  }
+
+  export function getOnlineUsers(): string[] {
+    return Array.from(onlineUsers.keys());
+  }
+
+  export function broadcastToAll(message: string) {
+    console.log(`Broadcasting to ${onlineUsers.size} users`);
+    let sentCount = 0;
+
+    onlineUsers.forEach((ws, userId) => {
+      try {
+        // Fix: Check if ws exists and has readyState property
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(message);
+          sentCount++;
+        } else if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+          // Clean up closed connections
+          onlineUsers.delete(userId);
+        } else if (!ws) {
+          // Clean up null/undefined WebSocket references
+          console.log(`Removing null WebSocket for user ${userId}`);
+          onlineUsers.delete(userId);
+        }
+      } catch (error) {
+        console.error(`Error sending to user ${userId}:`, error);
+        onlineUsers.delete(userId);
+      }
+    });
+
+    console.log(`Successfully sent message to ${sentCount} users`);
+  }
 }

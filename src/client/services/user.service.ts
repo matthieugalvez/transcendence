@@ -1,6 +1,6 @@
 import { ApiClient } from '../utils/apiclient.utils';
-import { CommonComponent} from '../components/common.component'
-
+import { CommonComponent } from '../components/common.component'
+import { WebSocketService } from '../services/websocket.service'
 
 
 
@@ -37,6 +37,8 @@ export class UserService {
 				throw new Error(data.error || 'Failed to get user data');
 			}
 
+			// User log on appelle la websocket
+			WebSocketService.getInstance()
 			return data.data;
 		} catch (error) {
 			console.error('Error fetching current user:', error);
@@ -167,7 +169,7 @@ export class UserService {
 	}
 
 
-		static async changeAvatar(password: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
+	static async changeAvatar(password: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/me/avatar', {
 				method: 'PUT',
@@ -199,7 +201,7 @@ export class UserService {
 		}
 	}
 
-		static async handleAvatarUpload(file: File, avatarImg: HTMLImageElement): Promise<void> {
+	static async handleAvatarUpload(file: File, avatarImg: HTMLImageElement): Promise<void> {
 		try {
 			// Validate file size (max 5MB)
 			if (file.size > 5 * 1024 * 1024) {
@@ -266,5 +268,126 @@ export class UserService {
 				uploadButton.textContent = 'Change Avatar';
 			}
 		}
+	}
+
+
+	// FRIEND PROFILE AND SO ON
+
+	static async getUserProfile(userId: string): Promise<{ id: string; name: string; displayName: string; avatar: string; created_at: string; updated_at: string }> {
+		try {
+			const response = await ApiClient.authenticatedFetch(`/api/users/profile/${encodeURIComponent(userId)}`);
+
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to get user profile');
+			}
+
+			return data.data;
+		} catch (error) {
+			console.error('Error fetching user profile:', error);
+			throw new Error('Failed to fetch user profile. Please try again.');
+		}
+	}
+
+	static async getUserProfileByDisplayName(displayName: string): Promise<{ id: string; name: string; displayName: string; avatar: string; created_at: string; updated_at: string }> {
+		try {
+			const response = await ApiClient.authenticatedFetch(`/api/users/profile/${encodeURIComponent(displayName)}`);
+
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to get user profile');
+			}
+
+			return data.data;
+		} catch (error) {
+			console.error('Error fetching user profile by displayName:', error);
+			throw new Error('Failed to fetch user profile. Please try again.');
+		}
+	}
+
+
+	static async searchUsers(query: string, limit: number = 10): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
+		try {
+			const response = await ApiClient.authenticatedFetch(
+				`/api/users/search?q=${encodeURIComponent(query)}&limit=${limit}`
+			);
+
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to search users');
+			}
+
+			return data.data;
+		} catch (error) {
+			console.error('Error searching users:', error);
+			throw new Error('Failed to search users. Please try again.');
+		}
+	}
+
+	static async addFriend(recipientId: string): Promise<void> {
+		const response = await ApiClient.authenticatedFetch(
+			'/api/friends/request',
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ recipientId })
+			}
+		);
+		const data = await response.json();
+		if (!data.success) {
+			throw new Error(data.error);
+		}
+	}
+
+	static async getFriends(): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
+		try {
+			const response = await ApiClient.authenticatedFetch('/api/friends');
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to get friends');
+			}
+
+			return data.data;
+		} catch (error) {
+			console.error('Error fetching friends:', error);
+			throw new Error('Failed to fetch friends. Please try again.');
+		}
+	}
+
+	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
+		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
+		const data = await response.json();
+		if (!data.success)
+			throw new Error(data.error || 'Failed to get friendship status');
+		return data.data; // { status, requestId }
+	}
+
+	static async removeFriend(friendId: string): Promise<void> {
+		const response = await ApiClient.authenticatedFetch(
+			`/api/friends/${encodeURIComponent(friendId)}`,
+			{ method: 'DELETE' }
+		);
+		const data = await response.json();
+		if (!data.success) throw new Error(data.error || 'Failed to remove friend');
+	}
+
+	// ...existing methods...
+
+	static async acceptFriendRequest(requestId: string): Promise<void> {
+		const response = await ApiClient.authenticatedFetch(
+			`/api/friends/request/${encodeURIComponent(requestId)}/accept`,
+			{ method: 'PUT' }
+		);
+		const data = await response.json();
+		if (!data.success)
+			throw new Error(data.error || 'Failed to accept friend request');
+	}
+
+	static checkUserOnline(userId: string): boolean {
+		return WebSocketService.getInstance().isUserOnline(userId);
 	}
 }
