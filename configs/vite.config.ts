@@ -6,6 +6,7 @@ export default defineConfig({
 	root: './src/client',
 	plugins: [tailwindcss()],
 	server: {
+		host: '0.0.0.0',
 		port: 5173, // Development server port
 		proxy: {
 			'/api': {
