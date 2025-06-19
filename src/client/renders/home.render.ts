@@ -5,7 +5,6 @@ import { UserService } from '../services/user.service';
 import pongImg from '../assets/gameimg/screen-pongGame.png';
 import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
 
-
 export class HomeRender {
   static async renderInto(container: HTMLDivElement): Promise<void> {
     // 1) loading dans container
@@ -97,9 +96,7 @@ export class HomeRender {
     errorText.className = 'text-red-600 font-semibold mb-4';
 
     const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
-    loginButton.addEventListener('click', () => {
-      router.navigate('/auth');
-    });
+    loginButton.onclick = () => router.navigate('/auth');
 
     errorContainer.appendChild(errorText);
     errorContainer.appendChild(loginButton);

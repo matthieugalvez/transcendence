@@ -66,9 +66,7 @@ export class SidebarComponent {
     if (showStats) {
         const statButton = CommonComponent.createStylizedButton('Your profile', 'blue');
         statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-        statButton.addEventListener('click', () => {
-            router.navigate('/UserStat');
-        });
+        statButton.onclick = () => router.navigate('/UserStat');
         sidebar.appendChild(statButton);
     }
 
@@ -90,19 +88,17 @@ export class SidebarComponent {
     if (showBackHome) {
         const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
         backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
-        backButton.addEventListener('click', () => {
-        router.navigate('/home');
-        });
+        backButton.onclick = () => router.navigate('/home');
         bottomContainer.appendChild(backButton);
     }
 	if (showSettings) {
-			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
-			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
-			settingBtn.addEventListener("click", async () => {
-			setTimeout(() => router.navigate("/settings"), 300);
-			});
+		const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+		settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
+		// settingBtn.addEventListener("click", async () => {
+		// 	setTimeout(() => router.navigate("/settings"), 300);
+		// });
+    settingBtn.onclick = () => router.navigate("/settings");
     bottomContainer.appendChild(settingBtn);
-
 	}
 
     // Logout button
