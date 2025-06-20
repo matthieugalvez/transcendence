@@ -1,28 +1,27 @@
 import { ApiClient } from '../utils/apiclient.utils';
 
 export class	ChatService {
-	static async	getAllMessages(): Promise<Array<{	id: number,
-														sender_id: number,
-														receiver_id: number,
-														created_at: number,
-														updated_at: number,
-														content: string }>> {
+	static async	getMessages(otheruser_id: number): Promise<Array<{	id: number,
+																		sender_id: number,
+																		receiver_id: number,
+																		created_at: number,
+																		updated_at: number,
+																		content: string }>> {
 		try {
-			const	send_response = await ApiClient.authenticatedFetch('/api/chat/send-messages');
-			const	send_data = await send_response.json();
+			const	response = await ApiClient.authenticatedFetch('/api/chat/messages', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ otheruser_id })
+			});
+			const	data = await response.json();
 			
-			if (!send_data.success) {
-				throw new Error(send_data.error || 'Failed to get send messages');
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to get messages');
 			}
 
-			const	received_response = await ApiClient.authenticatedFetch('/api/chat/received-messages');
-			const	received_data = await received_response.json();
-
-			if (!received_data.success) {
-				throw new Error(received_data.error || 'Failed to get received messages');
-			}
-
-			return send_data.data.users.concat(received_data.data.users);
+			return data.data.users.sort((a, b) => a.created_at.localeCompare(b.created_at));
 		}
 		catch (error) {
 			console.error('Error fetching messages:', error);
@@ -95,8 +94,8 @@ export class	ChatService {
 	}
 
 	static async	deleteMessage(message_id: number): Promise<{	success: boolean,
-															error?: string,
-															details?: any[] }> {
+																	error?: string,
+																	details?: any[] }> {
 		try {
 			const	response = await ApiClient.authenticatedFetch('/api/chat/delete', {
 				method: 'DELETE',

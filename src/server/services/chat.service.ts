@@ -24,15 +24,20 @@ export class ChatService {
 		})
 	}
 
-	static async	getSendMessages(sender_id: number) {
+	static async	getMessages(userId: number, otheruserId: number) {
 		return await prisma.message.findMany({
-			where: { sender_id }
-		})
-	}
-
-	static async	getReceivedMessages(receiver_id: number) {
-		return await prisma.message.findMany({
-			where: { receiver_id }
+			where: {
+				OR: [
+					{
+						sender_id: userId,
+						receiver_id: otheruserId
+					},
+					{
+						sender_id: otheruserId,
+						receiver_id: userId
+					}
+				]
+			}
 		})
 	}
 }

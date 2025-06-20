@@ -3,11 +3,12 @@ import { ChatService } from '../services/chat.service'
 import { ResponseUtils as Send } from '../utils/response.utils'
 
 export class	ChatController {
-	static async	getSendMessages(request: FastifyRequest, reply: FastifyReply) {
+	static async	getMessages(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
+			const	{ otheruser_id } = request.body as { otheruser_id: number };
 
-			const	messages = await ChatService.getSendMessages(userId);
+			const	messages = await ChatService.getMessages(userId, otheruser_id);
 			
 			const messagesData = {
 				users: messages.map(message => ({
@@ -21,37 +22,11 @@ export class	ChatController {
 				count: messages.length
 			}
 
-			return Send.success(reply, messagesData, 'Send Messages retrieved successfully');
+			return Send.success(reply, messagesData, 'Messages retrieved successfully');
 		}
 		catch (error) {
-			console.error('Error fetching send messages:', error);
-			return Send.internalError(reply, 'Failed to fetch send messages');
-		}
-	}
-
-	static async	getReceivedMessages(request: FastifyRequest, reply: FastifyReply) {
-		try {
-			const	userId = ( request as any ).userId;
-
-			const	messages = await ChatService.getReceivedMessages(userId);
-
-			const messagesData = {
-				users: messages.map(message => ({
-					id: message.id,
-					sender_id: message.sender_id,
-					receiver_id: message.receiver_id,
-					created_at: message.created_at.toUTCString(),
-					updated_at: message.updated_at.toUTCString(),
-					content: message.content
-				})),
-				count: messages.length
-			}
-
-			return Send.success(reply, messagesData, 'Received Messages retrieved successfully');
-		}
-		catch (error) {
-			console.error('Error fetching received messages:', error);
-			return Send.internalError(reply, 'Failed to fetch received messages');
+			console.error('Error fetching messages:', error);
+			return Send.internalError(reply, 'Failed to fetch messages');
 		}
 	}
 

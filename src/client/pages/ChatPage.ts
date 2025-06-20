@@ -38,19 +38,18 @@ export async function renderChatPage() {
 
 	document.body.appendChild(title_box);
 
-//	ChatService.editMessage(1, 'edit test');
-	let		messages = await ChatService.getAllMessages();
+	let		messages = await ChatService.getMessages(receiver.id);
 	console.log(messages);
 	const	messages_box = document.createElement('div');
 	messages_box.className = `
-        fixed left-[2.5%] top-[7%] h-[65%] w-[92%]
+        fixed top-[7%] h-[65%] w-[95%]
         bg-amber-300/50
         rounded-lg text-lg transition-colors
         focus:outline-none focus:ring-2
         shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
         disabled:opacity-50 disabled:cursor-not-allowed
         border-2 border-black
-        flex flex-col items-start p-6
+        flex flex-col p-6
         space-y-4 z-11
     `.trim();
 	messages_box.style.overflow = 'auto';
@@ -125,10 +124,20 @@ export async function renderChatPage() {
 }
 
 function makeMsgBox(content_box: Element, message, received: boolean) {
-	const	send_box_content = document.createElement('div');
-	send_box_content.className = `
+	const	box = document.createElement('div');
+	box.className = `
+	w-full flex flex-col
+	`.trim();
+	if (!received) {
+		box.style.alignItems = 'flex-start';
+	}
+	else {
+		box.style.alignItems = 'flex-end';
+	}
+
+	const	box_content = document.createElement('div');
+	box_content.className = `
     font-['Orbitron']
-	relative
     bg-purple-900/100 backdrop-blur-2xl
     text-white font-semibold
     border-2 border-black
@@ -137,22 +146,16 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     disabled:opacity-50 disabled:cursor-not-allowed
 	`.replace(/\s+/g, ' ').trim();
-	if (!received) {
-		send_box_content.style.left = '1%';
-	}
-	else {
-		send_box_content.style.left = '75%';
-	}
-	send_box_content.style.whiteSpace = 'pre-line';
-	send_box_content.style.minWidth = '15%';
-	send_box_content.style.maxWidth = '40%';
-	send_box_content.style.hyphens = 'auto';
-	send_box_content.textContent = `
+	box_content.style.whiteSpace = 'pre-line';
+	box_content.style.minWidth = '15%';
+	box_content.style.maxWidth = '40%';
+	box_content.style.hyphens = 'auto';
+	box_content.textContent = `
 		${message.content}
 	`;
 
-	const	send_box_date = document.createElement('div');
-	send_box_date.className = `
+	const	box_date = document.createElement('div');
+	box_date.className = `
     font-['Orbitron']
 	absolute top-[-10px] left-[-10px]
     text-white font-semibold
@@ -163,21 +166,22 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     disabled:opacity-50 disabled:cursor-not-allowed
   `.replace(/\s+/g, ' ').trim();
-	send_box_date.style.fontSize = '14px';
-	send_box_date.textContent = `
+	box_date.style.fontSize = '14px';
+	box_date.textContent = `
 		${message.created_at}
 	`;
-	send_box_date.style.width = 'fit-content';
-	send_box_date.style.blockSize = 'fit-content';
-	send_box_date.style.whiteSpace = 'wrap';
-	send_box_date.style.maxHeight = '50%';
-	send_box_date.style.overflow = 'auto';
+	box_date.style.width = 'fit-content';
+	box_date.style.blockSize = 'fit-content';
+	box_date.style.whiteSpace = 'wrap';
+	box_date.style.maxHeight = '50%';
+	box_date.style.overflow = 'auto';
 
-	send_box_content.appendChild(send_box_date);
+	box_content.appendChild(box_date);
 
 	const	margin = document.createElement('div');
-	margin.style.margin = '10px';
+	margin.style.margin = '5px';
 
-	content_box.appendChild(send_box_content);
+	box.appendChild(box_content);
+	content_box.appendChild(box);
 	content_box.appendChild(margin);
 }

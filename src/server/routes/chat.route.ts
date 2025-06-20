@@ -3,13 +3,9 @@ import { ChatController } from '../controllers/chat.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
 
 export default async function	chatRoutes(fastify: FastifyInstance) {
-	fastify.get('/send-messages', {
+	fastify.post('/messages', {
 		preHandler: AuthMiddleware.authenticateUser
-	}, ChatController.getSendMessages);
-
-	fastify.get('/received-messages', {
-		preHandler: AuthMiddleware.authenticateUser
-	}, ChatController.getReceivedMessages);
+	}, ChatController.getMessages);
 
 	fastify.post('/post', {
 		preHandler: AuthMiddleware.authenticateUser
