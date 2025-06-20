@@ -94,9 +94,19 @@ export async function renderJoinPage(params: { gameId: string }) {
   const wsHandler = startPongInContainer(
     gameContainer,
     matchTitle,
-    hostUsername,
-    guestUsername,
-    (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, () => renderJoinPage(params)),
+    myUsername,
+    "",
+    (winnerId) => {
+      const titleText = gameContainer.querySelector('h2')!.textContent!;
+      const [hostName, guestName] = titleText.split(' vs ');
+      const winnerName = winnerId === 1 ? hostName : guestName;
+      showGameOverOverlay(wrapper, `${winnerName}`, () => {
+        pongHandle?.socket.close();
+        deleteCookie(`pongPlayerToken-${gameId}`);
+        deleteCookie(`pongPlayerId-${gameId}`);
+        renderJoinPage(params)
+      });
+    },
     gameId,
     "duo-online"
   );
@@ -184,6 +194,14 @@ export async function renderJoinPage(params: { gameId: string }) {
         }
       }
     } catch {}
+
+    // juste après avoir créé ou démarré la partie
+    window.addEventListener('beforeunload', () => {
+      pongHandle?.socket.close();
+    });
+    window.addEventListener('popstate', () => {
+      pongHandle?.socket.close();
+    });
   });
 
   function renderSettingsBar() {

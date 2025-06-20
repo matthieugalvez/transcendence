@@ -4,7 +4,7 @@ import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 
 // type pour le callback de fin de match
-type FinishCallback = (winnerAlias: string) => void;
+type FinishCallback = (winnerAlias: 1|2) => void;
 
 export interface PongHandle {
   start: () => void;
@@ -55,7 +55,14 @@ function createGameWebSocket(
   const playerToken = getCookie(`pongPlayerToken-${gameId}`);
   let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
   if (playerToken) wsUrl += `?playerToken=${playerToken}`;
+  else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
   const socket = new WebSocket(wsUrl);
+  // pour pouvoir fermer les sockets
+  window.addEventListener('app:close-sockets', () => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.close();
+    }
+  });
 
   let playerId = null;
   let wasRunning = false;
@@ -116,8 +123,8 @@ function createGameWebSocket(
         renderGame(ctx, data);
 
         if (wasRunning && !data.isRunning && !data.isPaused) {
-          const winnerAlias = data.score1 > data.score2 ? leftPlayer : rightPlayer;
-          setTimeout(() => onFinish(winnerAlias), 150);
+          const winnerId = data.score1 > data.score2 ? 1 : 2;
+          setTimeout(() => onFinish(winnerId), 150);
         }
         wasRunning = data.isRunning;
         wasPaused = data.isPaused;
@@ -128,7 +135,7 @@ function createGameWebSocket(
   });
 
   socket.addEventListener('close', () => {
-    alert("The game has ended or is no longer accessible.");
+    // alert("The game has ended or is no longer accessible.");
     window.location.reload();
   });
 
@@ -227,6 +234,16 @@ export function startPongInContainer(
   const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
   const { socket, getPlayerId } = wsHandler;
 
+  // A chaque état reçu, on met à jour le titre
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.playerNames && data.playerNames[1] && data.playerNames[2]) {
+        title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+      }
+    } catch {}
+  });
+
   // Gestion clavier différée
   let keyboardHandlerStarted = false;
   let keysPressed: Record<string, boolean> = {};
@@ -256,12 +273,7 @@ export function startPongInContainer(
   });
 
   function start() {
-    // if (!keyboardHandlerStarted) {
-    //   title.textContent = matchTitle;
-    //   setupKeyboardHandlers(socket, keysPressed);
-    //   startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-    //   keyboardHandlerStarted = true;
-    // }
+    title.textContent = matchTitle;
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ action: 'start' }));
     } else {
@@ -311,9 +323,9 @@ export function showGameOverOverlay(
 
   const replay = CommonComponent.createStylizedButton('Play Again', 'blue');
   replay.onclick = () => {
-    // if (canvas) canvas.classList.remove('blur-xs');
     // ov.remove();
     // onReplay();
+    window.dispatchEvent(new Event('app:close-sockets'));
     router.navigate('/game');
   };
   panel.appendChild(replay);
