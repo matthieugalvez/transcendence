@@ -14,7 +14,7 @@ export interface SidebarOptions {
 }
 
 export class SidebarComponent {
-	static render(opts: SidebarOptions): HTMLDivElement {
+	static render(opts: SidebarOptions) {
 		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true} = opts;
 		const sidebar = document.createElement("nav");
 		sidebar.className = `
@@ -67,21 +67,17 @@ export class SidebarComponent {
 
 		// Stat button
 		if (showStats) {
-			const statButton = CommonComponent.createStylizedButton('👤 My profile', 'blue');
-			statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			statButton.addEventListener('click', () => {
-				router.navigate('/profile');
-			});
-			sidebar.appendChild(statButton);
+			const profileBtn = CommonComponent.createStylizedButton('👤 My profile', 'blue');
+			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
+			profileBtn.onclick = () => router.navigate('/profile');
+			sidebar.appendChild(profileBtn);
 		}
 
 
 		if (showFriendsBtn) {
 			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'blue');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			friendsBtn.addEventListener('click', () => {
-				router.navigate('/friendlist');
-			});
+			friendsBtn.onclick = () => router.navigate('/friendlist');
 			sidebar.appendChild(friendsBtn);
 		}
 
@@ -122,17 +118,13 @@ export class SidebarComponent {
 		if (showBackHome) {
 			const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
 			backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
-			backButton.addEventListener('click', () => {
-				router.navigate('/home');
-			});
+			backButton.onclick = () => router.navigate('/home');
 			bottomContainer.appendChild(backButton);
 		}
 		if (showSettings) {
 			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
-			settingBtn.addEventListener("click", async () => {
-				setTimeout(() => router.navigate("/settings"), 300);
-			});
+			settingBtn.onclick = () => router.navigate("/settings");
 			bottomContainer.appendChild(settingBtn);
 
 		}
