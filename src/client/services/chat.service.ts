@@ -4,8 +4,8 @@ export class	ChatService {
 	static async	getMessages(otheruser_id: number): Promise<Array<{	id: number,
 																		sender_id: number,
 																		receiver_id: number,
-																		created_at: number,
-																		updated_at: number,
+																		created_at: Date,
+																		updated_at: Date,
 																		content: string }>> {
 		try {
 			const	response = await ApiClient.authenticatedFetch('/api/chat/messages', {

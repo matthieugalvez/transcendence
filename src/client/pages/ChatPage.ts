@@ -128,26 +128,21 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box.className = `
 	w-full flex flex-col
 	`.trim();
-	if (!received) {
-		box.style.alignItems = 'flex-start';
-	}
-	else {
-		box.style.alignItems = 'flex-end';
-	}
 
 	const	box_content = document.createElement('div');
 	box_content.className = `
     font-['Orbitron']
-    bg-purple-900/100 backdrop-blur-2xl
+    backdrop-blur-2xl
     text-white font-semibold
     border-2 border-black
     rounded-lg text-lg transition-colors
     focus:outline-none focus:ring-2
     shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     disabled:opacity-50 disabled:cursor-not-allowed
+	flex
 	`.replace(/\s+/g, ' ').trim();
 	box_content.style.whiteSpace = 'pre-line';
-	box_content.style.minWidth = '15%';
+	box_content.style.minWidth = '150px';
 	box_content.style.maxWidth = '40%';
 	box_content.style.hyphens = 'auto';
 	box_content.textContent = `
@@ -158,7 +153,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_date.className = `
     font-['Orbitron']
 	absolute top-[-10px] left-[-10px]
-    text-white font-semibold
+    text-white font-semibold p-0.5
     bg-purple-900/100 backdrop-blur-2xl
     border-2 border-black
     rounded-lg text-lg transition-colors
@@ -166,22 +161,86 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     disabled:opacity-50 disabled:cursor-not-allowed
   `.replace(/\s+/g, ' ').trim();
-	box_date.style.fontSize = '14px';
+	box_date.style.fontSize = '12px';
 	box_date.textContent = `
-		${message.created_at}
+		${new Date(message.created_at).toLocaleTimeString("fr-FR")}
 	`;
 	box_date.style.width = 'fit-content';
 	box_date.style.blockSize = 'fit-content';
 	box_date.style.whiteSpace = 'wrap';
-	box_date.style.maxHeight = '50%';
+	box_date.style.maxHeight = '25px';
+	box_date.style.maxWidth = '50%';
 	box_date.style.overflow = 'auto';
 
 	box_content.appendChild(box_date);
 
-	const	margin = document.createElement('div');
-	margin.style.margin = '5px';
+	const	buttons_box = document.createElement('div');
+	buttons_box.className = `
+	w-full grid
+	`.trim();
+	buttons_box.style.justifyContent = 'end';
+
+	const	edit_button = document.createElement('div');
+	edit_button.className = `
+    font-['Orbitron']
+    text-white font-semibold
+    bg-blue-700/100 backdrop-blur-2xl
+    border-1 border-black
+    focus:outline-none focus:ring-2
+	flex
+  `.replace(/\s+/g, ' ').trim();
+	edit_button.style.fontSize = '12px';
+	edit_button.style.userSelect = 'none';
+	edit_button.textContent = 'edit';
+	edit_button.style.justifyContent = 'center';
+	edit_button.style.visibility = 'hidden';
+
+	const	delete_button = document.createElement('div');
+	delete_button.className = `
+    font-['Orbitron']
+    text-white font-semibold
+    bg-red-700/100 backdrop-blur-2xl
+    border-1 border-black
+    focus:outline-none focus:ring-2
+  `.replace(/\s+/g, ' ').trim();
+	delete_button.style.fontSize = '12px';
+	delete_button.style.userSelect = 'none';
+	delete_button.textContent = 'delete';
+	delete_button.style.justifyContent = 'center';
+	delete_button.style.visibility = 'hidden';
+
+	delete_button.onclick = async () => {
+		await ChatService.deleteMessage(message.id);
+		location.reload();
+		}
+
+	buttons_box.onmouseenter = () => {
+		edit_button.style.visibility = 'visible';
+		delete_button.style.visibility = 'visible';
+	}
+
+	buttons_box.onmouseleave = () => {
+		edit_button.style.visibility = 'hidden';
+		delete_button.style.visibility = 'hidden';
+	}
+
+	buttons_box.appendChild(edit_button);
+	buttons_box.appendChild(delete_button);
+
+	if (!received) {
+		box.style.alignItems = 'flex-start';
+		box_content.style.backgroundColor = 'MediumSeaGreen';
+		box_content.appendChild(buttons_box);
+	}
+	else {
+		box.style.alignItems = 'flex-end';
+		box_content.style.backgroundColor = 'MediumSlateBlue';
+	}
 
 	box.appendChild(box_content);
 	content_box.appendChild(box);
+
+	const	margin = document.createElement('div');
+	margin.style.margin = '5px';
 	content_box.appendChild(margin);
 }
