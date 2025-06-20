@@ -8,7 +8,14 @@ export async function renderChatPage() {
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
 	const	user = await UserService.getCurrentUser();
-	const	receiver = await UserService.getCurrentUser();
+	const	user_list = await UserService.getAllUsers();
+	let		receiver;
+	if (user.id === 1) {
+		receiver = user_list[1];
+	}
+	else {
+		receiver = user_list[0];
+	}
 
 	BackgroundComponent.applyCenteredGradientLayout();
 
@@ -33,9 +40,10 @@ export async function renderChatPage() {
 
 //	ChatService.editMessage(1, 'edit test');
 	let		messages = await ChatService.getAllMessages();
-	const	send_box = document.createElement('div');
-	send_box.className = `
-        fixed left-[2.5%] top-[7%] h-[65%] w-[46%]
+	console.log(messages);
+	const	messages_box = document.createElement('div');
+	messages_box.className = `
+        fixed left-[2.5%] top-[7%] h-[65%] w-[92%]
         bg-amber-300/50
         rounded-lg text-lg transition-colors
         focus:outline-none focus:ring-2
@@ -45,31 +53,16 @@ export async function renderChatPage() {
         flex flex-col items-start p-6
         space-y-4 z-11
     `.trim();
-	send_box.style.overflow = 'auto';
-
-	const	received_box = document.createElement('div');
-	received_box.className = `
-        fixed right-[2.5%] top-[7%] h-[65%] w-[46%]
-        bg-amber-300/50
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        border-2 border-black
-        flex flex-col items-start p-6
-        space-y-4 z-11
-    `.trim();
-	received_box.style.overflow = 'auto';
+	messages_box.style.overflow = 'auto';
 
 	for (const message of messages) {
-		if (message.sender_id == user.id)
-			makeMsgBox(send_box, message);
-		if (message.receiver_id == user.id)
-			makeMsgBox(received_box, message);
+		if (message.sender_id === user.id)
+			makeMsgBox(messages_box, message, false);
+		if (message.receiver_id === user.id)
+			makeMsgBox(messages_box, message, true);
 	}
 
-	document.body.appendChild(send_box);
-	document.body.appendChild(received_box);
+	document.body.appendChild(messages_box);
 
 	const	prompt_box = document.createElement('div');
 	prompt_box.className = `
@@ -109,7 +102,7 @@ export async function renderChatPage() {
 	prompt_area.onkeydown = async (event) => {
 		console.log(event.key);
 		if (event.key === "Enter" && prompt_area.value.trim()) {
-			await ChatService.postMessage(user.id, prompt_area.value.trim());
+			await ChatService.postMessage(receiver.id, prompt_area.value.trim());
 			location.reload();
 		}
 	};
@@ -120,7 +113,7 @@ export async function renderChatPage() {
 	send_button.style.bottom = '35px';
 	send_button.onclick = async () => {
 		if (prompt_area.value.trim()) {
-			await ChatService.postMessage(user.id, prompt_area.value.trim());
+			await ChatService.postMessage(receiver.id, prompt_area.value.trim());
 			location.reload();
 		}
 	};
@@ -131,12 +124,12 @@ export async function renderChatPage() {
 	document.body.appendChild(prompt_box);
 }
 
-function makeMsgBox(content_box: Element, message) {
+function makeMsgBox(content_box: Element, message, received: boolean) {
 	const	send_box_content = document.createElement('div');
 	send_box_content.className = `
     font-['Orbitron']
+	relative
     bg-purple-900/100 backdrop-blur-2xl
-    left-10 w-[100%]
     text-white font-semibold
     border-2 border-black
     rounded-lg text-lg transition-colors
@@ -144,7 +137,15 @@ function makeMsgBox(content_box: Element, message) {
     shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     disabled:opacity-50 disabled:cursor-not-allowed
 	`.replace(/\s+/g, ' ').trim();
+	if (!received) {
+		send_box_content.style.left = '1%';
+	}
+	else {
+		send_box_content.style.left = '75%';
+	}
 	send_box_content.style.whiteSpace = 'pre-line';
+	send_box_content.style.minWidth = '15%';
+	send_box_content.style.maxWidth = '40%';
 	send_box_content.style.hyphens = 'auto';
 	send_box_content.textContent = `
 		${message.content}
@@ -169,6 +170,8 @@ function makeMsgBox(content_box: Element, message) {
 	send_box_date.style.width = 'fit-content';
 	send_box_date.style.blockSize = 'fit-content';
 	send_box_date.style.whiteSpace = 'wrap';
+	send_box_date.style.maxHeight = '50%';
+	send_box_date.style.overflow = 'auto';
 
 	send_box_content.appendChild(send_box_date);
 
