@@ -1,5 +1,5 @@
 import '../styles.css';
-import { startPongInContainer, showGameOverOverlay, deleteCookie } from '../utils/game.utils';
+import { startPongInContainer, showGameOverOverlay } from '../utils/game.utils';
 import { UserService } from '../services/user.service';
 import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
@@ -7,6 +7,7 @@ import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
+import { deleteCookie } from '../utils/cookies.utils';
 
 // memoriser etat de la partie en cours
 let pongHandle: { start: () => void; socket: any } | null = null;

@@ -2,6 +2,7 @@ import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
+import { setCookie, getCookie, deleteCookie } from './cookies.utils';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1|2) => void;
@@ -10,26 +11,6 @@ export interface PongHandle {
   start: () => void;
 }
 
-// -- Useful functions for cookies ---
-export function setCookie(name: string, value: string, days = 2) {
-  const expires = new Date(Date.now() + days*864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-}
-export function getCookie(name: string) {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1]
-    ? decodeURIComponent(document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1] || '') : '';
-}
-export function deleteCookie(name: string) {
-  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-}
-
-// 
 function isGameState(data: any): data is GameState {
   return data
     && typeof data === "object"
@@ -110,15 +91,6 @@ function createGameWebSocket(
         return;
       }
 
-      // const state = data;
-      // renderGame(ctx, state);
-
-      // if (wasRunning && !state.isRunning && !state.isPaused) {
-      //   const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
-      //   setTimeout(() => onFinish(winnerAlias), 150);
-      // }
-      // wasRunning = state.isRunning;
-      // wasPaused = state.isPaused;
       if (isGameState(data)) {
         renderGame(ctx, data);
 
@@ -135,7 +107,6 @@ function createGameWebSocket(
   });
 
   socket.addEventListener('close', () => {
-    // alert("The game has ended or is no longer accessible.");
     window.location.reload();
   });
 
@@ -238,7 +209,7 @@ export function startPongInContainer(
   socket.addEventListener('message', (event) => {
     try {
       const data = JSON.parse(event.data);
-      if (data.playerNames && data.playerNames[1] && data.playerNames[2]) {
+      if (mode === 'duo-online'&& data.playerNames && data.playerNames[1] && data.playerNames[2]) {
         title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
       }
     } catch {}

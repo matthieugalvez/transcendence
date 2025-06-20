@@ -6,14 +6,16 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from "../configs/simplerouter";
 import { 
-  setCookie,
-  getCookie,
-  deleteCookie,
   hideOverlay,
   startPongInContainer,
   showGameOverOverlay,
   getShareableLink
 } from '../utils/game.utils';
+import {
+  setCookie,
+  getCookie,
+  deleteCookie,
+} from '../utils/cookies.utils'
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
