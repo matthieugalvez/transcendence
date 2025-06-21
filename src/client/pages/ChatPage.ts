@@ -142,6 +142,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	flex
 	`.replace(/\s+/g, ' ').trim();
 	box_content.style.whiteSpace = 'pre-line';
+	box_content.style.paddingLeft = '5px';
 	box_content.style.minWidth = '150px';
 	box_content.style.maxWidth = '40%';
 	box_content.style.hyphens = 'auto';
@@ -172,17 +173,16 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_date.style.maxWidth = '50%';
 	box_date.style.overflow = 'auto';
 
-	box_content.appendChild(box_date);
-
 	const	buttons_box = document.createElement('div');
 	buttons_box.className = `
-	w-full grid
+	w-full
 	`.trim();
 	buttons_box.style.justifyContent = 'end';
 
 	const	edit_button = document.createElement('div');
 	edit_button.className = `
     font-['Orbitron']
+	h-[50%]
     text-white font-semibold
     bg-blue-700/100 backdrop-blur-2xl
     border-1 border-black
@@ -195,13 +195,20 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	edit_button.style.justifyContent = 'center';
 	edit_button.style.visibility = 'hidden';
 
+	edit_button.onclick = async () => {
+		const prompt_area = makeEditPromptArea(message);
+		box.appendChild(prompt_area);
+		}
+
 	const	delete_button = document.createElement('div');
 	delete_button.className = `
     font-['Orbitron']
+	h-[50%]
     text-white font-semibold
     bg-red-700/100 backdrop-blur-2xl
     border-1 border-black
     focus:outline-none focus:ring-2
+	flex
   `.replace(/\s+/g, ' ').trim();
 	delete_button.style.fontSize = '12px';
 	delete_button.style.userSelect = 'none';
@@ -237,10 +244,90 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 		box_content.style.backgroundColor = 'MediumSlateBlue';
 	}
 
+	box_content.appendChild(box_date);
 	box.appendChild(box_content);
 	content_box.appendChild(box);
 
 	const	margin = document.createElement('div');
 	margin.style.margin = '5px';
 	content_box.appendChild(margin);
+}
+
+function	makeEditPromptArea(message) {
+	const	prompt_box = document.createElement('div');
+	prompt_box.className = `
+        bg-amber-300/50
+        rounded-lg text-lg transition-colors
+        focus:outline-none focus:ring-2
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+        disabled:opacity-50 disabled:cursor-not-allowed
+        border-2 border-black
+        flex flex-col items-start p-6
+        space-y-4 z-11
+	`.trim()
+
+	const	prompt_title = document.createElement('label');
+	prompt_title.className = `
+    font-['Orbitron']
+    text-white font-semibold
+  `.trim();
+	prompt_title.textContent = 'Edit message:';
+
+	const	prompt_area = document.createElement('textarea');
+	prompt_area.className = `
+    font-['Orbitron']
+    bg-purple-900/100 backdrop-blur-2xl
+    h-[65%] w-[100%]
+    text-white font-semibold p-1
+    border-2 border-black
+    rounded-lg text-lg transition-colors
+    focus:outline-none focus:ring-2
+    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    disabled:opacity-50 disabled:cursor-not-allowed
+	resize-none
+	`.replace(/\s+/g, ' ').trim()
+	prompt_area.value = message.content;
+
+	prompt_area.onkeydown = async (event) => {
+		console.log(event.key);
+		if (event.key === "Enter" && prompt_area.value.trim()) {
+			await ChatService.editMessage(message.id, prompt_area.value.trim());
+			location.reload();
+		}
+	};
+
+	const	button_area = document.createElement('div');
+	button_area.className = `
+	grid grid-flow-col place-items-center
+	w-full
+	`;
+
+	const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
+	send_button.style.width = 'fit-content';
+	send_button.style.blockSize = 'fit-content';
+	send_button.style.padding = '10px';
+	send_button.onclick = async () => {
+		if (prompt_area.value.trim()) {
+			await ChatService.editMessage(message.id, prompt_area.value.trim());
+			location.reload();
+		}
+	};
+
+	const	close_button = CommonComponent.createStylizedButton("Close", 'red');
+	close_button.style.width = 'fit-content';
+	close_button.style.blockSize = 'fit-content';
+	close_button.style.padding = '10px';
+	close_button.onclick = async () => {
+		if (prompt_area.value.trim()) {
+			prompt_box.remove();
+		}
+	};
+
+	prompt_box.appendChild(prompt_title);
+	prompt_box.appendChild(prompt_area);
+	button_area.appendChild(send_button);
+	button_area.appendChild(close_button);
+	prompt_box.appendChild(button_area);
+
+	return (prompt_box);
 }
