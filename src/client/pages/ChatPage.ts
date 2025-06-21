@@ -142,7 +142,6 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	flex
 	`.replace(/\s+/g, ' ').trim();
 	box_content.style.whiteSpace = 'pre-line';
-	box_content.style.paddingLeft = '5px';
 	box_content.style.minWidth = '150px';
 	box_content.style.maxWidth = '40%';
 	box_content.style.hyphens = 'auto';
@@ -175,9 +174,10 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	const	buttons_box = document.createElement('div');
 	buttons_box.className = `
-	w-full
+	absolute
+	w-full h-full
 	`.trim();
-	buttons_box.style.justifyContent = 'end';
+	buttons_box.style.display = 'none';
 
 	const	edit_button = document.createElement('div');
 	edit_button.className = `
@@ -186,6 +186,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     text-white font-semibold
     bg-blue-700/100 backdrop-blur-2xl
     border-1 border-black
+    rounded-lg text-lg transition-colors
     focus:outline-none focus:ring-2
 	flex
   `.replace(/\s+/g, ' ').trim();
@@ -193,7 +194,6 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	edit_button.style.userSelect = 'none';
 	edit_button.textContent = 'edit';
 	edit_button.style.justifyContent = 'center';
-	edit_button.style.visibility = 'hidden';
 
 	edit_button.onclick = async () => {
 		const prompt_area = makeEditPromptArea(message);
@@ -207,6 +207,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     text-white font-semibold
     bg-red-700/100 backdrop-blur-2xl
     border-1 border-black
+    rounded-lg text-lg transition-colors
     focus:outline-none focus:ring-2
 	flex
   `.replace(/\s+/g, ' ').trim();
@@ -214,21 +215,18 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	delete_button.style.userSelect = 'none';
 	delete_button.textContent = 'delete';
 	delete_button.style.justifyContent = 'center';
-	delete_button.style.visibility = 'hidden';
 
 	delete_button.onclick = async () => {
 		await ChatService.deleteMessage(message.id);
 		location.reload();
 		}
 
-	buttons_box.onmouseenter = () => {
-		edit_button.style.visibility = 'visible';
-		delete_button.style.visibility = 'visible';
+	box_content.onmouseenter = () => {
+		buttons_box.style.display = 'block';
 	}
 
-	buttons_box.onmouseleave = () => {
-		edit_button.style.visibility = 'hidden';
-		delete_button.style.visibility = 'hidden';
+	box_content.onmouseleave = () => {
+		buttons_box.style.display = 'none';
 	}
 
 	buttons_box.appendChild(edit_button);
