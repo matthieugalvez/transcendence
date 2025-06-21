@@ -27,19 +27,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
 	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
 	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
 
-	// ...existing routes...
-
-	// Google setup routes
-	// fastify.get('/google-setup/status',
-	// 	AuthController.googleSetupStatus
-	// );
-
-	// fastify.post('/google-setup/complete', {
-	// 	preHandler: ValidationMiddleware.validateBody(userSchema.updateDisplayName),
-	// }, AuthController.completeGoogleSetup);
-
-	// ...existing routes...
-
 	fastify.post('/signup', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.signup),
 	}, AuthController.signup)

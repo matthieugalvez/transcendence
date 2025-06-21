@@ -97,7 +97,6 @@ export class UserService {
 	/**
 	 * Get all users (PROTECTED)
 	 */
-	// ...existing methods...
 
 	static async changeUsername(displayName: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
 		try {
@@ -374,8 +373,6 @@ export class UserService {
 		const data = await response.json();
 		if (!data.success) throw new Error(data.error || 'Failed to remove friend');
 	}
-
-	// ...existing methods...
 
 	static async acceptFriendRequest(requestId: string): Promise<void> {
 		const response = await ApiClient.authenticatedFetch(
