@@ -1,0 +1,33 @@
+import { FastifyInstance } from 'fastify'
+import { FriendsController } from '../controllers/friends.controller'
+import AuthMiddleware from '../middlewares/auth.middleware'
+
+export default async function friendsRoutes(fastify: FastifyInstance) {
+	// Get user's friends (protected)
+	fastify.get('/friends', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.getFriends);
+
+	// Send friend request (protected)
+	fastify.post('/friends/request', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.sendFriendRequest);
+
+	// Accept friend request (protected)
+	fastify.put('/friends/request/:requestId/accept', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.acceptFriendRequest);
+
+	fastify.get('/friends/status/:otherUserId', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.getFriendshipStatus);
+
+	// Remove friend endpoint:
+	fastify.delete('/friends/:friendId', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.removeFriend);
+
+	// - GET /friends/requests (get pending requests)
+	// - DELETE /friends/:friendId (remove friend)
+	// - PUT /friends/request/:requestId/reject (reject request)
+}

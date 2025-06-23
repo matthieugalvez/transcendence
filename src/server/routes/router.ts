@@ -1,11 +1,15 @@
 import { FastifyInstance } from 'fastify'
 import { registerPongWebSocket } from './game.routes'
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+import fs from 'fs';
 
 // Import route modules
 import healthRoutes from './health.routes'
 import userRoutes from './users.routes'
 import authRoutes from './auth.routes'
 import chatRoutes from './chat.route'
+import friendsRoutes from './friends.routes';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
@@ -17,7 +21,24 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
 		await fastify.register(chatRoutes, { prefix: '/chat' });
+		await fastify.register(friendsRoutes)
 	}, { prefix: '/api' })
+	
+    app.get('/avatars/:filename', async (request, reply) => {
+        const { filename } = request.params as { filename: string };
+        const avatarPath = path.join(process.cwd(), 'src/server/db/users', filename);
+
+        try {
+            if (fs.existsSync(avatarPath)) {
+                return reply.sendFile(filename, path.join(process.cwd(), 'src/server/db/users'));
+            } else {
+                // Return default avatar if file doesn't exist
+                return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
+            }
+        } catch (error) {
+            return reply.code(404).send({ error: 'Avatar not found' });
+        }
+    });
 
 	console.log('✅ Routes registered')
 }

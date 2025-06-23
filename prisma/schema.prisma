@@ -8,28 +8,31 @@ datasource db {
 }
 
 model	User {
-	id				Int			@id @default(autoincrement())
-	email			String		@unique
-	displayName		String?
-	password_hash	String
-	provider		String		@default("local") // "local" or "google"
-	refreshToken	String?
-	twoFAEnabled	Boolean		@default(false)
-	twoFASecret		String?
-	avatar			String		@default("./db/users/default")
-	created_at		DateTime	@default(now())
-	updated_at		DateTime	@updatedAt
+  id            String   @id @default(uuid()) // Changed from Int to String with UUID
+  email         String   @unique
+  displayName   String?
+  password_hash String
+  provider      String   @default("local")
+  refreshToken  String?
+  twoFAEnabled  Boolean  @default(false)
+  twoFASecret   String?
+  avatar        String   @default("/avatars/default.svg")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
-	messages_send		Message[]	@relation("sender")
-	messages_received	Message[]	@relation("receiver")
+  // Friendlist functions
+	messages_send			Message[]		@relation("sender")
+	messages_received		Message[]		@relation("receiver")
+	sentFriendRequests		Friendship[]	@relation("UserSentRequests")
+	receivedFriendRequests	Friendship[]	@relation("UserReceivedRequests")
 
 	@@map("users")
 }
 
 model	Message {
-	id			Int			@id @default(autoincrement())
-	sender_id	Int
-	receiver_id	Int
+	id			String		@id @default(uuid())
+	sender_id	String
+	receiver_id	String
 	created_at	DateTime	@default(now())
 	updated_at	DateTime	@updatedAt
 	content		String
@@ -38,4 +41,25 @@ model	Message {
 	receiver	User	@relation("receiver", fields: [receiver_id], references: [id])
 
 	@@map("messages")
+}
+
+model Friendship {
+  id          String             @id @default(cuid())
+  senderId    String
+  receiverId  String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  sender      User @relation("UserSentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User @relation("UserReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("friendships")
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }

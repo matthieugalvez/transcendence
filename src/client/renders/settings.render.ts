@@ -19,13 +19,14 @@ export class SettingsRender {
             // Only render sidebar and main content if authentication succeeds
             SidebarComponent.render({
                 userName: userData.name,
+				avatarUrl: userData.avatar,
                 showStats: true,
                 showSettings: false,
                 showBackHome: true
             });
 
             // Render the main content with user name
-            this.renderMainContent(userData.displayName || userData.name);
+            this.renderMainContent((userData.displayName || userData.name), userData.avatar);
 
         } catch (error) {
             console.error('Failed to fetch user data:', error);
@@ -38,7 +39,7 @@ export class SettingsRender {
     /**
      * Render main content - can be called directly from SettingsPage
      */
-    static renderMainContent(userName: string): void {
+    static renderMainContent(userName: string, avatarUrl: string): void {
         // Main container with glassmorphism effect
         const mainContainer = document.createElement('div');
         mainContainer.className = `
@@ -130,9 +131,13 @@ export class SettingsRender {
         buttonContainer.appendChild(Disable2FA);
         buttonContainer.appendChild(logoutButton);
 
+		console.log(`Avatar URL: ${avatarUrl}`);
+		const avatarSection = this.createAvatarSection(avatarUrl);
+
         mainContainer.appendChild(gameEmoji);
         mainContainer.appendChild(pageTitle);
         mainContainer.appendChild(subtitle);
+		mainContainer.appendChild(avatarSection);
         userSettingsContainer.appendChild(userNameLabel);
         userSettingsContainer.appendChild(userNameInput);
         userSettingsContainer.appendChild(passwordLabel);
@@ -164,4 +169,69 @@ export class SettingsRender {
         loadingContainer.appendChild(loadingText);
         return loadingContainer;
     }
+
+	private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
+
+		    console.log('🔍 Avatar URL received:', currentAvatarUrl);
+    console.log('🔍 Avatar URL type:', typeof currentAvatarUrl);
+    const avatarContainer = document.createElement('div');
+    avatarContainer.className = `
+        bg-gray-50/80 backdrop-blur-sm
+        border border-gray-200
+        rounded-lg p-6 mb-6
+        shadow-sm text-center
+    `.replace(/\s+/g, ' ').trim();
+
+    // Avatar label
+    const avatarLabel = CommonComponent.createLabel('Profile Avatar');
+    avatarLabel.className = `font-['Orbitron'] mb-4 block text-center`;
+
+    // Current avatar display
+    const currentAvatar = document.createElement('img');
+    currentAvatar.src = currentAvatarUrl;
+    currentAvatar.alt = 'Current avatar';
+    currentAvatar.className = `
+        w-24 h-24 rounded-full
+        border-2 border-gray-300
+        object-cover mx-auto mb-4
+    `.replace(/\s+/g, ' ').trim();
+
+    // Handle avatar load error
+    currentAvatar.onerror = () => {
+        currentAvatar.src = '/avatars/default.svg';
+    };
+
+    // Hidden file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.id = 'avatar-input';
+
+    // Upload butto
+
+    // Handle file selection
+    const uploadButton = CommonComponent.createStylizedButton('Change Avatar', 'blue');
+    uploadButton.id = 'avatar-upload-btn'; // Add ID for easier selection
+    uploadButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+	    fileInput.addEventListener('change', async (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+            await UserService.handleAvatarUpload(file, currentAvatar);
+        }
+    });
+
+
+
+
+    avatarContainer.appendChild(avatarLabel);
+    avatarContainer.appendChild(currentAvatar);
+    avatarContainer.appendChild(uploadButton);
+    avatarContainer.appendChild(fileInput);
+
+    return avatarContainer;
+}
 }

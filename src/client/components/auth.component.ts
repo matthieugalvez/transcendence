@@ -37,6 +37,7 @@ export class AuthComponent {
 		const apiResponseData = await AuthService.loginUser(email, password, twoFACode);
 
 		if (apiResponseData.success) {
+
 			if (!document.getElementById('twofa-modal')) {
 				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
 			}
@@ -52,6 +53,7 @@ export class AuthComponent {
 			}
 			return apiResponseData;
 		}
+
 	}
 
 	// Logout main function

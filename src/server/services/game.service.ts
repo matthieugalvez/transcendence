@@ -9,7 +9,7 @@ export class GameService {
 	}
 
 	// Future game methods
-	static async startGame(player1Id: number, player2Id: number) {
+	static async startGame(player1Id: string, player2Id: string) {
 		// Logic to start a new game
 		return {
 			gameId: Math.floor(Math.random() * 1000),

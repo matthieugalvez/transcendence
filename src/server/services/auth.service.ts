@@ -30,7 +30,7 @@ export class AuthService {
 	/**
 	 * Update refresh token for a user
 	 */
-	static async updateRefreshToken(userId: number, refreshToken: string | null) {
+	static async updateRefreshToken(userId: string, refreshToken: string | null) {
 		return await prisma.user.update({
 			where: { id: userId },
 			data: { refreshToken }
@@ -71,7 +71,7 @@ export class AuthService {
 	/**
 	 * Invalidate all refresh tokens for a user (useful for security)
 	 */
-	static async invalidateAllTokens(userId: number) {
+	static async invalidateAllTokens(userId: string) {
 		return await prisma.user.update({
 			where: { id: userId },
 			data: { refreshToken: null }
@@ -82,7 +82,7 @@ export class AuthService {
 
 	//api/2fa/setup
 
-	static async generate2FASecret(userId: number) {
+	static async generate2FASecret(userId: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user) throw new Error('User not found');
 
@@ -106,7 +106,7 @@ export class AuthService {
 		return { secret: secret.base32, otpAuthUrl: otpAuthUrl, qrCodeDataURL: qrCodeDataURL }
 	}
 
-	static async verify2FACode(userId: number, token: string) {
+	static async verify2FACode(userId: string, token: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user?.twoFASecret)
 			return false;
@@ -119,14 +119,14 @@ export class AuthService {
 	}
 
 	// /api/2fa/disable
-	static async enable2FA(userId: number) {
+	static async enable2FA(userId: string) {
 		await prisma.user.update({
 			where: { id: userId },
 			data: { twoFAEnabled: true }
 		});
 	}
 
-	static async disable2FA(userId: number) {
+	static async disable2FA(userId: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user) throw new Error('User not found');
 		if (!user.twoFAEnabled) {

@@ -1,9 +1,20 @@
 import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
 import { removeGameRoom } from './gameRooms';
- 
+import { v4 as uuidv4 } from 'uuid';
+
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
+
+/**
+ * Store player info for a game
+ */
+type PlayerInfo = {
+  playerId: number,
+  username: string,
+  playerToken: string,
+  ws: WebSocket | null,
+};
 
 /**
  * Store state of game
@@ -17,8 +28,15 @@ export class GameInstance {
     // pour pause/resume
     private isPaused: boolean = false;
     private currentBallSpeed: number = 380;
+    // pour gerer deconnexions en remote
+    private players: PlayerInfo[] = [
+        { playerId: 1, username: "", playerToken: "", ws: null },
+        { playerId: 2, username: "", playerToken: "", ws: null },
+    ];
+    private playerTokens: { [playerId: number]: string } = {};
+    private pauseTimeoutHandle: NodeJS.Timeout | null = null;
     // Players
-    private playerNames: { [id: number]: string } = {};
+    private playerNames: { [id: string]: string } = {};
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -33,8 +51,7 @@ export class GameInstance {
     private score2: number = 0;
     private readonly maxScore: number = 5;
     // List of connected websockets(players)
-    private spectators: Set<WebSocket> = new Set();
-    private playerSockets: { [playerId: number]: WebSocket | null } = { 1: null, 2: null };
+    // private playerSockets: { [playerId: number]: WebSocket | null } = { 1: null, 2: null };
     // Tick interval
     private intervalHandle?: NodeJS.Timeout;
     // Parameters that won't change
@@ -56,35 +73,30 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username?: string): number | 'spectator' {
-        // Déjà un joueur 1 ? Si non, c'est lui.
-        if (!this.playerSockets[1]) {
-            this.playerSockets[1] = ws;
-            this.playerNames[1] = username || "Player 1";
-            this.setupDisconnect(ws, 1);
-            return 1;
+    public addClient(ws: WebSocket, username?: string): number | null {
+        for (const player of this.players) {
+            if (!player.ws) {
+                player.ws = ws;
+                if (!player.username) player.username = username || `Player ${player.playerId}`;
+                if (!player.playerToken) player.playerToken = uuidv4();
+                this.setupDisconnect(ws, player.playerId);
+                this.broadcastState(this.isRunning);
+                return player.playerId;
+            }
         }
-        // Sinon, joueur 2.
-        if (!this.playerSockets[2]) {
-            this.playerSockets[2] = ws;
-            this.playerNames[2] = username || "Player 2";
-            this.setupDisconnect(ws, 2);
-            return 2;
-        }
-        // Ajout spectateur
-        this.spectators.add(ws);
-        ws.on('close', () => {
-            this.spectators.delete(ws);
-            // (optionnel) : check si plus personne = destroy ?
-        });
-        return 'spectator';
+        return null; // salle pleine
     }
+
     private setupDisconnect(ws: WebSocket, id: number) {
         ws.on('close', () => {
-            this.playerSockets[id] = null;
-            if (!this.playerSockets[1] && !this.playerSockets[2]) {
+            const player = this.players.find(p => p.playerId === id);
+            if (player) player.ws = null;
+            this.broadcastState(this.isRunning);
+            if (this.players.every(p => !p.ws)) {
                 this.destroy();
                 removeGameRoom(this.gameId);
+            } else {
+            this.startPauseOnDisconnect();
             }
         });
     }
@@ -105,6 +117,11 @@ export class GameInstance {
     public start() {
         this.isRunning = true;
         this.resetBall();
+        if (this.pauseTimeoutHandle) {
+            clearTimeout(this.pauseTimeoutHandle);
+            this.pauseTimeoutHandle = null;
+        }
+        this.broadcastState(true);
     }
     // pause game
     public pause() {
@@ -123,6 +140,34 @@ export class GameInstance {
         else if (difficulty === 'HARD') this.currentBallSpeed = 480;
         this.ballVel = this.randomBallVel();
     }
+    // Génère un token unique pour le joueur et l'associe
+    public assignTokenToPlayer(playerId: number): string {
+        const token = uuidv4();
+        this.playerTokens[playerId] = token;
+        return token;
+    }
+    // Essaye de reconnecter un joueur en cas de deconnexion
+    public tryReconnectPlayer(token: string, ws: WebSocket): boolean {
+        const player = this.findPlayerByToken(token);
+        if (!player) return false;
+        player.ws = ws;
+        this.setupDisconnect(ws, player.playerId);
+        this.cancelPauseOnReconnect();
+        this.broadcastState(this.isRunning);  
+        this.broadcastPlayerReconnected(player.playerId);
+        ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Game resumes." }));
+        ws.send(JSON.stringify({
+            type: "playerToken",
+            playerId: player.playerId,
+            playerToken: player.playerToken
+        }));
+        return true;
+    }
+
+    public getPlayerToken(playerId: number): string | undefined {
+        const player = this.players.find(p => p.playerId === playerId);
+        return player?.playerToken;
+    }
 
     /** ----------- PRIVATE METHODS ------------ */
     // to have random initial velocity of ball
@@ -134,7 +179,7 @@ export class GameInstance {
             vy: this.currentBallSpeed * Math.sin(angle),
         };
     }
-    // if no player we stop the instance    
+    // if no player we stop the instance
     private destroy() {
         if (this.intervalHandle) {
             clearInterval(this.intervalHandle);
@@ -254,13 +299,10 @@ export class GameInstance {
             },
             isRunning: this.isRunning && isRunning,
             isPaused: this.isPaused,
-            connectedPlayers: [
-                this.playerSockets[1] ? 1 : null,
-                this.playerSockets[2] ? 2 : null,
-            ].filter(Boolean) as number[],
+            connectedPlayers: this.players.filter(p => p.ws).map(p => p.playerId),
             playerNames: {
-                1: this.playerNames?.[1] ?? 'Player 1',
-                2: this.playerNames?.[2] ?? 'Player 2',
+            1: this.players[0].username || 'Player 1',
+            2: this.players[1].username || 'Player 2',
             }
         };
     }
@@ -269,16 +311,71 @@ export class GameInstance {
     private broadcastState(isRunning: boolean) {
         const state = this.buildState(isRunning);
         const message = JSON.stringify(state);
-        Object.values(this.playerSockets).forEach(ws => {
-            if (ws && ws.readyState === ws.OPEN) ws.send(message);
-        });
-        this.spectators.forEach(ws => {
-            if (ws.readyState === ws.OPEN) ws.send(message);
+        this.players.forEach(player => {
+            if (player.ws && player.ws.readyState === player.ws.OPEN)
+                player.ws.send(message);
         });
     }
     // place ball in center after a point and randomly change direction
     private resetBall() {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
+    }
+
+    private startPauseOnDisconnect() {
+        this.isPaused = true;
+        this.broadcastPause("Waiting for the other player to reconnect...");
+
+        this.pauseTimeoutHandle = setTimeout(() => {
+            this.endGameDueToDisconnect();
+        }, 20000);  // 20 sec
+    }
+
+    private cancelPauseOnReconnect() {
+        if (this.pauseTimeoutHandle) {
+            clearTimeout(this.pauseTimeoutHandle);
+            this.pauseTimeoutHandle = null;
+        }
+        if (this.players.every(p => p.ws)) {
+            this.isPaused = true;
+            this.broadcastPause("Both players reconnected. Host can restart the game.");
+            this.broadcastState(this.isRunning);
+        }
+    }
+
+    private endGameDueToDisconnect() {
+        this.broadcastEnd("The other player did not reconnect. The game is over.");
+        this.destroy();
+        removeGameRoom(this.gameId);
+    }
+
+    private broadcastPause(message: string) {
+        const payload = JSON.stringify({ type: 'pause', reason: 'disconnect', message });
+        this.broadcastToAll(payload);
+    }
+
+    private broadcastEnd(message: string) {
+        const payload = JSON.stringify({ type: 'end', reason: 'player_left', message });
+        this.broadcastToAll(payload);
+    }
+
+    private broadcastToAll(payload: string) {
+        this.players.forEach(player => {
+            if (player.ws && player.ws.readyState === player.ws.OPEN)
+                player.ws.send(payload);
+        });
+    }
+
+    private broadcastPlayerReconnected(playerId: number) {
+    const payload = JSON.stringify({ 
+        type: 'playerReconnected', 
+        playerId,
+        message: `Player ${playerId} has reconnected.` 
+    });
+    this.broadcastToAll(payload);
+    }
+
+    private findPlayerByToken(token: string): PlayerInfo | undefined {
+        return this.players.find(p => p.playerToken === token);
     }
 }

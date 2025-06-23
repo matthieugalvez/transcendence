@@ -1,6 +1,13 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { UserService } from '../services/users.service'
+import { UserService, UserOnline } from '../services/users.service'
 import { ResponseUtils as Send } from '../utils/response.utils'
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+import path from 'path'; // Add this import
+import fs from 'fs';
+
+const pump = promisify(pipeline); // Add this line
+
 
 export class UserController {
 	static async getAllUsers(request: FastifyRequest, reply: FastifyReply) {
@@ -30,7 +37,7 @@ export class UserController {
 		try {
 			const { name } = request.params as { name: string }
 
-			const user = await UserService.getUserByName(decodeURIComponent(name))
+			const user = await UserService.getUserByDisplayName(decodeURIComponent(name))
 
 			return Send.success(reply, { exists: !!user }, 'User check completed')
 
@@ -53,12 +60,19 @@ export class UserController {
 			if (!user) {
 				return Send.notFound(reply, 'User not found');
 			}
+			// AVATAR
+			let avatarUrl = user.avatar;
+			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+				// Extract filename from path
+				const filename = avatarUrl.replace('./db/users/', '');
+				avatarUrl = `/avatars/${filename}`;
+			}
 
 			const userData = {
 				id: user.id,
 				name: user.email,
 				displayName: user.displayName,
-				avatar: user.avatar,
+				avatar: avatarUrl,
 				created_at: user.created_at,
 				updated_at: user.updated_at // Fix: was update_at
 			};
@@ -165,4 +179,178 @@ export class UserController {
 
 		return Send.success(reply, {}, 'Avatar link succes');
 	}
+
+	static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			// Get the uploaded file
+			const data = await request.file();
+
+			if (!data) {
+				return Send.badRequest(reply, 'No file uploaded');
+			}
+
+			// Validate file type
+			if (!data.mimetype.startsWith('image/')) {
+				return Send.badRequest(reply, 'Only image files are allowed');
+			}
+
+			// Validate file size (5MB limit)
+			const fileSize = parseInt(request.headers['content-length'] || '0');
+			if (fileSize > 5 * 1024 * 1024) {
+				return Send.badRequest(reply, 'File size must be less than 5MB');
+			}
+
+			// Create upload directory if it doesn't exist
+			const uploadDir = path.join(process.cwd(), 'src/server/db/users');
+			if (!fs.existsSync(uploadDir)) {
+				fs.mkdirSync(uploadDir, { recursive: true });
+			}
+
+			// Generate filename
+			const fileExtension = path.extname(data.filename || '');
+			const fileName = `${userId}${fileExtension || '.png'}`;
+			const filePath = path.join(uploadDir, fileName);
+
+			// Save the file
+			await pump(data.file, fs.createWriteStream(filePath));
+
+			// Update user's avatar path in database
+			const avatarUrl = `/avatars/${fileName}`;
+			await UserService.updateUserAvatar(userId, avatarUrl);
+
+			return Send.success(reply, {
+				avatarUrl: avatarUrl
+			}, 'Avatar uploaded successfully');
+
+		} catch (error) {
+			console.error('Avatar upload error:', error);
+			return Send.internalError(reply, 'Failed to upload avatar');
+		}
+	}
+
+	static async getUserProfile(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { userId } = request.params as { userId: string };
+			const requesterId = (request as any).userId;
+
+			if (!requesterId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			const user = await UserService.getUserById(userId);
+
+			if (!user) {
+				return Send.notFound(reply, 'User not found');
+			}
+
+			// Handle avatar URL
+			let avatarUrl = user.avatar;
+			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+				const filename = avatarUrl.replace('./db/users/', '');
+				avatarUrl = `/avatars/${filename}`;
+			}
+
+			const userData = {
+				id: user.id,
+				name: user.email,
+				displayName: user.displayName,
+				avatar: avatarUrl,
+				created_at: user.created_at,
+				updated_at: user.updated_at
+			};
+
+			return Send.success(reply, userData, 'User profile retrieved successfully');
+
+		} catch (error) {
+			console.error('Get user profile error:', error);
+			return Send.internalError(reply, 'Failed to get user profile');
+		}
+	}
+
+	static async searchUsers(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+			const { q: query, limit = 10 } = request.query as { q: string; limit?: number };
+
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			if (!query || query.trim().length < 2) {
+				return Send.badRequest(reply, 'Search query must be at least 2 characters');
+			}
+
+			const users = await UserService.searchUsers(query.trim(), Math.min(limit, 20));
+
+			const userData = users.map(user => ({
+				id: user.id,
+				displayName: user.displayName,
+				avatar: user.avatar?.startsWith('./db/users/')
+					? `/avatars/${user.avatar.replace('./db/users/', '')}`
+					: user.avatar
+			}));
+
+			return Send.success(reply, userData, 'Users search completed');
+
+		} catch (error) {
+			console.error('Search users error:', error);
+			return Send.internalError(reply, 'Failed to search users');
+		}
+	}
+
+	static async getUserProfileByDisplayName(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { displayName } = request.params as { displayName: string };
+			const requesterId = (request as any).userId;
+
+			if (!requesterId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
+
+			// Decode the displayName in case it has special characters
+			const decodedDisplayName = decodeURIComponent(displayName);
+
+			const user = await UserService.getUserByDisplayName(decodedDisplayName);
+
+			if (!user) {
+				return Send.notFound(reply, 'User not found');
+			}
+
+			// Handle avatar URL - same as existing method
+			let avatarUrl = user.avatar;
+			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
+				const filename = avatarUrl.replace('./db/users/', '');
+				avatarUrl = `/avatars/${filename}`;
+			}
+
+			const userData = {
+				id: user.id,
+				name: user.email,
+				displayName: user.displayName,
+				avatar: avatarUrl,
+				created_at: user.created_at,
+				updated_at: user.updated_at
+			};
+
+			return Send.success(reply, userData, 'User profile retrieved successfully');
+
+		} catch (error) {
+			console.error('Get user profile by displayName error:', error);
+			return Send.internalError(reply, 'Failed to get user profile');
+		}
+	}
+
+	static async getOnlineStatus(request, reply) {
+		const { userId } = request.params;
+		const online = UserOnline.isUserOnline(userId);
+		return reply.send({ success: true, online });
+	}
+
+
 }

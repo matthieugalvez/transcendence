@@ -6,7 +6,7 @@ import { UserService } from "../services/users.service";
 import { AuthService } from "../services/auth.service";
 
 export interface DecodedToken {
-	userId: number;
+	userId: string;
 }
 
 // Extend FastifyRequest to include cookies
@@ -58,7 +58,7 @@ class AuthMiddleware {
 
 		try {
 			// Verify the refresh token
-			const decodedToken = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: number };
+			const decodedToken = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: string };
 
 			// Check if refresh token exists in database and matches
 			const user = await UserService.getUserById(decodedToken.userId);
