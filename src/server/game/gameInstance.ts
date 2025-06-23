@@ -35,6 +35,8 @@ export class GameInstance {
     ];
     private playerTokens: { [playerId: number]: string } = {};
     private pauseTimeoutHandle: NodeJS.Timeout | null = null;
+    private spectators: WebSocket[] = [];
+    private onEndCallback?: (winnerId: number) => void;
     // Players
     private playerNames: { [id: string]: string } = {};
     // Paddles
@@ -73,7 +75,7 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username?: string): number | null {
+    public addClient(ws: WebSocket, username?: string): number | 'spectator' | null {
         for (const player of this.players) {
             if (!player.ws) {
                 player.ws = ws;
@@ -84,22 +86,24 @@ export class GameInstance {
                 return player.playerId;
             }
         }
-        return null; // salle pleine
+        // return null; // salle pleine
+        this.addSpectator(ws);
+        return 'spectator';
     }
 
-    private setupDisconnect(ws: WebSocket, id: number) {
+    public addSpectator(ws: WebSocket) {
+        this.spectators.push(ws);
+        ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
         ws.on('close', () => {
-            const player = this.players.find(p => p.playerId === id);
-            if (player) player.ws = null;
-            this.broadcastState(this.isRunning);
-            if (this.players.every(p => !p.ws)) {
-                this.destroy();
-                removeGameRoom(this.gameId);
-            } else {
-            this.startPauseOnDisconnect();
-            }
+            this.spectators = this.spectators.filter(s => s !== ws);
         });
+        this.broadcastState(this.isRunning);
     }
+
+    public onEnd(callback: (winnerId: number) => void) {
+        this.onEndCallback = callback;
+    }
+
     // public to get state
     public getCurrentState(): GameState {
         return this.buildState(true);
@@ -170,6 +174,19 @@ export class GameInstance {
     }
 
     /** ----------- PRIVATE METHODS ------------ */
+    private setupDisconnect(ws: WebSocket, id: number) {
+        ws.on('close', () => {
+            const player = this.players.find(p => p.playerId === id);
+            if (player) player.ws = null;
+            this.broadcastState(this.isRunning);
+            if (this.players.every(p => !p.ws)) {
+                this.destroy();
+                removeGameRoom(this.gameId);
+            } else {
+            this.startPauseOnDisconnect();
+            }
+        });
+    }
     // to have random initial velocity of ball
     private randomBallVel(): Velocity {
         const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
@@ -209,6 +226,8 @@ export class GameInstance {
         const ended = this.checkEndOfGame();
         if (ended) {
             this.broadcastState(false);
+            const winner = this.score1 > this.score2 ? 1 : 2;
+            if (this.onEndCallback) this.onEndCallback(winner);
             this.destroy();
             return;
         }
@@ -299,7 +318,11 @@ export class GameInstance {
             },
             isRunning: this.isRunning && isRunning,
             isPaused: this.isPaused,
-            connectedPlayers: this.players.filter(p => p.ws).map(p => p.playerId),
+            // connectedPlayers: this.players.filter(p => p.ws).map(p => p.playerId),
+            connectedPlayers: [
+                ...this.players.filter(p => p.ws).map(p => p.playerId),
+                ...this.spectators.map((_, idx) => 100 + idx)
+            ],
             playerNames: {
             1: this.players[0].username || 'Player 1',
             2: this.players[1].username || 'Player 2',
@@ -314,6 +337,9 @@ export class GameInstance {
         this.players.forEach(player => {
             if (player.ws && player.ws.readyState === player.ws.OPEN)
                 player.ws.send(message);
+        });
+        this.spectators.forEach(ws => {
+            if (ws.readyState === ws.OPEN) ws.send(message);
         });
     }
     // place ball in center after a point and randomly change direction
@@ -363,6 +389,9 @@ export class GameInstance {
         this.players.forEach(player => {
             if (player.ws && player.ws.readyState === player.ws.OPEN)
                 player.ws.send(payload);
+        });
+        this.spectators.forEach(ws => {
+            if (ws.readyState === ws.OPEN) ws.send(payload);
         });
     }
 

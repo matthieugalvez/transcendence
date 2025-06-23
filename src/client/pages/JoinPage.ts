@@ -4,6 +4,7 @@ import { GameSettingsComponent } from '../components/game.component';
 import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
 import { 
   hideOverlay,
@@ -23,6 +24,7 @@ let bothPlayersConnected = false;
 let isrendered = true;
 let hasHadDisconnection = false;
 let resumeAlertShown = false;
+let joinedPlayers: number[] = [];
 
 // Récupérer le username connecté
 async function getUsername() {
@@ -68,8 +70,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
   document.body.appendChild(wrapper);
 
   const gameContainer = document.createElement('div');
-  gameContainer.className = 'relative z-0';
+  gameContainer.className = 'relative z-10';
   wrapper.appendChild(gameContainer);
+
+    // screen du jeu avant toute partie
+  // const previewImg = document.createElement('img');
+  // previewImg.src = '../assets/gameimg/screen-pongGame.png';
+  // previewImg.alt = 'Pong preview';
+  // previewImg.className = 'absolute z-50 w-full h-[80%] y-[12%] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
+  // gameContainer.appendChild(previewImg);
 
   // --- Récupère le username du joueur connecté (GUEST ou HOST) ---
   const myUsername = await getUsername();
@@ -78,6 +87,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
   let playerId: number | null = null;
   let hostUsername = 'Player 1';
   let guestUsername = 'Player 2';
+
+  // --- Tournament tracking ---
+  const matchups: [string, string][] = [['', ''], ['', ''], ['', '']];
+  const winners: string[] = [];
+  let currentMatchIndex = 0;
+  let lastWinner: string | null = null;
 
   if (playerId === 1) hostUsername = user?.displayName;
   if (playerId === 2) guestUsername = user?.displayName;
@@ -93,22 +108,26 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
   // --- Attente de la websocket ---
   const matchTitle = `${hostUsername} vs ${guestUsername}`;
+  // duo finish
+  const onFinish = mode === 'duo'
+    ? (winnerId: number) => {
+        const titleText = gameContainer.querySelector('h2')!.textContent!;
+        const [hostName, guestName] = titleText.split(' vs ');
+        const winnerName = winnerId === 1 ? hostName : guestName;
+        showGameOverOverlay(wrapper, `${winnerName}`, () => {
+          pongHandle?.socket.close();
+          deleteCookie(`pongPlayerToken-${gameId}`);
+          deleteCookie(`pongPlayerId-${gameId}`);
+          renderJoinPage(params)
+        });
+      }
+    : () => {};
   const wsHandler = startPongInContainer(
     gameContainer,
     matchTitle,
     myUsername,
     "",
-    (winnerId) => {
-      const titleText = gameContainer.querySelector('h2')!.textContent!;
-      const [hostName, guestName] = titleText.split(' vs ');
-      const winnerName = winnerId === 1 ? hostName : guestName;
-      showGameOverOverlay(wrapper, `${winnerName}`, () => {
-        pongHandle?.socket.close();
-        deleteCookie(`pongPlayerToken-${gameId}`);
-        deleteCookie(`pongPlayerId-${gameId}`);
-        renderJoinPage(params)
-      });
-    },
+    onFinish,
     gameId,
     mode === 'duo' ? 'duo-online' : 'tournament-online'
   );
@@ -150,6 +169,56 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         renderSettingsBar();
       }
 
+      if (data.type === 'playersJoined') {
+        joinedPlayers = data.players as number[];
+        if (mode === 'tournament') {
+          bothPlayersConnected = joinedPlayers.length === 4;
+          renderSettingsBar();
+          if (bothPlayersConnected) {
+            waiting.textContent =
+              playerId === 1
+                ? "Click 'Start Game' to begin"
+                : 'Waiting for the host to start the game...';
+          } else {
+            waiting.textContent = 'Waiting for another player to join...';
+          }
+        }
+      }
+
+      if (mode === 'tournament') {
+        if (data.type === 'matchStart') {
+          if (lastWinner) {
+            TournamentComponent.showTransitionPanel(
+              gameContainer,
+              currentMatchIndex,
+              matchups,
+              lastWinner,
+              winners,
+              () => {}
+            );
+            lastWinner = null;
+            currentMatchIndex++;
+          }
+          matchups[currentMatchIndex] = [data.players[0], data.players[1]];
+        }
+
+        if (data.type === 'matchEnd') {
+          lastWinner = data.winner;
+          winners.push(data.winner);
+        }
+
+        if (data.type === 'tournamentEnd') {
+          TournamentComponent.showTransitionPanel(
+            gameContainer,
+            currentMatchIndex,
+            matchups,
+            data.winner,
+            winners,
+            () => {}
+          );
+        }
+      }
+
       if (data.type === 'pause' && data.reason === 'disconnect') {
         hasHadDisconnection = true;
       }
@@ -159,7 +228,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         if (mode === 'duo')
           bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
         else if (mode === 'tournament')
-          bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 4;
+          bothPlayersConnected = joinedPlayers.length === 4;
 
         // SI les deux joueurs sont connectés ET il y a eu une déco
         if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
@@ -188,7 +257,9 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
             : (playerId === 1
                 ? "Click 'Start Game' to begin"
                 : "Waiting for the host to start the game...");
-          if (data.isRunning && !gameStarted) {
+        }
+        if (data.isRunning && !gameStarted) {
+          if (playerId === 1 || playerId === 2) {
             pongHandle?.start();
             if (canvas) canvas.classList.remove('blur-xs');
             waiting.remove();
@@ -196,6 +267,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
             resumeAlertShown = false;
             hideOverlay();
           }
+          if (canvas) canvas.classList.remove('blur-xs');
+          waiting.remove();
+          gameStarted = true;
+          resumeAlertShown = false;
+          hideOverlay();
         }
       }
     } catch {}
@@ -263,7 +339,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           canStart: () => bothPlayersConnected && playerId === 1,
           onStartGame: async () => {
             pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-            GameSettingsComponent.render('solo-start', {
+            GameSettingsComponent.render('solo', {
               onPauseGame: () => {
                 pauseState.value = !pauseState.value;
                 pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));

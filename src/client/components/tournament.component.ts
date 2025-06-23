@@ -79,7 +79,7 @@ export class TournamentComponent {
     transition.style.backgroundColor = "#530196";
     transition.className = `
       absolute flex flex-col items-center justify-center p-8
-      backdrop-blur-2xl z-20 w-[28%] h-[22%]
+      backdrop-blur-2xl z-50 w-[28%] h-[22%]
       border-2 border-black
       whitespace-nowrap
       rounded-lg
@@ -124,6 +124,7 @@ export class TournamentComponent {
 
     setTimeout(() => {
       if (canvas) canvas.classList.remove('blur-xs');
+      transition.remove();
       if (i < matchups.length - 1) onNext();
     }, 4000);
   }

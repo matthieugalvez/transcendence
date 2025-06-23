@@ -35,8 +35,13 @@ function createGameWebSocket(
   const port = 3000;
   const playerToken = getCookie(`pongPlayerToken-${gameId}`);
   let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
-  if (playerToken) wsUrl += `?playerToken=${playerToken}`;
-  else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
+  // if (playerToken) wsUrl += `?playerToken=${playerToken}`;
+  // else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
+  const params: string[] = [];
+  if (playerToken) params.push(`playerToken=${playerToken}`);
+  else params.push(`username=${encodeURIComponent(leftPlayer)}`);
+  if (mode === 'tournament-online') params.push('mode=tournament');
+  if (params.length) wsUrl += `?${params.join('&')}`;
   const socket = new WebSocket(wsUrl);
   // pour pouvoir fermer les sockets
   window.addEventListener('app:close-sockets', () => {
@@ -312,9 +317,9 @@ export function getShareableLink(gameId: string, mode: string) {
   }
   else if (mode === 'tournament') {
     if (playerToken) {
-      return `${window.location.origin}/game/online/duo/${gameId}?playerToken=${playerToken}`;
+      return `${window.location.origin}/game/online/tournament/${gameId}?playerToken=${playerToken}`;
     }
-    return `${window.location.origin}/game/online/duo/${gameId}`;
+    return `${window.location.origin}/game/online/tournament/${gameId}`;
   }
 }
 
