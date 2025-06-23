@@ -23,9 +23,9 @@ function startSPA() {
 	router.register('/game', renderPongGamePage);
 	router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async () => await oauth2FAPage());
-	router.register('/game/online/:gameId', renderJoinPage);
+	router.register('/game/online/:gameId', async ()=> await renderJoinPage);
 	router.register('/profile', async () => await ProfilePage()); // Own profile
-    router.register('/profile/:displayName', async(params) => await ProfilePage({ displayName: params.displayName })); // Other user's profile by displayName
+	router.register('/profile/:displayName', async(params = {}) => await ProfilePage({ displayName: params.displayName })); // Other user's profile by displayName
 	router.register('/users', async () => await UsersPage()); // Add this line
 	router.register('/friendlist', async () => await FriendsPage());
 

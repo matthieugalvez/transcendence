@@ -1,141 +1,245 @@
-import { WebSocketService } from '../services/websocket.service';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 
 export class FriendsRender {
-  static async renderFriendsList(container: HTMLElement): Promise<void> {
-    const wsService = WebSocketService.getInstance();
-
-    const friendsSection = document.createElement('div');
-    friendsSection.className = 'py-4';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Friends';
-    title.className = 'text-2xl font-bold mb-4 text-gray-800';
-
-    const friendsContainer = document.createElement('div');
-    friendsContainer.className = 'space-y-3 max-h-96 overflow-y-auto';
-
-    // Loading state
-    const loadingEl = document.createElement('p');
-    loadingEl.textContent = 'Loading friends...';
-    loadingEl.className = 'text-gray-500 italic';
-    friendsContainer.appendChild(loadingEl);
-
-    friendsSection.appendChild(title);
-    friendsSection.appendChild(friendsContainer);
-    container.appendChild(friendsSection);
-
+    static async renderFriendsList(container: HTMLElement): Promise<void> {
     try {
-      const friends = await UserService.getFriends();
+        const currentUser = await UserService.getCurrentUser();
+        const friendsResponse = await UserService.getFriends();
 
-      // Clear loading state
-      friendsContainer.innerHTML = '';
+        // Extract the actual friendships array from the response
+        const friendsList = friendsResponse?.data || friendsResponse || [];
+        console.log('🔍 Friends list:', friendsList); // Debug log
 
-      if (friends.length === 0) {
-        const noFriends = document.createElement('p');
-        noFriends.textContent = 'No friends yet. Search for users to add friends!';
-        noFriends.className = 'text-gray-500 text-center py-4';
-        friendsContainer.appendChild(noFriends);
-        return;
-      }
+        const friendsSection = document.createElement('div');
+        friendsSection.className = 'space-y-8';
 
-      friends.forEach(friend => {
-        const friendCard = document.createElement('div');
-        friendCard.className = 'bg-white p-3 rounded-lg shadow flex items-center justify-between';
+        // Incoming friend requests (highest priority)
+        const pendingIncoming = friendsList.filter(f =>
+            f.status === 'PENDING' && f.receiverId === currentUser.id
+        );
 
-        // Left side: avatar and name
+        if (pendingIncoming.length > 0) {
+            const incomingSection = document.createElement('div');
+
+            const incomingTitle = document.createElement('h3');
+            incomingTitle.textContent = `Friend Requests (${pendingIncoming.length})`;
+            incomingTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-blue-600`;
+
+            const incomingList = document.createElement('div');
+            incomingList.className = 'space-y-3';
+
+            pendingIncoming.forEach(friendship => {
+                const friend = friendship.sender;
+                const friendCard = this.createFriendCard(friend, friendship, 'pending-received');
+                incomingList.appendChild(friendCard);
+            });
+
+            incomingSection.appendChild(incomingTitle);
+            incomingSection.appendChild(incomingList);
+            friendsSection.appendChild(incomingSection);
+        }
+
+        // Accepted friends
+        const acceptedFriends = friendsList.filter(f => f.status === 'ACCEPTED');
+        if (acceptedFriends.length > 0) {
+            const acceptedSection = document.createElement('div');
+
+            const acceptedTitle = document.createElement('h3');
+            acceptedTitle.textContent = `Friends (${acceptedFriends.length})`;
+            acceptedTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-green-600`;
+
+            const acceptedList = document.createElement('div');
+            acceptedList.className = 'space-y-3';
+
+            acceptedFriends.forEach(friendship => {
+                // Determine which user is the friend (not current user)
+                const friend = friendship.senderId === currentUser.id ? friendship.receiver : friendship.sender;
+                const friendCard = this.createFriendCard(friend, friendship, 'accepted');
+                acceptedList.appendChild(friendCard);
+            });
+
+            acceptedSection.appendChild(acceptedTitle);
+            acceptedSection.appendChild(acceptedList);
+            friendsSection.appendChild(acceptedSection);
+        }
+
+        // Outgoing pending requests
+        const pendingOutgoing = friendsList.filter(f =>
+            f.status === 'PENDING' && f.senderId === currentUser.id
+        );
+
+        if (pendingOutgoing.length > 0) {
+            const outgoingSection = document.createElement('div');
+
+            const outgoingTitle = document.createElement('h3');
+            outgoingTitle.textContent = `Pending Requests (${pendingOutgoing.length})`;
+            outgoingTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-orange-600`;
+
+            const outgoingList = document.createElement('div');
+            outgoingList.className = 'space-y-3';
+
+            pendingOutgoing.forEach(friendship => {
+                const friend = friendship.receiver;
+                const friendCard = this.createFriendCard(friend, friendship, 'pending-sent');
+                outgoingList.appendChild(friendCard);
+            });
+
+            outgoingSection.appendChild(outgoingTitle);
+            outgoingSection.appendChild(outgoingList);
+            friendsSection.appendChild(outgoingSection);
+        }
+
+        // Show message if no friends/requests at all
+        if (friendsList.length === 0) {
+            const noFriendsMsg = document.createElement('div');
+            noFriendsMsg.className = 'text-center py-12';
+            noFriendsMsg.innerHTML = `
+                <p class="text-gray-500 text-lg mb-4">No friends or requests yet</p>
+                <p class="text-gray-400">Use the user search in the sidebar to find and add friends!</p>
+            `;
+            friendsSection.appendChild(noFriendsMsg);
+        }
+
+        container.appendChild(friendsSection);
+
+    } catch (error) {
+        console.error('Failed to load friends:', error);
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'text-center py-12';
+        errorMsg.innerHTML = `
+            <p class="text-red-500 text-lg">Failed to load friends list</p>
+            <p class="text-gray-400 mt-2">Please try refreshing the page</p>
+        `;
+        container.appendChild(errorMsg);
+    }
+}
+
+    private static createFriendCard(friend: any, friendship: any, type: 'accepted' | 'pending-sent' | 'pending-received'): HTMLElement {
+        const card = document.createElement('div');
+    card.className = 'bg-gray-50 p-4 rounded-lg flex items-center justify-between hover:bg-gray-100 transition-colors';
+
         const userInfo = document.createElement('div');
-        userInfo.className = 'flex items-center space-x-3';
+        userInfo.className = 'flex items-center space-x-4 flex-grow';
 
         const avatar = document.createElement('img');
         avatar.src = friend.avatar || '/avatars/default.svg';
         avatar.alt = `${friend.displayName}'s avatar`;
-        avatar.className = `font-['Orbitron'] w-10 h-10 rounded-full object-cover`;
+        avatar.className = 'w-12 h-12 rounded-full object-cover';
 
-        const nameContainer = document.createElement('div');
+        const details = document.createElement('div');
 
-        const name = document.createElement('p');
-        name.textContent = friend.displayName || 'Unknown User';
-        name.className = `font-['Orbitron'] font-medium`;
+        const name = document.createElement('div');
+        name.textContent = friend.displayName;
+        name.className = `font-['Orbitron'] font-medium text-lg`;
 
-        // Status indicator
-        const statusDot = document.createElement('span');
-        statusDot.className = 'inline-block w-2.5 h-2.5 rounded-full ml-4 mr-4';
-        statusDot.setAttribute('data-user-status', friend.id);
+        const status = document.createElement('div');
+        status.className = 'text-sm font-medium';
 
-        // Initial status
-        const isOnline = wsService.isUserOnline(friend.id);
-        statusDot.style.backgroundColor = isOnline ? 'green' : 'red';
-        statusDot.title = isOnline ? 'Online' : 'Offline';
+        switch (type) {
+            case 'accepted':
+                status.textContent = 'Friends';
+                status.className += ' text-green-600';
+                break;
+            case 'pending-sent':
+                status.textContent = 'Request sent';
+                status.className += ' text-orange-600';
+                break;
+            case 'pending-received':
+                status.textContent = 'Wants to be friends';
+                status.className += ' text-blue-600';
+                break;
+        }
 
-        nameContainer.appendChild(name);
-        name.appendChild(statusDot);
+        details.appendChild(name);
+        details.appendChild(status);
 
         userInfo.appendChild(avatar);
-        userInfo.appendChild(nameContainer);
+        userInfo.appendChild(details);
 
-        // Right side: action buttons
         const actions = document.createElement('div');
-        actions.className = 'flex space-x-2';
+        actions.className = 'flex space-x-2 ml-8';
 
-        const profileBtn = CommonComponent.createStylizedButton('Profile', 'blue');
-        profileBtn.className += ' text-sm py-1 px-3';
+        // Profile button
+        const profileBtn = CommonComponent.createStylizedButton('Profile', 'purple');
         profileBtn.onclick = () => {
-          window.location.href = `/profile/${encodeURIComponent(friend.displayName)}`;
+            window.location.href = `/profile/${friend.displayName}`;
         };
-
-        const removeBtn = CommonComponent.createStylizedButton('Remove', 'red');
-        removeBtn.className += ' text-sm py-1 px-3';
-        removeBtn.onclick = async () => {
-          if (confirm(`Are you sure you want to remove ${friend.displayName} from your friends?`)) {
-            try {
-              removeBtn.disabled = true;
-              removeBtn.textContent = 'Removing...';
-              await UserService.removeFriend(friend.id);
-
-              // Remove the card with animation
-              friendCard.style.transition = 'all 0.3s';
-              friendCard.style.opacity = '0';
-              friendCard.style.height = '0';
-
-              setTimeout(() => {
-                friendCard.remove();
-
-                // Check if there are no more friends
-                if (friendsContainer.children.length === 0) {
-                  const noFriends = document.createElement('p');
-                  noFriends.textContent = 'No friends yet. Search for users to add friends!';
-                  noFriends.className = 'text-gray-500 text-center py-4';
-                  friendsContainer.appendChild(noFriends);
-                }
-              }, 300);
-
-            } catch (error) {
-              console.error('Failed to remove friend:', error);
-              CommonComponent.showMessage('❌ Failed to remove friend', 'error');
-              removeBtn.disabled = false;
-              removeBtn.textContent = 'Remove';
-            }
-          }
-        };
-
         actions.appendChild(profileBtn);
-        actions.appendChild(removeBtn);
 
-        friendCard.appendChild(userInfo);
-        friendCard.appendChild(actions);
-        friendsContainer.appendChild(friendCard);
-      });
+        // Action buttons based on type
+        if (type === 'pending-received') {
+            const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
+            acceptBtn.onclick = async () => {
+                try {
+                    acceptBtn.disabled = true;
+                    acceptBtn.textContent = 'Accepting...';
+                    await UserService.acceptFriendRequest(friendship.id);
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Failed to accept request:', error);
+                    CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
+                    acceptBtn.disabled = false;
+                    acceptBtn.textContent = 'Accept';
+                }
+            };
 
-    } catch (error) {
-      console.error('Error rendering friends list:', error);
-      friendsContainer.innerHTML = '';
+            const rejectBtn = CommonComponent.createStylizedButton('Reject', 'red');
+            rejectBtn.onclick = async () => {
+                try {
+                    rejectBtn.disabled = true;
+                    rejectBtn.textContent = 'Rejecting...';
+                    await UserService.removeFriend(friendship.id);
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Failed to reject request:', error);
+                    CommonComponent.showMessage('❌ Failed to reject friend request', 'error');
+                    rejectBtn.disabled = false;
+                    rejectBtn.textContent = 'Reject';
+                }
+            };
 
-      const errorMsg = document.createElement('p');
-      errorMsg.textContent = 'Failed to load friends. Please try again.';
-      errorMsg.className = 'text-red-500 text-center py-4';
-      friendsContainer.appendChild(errorMsg);
+            actions.appendChild(acceptBtn);
+            // actions.appendChild(rejectBtn);
+        } else if (type === 'pending-sent') {
+            const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'red');
+            cancelBtn.onclick = async () => {
+                try {
+                    cancelBtn.disabled = true;
+                    cancelBtn.textContent = 'Canceling...';
+                    await UserService.rejectFriendRequest(friendship.id);
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Failed to cancel request:', error);
+                    CommonComponent.showMessage('❌ Failed to cancel friend request', 'error');
+                    cancelBtn.disabled = false;
+                    cancelBtn.textContent = 'Cancel';
+                }
+            };
+            actions.appendChild(cancelBtn);
+        } else if (type === 'accepted') {
+            const removeBtn = CommonComponent.createStylizedButton('Remove', 'red');
+            removeBtn.onclick = async () => {
+                // if (confirm(`Remove ${friend.displayName} from friends?`)) {
+                    try {
+                        removeBtn.disabled = true;
+                        removeBtn.textContent = 'Removing...';
+                        await UserService.removeFriend(friend.id); // Use friend.id instead of friendship.id
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Failed to remove friend:', error);
+                        CommonComponent.showMessage('❌ Failed to remove friend', 'error');
+                        removeBtn.disabled = false;
+                        removeBtn.textContent = 'Remove';
+                    }
+                // }
+            };
+            actions.appendChild(removeBtn);
+        }
+
+        card.appendChild(userInfo);
+        card.appendChild(actions);
+
+        return card;
     }
-  }
 }

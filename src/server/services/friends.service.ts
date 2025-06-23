@@ -48,15 +48,54 @@ export class FriendService {
 		});
 	}
 
+	static async rejectFriendRequest(requestId: string) {
+    const deletedFriendship = await prisma.friendship.delete({
+        where: {
+            id: requestId
+        }
+    });
+
+    return deletedFriendship;
+}
+
+	static async getAllUserFriendships(userId: string) {
+    return await prisma.friendship.findMany({
+        where: {
+            OR: [
+                { senderId: userId },
+                { receiverId: userId }
+            ]
+        },
+        include: {
+            sender: {
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatar: true
+                }
+            },
+            receiver: {
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatar: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+}
+
 	// Get user's friends
 	static async getUserFriends(userId: string) {
 		const friendships = await prisma.friendship.findMany({
 			where: {
 				OR: [
 					{ senderId: userId },
-					{ receiverId: userId }
-				],
-				status: FriendshipStatus.ACCEPTED
+					{ receiverId: userId },
+				]
 			},
 			include: {
 				sender: {

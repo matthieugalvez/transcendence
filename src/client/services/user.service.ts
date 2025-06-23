@@ -341,21 +341,30 @@ export class UserService {
 		}
 	}
 
-	static async getFriends(): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
-		try {
-			const response = await ApiClient.authenticatedFetch('/api/friends');
-			const data = await response.json();
+static async getFriends(): Promise<any[]> {
+    try {
+        const response = await fetch('/api/friends', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-			if (!data.success) {
-				throw new Error(data.error || 'Failed to get friends');
-			}
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-			return data.data;
-		} catch (error) {
-			console.error('Error fetching friends:', error);
-			throw new Error('Failed to fetch friends. Please try again.');
-		}
-	}
+        const responseData = await response.json();
+        console.log('getFriends response:', responseData); // Debug log
+
+        // Return just the data array, not the whole response object
+        return responseData.data || [];
+    } catch (error) {
+        console.error('Error fetching friends:', error);
+        return []; // Return empty array instead of throwing to prevent render issues
+    }
+}
 
 	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
@@ -364,6 +373,16 @@ export class UserService {
 			throw new Error(data.error || 'Failed to get friendship status');
 		return data.data; // { status, requestId }
 	}
+
+	static async rejectFriendRequest(friendshipId: string): Promise<void> {
+    const response = await ApiClient.authenticatedFetch(
+        `/api/friends/request/${encodeURIComponent(friendshipId)}/reject`,
+        { method: 'DELETE' }
+    );
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Failed to reject friend request');
+}
+
 
 	static async removeFriend(friendId: string): Promise<void> {
 		const response = await ApiClient.authenticatedFetch(

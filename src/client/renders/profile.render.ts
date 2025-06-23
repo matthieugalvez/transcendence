@@ -236,17 +236,18 @@ export class ProfileRender {
 			opponentAvatar.alt = opponent.displayName;
 			opponentAvatar.className = 'w-8 h-8 rounded-full';
 
+			const oppenentText = document.createElement('text');
 			const matchDetails = document.createElement('div');
 			const opponentName = document.createElement('span');
-			opponentName.textContent = `vs ${opponent.displayName}`;
-			opponentName.className = 'font-medium text-gray-800';
+			opponentName.textContent = `against ${opponent.displayName}`;
+			opponentName.className = `font-['Orbitron'] font-medium text-gray-800`;
 
-			const matchType = document.createElement('span');
-			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
-			matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2';
+			// const matchType = document.createElement('span');
+			// matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
+			// matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2 mt-2';
 
 			matchDetails.appendChild(opponentName);
-			matchDetails.appendChild(matchType);
+			// matchDetails.appendChild(matchType);
 
 			vsInfo.appendChild(opponentAvatar);
 			vsInfo.appendChild(matchDetails);
@@ -269,7 +270,7 @@ export class ProfileRender {
 			matchHeader.appendChild(resultInfo);
 
 			const matchDate = document.createElement('div');
-			matchDate.textContent = new Date(match.playedAt).toLocaleDateString('en-US', {
+			matchDate.textContent = new Date(match.playedAt).toLocaleDateString('en-GB', {
 				year: 'numeric',
 				month: 'short',
 				day: 'numeric',
