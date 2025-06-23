@@ -135,8 +135,6 @@ export class ProfileRender {
 		return header;
 	}
 
-	// ...existing code...
-
 	private static async createInfoSection(user: any, isOwnProfile: boolean): Promise<HTMLElement> {
 		const section = document.createElement('div');
 		section.className = 'mb-6';
