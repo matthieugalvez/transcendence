@@ -3,6 +3,7 @@ import { BackgroundComponent } from '../components/background.component';
 import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
 import { UserService } from '../services/user.service';
+let		g_edit_box: boolean = false;
 
 export async function renderChatPage() {
 	document.title = "Transcendence - Chat";
@@ -141,13 +142,23 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
     disabled:opacity-50 disabled:cursor-not-allowed
 	flex
 	`.replace(/\s+/g, ' ').trim();
-	box_content.style.whiteSpace = 'pre-line';
 	box_content.style.minWidth = '150px';
 	box_content.style.maxWidth = '40%';
-	box_content.style.hyphens = 'auto';
-	box_content.textContent = `
+
+	const	box_text = document.createElement('div');
+	box_text.className = `
+	w-full h-full
+	px-2
+	`.trim();
+	box_text.style.whiteSpace = 'pre-line';
+	box_text.style.hyphens = 'auto';
+	box_text.textContent = `
 		${message.content}
 	`;
+	box_text.style.paddingBottom = '2px';
+
+	box_content.appendChild(box_text);
+
 
 	const	box_date = document.createElement('div');
 	box_date.className = `
@@ -196,9 +207,11 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	edit_button.style.justifyContent = 'center';
 
 	edit_button.onclick = async () => {
-		const prompt_area = makeEditPromptArea(message);
-		box.appendChild(prompt_area);
+		if (!g_edit_box) {
+			const prompt_area = makeEditPromptArea(message);
+			box.appendChild(prompt_area);
 		}
+	}
 
 	const	delete_button = document.createElement('div');
 	delete_button.className = `
@@ -217,9 +230,9 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	delete_button.style.justifyContent = 'center';
 
 	delete_button.onclick = async () => {
-		await ChatService.deleteMessage(message.id);
-		location.reload();
-		}
+			await ChatService.deleteMessage(message.id);
+			location.reload();
+	}
 
 	box_content.onmouseenter = () => {
 		buttons_box.style.display = 'block';
@@ -252,6 +265,8 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 }
 
 function	makeEditPromptArea(message) {
+	g_edit_box = true;
+
 	const	prompt_box = document.createElement('div');
 	prompt_box.className = `
         bg-amber-300/50
@@ -316,9 +331,8 @@ function	makeEditPromptArea(message) {
 	close_button.style.blockSize = 'fit-content';
 	close_button.style.padding = '10px';
 	close_button.onclick = async () => {
-		if (prompt_area.value.trim()) {
-			prompt_box.remove();
-		}
+		g_edit_box = false;
+		prompt_box.remove();
 	};
 
 	prompt_box.appendChild(prompt_title);
