@@ -84,7 +84,7 @@ export class ProfileRender {
 			if (userId === user.id) {
 				statusDot.style.background = isOnline ? 'green' : 'red';
 				statusDot.title = isOnline ? 'Online' : 'Offline';
-				console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+				// console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
 			}
 		});
 
@@ -99,7 +99,7 @@ export class ProfileRender {
 						const isOnline = wsService.isUserOnline(user.id);
 						statusDot.style.background = isOnline ? 'green' : 'red';
 						statusDot.title = isOnline ? 'Online' : 'Offline';
-						console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+						// console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
 					}, 500);
 				} else {
 					// Connection failed, show offline
