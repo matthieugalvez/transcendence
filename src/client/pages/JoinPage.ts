@@ -24,7 +24,7 @@ let isrendered = true;
 let hasHadDisconnection = false;
 let resumeAlertShown = false;
 
-// Nouvelle fonction utilitaire pour récupérer le username connecté
+// Récupérer le username connecté
 async function getUsername() {
   try {
     const user = await UserService.getCurrentUser();
@@ -34,11 +34,11 @@ async function getUsername() {
   }
 }
 
-export async function renderJoinPage(params: { gameId: string }) {
-  const { gameId } = params;
+export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'tournament' }) {
+  const { gameId, mode } = params;
 
   document.body.innerHTML = '';
-  document.title = 'Pong - Online';
+  document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
 
   let user;
   try {
@@ -110,7 +110,7 @@ export async function renderJoinPage(params: { gameId: string }) {
       });
     },
     gameId,
-    "duo-online"
+    mode === 'duo' ? 'duo-online' : 'tournament-online'
   );
   pongHandle = wsHandler;
 
@@ -156,7 +156,10 @@ export async function renderJoinPage(params: { gameId: string }) {
 
       // On regarde si les deux joueurs sont connectés :
       if (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data) {
-        bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
+        if (mode === 'duo')
+          bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
+        else if (mode === 'tournament')
+          bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 4;
 
         // SI les deux joueurs sont connectés ET il y a eu une déco
         if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
@@ -207,47 +210,77 @@ export async function renderJoinPage(params: { gameId: string }) {
   });
 
   function renderSettingsBar() {
-    // Host : copy link, start game
-    if (playerId === 1) {
-      GameSettingsComponent.render('duo-online', {
-        getOnlineLink: () => getShareableLink(gameId),
-        onCopyLink: async (link) => {
-          navigator.clipboard.writeText(link)
-        },
-        canStart: () => bothPlayersConnected && playerId === 1,
-        onStartGame: async () => {
-          pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-          GameSettingsComponent.render('solo-start', {
-            onPauseGame: () => {
-              pauseState.value = !pauseState.value;
-              pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-            },
-            onRestartGame: () => window.location.reload(),
-          });
-        },
-        onPauseGame: () => {
-          pauseState.value = !pauseState.value;
-          pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-        },
-        onRestartGame: () => window.location.reload(),
-        onDifficultyChange: (difficulty) => {
-          if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-            pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+    if (mode === 'duo') {
+      // Host : copy link, start game
+      if (playerId === 1) {
+        GameSettingsComponent.render('duo-online', {
+          getOnlineLink: () => getShareableLink(gameId, 'duo'),
+          onCopyLink: async (link) => {
+            navigator.clipboard.writeText(link)
+          },
+          canStart: () => bothPlayersConnected && playerId === 1,
+          onStartGame: async () => {
+            pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
+            GameSettingsComponent.render('solo-start', {
+              onPauseGame: () => {
+                pauseState.value = !pauseState.value;
+                pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+              },
+              onRestartGame: () => window.location.reload(),
+            });
+          },
+          onPauseGame: () => {
+            pauseState.value = !pauseState.value;
+            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+          },
+          onRestartGame: () => window.location.reload(),
+          onDifficultyChange: (difficulty) => {
+            if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+              pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+            }
           }
-        }
-      });
-    }
-    // Guest : pas de bouton start/copy, juste pause
-    else if (playerId === 2) {
-      GameSettingsComponent.render('duo-guest', {
-        onPauseGame: () => {
-          pauseState.value = !pauseState.value;
-          pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-        },
-      });
-    }
-    else {
-      GameSettingsComponent.render('initial', {
+        });
+      }
+      // Guest : pas de bouton start/copy, juste pause
+      else if (playerId === 2) {
+        GameSettingsComponent.render('duo-guest', {
+          onPauseGame: () => {
+            pauseState.value = !pauseState.value;
+            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+          },
+        });
+      }
+      else {
+        GameSettingsComponent.render('initial', {
+        });
+      }
+    } else {
+      GameSettingsComponent.render('tournament-online', {
+          getOnlineLink: () => getShareableLink(gameId, 'tournament'),
+          onCopyLink: async (link) => {
+            navigator.clipboard.writeText(link)
+          },
+          canStart: () => bothPlayersConnected && playerId === 1,
+          onStartGame: async () => {
+            pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
+            GameSettingsComponent.render('solo-start', {
+              onPauseGame: () => {
+                pauseState.value = !pauseState.value;
+                pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+              },
+              onRestartGame: () => window.location.reload(),
+            });
+          },
+          onPauseGame: () => {
+            pauseState.value = !pauseState.value;
+            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+          },
+          onRestartGame: () => window.location.reload(),
+          onDifficultyChange: (difficulty) => {
+            if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+              pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+            }
+          }
       });
     }
   }

@@ -29,7 +29,7 @@ function createGameWebSocket(
   leftPlayer: string,
   rightPlayer: string,
   onFinish: FinishCallback,
-  mode: 'duo-local' | 'duo-online' | 'solo'
+  mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const port = 3000;
@@ -135,7 +135,7 @@ function startClientInputLoop(
   socket: WebSocket,
   keysPressed: Record<string, boolean>,
   getPlayerId,
-  mode: 'duo-local' | 'duo-online' | 'solo'
+  mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
   function frame() {
     // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
@@ -183,7 +183,7 @@ export function startPongInContainer(
   rightPlayer: string,
   onFinish: FinishCallback,
   gameId: string,
-  mode: 'duo-local' | 'duo-online' | 'solo' = 'solo',
+  mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
   // Titre
   const title = document.createElement('h2');
@@ -209,7 +209,7 @@ export function startPongInContainer(
   socket.addEventListener('message', (event) => {
     try {
       const data = JSON.parse(event.data);
-      if (mode === 'duo-online'&& data.playerNames && data.playerNames[1] && data.playerNames[2]) {
+      if ((mode === 'duo-online' || mode === 'tournament-online') && data.playerNames && data.playerNames[1] && data.playerNames[2]) {
         title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
       }
     } catch {}
@@ -302,12 +302,20 @@ export function showGameOverOverlay(
   panel.appendChild(replay);
 }
 
-export function getShareableLink(gameId: string) {
+export function getShareableLink(gameId: string, mode: string) {
   const playerToken = getCookie(`pongPlayerToken-${gameId}`);
-  if (playerToken) {
-    return `${window.location.origin}/game/online/${gameId}?playerToken=${playerToken}`;
+  if (mode === 'duo') {
+    if (playerToken) {
+      return `${window.location.origin}/game/online/duo/${gameId}?playerToken=${playerToken}`;
+    }
+    return `${window.location.origin}/game/online/duo/${gameId}`;
   }
-  return `${window.location.origin}/game/online/${gameId}`;
+  else if (mode === 'tournament') {
+    if (playerToken) {
+      return `${window.location.origin}/game/online/duo/${gameId}?playerToken=${playerToken}`;
+    }
+    return `${window.location.origin}/game/online/duo/${gameId}`;
+  }
 }
 
 // --- Fonctions pour overlay en cas de deco/reco ---

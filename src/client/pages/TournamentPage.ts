@@ -36,33 +36,28 @@ export async function renderTournamentPage() {
 
   // settings bar initiale (demande alias)
   GameSettingsComponent.tournamentStarted = false;
-  GameSettingsComponent.render('tournament-alias', {
-    onStartGame: (mode, _difficulty, aliases) => {
-      if (mode === 'tournament-settings' && Array.isArray(aliases)) {
-        // Quand les pseudos sont ok, affiche les settings tournoi (difficulté etc)
-        GameSettingsComponent.render('tournament-settings', {
-          onStartGame: () => {
-            GameSettingsComponent.tournamentStarted = true;
-            launchTournament(aliases, wrapper);
-          },
-          onPauseGame: () => {
-            pauseState.value = !pauseState.value;
-            if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
-              currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-            }
-          },
-          onRestartGame: () => renderTournamentPage(),
-        });
-      }
-    },
-    onDifficultyChange: (difficulty) => {
-      if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
-        currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-      }
-    },
+
+  TournamentComponent.showPlayerSelection(wrapper, (players) => {
+    GameSettingsComponent.render('tournament-settings', {
+      onStartGame: () => {
+        GameSettingsComponent.tournamentStarted = true;
+        launchTournament(players, wrapper);
+      },
+      onPauseGame: () => {
+        pauseState.value = !pauseState.value;
+        if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+          currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+        }
+      },
+      onRestartGame: () => renderTournamentPage(),
+      onDifficultyChange: (difficulty) => {
+        if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+          currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+        }
+      },
+    });
   });
 
-  // screen du jeu avant toute partie
   const previewImg = document.createElement('img');
   previewImg.src = '../assets/gameimg/screen-pongGame.png';
   previewImg.alt = 'Pong preview';
@@ -70,7 +65,7 @@ export async function renderTournamentPage() {
   wrapper.appendChild(previewImg);
 }
 
-async function launchTournament(aliases: string[], wrapper: HTMLElement) {
+export async function launchTournament(aliases: string[], wrapper: HTMLElement) {
   // Prépare la structure des matchs (demi-finales + finale)
   const shuffled = [...aliases].sort(() => Math.random() - 0.5); // clone et shuffle les alias pour pas voir toujours le meme ordre
   const matchups: [string, string][] = [
@@ -123,5 +118,3 @@ async function launchTournament(aliases: string[], wrapper: HTMLElement) {
   }
   await playMatch(0);
 }
-
-// -> match des tournois doivent etre rqandom et pas toujours 0 vs 1 et 2 vs 3 au debut

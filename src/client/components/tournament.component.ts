@@ -1,8 +1,72 @@
 import { renderTournamentPage } from '../pages/TournamentPage';
-import { validatePlayerNames } from '../utils/player.utils';
 import { CommonComponent } from './common.component';
+import { UserSearchComponent } from './usersearch.component';
 
 export class TournamentComponent {
+  /**
+  * Affiche un overlay pour sélectionner exactement 4 utilisateurs existants.
+  * Appelle `onComplete` avec la liste de leurs displayNames.
+  */
+  static async showPlayerSelection(
+    container: HTMLElement,
+    onComplete: (players: string[]) => void
+  ) {
+    container.innerHTML = '';
+    const overlay = document.createElement('div');
+    overlay.className = `
+      absolute inset flex flex-col items-center justify-center
+      bg-black/70 p-6 space-y-4 z-20 w-[60%] h-full
+    `;
+    container.appendChild(overlay);
+
+    const title = document.createElement('h2');
+    title.textContent = '⬇️ Choose 4 registered players ⬇️';
+    title.className = `
+      text-white text-2xl mb-4 font-['Orbitron']
+    `;
+    overlay.appendChild(title);
+
+    const slots: { user?: string; elem: HTMLElement }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'w-full mb-2';
+      overlay.appendChild(slot);
+      slots.push({ elem: slot });
+      // pour chaque slot, on rend un UserSearchComponent et on récupère la sélection
+      UserSearchComponent.render(slot, async (user) => {
+        slots[i].user = user.displayName;
+        checkReady();
+      });
+    }
+
+    const startBtn = document.createElement('button');
+    startBtn.textContent = 'Launch tournament';
+    startBtn.disabled = true;
+    startBtn.className = `
+      bg-purple-600 text-white
+      font-['Orbitron']
+      font-semibold
+      border-2 border-black
+      py-2 px-12
+      rounded-lg text-lg transition-colors
+      focus:outline-none focus:ring-2
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+      disabled:opacity-50 disabled:cursor-not-allowed
+    `;
+    overlay.appendChild(startBtn);
+
+    function checkReady() {
+      const allSelected = slots.every(s => typeof s.user === 'string');
+      startBtn.disabled = !allSelected;
+    }
+
+    startBtn.onclick = () => {
+      const players = slots.map(s => s.user!) as string[];
+      overlay.remove();
+      onComplete(players);
+    };
+  }
+
   static showTransitionPanel(
     gameContainer: HTMLElement,
     i: number,

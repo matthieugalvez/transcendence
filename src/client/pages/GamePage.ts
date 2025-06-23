@@ -251,13 +251,34 @@ export async function renderPongGamePage() {
             const { gameId } = await res.json();
             deleteCookie(`pongPlayerToken-${gameId}`);
             deleteCookie(`pongPlayerId-${gameId}`);
-            router.navigate(`/game/online/${gameId}`);
+            router.navigate(`/game/online/duo/${gameId}`);
           }
         }
       });
     },
     // --- TOURNOI ---
-    () => router.navigate('/tournament')
+    () => {
+      GameSettingsComponent.render('tournament', {
+        onStartGame: async (mode) => {
+          // --- LOCAL ---
+          if (mode === 'tournament-local') {
+            router.navigate('/tournament');
+          }
+          // --- ONLINE ---
+          else if (mode === 'tournament-online') {
+            const res = await fetch('/api/game/tournament/start', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+            });
+            const { gameId } = await res.json();
+            deleteCookie(`pongPlayerToken-${gameId}`);
+            deleteCookie(`pongPlayerId-${gameId}`);
+            router.navigate(`/game/online/tournament/${gameId}`);
+          }
+        }
+      });
+    }
   );
   window.addEventListener('beforeunload', () => {
     pongHandle?.socket.close();

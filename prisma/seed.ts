@@ -47,6 +47,37 @@ async function main() {
 		email: testUser.email,
 		created_at: testUser.created_at
 	})
+
+	// Create 2 other users for tournament
+	const otherpwd = await bcrypt.hash('Bonjour42!', 10)
+
+	const user2 = await prisma.user.create({
+		data: {
+			email: 'ok@ok.com',
+			password_hash: otherpwd,
+		}
+	})
+
+	console.log('👑 User2 created:', {
+		id: user2.id,
+		email: user2.email,
+		created_at: user2.created_at
+	})
+
+	const pwd2 = await bcrypt.hash('Bonjour42!', 10)
+
+	const user3 = await prisma.user.create({
+		data: {
+			email: 'br@br.com',
+			password_hash: pwd2,
+		}
+	})
+
+	console.log('👑 User3 created:', {
+		id: user3.id,
+		email: user3.email,
+		created_at: user3.created_at
+	})
 }
 
 main()
