@@ -17,18 +17,18 @@ export interface SidebarOptions {
 export class SidebarComponent {
 	static async render(opts: SidebarOptions): HTMLDivElement {
 		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true } = opts;
-		const sidebar = document.createElement("nav");
+		const sidebar = document.createElement("div");
 		sidebar.className = `
-        fixed left-10 top-10 h-[90%] w-80
-        bg-blue-950/70 backdrop-blur-2xl
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        border-2 border-black
-        flex flex-col items-start p-6
-        space-y-4 z-11
-    `.trim();
+		fixed left-10 top-10 h-[90%] w-80
+		bg-blue-950/70 backdrop-blur-2xl
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+		disabled:opacity-50 disabled:cursor-not-allowed
+		border-2 border-black
+		flex flex-col items-start p-6
+		space-y-4 z-11
+	`.trim();
 
 		// Profil picture of user (with default one if none)
 		// console.log(`Avatar URL: ${avatarUrl}`);
