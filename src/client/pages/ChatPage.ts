@@ -10,7 +10,9 @@ export async function renderChatPage() {
 	document.body.innerHTML = '';
 	const	user = await UserService.getCurrentUser();
 	const	user_list = await UserService.getAllUsers();
-	let		receiver;
+	const	receiver_name = document.URL.substring(document.URL.lastIndexOf('/') + 1);
+	console.log(receiver_name);
+	let		receiver
 	if (user.id === 1) {
 		receiver = user_list[1];
 	}

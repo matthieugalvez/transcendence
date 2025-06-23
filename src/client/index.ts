@@ -22,7 +22,7 @@ function startSPA() {
     router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async() => await oauth2FAPage());
 	router.register('/game/online/:gameId', renderJoinPage);
-	router.register('/chat', async() => await renderChatPage());
+	router.register('/chat/:displayName', async() => await renderChatPage());
     router.start();
 }
 
