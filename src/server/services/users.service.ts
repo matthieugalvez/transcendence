@@ -134,6 +134,7 @@ export class UserService {
 			take: limit
 		});
 	}
+
 }
 
 // Online users management (outside the class)

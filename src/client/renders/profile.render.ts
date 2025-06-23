@@ -68,52 +68,52 @@ export class ProfileRender {
             bg-clip-text text-transparent mb-2
         `;
 
-  const statusDot = document.createElement('span');
-  statusDot.setAttribute('data-user-status', user.id);
-  statusDot.style.display = 'inline-block';
-  statusDot.style.width = '12px';
-  statusDot.style.height = '12px';
-  statusDot.style.borderRadius = '50%';
-  statusDot.style.background = 'gray'; // Start with gray
-  statusDot.title = 'Checking status...';
+		const statusDot = document.createElement('span');
+		statusDot.setAttribute('data-user-status', user.id);
+		statusDot.style.display = 'inline-block';
+		statusDot.style.width = '12px';
+		statusDot.style.height = '12px';
+		statusDot.style.borderRadius = '50%';
+		statusDot.style.background = 'gray'; // Start with gray
+		statusDot.title = 'Checking status...';
 
-  const wsService = WebSocketService.getInstance();
+		const wsService = WebSocketService.getInstance();
 
-  // Set up status change listener
-  const cleanup = wsService.onStatusChange((userId, isOnline) => {
-    if (userId === user.id) {
-      statusDot.style.background = isOnline ? 'green' : 'red';
-      statusDot.title = isOnline ? 'Online' : 'Offline';
-      console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
-    }
-  });
+		// Set up status change listener
+		const cleanup = wsService.onStatusChange((userId, isOnline) => {
+			if (userId === user.id) {
+				statusDot.style.background = isOnline ? 'green' : 'red';
+				statusDot.title = isOnline ? 'Online' : 'Offline';
+				console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+			}
+		});
 
-  // Try to get initial status and wait for WebSocket connection
-  (async () => {
-    try {
-      // Wait for WebSocket to connect
-      const connected = await wsService.waitForConnection(3000);
-      if (connected) {
-        // Give it a moment for initial status messages to arrive
-        setTimeout(() => {
-          const isOnline = wsService.isUserOnline(user.id);
-          statusDot.style.background = isOnline ? 'green' : 'red';
-          statusDot.title = isOnline ? 'Online' : 'Offline';
-          console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
-        }, 500);
-      } else {
-        // Connection failed, show offline
-        statusDot.style.background = 'red';
-        statusDot.title = 'Offline';
-      }
-    } catch (error) {
-      console.error('Error getting initial status:', error);
-      statusDot.style.background = 'red';
-      statusDot.title = 'Offline';
-    }
-  })();
+		// Try to get initial status and wait for WebSocket connection
+		(async () => {
+			try {
+				// Wait for WebSocket to connect
+				const connected = await wsService.waitForConnection(3000);
+				if (connected) {
+					// Give it a moment for initial status messages to arrive
+					setTimeout(() => {
+						const isOnline = wsService.isUserOnline(user.id);
+						statusDot.style.background = isOnline ? 'green' : 'red';
+						statusDot.title = isOnline ? 'Online' : 'Offline';
+						console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+					}, 500);
+				} else {
+					// Connection failed, show offline
+					statusDot.style.background = 'red';
+					statusDot.title = 'Offline';
+				}
+			} catch (error) {
+				console.error('Error getting initial status:', error);
+				statusDot.style.background = 'red';
+				statusDot.title = 'Offline';
+			}
+		})();
 
-  userInfo.appendChild(statusDot);
+		userInfo.appendChild(statusDot);
 
 
 		// const username = document.createElement('p');
@@ -121,7 +121,7 @@ export class ProfileRender {
 		// username.className = 'text-gray-600 text-lg mb-2';
 
 		const joinDate = document.createElement('p');
-		const date = new Date(user.created_at).toLocaleDateString();
+		const date = new Date(user.created_at).toLocaleDateString("en-GB");
 		joinDate.textContent = `Member since ${date}`;
 		joinDate.className = 'text-gray-500 text-sm';
 
@@ -135,6 +135,8 @@ export class ProfileRender {
 		return header;
 	}
 
+	// ...existing code...
+
 	private static async createInfoSection(user: any, isOwnProfile: boolean): Promise<HTMLElement> {
 		const section = document.createElement('div');
 		section.className = 'mb-6';
@@ -146,14 +148,32 @@ export class ProfileRender {
 		const infoGrid = document.createElement('div');
 		infoGrid.className = 'grid grid-cols-2 gap-4';
 
-		// Add profile stats here - you can expand this based on your game data
+		// Fetch user stats from backend
+		let userStats = null;
+		try {
+			const response = await fetch(`/api/users/${user.id}/stats`, {
+				credentials: 'include'
+			});
+			if (response.ok) {
+				userStats = await response.json();
+			}
+		} catch (error) {
+			console.error('Failed to fetch user stats:', error);
+		}
+
+		// Calculate total matches and wins
+		const totalMatches = userStats ?
+			(userStats.oneVOneWins + userStats.oneVOneLosses + userStats.tournamentWins + userStats.tournamentLosses) : 0;
+		const totalWins = userStats ?
+			(userStats.oneVOneWins + userStats.tournamentWins) : 0;
+
 		const stats = [
-			// { label: 'User ID', value: user.id },
-			{ label: 'Match played', value: 'Placeholder' },
-			{ label: 'Match won', value: 'Placeholder' }
-			// { label: 'Display Name', value: user.displayName || 'Not set' },
-			// { label: 'Email', value: user.email || 'Private' },
-			// { label: 'Last Online', value: new Date(user.updated_at).toLocaleDateString() }
+			{ label: 'Matches Played', value: totalMatches.toString() },
+			{ label: 'Matches Won', value: totalWins.toString() },
+			{ label: '1v1 Wins', value: userStats?.oneVOneWins?.toString() || '0' },
+			{ label: '1v1 Losses', value: userStats?.oneVOneLosses?.toString() || '0' },
+			{ label: 'Tournament Wins', value: userStats?.tournamentWins?.toString() || '0' },
+			{ label: 'Tournament Losses', value: userStats?.tournamentLosses?.toString() || '0' }
 		];
 
 		stats.forEach(stat => {
@@ -176,9 +196,100 @@ export class ProfileRender {
 		section.appendChild(title);
 		section.appendChild(infoGrid);
 
+		// Add match history section
+		if (userStats?.matchHistory && userStats.matchHistory.length > 0) {
+			const matchHistorySection = this.createMatchHistorySection(userStats.matchHistory, user.id);
+			section.appendChild(matchHistorySection);
+		}
+
 		return section;
 	}
 
+	private static createMatchHistorySection(matches: any[], currentUserId: string): HTMLElement {
+		const historySection = document.createElement('div');
+		historySection.className = 'mt-8';
+
+		const historyTitle = document.createElement('h3');
+		historyTitle.textContent = 'Recent Matches';
+		historyTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
+
+		const matchList = document.createElement('div');
+		matchList.className = 'space-y-3';
+
+		matches.forEach(match => {
+			const matchItem = document.createElement('div');
+			matchItem.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm';
+
+			const isWinner = match.winnerId === currentUserId;
+			const opponent = match.playerOneId === currentUserId ? match.playerTwo : match.playerOne;
+			const currentUserScore = match.playerOneId === currentUserId ? match.playerOneScore : match.playerTwoScore;
+			const opponentScore = match.playerOneId === currentUserId ? match.playerTwoScore : match.playerOneScore;
+
+			const matchHeader = document.createElement('div');
+			matchHeader.className = 'flex justify-between items-center mb-2';
+
+			const vsInfo = document.createElement('div');
+			vsInfo.className = 'flex items-center space-x-3';
+
+			const opponentAvatar = document.createElement('img');
+			opponentAvatar.src = opponent.avatar || '/avatars/default.svg';
+			opponentAvatar.alt = opponent.displayName;
+			opponentAvatar.className = 'w-8 h-8 rounded-full';
+
+			const matchDetails = document.createElement('div');
+			const opponentName = document.createElement('span');
+			opponentName.textContent = `vs ${opponent.displayName}`;
+			opponentName.className = 'font-medium text-gray-800';
+
+			const matchType = document.createElement('span');
+			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
+			matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2';
+
+			matchDetails.appendChild(opponentName);
+			matchDetails.appendChild(matchType);
+
+			vsInfo.appendChild(opponentAvatar);
+			vsInfo.appendChild(matchDetails);
+
+			const resultInfo = document.createElement('div');
+			resultInfo.className = 'text-right';
+
+			const score = document.createElement('div');
+			score.textContent = `${currentUserScore} - ${opponentScore}`;
+			score.className = `font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}`;
+
+			const result = document.createElement('div');
+			result.textContent = isWinner ? 'WIN' : 'LOSS';
+			result.className = `text-xs font-medium ${isWinner ? 'text-green-600' : 'text-red-600'}`;
+
+			resultInfo.appendChild(score);
+			resultInfo.appendChild(result);
+
+			matchHeader.appendChild(vsInfo);
+			matchHeader.appendChild(resultInfo);
+
+			const matchDate = document.createElement('div');
+			matchDate.textContent = new Date(match.playedAt).toLocaleDateString('en-US', {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+			matchDate.className = 'text-sm text-gray-500';
+
+			matchItem.appendChild(matchHeader);
+			matchItem.appendChild(matchDate);
+			matchList.appendChild(matchItem);
+		});
+
+		historySection.appendChild(historyTitle);
+		historySection.appendChild(matchList);
+
+		return historySection;
+	}
+
+	// ...existing code...
 	private static async createActionsSection(user: any): Promise<HTMLElement> {
 		const section = document.createElement('div');
 		section.className = 'border-t pt-6';
@@ -269,10 +380,10 @@ export class ProfileRender {
 		const editButton = CommonComponent.createStylizedButton('Edit profile', 'blue')
 		// editButton.textContent = 'Edit Profile';
 		// editButton.className = `
-        //     px-6 py-2 bg-blue-600 text-white rounded-lg
-        //     hover:bg-blue-700 transition-colors
-        //     font-medium
-        // `;
+		//     px-6 py-2 bg-blue-600 text-white rounded-lg
+		//     hover:bg-blue-700 transition-colors
+		//     font-medium
+		// `;
 		editButton.onclick = () => {
 			router.navigate('/settings');
 		};

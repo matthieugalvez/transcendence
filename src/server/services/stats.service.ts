@@ -1,0 +1,167 @@
+import { prisma } from '../db'
+
+export class StatsService {
+	static async getUserStats(userId: string) {
+		try {
+			const userStats = await prisma.userStats.findUnique({
+				where: { userId }
+			});
+
+			if (!userStats) {
+				// Create default stats if they don't exist
+				return await prisma.userStats.create({
+					data: {
+						userId,
+						oneVOneWins: 0,
+						oneVOneLosses: 0,
+						tournamentWins: 0,
+						tournamentLosses: 0,
+					}
+				});
+			}
+
+			return userStats;
+		} catch (error) {
+			console.error('Error fetching user stats:', error);
+			throw error;
+		}
+	}
+
+	static async updateUserStats(userId: string, stats: {
+		oneVOneWins?: number;
+		oneVOneLosses?: number;
+		tournamentWins?: number;
+		tournamentLosses?: number;
+	}) {
+		try {
+			return await prisma.userStats.upsert({
+				where: { userId },
+				update: stats,
+				create: {
+					userId,
+					oneVOneWins: stats.oneVOneWins || 0,
+					oneVOneLosses: stats.oneVOneLosses || 0,
+					tournamentWins: stats.tournamentWins || 0,
+					tournamentLosses: stats.tournamentLosses || 0,
+				}
+			});
+		} catch (error) {
+			console.error('Error updating user stats:', error);
+			throw error;
+		}
+	}
+
+	static async incrementWin(userId: string, matchType: 'ONE_V_ONE' | 'TOURNAMENT') {
+		const field = matchType === 'ONE_V_ONE' ? 'oneVOneWins' : 'tournamentWins';
+
+		return await prisma.userStats.upsert({
+			where: { userId },
+			update: {
+				[field]: { increment: 1 }
+			},
+			create: {
+				userId,
+				oneVOneWins: matchType === 'ONE_V_ONE' ? 1 : 0,
+				oneVOneLosses: 0,
+				tournamentWins: matchType === 'TOURNAMENT' ? 1 : 0,
+				tournamentLosses: 0,
+			}
+		});
+	}
+
+	static async incrementLoss(userId: string, matchType: 'ONE_V_ONE' | 'TOURNAMENT') {
+		const field = matchType === 'ONE_V_ONE' ? 'oneVOneLosses' : 'tournamentLosses';
+
+		return await prisma.userStats.upsert({
+			where: { userId },
+			update: {
+				[field]: { increment: 1 }
+			},
+			create: {
+				userId,
+				oneVOneWins: 0,
+				oneVOneLosses: matchType === 'ONE_V_ONE' ? 1 : 0,
+				tournamentWins: 0,
+				tournamentLosses: matchType === 'TOURNAMENT' ? 1 : 0,
+			}
+		});
+	}
+
+	static async getUserMatchHistory(userId: string, limit: number = 5) {
+		try {
+			const matches = await prisma.match.findMany({
+				where: {
+					OR: [
+						{ playerOneId: userId },
+						{ playerTwoId: userId }
+					]
+				},
+				include: {
+					playerOne: {
+						select: {
+							id: true,
+							displayName: true,
+							avatar: true
+						}
+					},
+					playerTwo: {
+						select: {
+							id: true,
+							displayName: true,
+							avatar: true
+						}
+					}
+				},
+				orderBy: {
+					playedAt: 'desc'
+				},
+				take: limit
+			});
+
+			return matches;
+		} catch (error) {
+			console.error('Error fetching match history:', error);
+			throw error;
+		}
+	}
+
+
+    static async getLeaderboard(limit: number = 10) {
+        try {
+            const leaderboard = await prisma.userStats.findMany({
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            displayName: true,
+                            avatar: true
+                        }
+                    }
+                },
+                orderBy: [
+                    {
+                        oneVOneWins: 'desc'
+                    },
+                    {
+                        tournamentWins: 'desc'
+                    }
+                ],
+                take: limit
+            });
+
+            // Transform data to include user info at top level
+            return leaderboard.map(stats => ({
+                ...stats.user,
+                oneVOneWins: stats.oneVOneWins,
+                oneVOneLosses: stats.oneVOneLosses,
+                tournamentWins: stats.tournamentWins,
+                tournamentLosses: stats.tournamentLosses,
+                totalWins: stats.oneVOneWins + stats.tournamentWins,
+                totalLosses: stats.oneVOneLosses + stats.tournamentLosses
+            }));
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            throw error;
+        }
+    }
+}

@@ -24,6 +24,13 @@ model User {
   sentFriendRequests     Friendship[] @relation("UserSentRequests")
   receivedFriendRequests Friendship[] @relation("UserReceivedRequests")
 
+  // User stats
+	userStats	UserStats?
+	playerOneMatches  Match[] @relation("PlayerOne")
+	playerTwoMatches  Match[] @relation("PlayerTwo")
+
+
+
   @@map("users")
 }
 
@@ -31,9 +38,9 @@ model Friendship {
   id          String             @id @default(cuid())
   senderId    String
   receiverId  String
-  status      FriendshipStatus @default(PENDING)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  status      FriendshipStatus	@default(PENDING)
+  createdAt   DateTime       	@default(now())
+  updatedAt   DateTime       	@updatedAt
 
   sender      User @relation("UserSentRequests", fields: [senderId], references: [id], onDelete: Cascade)
   receiver    User @relation("UserReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
@@ -46,4 +53,42 @@ enum FriendshipStatus {
   PENDING
   ACCEPTED
   BLOCKED
+}
+
+
+model UserStats {
+  id               String @id @default(cuid())
+  userId           String @unique
+
+  oneVOneWins      Int @default(0)
+  oneVOneLosses    Int @default(0)
+  tournamentWins   Int @default(0)
+  tournamentLosses Int @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model Match {
+  id            String    @id @default(cuid())
+  playerOneId   String
+  playerTwoId   String
+  winnerId      String?
+  matchType     MatchType
+
+  playerOneScore Int @default(0)
+  playerTwoScore Int @default(0)
+
+  playedAt      DateTime @default(now())
+
+  playerOne  User @relation("PlayerOne", fields: [playerOneId], references: [id], onDelete: Cascade)
+  playerTwo  User @relation("PlayerTwo", fields: [playerTwoId], references: [id], onDelete: Cascade)
+
+  @@map("matches")
+}
+
+enum MatchType {
+  ONE_V_ONE
+  TOURNAMENT
 }

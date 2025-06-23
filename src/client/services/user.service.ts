@@ -49,9 +49,9 @@ export class UserService {
 	/**
 	 * Check if a user exists by name (PROTECTED)
 	 */
-	static async checkUserExists(name: string): Promise<boolean> {
+	static async checkUserExists(displayName: string): Promise<boolean> {
 		try {
-			const response = await ApiClient.authenticatedFetch(`/api/users/check/${encodeURIComponent(name)}`);
+			const response = await ApiClient.authenticatedFetch(`/api/users/check/${encodeURIComponent(displayName)}`);
 
 			const data = await response.json();
 			return data.success && data.data.exists === true;
