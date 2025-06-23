@@ -198,14 +198,14 @@ export class ProfileRender {
 
 		// Add match history section
 		if (userStats?.matchHistory && userStats.matchHistory.length > 0) {
-			const matchHistorySection = this.createMatchHistorySection(userStats.matchHistory, user.id);
+			const matchHistorySection = this.createMatchHistorySection(userStats.matchHistory, user.id, user);
 			section.appendChild(matchHistorySection);
 		}
 
 		return section;
 	}
 
-	private static createMatchHistorySection(matches: any[], currentUserId: string): HTMLElement {
+	private static createMatchHistorySection(matches: any[], currentUserId: string, user: any): HTMLElement {
 		const historySection = document.createElement('div');
 		historySection.className = 'mt-8';
 
@@ -231,24 +231,39 @@ export class ProfileRender {
 			const vsInfo = document.createElement('div');
 			vsInfo.className = 'flex items-center space-x-3';
 
+			// Current user avatar
+			const userAvatar = document.createElement('img');
+			userAvatar.src = user.avatar || '/avatars/default.svg';
+			userAvatar.alt = user.displayName;
+			userAvatar.className = 'w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity';
+			userAvatar.onclick = () => {
+				router.navigate(`/profile/${opponent.displayName}`);
+			};
+
+			// VS text
+			const vsText = document.createElement('span');
+			vsText.textContent = 'vs';
+			vsText.className = 'text-sm font-medium text-gray-500';
+
+			// Opponent avatar
 			const opponentAvatar = document.createElement('img');
 			opponentAvatar.src = opponent.avatar || '/avatars/default.svg';
 			opponentAvatar.alt = opponent.displayName;
-			opponentAvatar.className = 'w-8 h-8 rounded-full';
+			opponentAvatar.className = 'w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity';
+			opponentAvatar.onclick = () => {
+				router.navigate(`/profile/${opponent.displayName}`);
+			};
 
-			const oppenentText = document.createElement('text');
+			// Match details with opponent name
 			const matchDetails = document.createElement('div');
-			const opponentName = document.createElement('span');
-			opponentName.textContent = `against ${opponent.displayName}`;
-			opponentName.className = `font-['Orbitron'] font-medium text-gray-800`;
+			const matchType = document.createElement('span');
+			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
+			matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600';
 
-			// const matchType = document.createElement('span');
-			// matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
-			// matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2 mt-2';
+			matchDetails.appendChild(matchType);
 
-			matchDetails.appendChild(opponentName);
-			// matchDetails.appendChild(matchType);
-
+			vsInfo.appendChild(userAvatar);
+			vsInfo.appendChild(vsText);
 			vsInfo.appendChild(opponentAvatar);
 			vsInfo.appendChild(matchDetails);
 
@@ -290,7 +305,6 @@ export class ProfileRender {
 		return historySection;
 	}
 
-	// ...existing code...
 	private static async createActionsSection(user: any): Promise<HTMLElement> {
 		const section = document.createElement('div');
 		section.className = 'border-t pt-6';
