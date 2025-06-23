@@ -24,9 +24,12 @@ export class ChatService {
 		})
 	}
 
-	static async	getMessages(userId: string, otheruserId: string) {
+	static async	getMessages(userId: string, otheruserId: string, last_fetch?: Date) {
 		return await prisma.message.findMany({
 			where: {
+				created_at: {
+					gte: last_fetch,
+				},
 				OR: [
 					{
 						sender_id: userId,

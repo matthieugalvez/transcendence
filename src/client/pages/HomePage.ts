@@ -14,10 +14,6 @@ export async function RenderHomePage(): Promise<void> {
 	document.body.innerHTML = "";
 	BackgroundComponent.applyAnimatedGradient();
 
-
-
-
-
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
 		let user = await UserService.getCurrentUser();

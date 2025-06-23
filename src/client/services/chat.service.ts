@@ -1,19 +1,19 @@
 import { ApiClient } from '../utils/apiclient.utils';
 
 export class	ChatService {
-	static async	getMessages(otheruser_id: string): Promise<Array<{	id: string,
-																		sender_id: string,
-																		receiver_id: string,
-																		created_at: Date,
-																		updated_at: Date,
-																		content: string }>> {
+	static async	getMessages(otheruser_id: string, last_fetch?: Date): Promise<Array<{	id: string,
+																							sender_id: string,
+																							receiver_id: string,
+																							created_at: Date,
+																							updated_at: Date,
+																							content: string }>> {
 		try {
 			const	response = await ApiClient.authenticatedFetch('/api/chat/messages', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ otheruser_id })
+				body: JSON.stringify({ otheruser_id, last_fetch })
 			});
 			const	data = await response.json();
 			

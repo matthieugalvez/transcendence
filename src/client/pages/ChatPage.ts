@@ -3,16 +3,38 @@ import { BackgroundComponent } from '../components/background.component';
 import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
 import { UserService } from '../services/user.service';
+import { renderNotFoundPage } from './NotFoundPage';
 let		g_edit_box: boolean = false;
+let		g_last_fetch_date: Date;
 
 export async function renderChatPage() {
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
-	const	user = await UserService.getCurrentUser();
-	const	user_list = await UserService.getAllUsers();
+	let	user;
+	let	user_list;
+	try {
+		user = await UserService.getCurrentUser();
+		user_list = await UserService.getAllUsers();
+	} catch (error) {
+		console.error('Failed to fetch user data:', error);
+		CommonComponent.handleAuthError();
+	}
 	const	receiver_name = document.URL.substring(document.URL.lastIndexOf('/') + 1);
-	console.log(receiver_name);
-	let		receiver = await UserService.getUserProfileByDisplayName(receiver_name);
+	let	receiver;
+	try {
+		receiver = await UserService.getUserProfileByDisplayName(receiver_name);
+	} catch {
+		renderNotFoundPage();
+		return;
+	}
+
+	const	getAllMessagescb = async () => {
+		try {
+			getAllMessages(user.id, receiver.id, messages_box);
+		} catch (error) {
+			console.error('Failed to fetch messages:', error);
+		}
+	};
 
 	BackgroundComponent.applyCenteredGradientLayout();
 
@@ -35,8 +57,6 @@ export async function renderChatPage() {
 
 	document.body.appendChild(title_box);
 
-	let		messages = await ChatService.getMessages(receiver.id);
-	console.log(messages);
 	const	messages_box = document.createElement('div');
 	messages_box.className = `
         fixed top-[7%] h-[65%] w-[95%]
@@ -51,13 +71,7 @@ export async function renderChatPage() {
     `.trim();
 	messages_box.style.overflow = 'auto';
 
-	for (const message of messages) {
-		if (message.sender_id === user.id)
-			makeMsgBox(messages_box, message, false);
-		if (message.receiver_id === user.id)
-			makeMsgBox(messages_box, message, true);
-	}
-
+	getAllMessagescb;
 	document.body.appendChild(messages_box);
 
 	const	prompt_box = document.createElement('div');
@@ -97,9 +111,10 @@ export async function renderChatPage() {
 
 	prompt_area.onkeydown = async (event) => {
 		console.log(event.key);
-		if (event.key === "Enter" && prompt_area.value.trim()) {
-			await ChatService.postMessage(receiver.id, prompt_area.value.trim());
-			location.reload();
+		if (event.key === "Enter" && prompt_area.value) {
+			await ChatService.postMessage(receiver.id, prompt_area.value);
+			prompt_area.value = '';
+			getAllMessagescb;
 		}
 	};
 
@@ -108,9 +123,10 @@ export async function renderChatPage() {
 	send_button.style.right = '35px';
 	send_button.style.bottom = '35px';
 	send_button.onclick = async () => {
-		if (prompt_area.value.trim()) {
-			await ChatService.postMessage(receiver.id, prompt_area.value.trim());
-			location.reload();
+		if (prompt_area.value) {
+			await ChatService.postMessage(receiver.id, prompt_area.value);
+			prompt_area.value = '';
+			getAllMessagescb;
 		}
 	};
 
@@ -118,6 +134,23 @@ export async function renderChatPage() {
 	prompt_box.appendChild(prompt_area);
 	prompt_box.appendChild(send_button);
 	document.body.appendChild(prompt_box);
+
+	setInterval(getAllMessagescb, 100);
+}
+
+async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
+	let		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
+	g_last_fetch_date = new Date();
+
+	for (const message of messages) {
+		if (message.sender_id === user_id)
+			makeMsgBox(messages_box, message, false);
+		if (message.receiver_id === user_id)
+			makeMsgBox(messages_box, message, true);
+	}
+	if (messages.length) {
+		messages_box.scrollTop = messages_box.scrollHeight;
+	}
 }
 
 function makeMsgBox(content_box: Element, message, received: boolean) {
@@ -204,7 +237,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	edit_button.onclick = async () => {
 		if (!g_edit_box) {
-			const prompt_area = makeEditPromptArea(message);
+			const prompt_area = makeEditPromptArea(message, content_box, box_text);
 			box.appendChild(prompt_area);
 		}
 	}
@@ -227,7 +260,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	delete_button.onclick = async () => {
 			await ChatService.deleteMessage(message.id);
-			location.reload();
+			box.remove();
 	}
 
 	box_content.onmouseenter = () => {
@@ -257,10 +290,10 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	const	margin = document.createElement('div');
 	margin.style.margin = '5px';
-	content_box.appendChild(margin);
+	box.appendChild(margin);
 }
 
-function	makeEditPromptArea(message) {
+function	makeEditPromptArea(message, content_box: Element, box_text: Element) {
 	g_edit_box = true;
 
 	const	prompt_box = document.createElement('div');
@@ -299,9 +332,11 @@ function	makeEditPromptArea(message) {
 
 	prompt_area.onkeydown = async (event) => {
 		console.log(event.key);
-		if (event.key === "Enter" && prompt_area.value.trim()) {
+		if (event.key === "Enter" && prompt_area.value) {
 			await ChatService.editMessage(message.id, prompt_area.value.trim());
-			location.reload();
+			box_text.textContent = `\n ${prompt_area.value}`;
+			g_edit_box = false;
+			prompt_box.remove();
 		}
 	};
 
@@ -316,9 +351,11 @@ function	makeEditPromptArea(message) {
 	send_button.style.blockSize = 'fit-content';
 	send_button.style.padding = '10px';
 	send_button.onclick = async () => {
-		if (prompt_area.value.trim()) {
+		if (prompt_area.value) {
 			await ChatService.editMessage(message.id, prompt_area.value.trim());
-			location.reload();
+			box_text.textContent = `\n ${prompt_area.value}`;
+			g_edit_box = false;
+			prompt_box.remove();
 		}
 	};
 
