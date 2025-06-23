@@ -1,7 +1,7 @@
 import { prisma } from '../db'
 
 export class ChatService {
-	static async	createMessage(sender_id: number, receiver_id: number, content: string) {
+	static async	createMessage(sender_id: string, receiver_id: string, content: string) {
 		return await prisma.message.create({
 			data: {
 				sender_id,
@@ -11,20 +11,20 @@ export class ChatService {
 		});
 	}
 
-	static async	editMessage(id: number, content: string) {
+	static async	editMessage(id: string, content: string) {
 		return await prisma.message.update({
 			where: { id },
 			data: { content },
 		})
 	}
 
-	static async	deleteMessage(id: number) {
+	static async	deleteMessage(id: string) {
 		return await prisma.message.delete({
 			where: { id }
 		})
 	}
 
-	static async	getMessages(userId: number, otheruserId: number) {
+	static async	getMessages(userId: string, otheruserId: string) {
 		return await prisma.message.findMany({
 			where: {
 				OR: [

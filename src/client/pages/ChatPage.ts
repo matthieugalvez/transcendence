@@ -12,13 +12,7 @@ export async function renderChatPage() {
 	const	user_list = await UserService.getAllUsers();
 	const	receiver_name = document.URL.substring(document.URL.lastIndexOf('/') + 1);
 	console.log(receiver_name);
-	let		receiver
-	if (user.id === 1) {
-		receiver = user_list[1];
-	}
-	else {
-		receiver = user_list[0];
-	}
+	let		receiver = await UserService.getUserProfileByDisplayName(receiver_name);
 
 	BackgroundComponent.applyCenteredGradientLayout();
 

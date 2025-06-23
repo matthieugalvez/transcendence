@@ -6,7 +6,7 @@ export class	ChatController {
 	static async	getMessages(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
-			const	{ otheruser_id } = request.body as { otheruser_id: number };
+			const	{ otheruser_id } = request.body as { otheruser_id: string };
 
 			const	messages = await ChatService.getMessages(userId, otheruser_id);
 			
@@ -33,7 +33,7 @@ export class	ChatController {
 	static async	postMessage(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
-			const	{ receiver_id, content } = request.body as { receiver_id: number, content: string };
+			const	{ receiver_id, content } = request.body as { receiver_id: string, content: string };
 
 			const	NewMessage = await ChatService.createMessage(userId, receiver_id, content);
 
@@ -47,7 +47,7 @@ export class	ChatController {
 
 	static async	editMessage(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const	{ message_id, content } = request.body as { message_id: number, content: string };
+			const	{ message_id, content } = request.body as { message_id: string, content: string };
 
 			const	Message = await ChatService.editMessage(message_id, content);
 
@@ -61,7 +61,7 @@ export class	ChatController {
 
 	static async	deleteMessage(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const	{ message_id } = request.body as { message_id: number };
+			const	{ message_id } = request.body as { message_id: string };
 
 			const	Message = await ChatService.deleteMessage(message_id);
 

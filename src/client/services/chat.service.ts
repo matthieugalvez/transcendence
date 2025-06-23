@@ -1,9 +1,9 @@
 import { ApiClient } from '../utils/apiclient.utils';
 
 export class	ChatService {
-	static async	getMessages(otheruser_id: number): Promise<Array<{	id: number,
-																		sender_id: number,
-																		receiver_id: number,
+	static async	getMessages(otheruser_id: string): Promise<Array<{	id: string,
+																		sender_id: string,
+																		receiver_id: string,
 																		created_at: Date,
 																		updated_at: Date,
 																		content: string }>> {
@@ -29,7 +29,7 @@ export class	ChatService {
 		}
 	}
 
-	static async	postMessage(receiver_id: number, content: string): Promise<{	success: boolean,
+	static async	postMessage(receiver_id: string, content: string): Promise<{	success: boolean,
 																					error?: string,
 																					details?: any[] }> {
 		try {
@@ -93,7 +93,7 @@ export class	ChatService {
 		}
 	}
 
-	static async	deleteMessage(message_id: number): Promise<{	success: boolean,
+	static async	deleteMessage(message_id: string): Promise<{	success: boolean,
 																	error?: string,
 																	details?: any[] }> {
 		try {

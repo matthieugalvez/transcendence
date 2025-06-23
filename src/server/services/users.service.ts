@@ -62,7 +62,7 @@ export class UserService {
 		}
 	}
 
-	static async isDisplayNameTaken(displayName: string, excludeUserId?: number): Promise<boolean> {
+	static async isDisplayNameTaken(displayName: string, excludeUserId?: string): Promise<boolean> {
 		try {
 			const existingUser = await prisma.user.findFirst({
 				where: {
