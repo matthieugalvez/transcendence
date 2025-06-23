@@ -80,9 +80,6 @@ export class SidebarComponent {
 
 
 		if (showFriendsBtn) {
-			// Check for pending requests first
-			const hasPendingRequests = await this.checkForPendingRequests();
-
 			// Create a container for the button with notification
 			const friendsBtnContainer = document.createElement('div');
 			friendsBtnContainer.className = 'relative w-full';
@@ -93,14 +90,31 @@ export class SidebarComponent {
 				router.navigate('/friendlist');
 			});
 
-			// Add notification bell if there are pending requests
-			if (hasPendingRequests) {
-				const notificationBell = document.createElement('div');
-				notificationBell.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white';
-				// notificationBell.textContent = '🔔';
-				notificationBell.style.fontSize = '12px';
-				friendsBtnContainer.appendChild(notificationBell);
-			}
+			// Create notification bell (always create it, just hide/show as needed)
+			const notificationBell = document.createElement('div');
+			notificationBell.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white';
+			notificationBell.style.fontSize = '12px';
+			notificationBell.style.display = 'none'; // Start hidden
+			friendsBtnContainer.appendChild(notificationBell);
+
+			// Function to update notification
+			const updateNotification = async () => {
+				try {
+					const hasPendingRequests = await this.checkForPendingRequests();
+					notificationBell.style.display = hasPendingRequests ? 'flex' : 'none';
+				} catch (error) {
+					console.error('Failed to update notification:', error);
+				}
+			};
+
+			// Initial check
+			updateNotification();
+
+			// Set up periodic refresh every 10 seconds
+			const notificationInterval = setInterval(updateNotification, 5000);
+
+			// Store interval ID for cleanup (optional)
+			friendsBtnContainer.setAttribute('data-interval-id', notificationInterval.toString());
 
 			friendsBtnContainer.appendChild(friendsBtn);
 			sidebar.appendChild(friendsBtnContainer);

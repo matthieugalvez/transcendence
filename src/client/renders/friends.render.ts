@@ -189,7 +189,7 @@ export class FriendsRender {
                 try {
                     rejectBtn.disabled = true;
                     rejectBtn.textContent = 'Rejecting...';
-                    await UserService.removeFriend(friendship.id);
+                    await UserService.rejectFriendRequest(friendship.id);
                     window.location.reload();
                 } catch (error) {
                     console.error('Failed to reject request:', error);
@@ -200,7 +200,7 @@ export class FriendsRender {
             };
 
             actions.appendChild(acceptBtn);
-            // actions.appendChild(rejectBtn);
+            actions.appendChild(rejectBtn);
         } else if (type === 'pending-sent') {
             const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'red');
             cancelBtn.onclick = async () => {
