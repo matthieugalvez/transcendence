@@ -66,7 +66,7 @@ const updateDisplayName = z.object({
 });
 
 const updatePicture = z.object({
-	avatarShema: IMAGE_SCHEMA
+	avatarSchema: IMAGE_SCHEMA
 })
 
 const updatePassword = z.object({
