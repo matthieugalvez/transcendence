@@ -22,7 +22,7 @@ export async function FriendsPage(): Promise<void> {
       }
     }
 
-    SidebarComponent.render({
+    await SidebarComponent.render({
       userName: currentUser.displayName,
       avatarUrl: currentUser.avatar,
       showStats: true,

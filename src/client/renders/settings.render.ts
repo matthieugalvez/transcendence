@@ -17,7 +17,7 @@ export class SettingsRender {
             const userData = await UserService.getCurrentUser();
 
             // Only render sidebar and main content if authentication succeeds
-            SidebarComponent.render({
+            await SidebarComponent.render({
                 userName: userData.name,
 				avatarUrl: userData.avatar,
                 showStats: true,

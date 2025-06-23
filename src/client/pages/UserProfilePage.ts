@@ -44,7 +44,7 @@ export async function ProfilePage(params?: { userId?: string; displayName?: stri
         }
 
         // Render sidebar
-        SidebarComponent.render({
+        await SidebarComponent.render({
             userName: currentUser.displayName,
             avatarUrl: currentUser.avatar,
             showStats: true,

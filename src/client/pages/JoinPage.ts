@@ -44,7 +44,7 @@ export async function renderJoinPage(params: { gameId: string }) {
   // Only render UI if user is authenticated
   try {
   AuthComponent.checkAndHandleDisplayName();
-  SidebarComponent.render({ userName: user?.displayName || '', showStats: false, showBackHome: true });
+  await SidebarComponent.render({ userName: user?.displayName || '', showStats: false, showBackHome: true });
   BackgroundComponent.applyNormalGradientLayout();
   } catch(error) {
 	CommonComponent.handleAuthError();

@@ -2,6 +2,7 @@ import { router } from "../configs/simplerouter";
 import { CommonComponent } from './common.component';
 import { AuthComponent } from './auth.component';
 import { UserSearchComponent } from "./usersearch.component";
+import { UserService } from "../services/user.service";
 
 export interface SidebarOptions {
 	userName: string;
@@ -14,8 +15,8 @@ export interface SidebarOptions {
 }
 
 export class SidebarComponent {
-	static render(opts: SidebarOptions): HTMLDivElement {
-		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true} = opts;
+	static async render(opts: SidebarOptions): HTMLDivElement {
+		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true } = opts;
 		const sidebar = document.createElement("nav");
 		sidebar.className = `
         fixed left-10 top-10 h-[90%] w-80
@@ -43,6 +44,8 @@ export class SidebarComponent {
       mx-auto
     `.replace(/\s+/g, " ").trim();
 		sidebar.appendChild(profilPic);
+
+
 
 		// Add emoji decorations
 		const gameEmoji = document.createElement('div');
@@ -77,42 +80,49 @@ export class SidebarComponent {
 
 
 		if (showFriendsBtn) {
+			// Check for pending requests first
+			const hasPendingRequests = await this.checkForPendingRequests();
+
+			// Create a container for the button with notification
+			const friendsBtnContainer = document.createElement('div');
+			friendsBtnContainer.className = 'relative w-full';
+
 			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'blue');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			friendsBtn.addEventListener('click', () => {
 				router.navigate('/friendlist');
 			});
-			sidebar.appendChild(friendsBtn);
+
+			// Add notification bell if there are pending requests
+			if (hasPendingRequests) {
+				const notificationBell = document.createElement('div');
+				notificationBell.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white';
+				// notificationBell.textContent = '🔔';
+				notificationBell.style.fontSize = '12px';
+				friendsBtnContainer.appendChild(notificationBell);
+			}
+
+			friendsBtnContainer.appendChild(friendsBtn);
+			sidebar.appendChild(friendsBtnContainer);
 		}
 
 		if (showUserSearch) {
 			const searchContainer = document.createElement('div');
 			searchContainer.className = 'w-full mb-4';
 
-		// 	const searchTitle = document.createElement('h3');
-		// 	searchTitle.textContent = 'Find Users';
-		// 	searchTitle.className = `
-        //     font-['Orbitron'] text-white text-sm font-medium mb-2
-        //     text-center
-        // `;
-		// 	searchContainer.appendChild(searchTitle);
+			// 	const searchTitle = document.createElement('h3');
+			// 	searchTitle.textContent = 'Find Users';
+			// 	searchTitle.className = `
+			//     font-['Orbitron'] text-white text-sm font-medium mb-2
+			//     text-center
+			// `;
+			// 	searchContainer.appendChild(searchTitle);
 
 			// Render the user search component
 			UserSearchComponent.render(searchContainer);
 
 			sidebar.appendChild(searchContainer);
 		}
-
-
-		// provisoire
-	// 	const subtitle = document.createElement('p');
-	// 	subtitle.textContent = 'statistics of user here to logout button';
-	// 	subtitle.className = `
-    //   font-['Orbitron'] text-center text-white
-    //   text-sm font-medium mb-8
-    // `.replace(/\s+/g, ' ').trim();
-	// 	subtitle.style.letterSpacing = "0.05em";
-	// 	sidebar.appendChild(subtitle);
 
 		// pousse les bouttons suivants tout en bas
 		const bottomContainer = document.createElement('div');
@@ -151,5 +161,23 @@ export class SidebarComponent {
 		sidebar.appendChild(bottomContainer);
 		document.body.appendChild(sidebar);
 		return sidebar;
+	}
+
+	private static async checkForPendingRequests(): Promise<boolean> {
+		try {
+			const currentUser = await UserService.getCurrentUser();
+			const friendsResponse = await UserService.getFriends();
+			const friendsList = friendsResponse?.data || friendsResponse || [];
+
+			// Check for incoming pending requests
+			const pendingIncoming = friendsList.filter(f =>
+				f.status === 'PENDING' && f.receiverId === currentUser.id
+			);
+
+			return pendingIncoming.length > 0;
+		} catch (error) {
+			console.error('Failed to check pending requests:', error);
+			return false;
+		}
 	}
 }

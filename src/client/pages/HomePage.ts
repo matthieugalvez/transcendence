@@ -29,7 +29,7 @@ export async function RenderHomePage(): Promise<void> {
 		}
 
 		// Only render sidebar and main content if authentication succeeds
-		SidebarComponent.render({
+		await SidebarComponent.render({
 			userName: user.displayName,
 			showStats: true,
 			showSettings: true,
