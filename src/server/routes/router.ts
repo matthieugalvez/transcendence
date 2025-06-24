@@ -1,15 +1,15 @@
 import { FastifyInstance } from 'fastify'
-import { registerPongWebSocket } from './game.routes'
+import { registerPongWebSocket } from './game.routes.js'
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import fs from 'fs';
 
 // Import route modules
-import healthRoutes from './health.routes'
-import userRoutes from './users.routes'
-import authRoutes from './auth.routes'
-import friendsRoutes from './friends.routes';
-import { statsRoutes } from './stats.routes';
+import healthRoutes from './health.routes.js'
+import userRoutes from './users.routes.js'
+import authRoutes from './auth.routes.js'
+import friendsRoutes from './friends.routes.js';
+import { statsRoutes } from './stats.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)

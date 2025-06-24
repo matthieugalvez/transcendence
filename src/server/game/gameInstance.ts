@@ -1,8 +1,7 @@
 import type { WebSocket } from 'ws';
-import type { GameState } from '../../client/types/game.types';
+import type { GameState } from '../config/game.types'
 import { removeGameRoom } from './gameRooms';
 import { v4 as uuidv4 } from 'uuid';
-import { GameService } from '../../client/services/game.service';
 import { UserService } from '../services/users.service';
 import { StatsController } from '../controllers/stats.controller'
 
@@ -13,6 +12,7 @@ interface Velocity { vx: number; vy: number; }
 /**
  * Store player info for a game
  */
+
 type PlayerInfo = {
   playerId: number,
   username: string,

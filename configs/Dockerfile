@@ -33,6 +33,9 @@ COPY .env* ./
 # Debug: List files to see what's available
 RUN ls -la && ls -la src/ && ls -la src/client/ || echo "Missing directories"
 
+RUN npm run generate:jwt > .env.build && \
+    cat .env.build >> .env
+
 # Build frontend and backend (needs devDependencies)
 RUN npm run build:frontend && npm run build:backend
 
@@ -43,7 +46,6 @@ RUN npm prune --omit=dev
 RUN mkdir -p /app/data
 
 # Create non-root user for security
-RUN groupadd -r node && useradd -r -g node node
 RUN chown -R node:node /app/data /app/dist /app/dist-back
 USER node
 

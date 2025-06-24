@@ -258,7 +258,6 @@ export class UserController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,
@@ -332,7 +331,6 @@ export class UserController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,
@@ -347,8 +345,8 @@ export class UserController {
 		}
 	}
 
-	static async getOnlineStatus(request, reply) {
-		const { userId } = request.params;
+	static async getOnlineStatus(request : FastifyRequest, reply: FastifyReply) {
+		const { userId } = request.params as { userId: string };
 		const online = UserOnline.isUserOnline(userId);
 		return reply.send({ success: true, online });
 	}

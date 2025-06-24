@@ -101,7 +101,7 @@ export class AuthService {
 			where: { id: userId },
 			data: { twoFASecret: secret.base32 }
 		});
-		const otpAuthUrl = secret.otpauth_url;
+		const otpAuthUrl = secret.otpauth_url || '';
 		const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
 		console.log(otpAuthUrl);
 		return { secret: secret.base32, otpAuthUrl: otpAuthUrl, qrCodeDataURL: qrCodeDataURL }

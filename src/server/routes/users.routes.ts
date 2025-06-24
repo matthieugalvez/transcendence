@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { userSchema } from '../validations/auth.schema'
+import { userSchema } from '../validations/auth.schema.js'
 import ValidationMiddleware from '../middlewares/validation.middleware'
 import { UserController } from '../controllers/user.controller'
 import AuthMiddleware from '../middlewares/auth.middleware'
@@ -165,5 +165,5 @@ export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.get('/users/:userId/online', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
-  
+
 }

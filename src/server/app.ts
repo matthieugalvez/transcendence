@@ -2,11 +2,11 @@ import Fastify from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { registerDb } from './db';
-import { registerPlugins } from './config/plugins.config';
-import { registerRoutes } from './routes/router';
-import { registerPongWebSocket } from './routes/game.routes';
-import { registerUserStatusWebSocket } from './routes/users.routes';
+import { registerDb } from './db.js';
+import { registerPlugins } from './config/plugins.config.js';
+import { registerRoutes } from './routes/router.js';
+import { registerPongWebSocket } from './routes/game.routes.js';
+import { registerUserStatusWebSocket } from './routes/users.routes.js';
 
 
 

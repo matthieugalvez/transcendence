@@ -88,9 +88,12 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
     ws.close();
     return;
   }
-  let token = game.getPlayerToken(role);
-  if (!token) {
-    token = game.assignTokenToPlayer(role);
+  let token: string | undefined;
+  if (typeof role === 'number') {
+    token = game.getPlayerToken(role);
+    if (!token) {
+      token = game.assignTokenToPlayer(role);
+    }
   }
   ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
 

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { join } from 'path'
 import OAuth2, { OAuth2Namespace } from "@fastify/oauth2";
-import { googleOAuth2Options } from './google.config';
+import { googleOAuth2Options } from './google.config.js';
 import cookie from '@fastify/cookie'; // Add this import
 
 export async function registerPlugins(app: FastifyInstance, dirname: string) {
