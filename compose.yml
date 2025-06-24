@@ -1,19 +1,32 @@
+
 services:
-  transcendence:
+  app:
     build:
       context: .
       dockerfile: configs/Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      # Persist SQLite database
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - HOST=0.0.0.0
+      - DATABASE_URL=file:./data/transcendence.db
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_REFRESH_SECRET=${AUTH_REFRESH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - BASE_URL=http://localhost:3000
+    volumes:
+      - ./data:/app/data
+      - app_data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+
+volumes:
+  app_data:
+    driver: local

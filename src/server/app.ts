@@ -17,7 +17,7 @@ const __dirname = dirname(__filename)
 // Create Fastify instance
 const app = Fastify({
   logger: {
-    level: process.env.LOG_LEVEL || 'info'
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
   }
 });
 
@@ -51,14 +51,17 @@ async function start() {
     await setupServer();
     const port = Number(process.env.PORT) || 3000;
     const host = process.env.HOST || '0.0.0.0';
+
     await app.listen({ port, host });
     console.log(`🚀 Server running on http://${host}:${port}`);
+    console.log(`🎮 Production mode: ${process.env.NODE_ENV === 'production'}`);
   } catch (error) {
     app.log.error('Failed to start server:', error);
     process.exit(1);
   }
 }
 
+start();
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

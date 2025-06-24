@@ -4,7 +4,7 @@ import { ResponseUtils as Send } from '../utils/response.utils'
 import jwt from 'jsonwebtoken'
 import authConfig from '../config/auth.config'
 import { AuthService } from '../services/auth.service'
-import OAuth2, { OAuthNamespace } from "@fastify/oauth2";
+import OAuth2 from "@fastify/oauth2";
 
 export class AuthController {
 	static async signup(request: FastifyRequest, reply: FastifyReply) {

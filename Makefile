@@ -85,4 +85,28 @@ clean-preview:
 	@echo "DB files: $(shell ls -la ./data/ ./prisma/*.db* 2>/dev/null || echo 'not found')"
 	@echo "Migrations: $(shell ls -la ./prisma/migrations/ 2>/dev/null || echo 'not found')"
 
+
+	# Add this to your Makefile
+build-prod: clean
+	@echo "🏗️ Building for production..."
+	npm install
+	npx prisma generate
+	npx prisma db push
+	npm run db:seed
+	docker compose up --build -d
+	@echo "✅ Production build completed"
+	@echo "🌐 Application available at: http://localhost:3000"
+
+# Production commands
+prod-up:
+	docker compose up -d
+
+prod-down:
+	docker compose down
+
+prod-logs:
+	docker compose logs -f
+
+prod-restart: prod-down prod-up
+
 .PHONY: build-dev build-docker clean clean-containers clean-db clean-build clean-docker clean-force db-setup db-reset db-studio restart clean-preview
