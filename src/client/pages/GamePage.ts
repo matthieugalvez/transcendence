@@ -91,7 +91,7 @@ export async function GamePageCheck() {
       }
 
       // Only render sidebar and main content if authentication succeeds
-    SidebarComponent.render({
+    await SidebarComponent.render({
       userName: user.displayName,
       avatarUrl: user.avatar,
       showStats: true,

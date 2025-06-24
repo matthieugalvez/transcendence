@@ -13,11 +13,6 @@ export async function RenderHomePage(): Promise<void> {
 	document.title = "Home";
 	document.body.innerHTML = "";
 	BackgroundComponent.applyAnimatedGradient();
-
-
-
-
-
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
 		let user = await UserService.getCurrentUser();
@@ -34,7 +29,7 @@ export async function RenderHomePage(): Promise<void> {
 		}
 
 		// Only render sidebar and main content if authentication succeeds
-		SidebarComponent.render({
+		await SidebarComponent.render({
 			userName: user.displayName,
 			showStats: true,
 			showSettings: true,

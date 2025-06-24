@@ -28,10 +28,10 @@ export class ProfileRender {
 		profileCard.appendChild(infoSection);
 
 		// Action Buttons (if not own profile)
-		if (!isOwnProfile) {
-			const actionsSection = await this.createActionsSection(user);
-			profileCard.appendChild(actionsSection);
-		}
+		// if (!isOwnProfile) {
+		// 	const actionsSection = await this.createActionsSection(user);
+		// 	profileCard.appendChild(actionsSection);
+		// }
 
 		// Edit Profile Section (if own profile)
 		if (isOwnProfile) {
@@ -68,52 +68,52 @@ export class ProfileRender {
             bg-clip-text text-transparent mb-2
         `;
 
-  const statusDot = document.createElement('span');
-  statusDot.setAttribute('data-user-status', user.id);
-  statusDot.style.display = 'inline-block';
-  statusDot.style.width = '12px';
-  statusDot.style.height = '12px';
-  statusDot.style.borderRadius = '50%';
-  statusDot.style.background = 'gray'; // Start with gray
-  statusDot.title = 'Checking status...';
+		const statusDot = document.createElement('span');
+		statusDot.setAttribute('data-user-status', user.id);
+		statusDot.style.display = 'inline-block';
+		statusDot.style.width = '12px';
+		statusDot.style.height = '12px';
+		statusDot.style.borderRadius = '50%';
+		statusDot.style.background = 'gray'; // Start with gray
+		statusDot.title = 'Checking status...';
 
-  const wsService = WebSocketService.getInstance();
+		const wsService = WebSocketService.getInstance();
 
-  // Set up status change listener
-  const cleanup = wsService.onStatusChange((userId, isOnline) => {
-    if (userId === user.id) {
-      statusDot.style.background = isOnline ? 'green' : 'red';
-      statusDot.title = isOnline ? 'Online' : 'Offline';
-      console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
-    }
-  });
+		// Set up status change listener
+		const cleanup = wsService.onStatusChange((userId, isOnline) => {
+			if (userId === user.id) {
+				statusDot.style.background = isOnline ? 'green' : 'red';
+				statusDot.title = isOnline ? 'Online' : 'Offline';
+				// console.log(`Status updated for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+			}
+		});
 
-  // Try to get initial status and wait for WebSocket connection
-  (async () => {
-    try {
-      // Wait for WebSocket to connect
-      const connected = await wsService.waitForConnection(3000);
-      if (connected) {
-        // Give it a moment for initial status messages to arrive
-        setTimeout(() => {
-          const isOnline = wsService.isUserOnline(user.id);
-          statusDot.style.background = isOnline ? 'green' : 'red';
-          statusDot.title = isOnline ? 'Online' : 'Offline';
-          console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
-        }, 500);
-      } else {
-        // Connection failed, show offline
-        statusDot.style.background = 'red';
-        statusDot.title = 'Offline';
-      }
-    } catch (error) {
-      console.error('Error getting initial status:', error);
-      statusDot.style.background = 'red';
-      statusDot.title = 'Offline';
-    }
-  })();
+		// Try to get initial status and wait for WebSocket connection
+		(async () => {
+			try {
+				// Wait for WebSocket to connect
+				const connected = await wsService.waitForConnection(3000);
+				if (connected) {
+					// Give it a moment for initial status messages to arrive
+					setTimeout(() => {
+						const isOnline = wsService.isUserOnline(user.id);
+						statusDot.style.background = isOnline ? 'green' : 'red';
+						statusDot.title = isOnline ? 'Online' : 'Offline';
+						// console.log(`Initial status for ${user.id}: ${isOnline ? 'online' : 'offline'}`);
+					}, 500);
+				} else {
+					// Connection failed, show offline
+					statusDot.style.background = 'red';
+					statusDot.title = 'Offline';
+				}
+			} catch (error) {
+				console.error('Error getting initial status:', error);
+				statusDot.style.background = 'red';
+				statusDot.title = 'Offline';
+			}
+		})();
 
-  userInfo.appendChild(statusDot);
+		userInfo.appendChild(statusDot);
 
 
 		// const username = document.createElement('p');
@@ -121,7 +121,7 @@ export class ProfileRender {
 		// username.className = 'text-gray-600 text-lg mb-2';
 
 		const joinDate = document.createElement('p');
-		const date = new Date(user.created_at).toLocaleDateString();
+		const date = new Date(user.created_at).toLocaleDateString("en-GB");
 		joinDate.textContent = `Member since ${date}`;
 		joinDate.className = 'text-gray-500 text-sm';
 
@@ -139,45 +139,74 @@ export class ProfileRender {
 		const section = document.createElement('div');
 		section.className = 'mb-6';
 
-		const title = document.createElement('h2');
-		title.textContent = 'Profile Information';
-		title.className = ` font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
+		// const title = document.createElement('h2');
+		// title.textContent = 'Profile Information';
+		// title.className = ` font-['Orbitron'] text-2xl font-bold mb-4 mt-4 text-gray-800`;
 
 		const infoGrid = document.createElement('div');
 		infoGrid.className = 'grid grid-cols-2 gap-4';
 
-		// Add profile stats here - you can expand this based on your game data
-		const stats = [
-			// { label: 'User ID', value: user.id },
-			{ label: 'Match played', value: 'Placeholder' },
-			{ label: 'Match won', value: 'Placeholder' }
-			// { label: 'Display Name', value: user.displayName || 'Not set' },
-			// { label: 'Email', value: user.email || 'Private' },
-			// { label: 'Last Online', value: new Date(user.updated_at).toLocaleDateString() }
-		];
+		// Fetch user stats from backend
+		let userStats = null;
+		try {
+			const response = await fetch(`/api/users/${user.id}/stats`, {
+				credentials: 'include'
+			});
+			if (response.ok) {
+				userStats = await response.json();
+			}
+		} catch (error) {
+			console.error('Failed to fetch user stats:', error);
+		}
 
-		stats.forEach(stat => {
-			const statItem = document.createElement('div');
-			statItem.className = 'bg-gray-50 p-3 rounded-lg';
+		// // Calculate total matches and wins
+		// const totalMatches = userStats ?
+		// 	(userStats.oneVOneWins + userStats.oneVOneLosses + userStats.tournamentWins + userStats.tournamentLosses) : 0;
+		// const totalWins = userStats ?
+		// 	(userStats.oneVOneWins + userStats.tournamentWins) : 0;
 
-			const label = document.createElement('p');
-			label.textContent = stat.label;
-			label.className = 'text-sm text-gray-600 font-medium';
+		// const stats = [
+		// 	{ label: 'Matches Played', value: totalMatches.toString() },
+		// 	{ label: 'Matches Won', value: totalWins.toString() },
+		// 	{ label: '1v1 Wins', value: userStats?.oneVOneWins?.toString() || '0' },
+		// 	{ label: '1v1 Losses', value: userStats?.oneVOneLosses?.toString() || '0' },
+		// 	{ label: 'Tournament Wins', value: userStats?.tournamentWins?.toString() || '0' },
+		// 	{ label: 'Tournament Losses', value: userStats?.tournamentLosses?.toString() || '0' }
+		// ];
 
-			const value = document.createElement('p');
-			value.textContent = stat.value;
-			value.className = 'text-lg font-semibold text-gray-800';
+		// stats.forEach(stat => {
+		// 	const statItem = document.createElement('div');
+		// 	statItem.className = 'bg-gray-50 p-3 rounded-lg';
 
-			statItem.appendChild(label);
-			statItem.appendChild(value);
-			infoGrid.appendChild(statItem);
-		});
+		// 	const label = document.createElement('p');
+		// 	label.textContent = stat.label;
+		// 	label.className = 'text-sm text-gray-600 font-medium';
 
-		section.appendChild(title);
-		section.appendChild(infoGrid);
+		// 	const value = document.createElement('p');
+		// 	value.textContent = stat.value;
+		// 	value.className = 'text-lg font-semibold text-gray-800';
 
+		// 	statItem.appendChild(label);
+		// 	statItem.appendChild(value);
+		// 	infoGrid.appendChild(statItem);
+		// });
+
+		const statsButton = CommonComponent.createStylizedButton('📊 Stats', 'purple');
+		statsButton.onclick = () => {
+			if (isOwnProfile) {
+				router.navigate('/statistics');
+			} else {
+				router.navigate(`/statistics/${user.displayName}`);
+			}
+		};
+
+		section.appendChild(statsButton);
+
+		// section.appendChild(title);
+		// section.appendChild(infoGrid);
 		return section;
 	}
+
 
 	private static async createActionsSection(user: any): Promise<HTMLElement> {
 		const section = document.createElement('div');
@@ -267,12 +296,6 @@ export class ProfileRender {
 		title.className = 'text-xl font-bold mb-4 text-gray-800';
 
 		const editButton = CommonComponent.createStylizedButton('Edit profile', 'blue')
-		// editButton.textContent = 'Edit Profile';
-		// editButton.className = `
-        //     px-6 py-2 bg-blue-600 text-white rounded-lg
-        //     hover:bg-blue-700 transition-colors
-        //     font-medium
-        // `;
 		editButton.onclick = () => {
 			router.navigate('/settings');
 		};

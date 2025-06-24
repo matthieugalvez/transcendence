@@ -5,7 +5,7 @@ import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from "../configs/simplerouter";
-import { 
+import {
   setCookie,
   getCookie,
   deleteCookie,
@@ -158,7 +158,7 @@ export async function renderJoinPage(params: { gameId: string }) {
             hideOverlay();
           }
         }
-        
+
         // rendu classique debut de partie
         if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
           renderSettingsBar();

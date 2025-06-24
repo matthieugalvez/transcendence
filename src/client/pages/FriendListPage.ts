@@ -22,7 +22,7 @@ export async function FriendsPage(): Promise<void> {
       }
     }
 
-    SidebarComponent.render({
+    await SidebarComponent.render({
       userName: currentUser.displayName,
       avatarUrl: currentUser.avatar,
       showStats: true,
@@ -42,7 +42,7 @@ export async function FriendsPage(): Promise<void> {
     `;
 
     const title = document.createElement('h1');
-    title.textContent = 'Friends List';
+    title.textContent = 'Friends & Requests';
     title.className = `
       font-['Canada-big'] text-4xl font-bold text-center mb-8
       bg-gradient-to-r from-purple-600 to-orange-400
@@ -51,147 +51,7 @@ export async function FriendsPage(): Promise<void> {
 
     friendsCard.appendChild(title);
 
-    // Add a search area for adding new friends
-    const searchSection = document.createElement('div');
-    searchSection.className = 'mb-8 pb-8 border-b border-gray-300';
-
-    const searchTitle = document.createElement('h3');
-    searchTitle.textContent = 'Find Friends';
-    searchTitle.className = ` font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
-
-    const searchForm = document.createElement('div');
-    searchForm.className = 'flex gap-2';
-
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Search by display name...';
-    searchInput.className = 'flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500';
-
-    const searchButton = CommonComponent.createStylizedButton('Search', 'blue');
-
-    const resultsContainer = document.createElement('div');
-    resultsContainer.className = 'mt-4 space-y-3';
-
-    searchButton.onclick = async () => {
-      const query = searchInput.value.trim();
-      if (!query) return;
-
-      try {
-        searchButton.disabled = true;
-        searchButton.textContent = 'Searching...';
-        resultsContainer.innerHTML = '<p class="text-gray-500">Searching...</p>';
-
-        const results = await UserService.searchUsers(query);
-
-        resultsContainer.innerHTML = '';
-        if (results.length === 0) {
-          resultsContainer.innerHTML = '<p class="text-gray-500">No users found</p>';
-          return;
-        }
-
-        for (const user of results) {
-          // Don't show current user in results
-          if (user.id === currentUser.id) continue;
-
-          const resultCard = document.createElement('div');
-          resultCard.className = 'bg-gray-50 p-6 rounded-lg flex items-center justify-between';
-
-          const userInfo = document.createElement('div');
-          userInfo.className = 'flex items-center space-x-3';
-
-          const avatar = document.createElement('img');
-          avatar.src = user.avatar || '/avatars/default.svg';
-          avatar.alt = `${user.displayName}'s avatar`;
-          avatar.className = 'w-12 h-12 rounded-full object-cover';
-
-          const name = document.createElement('span');
-          name.textContent = user.displayName;
-          name.className = `font-['Orbitron'] font-medium ml-2 mr-8`;
-
-          userInfo.appendChild(avatar);
-          userInfo.appendChild(name);
-
-          const actions = document.createElement('div');
-
-          // Get friendship status to show appropriate button
-          let friendBtn;
-          try {
-            const friendship = await UserService.getFriendshipStatus(user.id);
-
-            if (friendship.status === 'friends') {
-              friendBtn = CommonComponent.createStylizedButton('Already Friends', 'gray');
-              friendBtn.disabled = true;
-            } else if (friendship.status === 'pending') {
-              friendBtn = CommonComponent.createStylizedButton('Request Sent', 'gray');
-              friendBtn.disabled = true;
-            } else if (friendship.status === 'incoming') {
-              friendBtn = CommonComponent.createStylizedButton('Accept Request', 'blue');
-              friendBtn.onclick = async () => {
-                try {
-                  friendBtn.disabled = true;
-                  friendBtn.textContent = 'Accepting...';
-                  await UserService.acceptFriendRequest(friendship.requestId!);
-                  friendBtn.textContent = 'Friends';
-                } catch (error) {
-                  console.error('Failed to accept request:', error);
-                  friendBtn.disabled = false;
-                  friendBtn.textContent = 'Accept Request';
-                  CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
-                }
-              };
-            } else {
-              friendBtn = CommonComponent.createStylizedButton('Add Friend', 'blue');
-              friendBtn.onclick = async () => {
-                try {
-                  friendBtn.disabled = true;
-                  friendBtn.textContent = 'Sending...';
-                  await UserService.addFriend(user.id);
-                  friendBtn.textContent = 'Request Sent';
-                } catch (error) {
-                  console.error('Failed to send request:', error);
-                  friendBtn.disabled = false;
-                  friendBtn.textContent = 'Add Friend';
-                  CommonComponent.showMessage('❌ Failed to send friend request', 'error');
-                }
-              };
-            }
-          } catch (error) {
-            console.error('Failed to get friendship status:', error);
-            friendBtn = CommonComponent.createStylizedButton('Add Friend', 'blue');
-          }
-
-          const profileBtn = CommonComponent.createStylizedButton('Profile', 'purple');
-          profileBtn.onclick = () => {
-            window.location.href = `/profile/${encodeURIComponent(user.displayName)}`;
-          };
-
-          actions.className = 'flex space-x-2';
-          actions.appendChild(friendBtn);
-          actions.appendChild(profileBtn);
-
-          resultCard.appendChild(userInfo);
-          resultCard.appendChild(actions);
-          resultsContainer.appendChild(resultCard);
-        }
-      } catch (error) {
-        console.error('Search error:', error);
-        resultsContainer.innerHTML = '<p class="text-red-500">An error occurred during search</p>';
-      } finally {
-        searchButton.disabled = false;
-        searchButton.textContent = 'Search';
-      }
-    };
-
-    searchForm.appendChild(searchInput);
-    searchForm.appendChild(searchButton);
-
-    searchSection.appendChild(searchTitle);
-    searchSection.appendChild(searchForm);
-    searchSection.appendChild(resultsContainer);
-
-    friendsCard.appendChild(searchSection);
-
-    // Now render the friends list
+    // Render the friends list with all pending requests
     await FriendsRender.renderFriendsList(friendsCard);
 
     container.appendChild(friendsCard);

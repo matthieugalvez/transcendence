@@ -18,6 +18,10 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, FriendsController.acceptFriendRequest);
 
+	fastify.delete('/friends/request/:requestId/reject', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.rejectFriendRequest);
+
 	fastify.get('/friends/status/:otherUserId', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, FriendsController.getFriendshipStatus);
