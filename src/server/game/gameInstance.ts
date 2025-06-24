@@ -31,6 +31,35 @@ const setGameStats = async (
     matchType: 'ONE_V_ONE' | 'TOURNAMENT'
 ) => {
     try {
+        // Validate that both players exist before creating the match
+        console.log('🔍 Attempting to create match with:', {
+            gameId,
+            playerOneId,
+            playerTwoId,
+            winnerId,
+            matchType
+        });
+
+        // Check if players exist
+        const playerOne = await UserService.getUserById(playerOneId);
+        const playerTwo = await UserService.getUserById(playerTwoId);
+
+        if (!playerOne) {
+            console.error('❌ Player One not found:', playerOneId);
+            return null;
+        }
+
+        if (!playerTwo) {
+            console.error('❌ Player Two not found:', playerTwoId);
+            return null;
+        }
+
+        // Validate winner exists if provided
+        if (winnerId && winnerId !== playerOneId && winnerId !== playerTwoId) {
+            console.error('❌ Winner ID does not match any player:', winnerId);
+            return null;
+        }
+
         const match = await StatsService.createMatch(
             gameId,
             playerOneId,
@@ -40,11 +69,12 @@ const setGameStats = async (
             playerOneScore,
             playerTwoScore
         );
-        
-        console.log('🏓Match recorded successfully:', match);
+
+        console.log('🏓 Match recorded successfully:', match);
         return match;
     } catch (error) {
-        console.error('🏓Failed to record match:', error);
+        console.error('🏓 Failed to record match:', error);
+        return null;
     }
 };
 
@@ -194,7 +224,7 @@ export class GameInstance {
         player.ws = ws;
         this.setupDisconnect(ws, player.playerId);
         this.cancelPauseOnReconnect();
-        this.broadcastState(this.isRunning);  
+        this.broadcastState(this.isRunning);
         this.broadcastPlayerReconnected(player.playerId);
         ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Game resumes." }));
         ws.send(JSON.stringify({
@@ -253,41 +283,68 @@ export class GameInstance {
     }
     // 60 FPS loop
     private async tick() {
-        let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
-        let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
+    // Get users by username first
+    let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
+    let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
 
+    if (!this.isRunning || this.isPaused) {
+        this.broadcastState(false);
+        return;
+    }
 
-        if (!this.isRunning || this.isPaused) {
-            this.broadcastState(false);
-            return;
-        }
-        this.moveBall();
-        this.checkCollisions();
-        this.checkScoreAndReset();
-        const ended = this.checkEndOfGame();
-        if (ended) {
-            this.broadcastState(false);
-            const winner = this.score1 > this.score2 ? 1 : 2;
-            const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
-            let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
+    this.moveBall();
+    this.checkCollisions();
+    this.checkScoreAndReset();
+    const ended = this.checkEndOfGame();
 
-            if (this.onEndCallback) this.onEndCallback(winner);
+    if (ended) {
+        this.broadcastState(false);
+        const winner = this.score1 > this.score2 ? 1 : 2;
+        const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
+        let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
+
+        if (this.onEndCallback) this.onEndCallback(winner);
+
+        // Only create match if both players exist in database
+        if (playerOne && playerTwo) {
             let gameResult = {
                 gameId: this.gameId,
-                playerOneId: playerOne && playerOne.id ? playerOne.id : "",
-                playerTwoId: playerTwo && playerTwo.id ? playerTwo.id : "",
-                winnerId: winnerUser && winnerUser.id ? winnerUser.id : null,
+                playerOneId: playerOne.id,
+                playerTwoId: playerTwo.id,
+                winnerId: winnerUser ? winnerUser.id : null,
                 playerOneScore: this.score1,
                 playerTwoScore: this.score2,
                 matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
-            }
-            setGameStats(this.gameId, playerOne && playerOne.id ? playerOne.id : "", playerTwo && playerTwo.id ? playerTwo.id : "", winnerUser && winnerUser.id ? winnerUser.id : null, this.score1, this.score2, 'ONE_V_ONE');
-            if (this.intervalHandle)
-            this.destroy();
-            return;
+            };
+
+            // Call setGameStats with proper validation
+            await setGameStats(
+                this.gameId,
+                playerOne.id,
+                playerTwo.id,
+                winnerUser ? winnerUser.id : null,
+                this.score1,
+                this.score2,
+                'ONE_V_ONE'
+            );
+        } else {
+            console.warn('⚠️  Cannot create match: One or both players not found in database', {
+                playerOne: playerOne ? playerOne.id : 'NOT_FOUND',
+                playerTwo: playerTwo ? playerTwo.id : 'NOT_FOUND',
+                usernames: [this.players[0].username, this.players[1].username]
+            });
         }
-        this.broadcastState(true);
+
+        if (this.intervalHandle) {
+            clearInterval(this.intervalHandle);
+            this.intervalHandle = undefined;
+        }
+        removeGameRoom(this.gameId);
+        return;
     }
+
+    this.broadcastState(this.isRunning);
+}
 
 	private moveBall() {
 		const dt = 1 / 60;
@@ -477,10 +534,10 @@ export class GameInstance {
     }
 
     private broadcastPlayerReconnected(playerId: number) {
-    const payload = JSON.stringify({ 
-        type: 'playerReconnected', 
+    const payload = JSON.stringify({
+        type: 'playerReconnected',
         playerId,
-        message: `Player ${playerId} has reconnected.` 
+        message: `Player ${playerId} has reconnected.`
     });
     this.broadcastToAll(payload);
     }
