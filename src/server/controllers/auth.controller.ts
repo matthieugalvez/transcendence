@@ -333,140 +333,151 @@ export class AuthController {
 	// Si l'user n'existe pas on le cree en lui donnant son email comme username (A changer)
 
 	static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      console.log('🔍 Google OAuth callback received');
+		try {
+			console.log('🔍 Google OAuth callback received');
 
-      const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+			const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
 
-      const googleAccessToken = token?.access_token ||
-        token?.accessToken ||
-        token?.token?.access_token ||
-        (typeof token === 'string' ? token : null);
+			const googleAccessToken = token?.access_token ||
+				token?.accessToken ||
+				token?.token?.access_token ||
+				(typeof token === 'string' ? token : null);
 
-      if (!googleAccessToken) {
-        console.error('❌ No Google access token found in token object');
-        return reply.redirect(getAuthRedirectUrl('/auth?error=no_google_token'));
-      }
+			if (!googleAccessToken) {
+				console.error('❌ No Google access token found');
+				return reply.redirect(getAuthRedirectUrl('/auth?error=no_google_token'));
+			}
 
-      // Test the Google token by fetching user info
-      console.log('🔍 Fetching Google user info...');
-      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: {
-          'Authorization': `Bearer ${googleAccessToken}`
-        }
-      });
+			// Fetch Google user info
+			const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+				headers: {
+					'Authorization': `Bearer ${googleAccessToken}`
+				}
+			});
 
-      if (!response.ok) {
-        console.error('❌ Failed to fetch Google user info:', response.status, await response.text());
-        return reply.redirect(getAuthRedirectUrl('/auth?error=invalid_google_token'));
-      }
+			if (!response.ok) {
+				console.error('❌ Failed to fetch Google user info');
+				return reply.redirect(getAuthRedirectUrl('/auth?error=invalid_google_token'));
+			}
 
-      const googleUser: any = await response.json();
-      console.log('✅ Google user data received:', { email: googleUser.email });
+			const googleUser: any = await response.json();
+			console.log('✅ Google user data received:', { email: googleUser.email });
 
-      // Check if user exists or create new one
-      let user = await UserService.getUserByEmail(googleUser.email);
+			// Find or create user
+			let user = await UserService.getUserByEmail(googleUser.email);
 
-      if (!user) {
-        console.log('🔍 Creating new user for:', googleUser.email);
-        user = await AuthService.createGoogleUser(googleUser.email, googleUser.email);
-        console.log('✅ Created new user:', user.id);
-      } else {
-        console.log('✅ Found existing user:', user.id);
-      }
+			if (!user) {
+				console.log('🔍 Creating new user for:', googleUser.email);
+				user = await AuthService.createGoogleUser(googleUser.email, googleUser.email);
+			}
 
-      // Handle 2FA if enabled
-      if (user.twoFAEnabled) {
-        console.log('🔐 User has 2FA enabled, creating temporary session');
+			// Handle 2FA if enabled
+			if (user.twoFAEnabled) {
+				const tempToken = jwt.sign(
+					{ userId: user.id, purpose: '2fa_pending_oauth' },
+					authConfig.secret,
+					{ expiresIn: '10m' }
+				);
 
-        const tempToken = jwt.sign(
-          { userId: user.id, purpose: '2fa_pending_oauth' },
-          authConfig.secret,
-          { expiresIn: '1m' }
-        );
+				reply.setCookie('tempOAuthAuth', tempToken, {
+					httpOnly: true,
+					secure: true, // Always true in production
+					sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
+					path: '/',
+					maxAge: 10 * 60 * 1000
+				});
 
-        reply.setCookie('tempOAuthAuth', tempToken, {
-          httpOnly: true,
-          secure: appConfig.isProduction,
-          sameSite: appConfig.isProduction ? 'strict' : 'lax',
-          path: '/',
-          maxAge: 1 * 60 * 1000
-        });
+				return reply.redirect(getAuthRedirectUrl('/auth/oauth-2fa'));
+			}
 
-        console.log('🔐 Redirecting to OAuth 2FA page');
-        return reply.redirect(getAuthRedirectUrl('/auth/oauth-2fa'));
-      }
+			// Generate JWT tokens
+			const jwtAccessToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.secret as string,
+				{ expiresIn: authConfig.secret_expires_in as any }
+			);
 
-      // Generate JWT tokens
-      console.log('🔍 Generating JWT tokens...');
-      // @ts-ignore
-      const jwtAccessToken: string = jwt.sign(
-        { userId: user.id },
-        authConfig.secret,
-        { expiresIn: authConfig.secret_expires_in }
-      );
-      // @ts-ignore
-      const jwtRefreshToken = jwt.sign(
-        { userId: user.id },
-        authConfig.refresh_secret,
-        { expiresIn: authConfig.refresh_secret_expires_in }
-      );
+			const jwtRefreshToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.refresh_secret as string,
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
+			);
 
-      console.log('🔍 JWT tokens generated successfully');
+			// Store refresh token
+			await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
 
-      // Store refresh token in database
-      await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
-      console.log('✅ Refresh token stored in database');
+			// Set cookies with correct settings for production
+			reply.setCookie('accessToken', jwtAccessToken, {
+				httpOnly: true,
+				secure: true, // Always true in production
+				sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
+				path: '/',
+				maxAge: 15 * 60 * 1000
+			});
 
-      // Set JWT cookies with environment-appropriate settings
-      reply.setCookie('accessToken', jwtAccessToken, {
-        httpOnly: true,
-        secure: appConfig.isProduction,
-        sameSite: appConfig.isProduction ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 15 * 60 * 1000
-      });
+			reply.setCookie('refreshToken', jwtRefreshToken, {
+				httpOnly: true,
+				secure: true, // Always true in production
+				sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
+				path: '/',
+				maxAge: 24 * 60 * 60 * 1000
+			});
 
-      reply.setCookie('refreshToken', jwtRefreshToken, {
-        httpOnly: true,
-        secure: appConfig.isProduction,
-        sameSite: appConfig.isProduction ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 24 * 60 * 60 * 1000
-      });
+			console.log('🍪 JWT cookies set successfully');
+			return reply.redirect(getAuthRedirectUrl('/home'));
 
-      console.log('🍪 JWT cookies set successfully');
-      console.log('🔄 Redirecting to frontend home page...');
-
-      // Redirect to frontend home page
-      return reply.redirect(getAuthRedirectUrl('/home'));
-
-    } catch (error) {
-      console.error('❌ Google OAuth callback error:', error);
-      return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_failed'));
-    }
-  }
+		} catch (error) {
+			console.error('❌ Google OAuth callback error:', error);
+			return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_failed'));
+		}
+	}
 
 	// Redirection vers la page de login google.
 
-	 static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      console.log('🔍 Initiating Google OAuth signin...');
+	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			console.log('🔍 Initiating Google OAuth signin...');
+			console.log('Request URL:', request.url);
+			console.log('Request method:', request.method);
 
-      const oauth2 = (request.server as any).GoogleOAuth2;
+			// Access the OAuth2 plugin
+			const oauth2 = (request.server as any).GoogleOAuth2;
 
-      if (!oauth2) {
-        console.error('❌ GoogleOAuth2 plugin not available');
-        return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_not_configured'));
-      }
+			if (!oauth2) {
+				console.error('❌ GoogleOAuth2 plugin not available');
+				console.log('Available plugins on server:', Object.keys(request.server));
+				return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_not_configured'));
+			}
 
-      return oauth2.generateAuthorizationUri(request, reply);
+			console.log('✅ OAuth2 plugin found');
 
-    } catch (error) {
-      console.error('❌ Google signin initiation error:', error);
-      return reply.redirect(getAuthRedirectUrl('/auth?error=google_signin_failed'));
-    }
-  }
+			try {
+				const authResult = oauth2.generateAuthorizationUri(request, reply);
+
+				// Check if it's a Promise
+				if (authResult && typeof authResult.then === 'function') {
+					console.log('🔄 Awaiting authorization URI generation...');
+					const authorizationUri = await authResult;
+					console.log('🔗 Generated authorization URI:', authorizationUri);
+					return reply.redirect(authorizationUri);
+				} else if (typeof authResult === 'string') {
+					console.log('🔗 Generated authorization URI:', authResult);
+					return reply.redirect(authResult);
+				} else {
+					// If generateAuthorizationUri doesn't return a URL, it might handle the redirect internally
+					console.log('🔄 OAuth2 plugin handling redirect internally');
+					return authResult;
+				}
+			} catch (uriError) {
+				console.error('❌ Error generating authorization URI:', uriError);
+				throw uriError;
+			}
+
+		} catch (error) {
+			console.error('❌ Google signin initiation error:', error);
+			return reply.redirect(getAuthRedirectUrl('/auth?error=google_signin_failed'));
+		}
+	}
 
 	// Check le token JWT pendant le OAuth si le 2FA Est actif.
 	static async checkOAuth2FAStatus(request: FastifyRequest, reply: FastifyReply) {
@@ -535,14 +546,14 @@ export class AuthController {
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
-				{ expiresIn: authConfig.secret_expires_in }
+				{ expiresIn: authConfig.secret_expires_in as any }
 			);
 			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.refresh_secret,
-				{ expiresIn: authConfig.refresh_secret_expires_in }
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
 			);
 
 			// Store refresh token and set cookies
@@ -606,14 +617,14 @@ export class AuthController {
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
-				{ expiresIn: authConfig.secret_expires_in }
+				{ expiresIn: authConfig.secret_expires_in as any }
 			);
 			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.refresh_secret,
-				{ expiresIn: authConfig.refresh_secret_expires_in }
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
 			);
 
 			// Store refresh token in database

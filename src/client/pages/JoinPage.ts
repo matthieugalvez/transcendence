@@ -6,7 +6,7 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
-import { 
+import {
   hideOverlay,
   startPongInContainer,
   showGameOverOverlay,
@@ -17,6 +17,8 @@ import {
   getCookie,
   deleteCookie,
 } from '../utils/cookies.utils'
+import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -75,7 +77,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
   // screen du jeu avant toute partie
   const previewImg = document.createElement('img');
-  previewImg.src = '/assets/gameimg/screen-pongGame.png';
+  previewImg.src = pongPreviewImg;
   previewImg.alt = 'Pong preview';
   previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
   gameContainer.appendChild(previewImg);

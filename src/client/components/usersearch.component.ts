@@ -1,5 +1,7 @@
-import { UserService } from '../services/user.service';
 import { router } from '../configs/simplerouter';
+import { FriendService } from '../services/friend.service';
+import { UserService } from '../services/user.service';
+import { CommonComponent } from './common.component';
 
 export class UserSearchComponent {
     static render(container: HTMLElement, onSelect?: (user: { displayName: string, avatar: string, id: string }) => void) {
@@ -37,7 +39,6 @@ export class UserSearchComponent {
         onSelect?: (user: { displayName: string; avatar: string; id: string }) => void
     ): Promise<void> {
         try {
-            // You'll need to implement this in UserService
             const users = await UserService.searchUsers(query);
 
             container.innerHTML = '';
@@ -52,33 +53,98 @@ export class UserSearchComponent {
 
                 userItem.innerHTML = `
                     <div class="flex items-center space-x-3">
-                        <img src="${user.avatar || '/assets/default-avatar.png'}"
+                        <img src="${user.avatar || '/avatars/default.svg'}"
                              alt="${user.displayName}"
-                             class="w-5 h-5 rounded-full border-2 border-purple-500">
+                             class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
                         <div>
-                            <p class="font-bold">${user.displayName}</p>
+                            <p class="font-bold text-gray-900">${user.displayName}</p>
                         </div>
                     </div>
                 `;
 
-                const btn = document.createElement('button');
+                // Create button container
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'flex gap-2';
+
+                // Add different buttons based on context
                 if (onSelect) {
-                    btn.textContent = 'Select';
-                    btn.className = 'px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700';
-                    btn.addEventListener('click', () => onSelect(user));
+                    // Select button (for tournament selection, etc.)
+                    const selectBtn = document.createElement('button');
+                    selectBtn.textContent = 'Select';
+                    selectBtn.className = 'px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm';
+                    selectBtn.addEventListener('click', () => onSelect(user));
+                    buttonContainer.appendChild(selectBtn);
                 } else {
-                    btn.textContent = 'View';
-                    btn.className = 'px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700';
-                    btn.addEventListener('click', () => router.navigate(`/profile/${user.displayName}`));
+                    // View profile button
+                    const viewBtn = document.createElement('button');
+                    viewBtn.textContent = 'View';
+                    viewBtn.className = 'px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm';
+                    viewBtn.addEventListener('click', () => router.navigate(`/profile/${user.displayName}`));
+                    buttonContainer.appendChild(viewBtn);
+
+                    // Add friend button
+                    const addBtn = document.createElement('button');
+                    addBtn.textContent = 'Add Friend';
+                    addBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm';
+                    addBtn.addEventListener('click', async () => {
+                        await this.handleAddFriend(user, addBtn);
+                    });
+                    buttonContainer.appendChild(addBtn);
                 }
 
-                userItem.appendChild(btn);
-
+                userItem.appendChild(buttonContainer);
                 container.appendChild(userItem);
             });
 
         } catch (error) {
             console.error('Search error:', error);
+            container.innerHTML = `
+                <div class="text-red-600 text-center p-4">
+                    Error searching users. Please try again.
+                </div>
+            `;
+        }
+    }
+
+    private static async handleAddFriend(
+        user: { displayName: string; avatar: string; id: string },
+        button: HTMLButtonElement
+    ): Promise<void> {
+        try {
+            // Disable button during request
+            button.disabled = true;
+            button.textContent = 'Adding...';
+            button.className = button.className.replace('bg-blue-600 hover:bg-blue-700', 'bg-gray-500');
+
+            // Send friend request
+            const result = await FriendService.sendFriendRequest(user.id);
+
+            if (result.success) {
+                // Update button to show success
+                button.textContent = 'Request Sent';
+                button.className = button.className.replace('bg-gray-500', 'bg-green-600');
+
+                // Show success message
+                CommonComponent.showMessage(`Friend request sent to ${user.displayName}!`, 'success');
+
+                // Keep button disabled since request is sent
+                button.disabled = true;
+            } else {
+                throw new Error(result.message || 'Failed to send friend request');
+            }
+        } catch (error) {
+            console.error('Error adding friend:', error);
+
+            // Reset button on error
+            button.disabled = false;
+            button.textContent = 'Add Friend';
+            button.className = button.className.replace('bg-gray-500', 'bg-blue-600 hover:bg-blue-700');
+
+            // Show error message
+            CommonComponent.showMessage(
+                error.message || 'Failed to send friend request. Please try again.',
+                'error'
+            );
         }
     }
 }

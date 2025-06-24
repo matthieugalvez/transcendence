@@ -110,7 +110,6 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
 export default async function userRoutes(fastify: FastifyInstance) {
 
-	await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
 	fastify.get('/users', {
 		preHandler: [AuthMiddleware.authenticateUser]
@@ -140,10 +139,18 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		]
 	}, UserController.changeUserPassword);
 
-	fastify.post('/me/avatar', {
-		preHandler:
-			[AuthMiddleware.authenticateUser]
-	}, UserController.uploadAvatar);
+    fastify.post('/me/avatar', {
+        preHandler: [AuthMiddleware.authenticateUser],
+        // schema: {
+        //     body: {
+        //         type: 'object',
+        //         properties: {
+        //             file: { type: 'object' }
+        //         }
+        //     },
+        //     consumes: ['multipart/form-data']
+        // }
+    }, UserController.uploadAvatar);
 
 	fastify.get('/check-display-name', {
 		preHandler: AuthMiddleware.authenticateUser

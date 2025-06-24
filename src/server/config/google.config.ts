@@ -34,5 +34,6 @@ export const googleOAuth2Options = {
     auth: OAuth2.GOOGLE_CONFIGURATION
   },
   startRedirectPath: '/api/auth/oauth2/google',
-  callbackUri: `${appConfig.baseUrl}/api/auth/oauth2/google/callback`,
+  // Use the BASE_URL from environment
+  callbackUri: `${process.env.BASE_URL || 'https://localhost:8443'}/api/auth/oauth2/google/callback`,
 };

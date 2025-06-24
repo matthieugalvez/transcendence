@@ -11,12 +11,13 @@ import { registerUserStatusWebSocket } from './routes/users.routes.js';
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Create Fastify instance
+// Create Fastify instance with proper configuration
 const app = Fastify({
   logger: {
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   },
-  trustProxy: true,  // Move this outside of logger config
+  trustProxy: true,
+  bodyLimit: 10 * 1024 * 1024, // 10MB limit for file uploads
 });
 
 // Register essential plugins first (before any other setup)
@@ -32,11 +33,12 @@ await app.register(import('@fastify/cookie'), {
   }
 });
 
-// Server setup function
+// Server setup function - DO NOT call listen here
 async function setupServer() {
   try {
     console.log('🔧 Setting up server...');
 
+    // Register everything BEFORE starting to listen
     await registerDb(app);
     await registerPlugins(app, __dirname);
     await registerRoutes(app);
@@ -50,22 +52,30 @@ async function setupServer() {
   }
 }
 
-// Start server
+// Start server function - call listen here
 async function start() {
   try {
+    // Setup everything first
     await setupServer();
+
+    // Only AFTER setup is complete, start listening
     const port = Number(process.env.PORT) || 3000;
     const host = process.env.HOST || '0.0.0.0';
 
     await app.listen({ port, host });
     console.log(`🚀 Server running on http://${host}:${port}`);
     console.log(`🎮 Production mode: ${process.env.NODE_ENV === 'production'}`);
+
+    // Debug routes after server is ready
+    console.log('🔍 Registered routes:');
+    app.printRoutes();
   } catch (error) {
     app.log.error('Failed to start server:', error);
     process.exit(1);
   }
 }
 
+// Start the server
 start();
 
 // Graceful shutdown

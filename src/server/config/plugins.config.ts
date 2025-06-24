@@ -1,42 +1,38 @@
-import { FastifyInstance } from 'fastify'
-import { join } from 'path'
-import OAuth2, { OAuth2Namespace } from "@fastify/oauth2";
-import { googleOAuth2Options } from './google.config.js';
-import cookie from '@fastify/cookie'; // Add this import
+import { FastifyInstance } from 'fastify';
+import fastifyStatic from '@fastify/static';
+import fastifyCors from '@fastify/cors';
+import fastifyMultipart from '@fastify/multipart'; // Add this import
+import path from 'path';
 
-export async function registerPlugins(app: FastifyInstance, dirname: string) {
-	// Register cookie plugin globally
+export async function registerPlugins(app: FastifyInstance, __dirname: string) {
+    console.log('🔌 Registering plugins...');
 
-	// Register static files
-	await app.register(import('@fastify/static'), {
-		root: join(dirname, '../../dist'),
-		prefix: '/',
-	})
+    // Register CORS
+    await app.register(fastifyCors, {
+        origin: process.env.NODE_ENV === 'production'
+            ? ['https://localhost:8443']
+            : ['http://localhost:5173', 'http://localhost:3000'],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    });
 
-	// // SPA fallback - serve index.html for any non-API routes
-	// app.setNotFoundHandler(async (request, reply) => {
-	// 	// Only handle GET requests that don't start with /api
-	// 	if (request.method === 'GET' && !request.url.startsWith('/api')) {
-	// 		return reply.sendFile('index.html')
-	// 	}
+    // CRITICAL: Register multipart plugin for file uploads
+    await app.register(fastifyMultipart, {
+        limits: {
+            fieldNameSize: 100,
+            fieldSize: 100,
+            fields: 10,
+            fileSize: 5 * 1024 * 1024, // 5MB limit
+            files: 1,
+            headerPairs: 2000
+        }
+    });
 
-	// 	// For API routes or non-GET requests, return 404
-	// 	return reply.code(404).send({
-	// 		success: false,
-	// 		error: 'Route not found'
-	// 	})
-	// })
+    // Register static file serving
+    await app.register(fastifyStatic, {
+        root: path.join(process.cwd(), 'public'),
+        prefix: '/public/',
+    });
 
-	// Add CORS if needed
-	if (process.env.NODE_ENV !== 'production') {
-		await app.register(import('@fastify/cors'), {
-			origin: true,
-			credentials: true
-		})
-	}
-
-	// Register Google OAuth2
-	await app.register(OAuth2, googleOAuth2Options)
-
-	console.log('✅ Plugins registered')
+    console.log('✅ Plugins registered successfully');
 }

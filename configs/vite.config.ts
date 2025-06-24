@@ -5,6 +5,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
     root: resolve(__dirname, '../src/client'),
+	assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
     plugins: [tailwindcss()],
     server: {
         host: '0.0.0.0',
@@ -43,5 +44,4 @@ export default defineConfig({
         copyPublicDir: true,
     },
     publicDir: resolve(__dirname, '../src/client/assets'),
-    assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2', '**/*.eot', '**/*.otf']
 })

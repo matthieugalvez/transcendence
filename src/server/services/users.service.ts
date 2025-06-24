@@ -138,50 +138,48 @@ export class UserService {
 
 // Online users management (outside the class)
 export namespace UserOnline {
-	const onlineUsers = new Map<string, WebSocket>();
+    const onlineUsers = new Map<string, WebSocket>();
 
-	export function addOnlineUser(userId: string, ws: any) {
-		onlineUsers.set(userId, ws);
-		console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
-	}
+    export function addOnlineUser(userId: string, ws: WebSocket) {
+        onlineUsers.set(userId, ws);
+        console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
+    }
 
-	export function removeOnlineUser(userId: string) {
-		const result = onlineUsers.delete(userId);
-		console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
-	}
+    export function removeOnlineUser(userId: string) {
+        const result = onlineUsers.delete(userId);
+        console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
+    }
 
-	export function isUserOnline(userId: string): boolean {
-		return onlineUsers.has(userId);
-	}
+    export function isUserOnline(userId: string): boolean {
+        return onlineUsers.has(userId);
+    }
 
-	export function getOnlineUsers(): string[] {
-		return Array.from(onlineUsers.keys());
-	}
+    export function getOnlineUsers(): string[] {
+        return Array.from(onlineUsers.keys());
+    }
 
-	export function broadcastToAll(message: string) {
-		console.log(`Broadcasting to ${onlineUsers.size} users`);
-		let sentCount = 0;
+    export function broadcastToAll(message: string) {
+        console.log(`Broadcasting to ${onlineUsers.size} users`);
+        let sentCount = 0;
 
-		onlineUsers.forEach((ws, userId) => {
-			try {
-				// Fix: Check if ws exists and has readyState property
-				if (ws && ws.readyState === WebSocket.OPEN) {
-					ws.send(message);
-					sentCount++;
-				} else if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-					// Clean up closed connections
-					onlineUsers.delete(userId);
-				} else if (!ws) {
-					// Clean up null/undefined WebSocket references
-					console.log(`Removing null WebSocket for user ${userId}`);
-					onlineUsers.delete(userId);
-				}
-			} catch (error) {
-				console.error(`Error sending to user ${userId}:`, error);
-				onlineUsers.delete(userId);
-			}
-		});
+        onlineUsers.forEach((ws, userId) => {
+            try {
+                // Now WebSocket constants are available
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(message);
+                    sentCount++;
+                } else if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+                    onlineUsers.delete(userId);
+                } else if (!ws) {
+                    console.log(`Removing null WebSocket for user ${userId}`);
+                    onlineUsers.delete(userId);
+                }
+            } catch (error) {
+                console.error(`Error sending to user ${userId}:`, error);
+                onlineUsers.delete(userId);
+            }
+        });
 
-		console.log(`Successfully sent message to ${sentCount} users`);
-	}
+        console.log(`Successfully sent message to ${sentCount} users`);
+    }
 }

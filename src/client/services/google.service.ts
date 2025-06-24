@@ -1,46 +1,48 @@
-import { ApiClient } from "../utils/apiclient.utils";
-import { CommonComponent } from "../components/common.component";
-import { router } from "../configs/simplerouter";
+import { CommonComponent } from '../components/common.component';
+import { router } from '../configs/simplerouter';
 
 export class GoogleService {
-	static signin(): void {
-		try {
-			// Use current origin to determine the correct API endpoint
-			const baseUrl = window.location.origin.includes('8443')
-				? 'https://localhost:8443'  // Production through Nginx
-				: 'http://localhost:3000';  // Development direct to API
+    static signin(): void {
+        try {
+            console.log('🔍 Initiating Google signin...');
 
-			window.location.href = `${baseUrl}/api/auth/oauth2/google`;
-		} catch (error) {
-			console.error('Error initiating Google signin:', error);
-		}
-	}
+            // Always use the current page's origin for consistency
+            const baseUrl = window.location.origin;
+            const googleUrl = `${baseUrl}/api/auth/oauth2/google`;
 
-	static async verifyOAuth2FA(code: string, setError: (error: string) => void): Promise<boolean> {
-		try {
-			const response = await fetch('/api/auth/oauth-2fa/verify', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ token: code })
-			});
+            console.log('🔗 Redirecting to:', googleUrl);
+            window.location.href = googleUrl;
+        } catch (error) {
+            console.error('❌ Error initiating Google signin:', error);
+            CommonComponent.showMessage('❌ Failed to initiate Google sign-in', 'error');
+        }
+    }
 
-			const data = await response.json();
+    static async verifyOAuth2FA(code: string, setError: (error: string) => void): Promise<boolean> {
+        try {
+            const response = await fetch('/api/auth/oauth-2fa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ token: code })
+            });
 
-			if (data.success) {
-				CommonComponent.showMessage('✅ Google Sign-In successful', 'success');
-				setTimeout(() => {
-					router.navigate('/home');
-				}, 500);
-				return true; // Close modal and indicate success
-			} else {
-				setError(data.error || 'Invalid 2FA code');
-				return false; // Keep modal open
-			}
-		} catch (error) {
-			console.error('OAuth 2FA verification error:', error);
-			setError('Network error occurred. Please try again.');
-			return false; // Keep modal open
-		}
-	}
+            const data = await response.json();
+
+            if (data.success) {
+                CommonComponent.showMessage('✅ Google Sign-In successful', 'success');
+                setTimeout(() => {
+                    router.navigate('/home');
+                }, 500);
+                return true;
+            } else {
+                setError(data.error || 'Invalid 2FA code');
+                return false;
+            }
+        } catch (error) {
+            console.error('OAuth 2FA verification error:', error);
+            setError('Network error occurred. Please try again.');
+            return false;
+        }
+    }
 }

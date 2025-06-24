@@ -24,25 +24,28 @@ function isGameState(data: any): data is GameState {
 
 // --- WebSocket handler ---
 function createGameWebSocket(
-	gameId: string,
-	ctx: CanvasRenderingContext2D,
-	leftPlayer: string,
-	rightPlayer: string,
-	onFinish: FinishCallback,
-	mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
+    gameId: string,
+    ctx: CanvasRenderingContext2D,
+    leftPlayer: string,
+    rightPlayer: string,
+    onFinish: FinishCallback,
+    mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
-	const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-	const port = 3000;
-	const playerToken = getCookie(`pongPlayerToken-${gameId}`);
-	let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
-	// if (playerToken) wsUrl += `?playerToken=${playerToken}`;
-	// else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
-	const params: string[] = [];
-	if (playerToken) params.push(`playerToken=${playerToken}`);
-	else params.push(`username=${encodeURIComponent(leftPlayer)}`);
-	if (mode === 'tournament-online') params.push('mode=tournament');
-	if (params.length) wsUrl += `?${params.join('&')}`;
-	const socket = new WebSocket(wsUrl);
+    // Use the current page's protocol and host (works for both dev and prod)
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = location.host; // This includes port automatically
+    const playerToken = getCookie(`pongPlayerToken-${gameId}`);
+
+    let wsUrl = `${protocol}://${host}/ws/pong/${gameId}`;
+
+    const params: string[] = [];
+    if (playerToken) params.push(`playerToken=${playerToken}`);
+    else params.push(`username=${encodeURIComponent(leftPlayer)}`);
+    if (mode === 'tournament-online') params.push('mode=tournament');
+    if (params.length) wsUrl += `?${params.join('&')}`;
+
+    console.log('Connecting to game WebSocket:', wsUrl);
+    const socket = new WebSocket(wsUrl);
 	// pour pouvoir fermer les sockets
 	let shouldReloadOnClose = true;
 	window.addEventListener('app:close-sockets', () => {
