@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { registerPongWebSocket } from './game.routes.js'
 import fastifyStatic from '@fastify/static';
 import path from 'path';
@@ -24,19 +24,34 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(statsRoutes);
 	}, { prefix: '/api' })
 
-    app.get('/avatars/:filename', async (request, reply) => {
-        const { filename } = request.params as { filename: string };
-        const avatarPath = path.join(process.cwd(), 'src/server/db/users', filename);
-
+    app.get('/avatars/:filename', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            if (fs.existsSync(avatarPath)) {
-                return reply.sendFile(filename, path.join(process.cwd(), 'src/server/db/users'));
-            } else {
-                // Return default avatar if file doesn't exist
-                return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
+            const { filename } = request.params as { filename: string };
+
+            // Security check - prevent directory traversal
+            if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+                return reply.code(400).send({ error: 'Invalid filename' });
             }
+
+            const uploadDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
+            const filePath = path.join(uploadDir, filename);
+
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                // Return default avatar if file doesn't exist
+                const defaultAvatarPath = path.join(process.cwd(), 'src/server/db/users/default.svg');
+                if (fs.existsSync(defaultAvatarPath)) {
+                    return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
+                } else {
+                    return reply.code(404).send({ error: 'Avatar not found' });
+                }
+            }
+
+            // Serve the file
+            return reply.sendFile(filename, uploadDir);
         } catch (error) {
-            return reply.code(404).send({ error: 'Avatar not found' });
+            console.error('Avatar serving error:', error);
+            return reply.code(500).send({ error: 'Internal server error' });
         }
     });
 }

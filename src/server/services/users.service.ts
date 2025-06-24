@@ -1,6 +1,8 @@
 import { prisma } from '../db.js'
 import bcrypt from 'bcrypt'
 import { User } from '@prisma/client'
+import { WebSocket } from 'ws' // Add this import
+
 
 export class UserService {
 	static async getUserByEmail(email: string) {

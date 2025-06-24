@@ -180,59 +180,60 @@ export class UserController {
 		return Send.success(reply, {}, 'Avatar link succes');
 	}
 
-	static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
-		try {
-			const userId = (request as any).userId;
+static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        const userId = (request as any).userId;
 
-			if (!userId) {
-				return Send.unauthorized(reply, 'Authentication required');
-			}
+        if (!userId) {
+            return Send.unauthorized(reply, 'Authentication required');
+        }
 
-			// Get the uploaded file
-			const data = await request.file();
+        // Get the uploaded file
+        const data = await request.file();
 
-			if (!data) {
-				return Send.badRequest(reply, 'No file uploaded');
-			}
+        if (!data) {
+            return Send.badRequest(reply, 'No file uploaded');
+        }
 
-			// Validate file type
-			if (!data.mimetype.startsWith('image/')) {
-				return Send.badRequest(reply, 'Only image files are allowed');
-			}
+        // Validate file type
+        if (!data.mimetype.startsWith('image/')) {
+            return Send.badRequest(reply, 'Only image files are allowed');
+        }
 
-			// Validate file size (5MB limit)
-			const fileSize = parseInt(request.headers['content-length'] || '0');
-			if (fileSize > 5 * 1024 * 1024) {
-				return Send.badRequest(reply, 'File size must be less than 5MB');
-			}
+        // Validate file size (5MB limit)
+        const fileSize = parseInt(request.headers['content-length'] || '0');
+        if (fileSize > 5 * 1024 * 1024) {
+            return Send.badRequest(reply, 'File size must be less than 5MB');
+        }
 
-			// Create upload directory if it doesn't exist
-			const uploadDir = path.join(process.cwd(), 'src/server/db/users');
-			if (!fs.existsSync(uploadDir)) {
-				fs.mkdirSync(uploadDir, { recursive: true });
-			}
+        // Create upload directory - use a more production-friendly path
+        const uploadDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
 
-			// Generate filename
-			const fileExtension = path.extname(data.filename || '');
-			const fileName = `${userId}${fileExtension || '.png'}`;
-			const filePath = path.join(uploadDir, fileName);
+        // Generate filename
+        const fileExtension = path.extname(data.filename || '');
+        const fileName = `${userId}${fileExtension || '.png'}`;
+        const filePath = path.join(uploadDir, fileName);
 
-			// Save the file
-			await pump(data.file, fs.createWriteStream(filePath));
+        // Save the file
+        await pump(data.file, fs.createWriteStream(filePath));
 
-			// Update user's avatar path in database
-			const avatarUrl = `/avatars/${fileName}`;
-			await UserService.updateUserAvatar(userId, avatarUrl);
+        // Update user's avatar path in database
+        const avatarUrl = `/avatars/${fileName}`;
+        await UserService.updateUserAvatar(userId, avatarUrl);
 
-			return Send.success(reply, {
-				avatarUrl: avatarUrl
-			}, 'Avatar uploaded successfully');
+        return Send.success(reply, {
+            avatarUrl: avatarUrl,
+            message: 'Avatar uploaded successfully'
+        }, 'Avatar uploaded successfully');
 
-		} catch (error) {
-			console.error('Avatar upload error:', error);
-			return Send.internalError(reply, 'Failed to upload avatar');
-		}
-	}
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        return Send.internalError(reply, 'Failed to upload avatar');
+    }
+}
 
 	static async getUserProfile(request: FastifyRequest, reply: FastifyReply) {
 		try {

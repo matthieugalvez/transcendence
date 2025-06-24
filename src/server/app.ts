@@ -70,7 +70,7 @@ start();
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Shutting down gracefully...')
+  console.log('\n🛑 Shutting down...')
   await app.close()
   process.exit(0)
 })

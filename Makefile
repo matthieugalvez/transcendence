@@ -109,6 +109,27 @@ prod-logs:
 
 prod-restart: prod-down prod-up
 
+docker-nuclear:
+	@echo "💥 NUCLEAR OPTION: This will destroy EVERYTHING Docker-related!"
+	@echo "⚠️  This includes containers, images, volumes, and networks from ALL projects!"
+	@read -p "Are you absolutely sure? Type 'yes' to continue: " confirm && [ "$$confirm" = "yes" ]
+	@echo "🧨 Starting nuclear cleanup..."
+# Stop all running containers (if any exist)
+	-docker stop $$(docker ps -aq) 2>/dev/null || echo "No containers to stop"
+# Remove all containers (if any exist)
+	-docker rm $$(docker ps -aq) 2>/dev/null || echo "No containers to remove"
+# Remove all images (if any exist)
+	-docker rmi $$(docker images -q) -f 2>/dev/null || echo "No images to remove"
+# Remove all volumes (if any exist)
+	-docker volume rm $$(docker volume ls -q) 2>/dev/null || echo "No volumes to remove"
+# Remove all networks except default ones (if any exist)
+	-docker network rm $$(docker network ls -q --filter type=custom) 2>/dev/null || echo "No custom networks to remove"
+# Remove all build cache
+	-docker builder prune -a -f
+# Final system cleanup
+	-docker system prune -a -f --volumes
+	@echo "☢️  Nuclear cleanup completed!"
+
 .PHONY: build-dev build-docker clean clean-containers clean-db clean-build clean-docker clean-force db-setup db-reset db-studio restart clean-preview
 
 
@@ -121,7 +142,7 @@ prod-restart: prod-down prod-up
 # Remove all images
 #docker rmi $(docker images -q) -f
 
-# Remove all volumes
+# Remove all volumesí
 #docker volume rm $(docker volume ls -q)
 
 # Remove all networks (except default ones)

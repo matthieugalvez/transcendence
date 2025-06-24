@@ -188,7 +188,14 @@ export class SettingsRender {
 
     // Current avatar display
     const currentAvatar = document.createElement('img');
-    currentAvatar.src = currentAvatarUrl;
+
+    // Set src with fallback logic
+    if (currentAvatarUrl && currentAvatarUrl !== 'null' && currentAvatarUrl !== 'undefined') {
+        currentAvatar.src = currentAvatarUrl;
+    } else {
+        currentAvatar.src = '/avatars/default.svg';
+    }
+    
     currentAvatar.alt = 'Current avatar';
     currentAvatar.className = `
         w-24 h-24 rounded-full
@@ -196,9 +203,12 @@ export class SettingsRender {
         object-cover mx-auto mb-4
     `.replace(/\s+/g, ' ').trim();
 
-    // Handle avatar load error
+    // Handle avatar load error with better fallback
     currentAvatar.onerror = () => {
+        console.log('Avatar load failed, using default');
         currentAvatar.src = '/avatars/default.svg';
+        // Prevent infinite loop if default also fails
+        currentAvatar.onerror = null;
     };
 
     // Hidden file input

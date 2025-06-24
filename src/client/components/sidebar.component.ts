@@ -107,7 +107,7 @@ export class SidebarComponent {
 			updateNotification();
 
 			// Set up periodic refresh every 10 seconds
-			const notificationInterval = setInterval(updateNotification, 5000);
+			const notificationInterval = setInterval(updateNotification, 50000);
 
 			// Store interval ID for cleanup (optional)
 			friendsBtnContainer.setAttribute('data-interval-id', notificationInterval.toString());
