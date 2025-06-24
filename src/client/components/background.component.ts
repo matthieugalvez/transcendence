@@ -158,8 +158,6 @@ export class BackgroundComponent {
 		document.body.style.justifyContent = "";
 	}
 
-	// ... rest of the existing methods remain the same ...
-
 	/**
 	 * Remove all background elements
 	 */

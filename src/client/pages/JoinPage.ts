@@ -295,7 +295,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
             hideOverlay();
           }
         }
-        
+
         // rendu classique debut de partie
         if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
           renderSettingsBar();

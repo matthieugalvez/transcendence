@@ -9,6 +9,7 @@ import healthRoutes from './health.routes'
 import userRoutes from './users.routes'
 import authRoutes from './auth.routes'
 import friendsRoutes from './friends.routes';
+import { statsRoutes } from './stats.routes';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
@@ -19,9 +20,10 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(authRoutes, { prefix: '/auth' })
 		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
-		await fastify.register(friendsRoutes)
+		await fastify.register(friendsRoutes);
+		await fastify.register(statsRoutes);
 	}, { prefix: '/api' })
-	
+
     app.get('/avatars/:filename', async (request, reply) => {
         const { filename } = request.params as { filename: string };
         const avatarPath = path.join(process.cwd(), 'src/server/db/users', filename);

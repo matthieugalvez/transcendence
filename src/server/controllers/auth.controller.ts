@@ -419,7 +419,6 @@ export class AuthController {
 
 			// Continue with normal JWT token generation if no 2FA...
 			console.log('🔍 Generating JWT tokens...');
-			// ...rest of existing code...
 			const jwtAccessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,

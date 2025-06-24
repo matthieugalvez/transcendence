@@ -1,14 +1,13 @@
 import '../styles.css';
-import { ProfileRender } from '../renders/profile.render';
 import { SidebarComponent } from '../components/sidebar.component';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { AuthComponent } from '../components/auth.component';
-import { router } from '../configs/simplerouter';
+import { StatsRender } from '../renders/stats.render';
 
-export async function ProfilePage(params?: { userId?: string; displayName?: string }): Promise<void> {
-    document.title = 'Transcendence - Profile';
+export async function StatsPage(params?: { userId?: string; displayName?: string }): Promise<void> {
+    document.title = 'Transcendence - Statistics';
     document.body.innerHTML = '';
     BackgroundComponent.applyCenteredGradientLayout();
 
@@ -25,22 +24,19 @@ export async function ProfilePage(params?: { userId?: string; displayName?: stri
             }
         }
 
-        // Determine which profile to show
-        let profileUser;
-        let isOwnProfile = false;
+        // Determine which user's stats to show
+        let statsUser;
+        let isOwnStats = false;
 
         if (params?.displayName) {
-            // Show specific user's profile by displayName
-            profileUser = await UserService.getUserProfileByDisplayName(params.displayName);
-            isOwnProfile = profileUser.id === currentUser.id;
+            statsUser = await UserService.getUserProfileByDisplayName(params.displayName);
+            isOwnStats = statsUser.id === currentUser.id;
         } else if (params?.userId) {
-            // Fallback: show specific user's profile by userId
-            profileUser = await UserService.getUserProfile(params.userId);
-            isOwnProfile = profileUser.id === currentUser.id;
+            statsUser = await UserService.getUserProfile(params.userId);
+            isOwnStats = statsUser.id === currentUser.id;
         } else {
-            // Show current user's profile
-            profileUser = currentUser;
-            isOwnProfile = true;
+            statsUser = currentUser;
+            isOwnStats = true;
         }
 
         // Render sidebar
@@ -48,16 +44,17 @@ export async function ProfilePage(params?: { userId?: string; displayName?: stri
             userName: currentUser.displayName,
             avatarUrl: currentUser.avatar,
             showStats: true,
-            showSettings: !isOwnProfile,
+            showSettings: !isOwnStats,
             showBackHome: true,
-            showUserSearch: true
+            showUserSearch: true,
+            showFriendsBtn: true
         });
 
-        // Render the profile content
-        await ProfileRender.renderProfileContent(profileUser, isOwnProfile);
+        // Render the stats content
+        await StatsRender.renderStatsContent(statsUser, isOwnStats);
 
     } catch (error) {
-        console.error('Failed to load profile:', error);
+        console.error('Failed to load statistics:', error);
         CommonComponent.handleAuthError();
     }
 }

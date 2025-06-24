@@ -14,7 +14,7 @@ interface FastifyRequestWithCookies extends FastifyRequest {
 	cookies: { [cookieName: string]: string | undefined };
 }
 
-class AuthMiddleware {
+export class AuthMiddleware {
 	/**
 	 * Middleware to authenticate the user based on the access token stored in the HttpOnly cookie.
 	 */
