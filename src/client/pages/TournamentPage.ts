@@ -110,7 +110,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
         TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, () => playMatch(i + 1));
       },
       gameId,
-      'duo-local'
+      'duo-online'
     );
     pongHandle.start();
     currentMatchSocket = pongHandle.socket;

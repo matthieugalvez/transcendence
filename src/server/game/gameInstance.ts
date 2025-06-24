@@ -38,7 +38,7 @@ export class GameInstance {
     private spectators: WebSocket[] = [];
     private onEndCallback?: (winnerId: number) => void;
     // Players
-    private playerNames: { [id: string]: string } = {};
+    // private playerNames: { [id: string]: string } = {};
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -48,6 +48,7 @@ export class GameInstance {
     private ballPos: Position;
     private ballVel: Velocity;
     private readonly ballRadius = 8;
+    private readonly ballAcceleration = 1.05;
     // Score
     private score1: number = 0;
     private score2: number = 0;
@@ -259,8 +260,21 @@ export class GameInstance {
 			this.ballPos.y + this.ballRadius >= this.paddle1Pos.y &&
 			this.ballPos.y - this.ballRadius <= this.paddle1Pos.y + this.paddleHeight
 		) {
-			this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
-			this.ballVel.vx = -this.ballVel.vx;
+            // Position relative du point d'impact sur la raquette (de -1 à +1)
+            const paddleCenter = this.paddle1Pos.y + this.paddleHeight / 2;
+            const impactY = (this.ballPos.y - paddleCenter) / (this.paddleHeight / 2);
+            // Clamp entre -1 et 1 pour éviter les valeurs extrêmes
+            const clampedImpactY = Math.max(-1, Math.min(1, impactY));
+            // Angle max (45° en radian)
+            const maxBounceAngle = Math.PI / 4;
+            const bounceAngle = clampedImpactY * maxBounceAngle;
+            // Nouvelle vitesse
+            const speed = Math.sqrt(this.ballVel.vx ** 2 + this.ballVel.vy ** 2) * this.ballAcceleration;
+            this.ballVel.vx = Math.cos(bounceAngle) * speed;
+            this.ballVel.vy = Math.sin(bounceAngle) * speed;
+            // La balle doit repartir vers la droite (après avoir touché le paddle gauche)
+            if (this.ballVel.vx < 0) this.ballVel.vx = Math.abs(this.ballVel.vx);
+            this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
 		}
 		// Collision avec paddle2
 		if (
@@ -269,8 +283,18 @@ export class GameInstance {
 			this.ballPos.y + this.ballRadius >= this.paddle2Pos.y &&
 			this.ballPos.y - this.ballRadius <= this.paddle2Pos.y + this.paddleHeight
 		) {
-			this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
-			this.ballVel.vx = -this.ballVel.vx;
+            const paddleCenter = this.paddle2Pos.y + this.paddleHeight / 2;
+            const impactY = (this.ballPos.y - paddleCenter) / (this.paddleHeight / 2);
+            const clampedImpactY = Math.max(-1, Math.min(1, impactY));
+            const maxBounceAngle = Math.PI / 4;
+            const bounceAngle = clampedImpactY * maxBounceAngle;
+            const speed = Math.sqrt(this.ballVel.vx ** 2 + this.ballVel.vy ** 2) * this.ballAcceleration;
+
+            this.ballVel.vx = -Math.cos(bounceAngle) * speed;
+            this.ballVel.vy = Math.sin(bounceAngle) * speed;
+            // La balle doit repartir vers la gauche
+            if (this.ballVel.vx > 0) this.ballVel.vx = -Math.abs(this.ballVel.vx);
+            this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
 		}
 	}
 

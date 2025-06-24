@@ -162,11 +162,12 @@ export async function renderPongGamePage() {
             body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
           });
           const { gameId } = await res.json();
+          const matchTitle = `${leftPlayer} vs Bot`;
           pongHandle = startPongInContainer(
             gameContainer,
             matchTitle,
             leftPlayer,
-            rightPlayer,
+            "Bot",
             (winnerId) => {
               const titleText = gameContainer.querySelector('h2')!.textContent!;
               const [name1, name2] = titleText.split(' vs ');
