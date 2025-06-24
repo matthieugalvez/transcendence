@@ -22,7 +22,6 @@ export class UserService {
 		return await prisma.user.findMany({
 			select: {
 				id: true,
-				name: true,
 				displayName: true,
 				created_at: true,
 				updated_at: true
@@ -79,10 +78,7 @@ export class UserService {
 		}
 	}
 
-	/**
-	 * Get user by display name
-	 */
-	static async getUserByDisplayName(displayName: string) {
+		static async getUserByDisplayName(displayName: string) {
 		try {
 			return await prisma.user.findFirst({
 				where: {
@@ -94,6 +90,7 @@ export class UserService {
 			throw error;
 		}
 	}
+
 
 	static async getUserAvatar(userId: string): Promise<string | null> {
 		const user = await prisma.user.findUnique({

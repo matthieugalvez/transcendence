@@ -2,7 +2,11 @@ import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
 import { removeGameRoom } from './gameRooms';
 import { v4 as uuidv4 } from 'uuid';
+import { GameService } from '../../client/services/game.service';
+import { UserService } from '../services/users.service';
+import { StatsController } from '../controllers/stats.controller'
 
+import { StatsService } from '../services/stats.service';
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -15,6 +19,35 @@ type PlayerInfo = {
   playerToken: string,
   ws: WebSocket | null,
 };
+
+
+const setGameStats = async (
+    gameId: string,
+    playerOneId: string,
+    playerTwoId: string,
+    winnerId: string | null,
+    playerOneScore: number,
+    playerTwoScore: number,
+    matchType: 'ONE_V_ONE' | 'TOURNAMENT'
+) => {
+    try {
+        const match = await StatsService.createMatch(
+            gameId,
+            playerOneId,
+            playerTwoId,
+            winnerId,
+            matchType,
+            playerOneScore,
+            playerTwoScore
+        );
+        
+        console.log('🏓Match recorded successfully:', match);
+        return match;
+    } catch (error) {
+        console.error('🏓Failed to record match:', error);
+    }
+};
+
 
 /**
  * Store state of game
@@ -72,7 +105,7 @@ export class GameInstance {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
         // Main loop (tick) at 60 FPS
-        this.intervalHandle = setInterval(() => this.tick(), 1000 / 60);
+        this.intervalHandle = setInterval(() => { this.tick(); }, 1000 / 60);
     }
 
     /** ---------- PUBLIC METHODS ----------- */
@@ -219,7 +252,11 @@ export class GameInstance {
         }
     }
     // 60 FPS loop
-    private tick() {
+    private async tick() {
+        let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
+        let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
+
+
         if (!this.isRunning || this.isPaused) {
             this.broadcastState(false);
             return;
@@ -231,7 +268,21 @@ export class GameInstance {
         if (ended) {
             this.broadcastState(false);
             const winner = this.score1 > this.score2 ? 1 : 2;
+            const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
+            let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
+
             if (this.onEndCallback) this.onEndCallback(winner);
+            let gameResult = {
+                gameId: this.gameId,
+                playerOneId: playerOne && playerOne.id ? playerOne.id : "",
+                playerTwoId: playerTwo && playerTwo.id ? playerTwo.id : "",
+                winnerId: winnerUser && winnerUser.id ? winnerUser.id : null,
+                playerOneScore: this.score1,
+                playerTwoScore: this.score2,
+                matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
+            }
+            setGameStats(this.gameId, playerOne && playerOne.id ? playerOne.id : "", playerTwo && playerTwo.id ? playerTwo.id : "", winnerUser && winnerUser.id ? winnerUser.id : null, this.score1, this.score2, 'ONE_V_ONE');
+            if (this.intervalHandle)
             this.destroy();
             return;
         }
