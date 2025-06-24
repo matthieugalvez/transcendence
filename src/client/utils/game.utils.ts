@@ -44,7 +44,9 @@ function createGameWebSocket(
   if (params.length) wsUrl += `?${params.join('&')}`;
   const socket = new WebSocket(wsUrl);
   // pour pouvoir fermer les sockets
+  let shouldReloadOnClose = true;
   window.addEventListener('app:close-sockets', () => {
+    shouldReloadOnClose = false;
     if (socket.readyState === WebSocket.OPEN) {
       socket.close();
     }
@@ -68,6 +70,7 @@ function createGameWebSocket(
           setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
           setCookie(`pongPlayerId-${gameId}`, String(data.playerId));
         }
+        console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
         playerId = data.playerId;
         return;
       }
@@ -112,7 +115,8 @@ function createGameWebSocket(
   });
 
   socket.addEventListener('close', () => {
-    window.location.reload();
+    if (shouldReloadOnClose)
+      window.location.reload();
   });
 
   // Expose ces méthodes pour le reste du code
@@ -162,6 +166,9 @@ function startClientInputLoop(
           }
         }
       } else {
+        if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
+          console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
+        }
         if (keysPressed['KeyW']) {
           socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
         } else if (keysPressed['KeyS']) {

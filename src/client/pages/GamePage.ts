@@ -59,6 +59,7 @@ function createGameControls(
   controls.appendChild(gameMode);
 
   const tourBtn = CommonComponent.createStylizedButton('Tournament', 'red');
+  tourBtn.classList.add("cursor-pointer");
   tourBtn.onclick = () => {
     controls.remove();
     onTournament();

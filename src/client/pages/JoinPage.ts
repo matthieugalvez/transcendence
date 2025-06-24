@@ -73,12 +73,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
   gameContainer.className = 'relative z-10';
   wrapper.appendChild(gameContainer);
 
-    // screen du jeu avant toute partie
-  // const previewImg = document.createElement('img');
-  // previewImg.src = '../assets/gameimg/screen-pongGame.png';
-  // previewImg.alt = 'Pong preview';
-  // previewImg.className = 'absolute z-50 w-full h-[80%] y-[12%] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-  // gameContainer.appendChild(previewImg);
+  // screen du jeu avant toute partie
+  const previewImg = document.createElement('img');
+  previewImg.src = '/assets/gameimg/screen-pongGame.png';
+  previewImg.alt = 'Pong preview';
+  previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
+  gameContainer.appendChild(previewImg);
 
   // --- Récupère le username du joueur connecté (GUEST ou HOST) ---
   const myUsername = await getUsername();
@@ -187,19 +187,48 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
       if (mode === 'tournament') {
         if (data.type === 'matchStart') {
+          previewImg.remove();
+
+          const transition = document.createElement('div');
+          transition.style.backgroundColor = "#530196";
+          transition.className = `
+            fixed top-[40%]
+            flex flex-col items-center justify-center p-8
+            backdrop-blur-2xl z-100 w-[28%] h-[22%]
+            border-2 border-black
+            whitespace-nowrap
+            rounded-lg
+            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+          `;
           if (lastWinner) {
-            TournamentComponent.showTransitionPanel(
-              gameContainer,
-              currentMatchIndex,
-              matchups,
-              lastWinner,
-              winners,
-              () => {}
-            );
+            // Sous message prochain match
+            let nextMatchMsg = '';
+            nextMatchMsg = `Next Match :⬆️`;
+            const nextMsg = document.createElement('p');
+            nextMsg.textContent = nextMatchMsg;
+            nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
+            transition.appendChild(nextMsg);
+            // Message principal
+            const winnerMsg = document.createElement('h2');
+            winnerMsg.textContent = `${lastWinner} wins this match!`;
+            winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+            transition.appendChild(winnerMsg);
+
+            wrapper.appendChild(transition);
+
             lastWinner = null;
             currentMatchIndex++;
           }
           matchups[currentMatchIndex] = [data.players[0], data.players[1]];
+          // ajout
+          gameStarted = false;
+          isrendered = true;
+          setTimeout(() => {
+            if (canvas) canvas.classList.remove('blur-xs');
+            transition.remove();
+            wsHandler.start();
+          }, 4000);
+          renderSettingsBar();
         }
 
         if (data.type === 'matchEnd') {
@@ -208,14 +237,38 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         }
 
         if (data.type === 'tournamentEnd') {
-          TournamentComponent.showTransitionPanel(
-            gameContainer,
-            currentMatchIndex,
-            matchups,
-            data.winner,
-            winners,
-            () => {}
-          );
+          const transition = document.createElement('div');
+          transition.style.backgroundColor = "#530196";
+          transition.className = `
+            fixed top-[40%]
+            flex flex-col items-center justify-center p-8
+            backdrop-blur-2xl z-100 w-[28%] h-[22%]
+            border-2 border-black
+            whitespace-nowrap
+            rounded-lg
+            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+          `;
+          // Message principal
+          const winnerMsg = document.createElement('h2');
+          winnerMsg.textContent = `${data.winner} wins this tournament!`;
+          winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+          transition.appendChild(winnerMsg);
+          // Bouton replay
+          const replayBtn = CommonComponent.createStylizedButton('Play again', 'orange');
+          replayBtn.classList.add('mt-4');
+          replayBtn.onclick = () => router.navigate('/game');
+          transition.appendChild(replayBtn);
+
+          wrapper.appendChild(transition);
+
+          // TournamentComponent.showTransitionPanel(
+          //   gameContainer,
+          //   currentMatchIndex,
+          //   matchups,
+          //   data.winner,
+          //   winners,
+          //   () => {}
+          // );
         }
       }
 

@@ -19,7 +19,7 @@ export class TournamentRoom {
     { id: 4, username: '', ws: null },
   ];
   private currentGame: GameInstance | null = null;
-  private currentMatch = 0; // 0,1,2
+  private currentMatch = 0;
   private winners: Player[] = [];
   private currentPlayers: [Player, Player] | null = null;
 
@@ -29,7 +29,6 @@ export class TournamentRoom {
       JSON.stringify({ type: 'playersJoined', players: joined })
     );
   }
-
 
   constructor(gameId: string, difficulty: TournamentDifficulty) {
     this.gameId = gameId;
@@ -79,8 +78,14 @@ export class TournamentRoom {
     this.currentGame.onEnd((winnerId) => this.handleMatchEnd(winnerId));
     if (p1.ws) this.currentGame.addClient(p1.ws, p1.username);
     if (p2.ws) this.currentGame.addClient(p2.ws, p2.username);
+    console.log(`[Tournament][startMatch] Match ${this.currentMatch} :
+      Joueurs physiques: ${p1.username} (phys: ${p1.id}) et ${p2.username} (phys: ${p2.id})
+      → Sont assignés à GameInstance slots 1 et 2 (playerId: 1 et 2)
+    `);
+
     spectators.forEach(s => { if (s.ws) this.currentGame!.addSpectator(s.ws); });
     this.broadcastAll(JSON.stringify({ type: 'matchStart', players: [p1.username, p2.username] }));
+    this.broadcastPlayerList();
     // this.currentGame.start();
   }
 

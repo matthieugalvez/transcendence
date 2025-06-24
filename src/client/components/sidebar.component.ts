@@ -30,7 +30,6 @@ export class SidebarComponent {
     	`.trim();
 
 		// Profil picture of user (with default one if none)
-		console.log(`Avatar URL: ${avatarUrl}`);
 		const profilPic = document.createElement('img');
 		profilPic.src = avatarUrl;
 		profilPic.alt = `${userName}'s profile`;

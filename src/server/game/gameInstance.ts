@@ -60,7 +60,8 @@ export class GameInstance {
     // Parameters that won't change
     private readonly canvasWidth = 800;
     private readonly canvasHeight = 600;
-    private readonly paddleSpeed = 400; // px/sec
+    private paddleSpeed = 400; // px/sec
+    private basePaddleSpeed = 400;
 
     constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
         this.gameId = gameId;
@@ -84,6 +85,7 @@ export class GameInstance {
                 if (!player.playerToken) player.playerToken = uuidv4();
                 this.setupDisconnect(ws, player.playerId);
                 this.broadcastState(this.isRunning);
+                console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
                 return player.playerId;
             }
         }
@@ -117,6 +119,7 @@ export class GameInstance {
         } else {
             this.movePaddle(this.paddle2Pos, action, dt);
         }
+        console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
     }
     // start game
     public start() {
@@ -275,6 +278,7 @@ export class GameInstance {
             // La balle doit repartir vers la droite (après avoir touché le paddle gauche)
             if (this.ballVel.vx < 0) this.ballVel.vx = Math.abs(this.ballVel.vx);
             this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
+            this.paddleSpeed *= 1.02;
 		}
 		// Collision avec paddle2
 		if (
@@ -295,6 +299,7 @@ export class GameInstance {
             // La balle doit repartir vers la gauche
             if (this.ballVel.vx > 0) this.ballVel.vx = -Math.abs(this.ballVel.vx);
             this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
+            this.paddleSpeed *= 1.02;
 		}
 	}
 
@@ -370,6 +375,7 @@ export class GameInstance {
     private resetBall() {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
+        this.paddleSpeed = this.basePaddleSpeed;
     }
 
     private startPauseOnDisconnect() {
