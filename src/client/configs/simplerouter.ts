@@ -1,4 +1,3 @@
-
 class SimpleRouter {
 	private routes: { pattern: RegExp; paramNames: string[]; handler: (params: Record<string, string>) => void }[] = [];
 

@@ -2,7 +2,11 @@ import type { WebSocket } from 'ws';
 import type { GameState } from '../../client/types/game.types';
 import { removeGameRoom } from './gameRooms';
 import { v4 as uuidv4 } from 'uuid';
+import { GameService } from '../../client/services/game.service';
+import { UserService } from '../services/users.service';
+import { StatsController } from '../controllers/stats.controller'
 
+import { StatsService } from '../services/stats.service';
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -15,6 +19,35 @@ type PlayerInfo = {
   playerToken: string,
   ws: WebSocket | null,
 };
+
+
+const setGameStats = async (
+    gameId: string,
+    playerOneId: string,
+    playerTwoId: string,
+    winnerId: string | null,
+    playerOneScore: number,
+    playerTwoScore: number,
+    matchType: 'ONE_V_ONE' | 'TOURNAMENT'
+) => {
+    try {
+        const match = await StatsService.createMatch(
+            gameId,
+            playerOneId,
+            playerTwoId,
+            winnerId,
+            matchType,
+            playerOneScore,
+            playerTwoScore
+        );
+        
+        console.log('🏓Match recorded successfully:', match);
+        return match;
+    } catch (error) {
+        console.error('🏓Failed to record match:', error);
+    }
+};
+
 
 /**
  * Store state of game
@@ -35,8 +68,10 @@ export class GameInstance {
     ];
     private playerTokens: { [playerId: number]: string } = {};
     private pauseTimeoutHandle: NodeJS.Timeout | null = null;
+    private spectators: WebSocket[] = [];
+    private onEndCallback?: (winnerId: number) => void;
     // Players
-    private playerNames: { [id: string]: string } = {};
+    // private playerNames: { [id: string]: string } = {};
     // Paddles
     private paddle1Pos: Position;
     private paddle2Pos: Position;
@@ -46,6 +81,7 @@ export class GameInstance {
     private ballPos: Position;
     private ballVel: Velocity;
     private readonly ballRadius = 8;
+    private readonly ballAcceleration = 1.05;
     // Score
     private score1: number = 0;
     private score2: number = 0;
@@ -57,7 +93,8 @@ export class GameInstance {
     // Parameters that won't change
     private readonly canvasWidth = 800;
     private readonly canvasHeight = 600;
-    private readonly paddleSpeed = 400; // px/sec
+    private paddleSpeed = 400; // px/sec
+    private basePaddleSpeed = 400;
 
     constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
         this.gameId = gameId;
@@ -68,12 +105,12 @@ export class GameInstance {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
         // Main loop (tick) at 60 FPS
-        this.intervalHandle = setInterval(() => this.tick(), 1000 / 60);
+        this.intervalHandle = setInterval(() => { this.tick(); }, 1000 / 60);
     }
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username?: string): number | null {
+    public addClient(ws: WebSocket, username?: string): number | 'spectator' | null {
         for (const player of this.players) {
             if (!player.ws) {
                 player.ws = ws;
@@ -81,25 +118,28 @@ export class GameInstance {
                 if (!player.playerToken) player.playerToken = uuidv4();
                 this.setupDisconnect(ws, player.playerId);
                 this.broadcastState(this.isRunning);
+                console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
                 return player.playerId;
             }
         }
-        return null; // salle pleine
+        // return null; // salle pleine
+        this.addSpectator(ws);
+        return 'spectator';
     }
 
-    private setupDisconnect(ws: WebSocket, id: number) {
+    public addSpectator(ws: WebSocket) {
+        this.spectators.push(ws);
+        ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
         ws.on('close', () => {
-            const player = this.players.find(p => p.playerId === id);
-            if (player) player.ws = null;
-            this.broadcastState(this.isRunning);
-            if (this.players.every(p => !p.ws)) {
-                this.destroy();
-                removeGameRoom(this.gameId);
-            } else {
-            this.startPauseOnDisconnect();
-            }
+            this.spectators = this.spectators.filter(s => s !== ws);
         });
+        this.broadcastState(this.isRunning);
     }
+
+    public onEnd(callback: (winnerId: number) => void) {
+        this.onEndCallback = callback;
+    }
+
     // public to get state
     public getCurrentState(): GameState {
         return this.buildState(true);
@@ -112,6 +152,7 @@ export class GameInstance {
         } else {
             this.movePaddle(this.paddle2Pos, action, dt);
         }
+        console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
     }
     // start game
     public start() {
@@ -170,6 +211,19 @@ export class GameInstance {
     }
 
     /** ----------- PRIVATE METHODS ------------ */
+    private setupDisconnect(ws: WebSocket, id: number) {
+        ws.on('close', () => {
+            const player = this.players.find(p => p.playerId === id);
+            if (player) player.ws = null;
+            this.broadcastState(this.isRunning);
+            if (this.players.every(p => !p.ws)) {
+                this.destroy();
+                removeGameRoom(this.gameId);
+            } else {
+            this.startPauseOnDisconnect();
+            }
+        });
+    }
     // to have random initial velocity of ball
     private randomBallVel(): Velocity {
         const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
@@ -198,7 +252,11 @@ export class GameInstance {
         }
     }
     // 60 FPS loop
-    private tick() {
+    private async tick() {
+        let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
+        let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
+
+
         if (!this.isRunning || this.isPaused) {
             this.broadcastState(false);
             return;
@@ -209,6 +267,22 @@ export class GameInstance {
         const ended = this.checkEndOfGame();
         if (ended) {
             this.broadcastState(false);
+            const winner = this.score1 > this.score2 ? 1 : 2;
+            const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
+            let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
+
+            if (this.onEndCallback) this.onEndCallback(winner);
+            let gameResult = {
+                gameId: this.gameId,
+                playerOneId: playerOne && playerOne.id ? playerOne.id : "",
+                playerTwoId: playerTwo && playerTwo.id ? playerTwo.id : "",
+                winnerId: winnerUser && winnerUser.id ? winnerUser.id : null,
+                playerOneScore: this.score1,
+                playerTwoScore: this.score2,
+                matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
+            }
+            setGameStats(this.gameId, playerOne && playerOne.id ? playerOne.id : "", playerTwo && playerTwo.id ? playerTwo.id : "", winnerUser && winnerUser.id ? winnerUser.id : null, this.score1, this.score2, 'ONE_V_ONE');
+            if (this.intervalHandle)
             this.destroy();
             return;
         }
@@ -240,8 +314,22 @@ export class GameInstance {
 			this.ballPos.y + this.ballRadius >= this.paddle1Pos.y &&
 			this.ballPos.y - this.ballRadius <= this.paddle1Pos.y + this.paddleHeight
 		) {
-			this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
-			this.ballVel.vx = -this.ballVel.vx;
+            // Position relative du point d'impact sur la raquette (de -1 à +1)
+            const paddleCenter = this.paddle1Pos.y + this.paddleHeight / 2;
+            const impactY = (this.ballPos.y - paddleCenter) / (this.paddleHeight / 2);
+            // Clamp entre -1 et 1 pour éviter les valeurs extrêmes
+            const clampedImpactY = Math.max(-1, Math.min(1, impactY));
+            // Angle max (45° en radian)
+            const maxBounceAngle = Math.PI / 4;
+            const bounceAngle = clampedImpactY * maxBounceAngle;
+            // Nouvelle vitesse
+            const speed = Math.sqrt(this.ballVel.vx ** 2 + this.ballVel.vy ** 2) * this.ballAcceleration;
+            this.ballVel.vx = Math.cos(bounceAngle) * speed;
+            this.ballVel.vy = Math.sin(bounceAngle) * speed;
+            // La balle doit repartir vers la droite (après avoir touché le paddle gauche)
+            if (this.ballVel.vx < 0) this.ballVel.vx = Math.abs(this.ballVel.vx);
+            this.ballPos.x = this.paddle1Pos.x + this.paddleWidth + this.ballRadius;
+            this.paddleSpeed *= 1.02;
 		}
 		// Collision avec paddle2
 		if (
@@ -250,8 +338,19 @@ export class GameInstance {
 			this.ballPos.y + this.ballRadius >= this.paddle2Pos.y &&
 			this.ballPos.y - this.ballRadius <= this.paddle2Pos.y + this.paddleHeight
 		) {
-			this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
-			this.ballVel.vx = -this.ballVel.vx;
+            const paddleCenter = this.paddle2Pos.y + this.paddleHeight / 2;
+            const impactY = (this.ballPos.y - paddleCenter) / (this.paddleHeight / 2);
+            const clampedImpactY = Math.max(-1, Math.min(1, impactY));
+            const maxBounceAngle = Math.PI / 4;
+            const bounceAngle = clampedImpactY * maxBounceAngle;
+            const speed = Math.sqrt(this.ballVel.vx ** 2 + this.ballVel.vy ** 2) * this.ballAcceleration;
+
+            this.ballVel.vx = -Math.cos(bounceAngle) * speed;
+            this.ballVel.vy = Math.sin(bounceAngle) * speed;
+            // La balle doit repartir vers la gauche
+            if (this.ballVel.vx > 0) this.ballVel.vx = -Math.abs(this.ballVel.vx);
+            this.ballPos.x = this.paddle2Pos.x - this.ballRadius;
+            this.paddleSpeed *= 1.02;
 		}
 	}
 
@@ -299,7 +398,11 @@ export class GameInstance {
             },
             isRunning: this.isRunning && isRunning,
             isPaused: this.isPaused,
-            connectedPlayers: this.players.filter(p => p.ws).map(p => p.playerId),
+            // connectedPlayers: this.players.filter(p => p.ws).map(p => p.playerId),
+            connectedPlayers: [
+                ...this.players.filter(p => p.ws).map(p => p.playerId),
+                ...this.spectators.map((_, idx) => 100 + idx)
+            ],
             playerNames: {
             1: this.players[0].username || 'Player 1',
             2: this.players[1].username || 'Player 2',
@@ -315,11 +418,15 @@ export class GameInstance {
             if (player.ws && player.ws.readyState === player.ws.OPEN)
                 player.ws.send(message);
         });
+        this.spectators.forEach(ws => {
+            if (ws.readyState === ws.OPEN) ws.send(message);
+        });
     }
     // place ball in center after a point and randomly change direction
     private resetBall() {
         this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
         this.ballVel = this.randomBallVel();
+        this.paddleSpeed = this.basePaddleSpeed;
     }
 
     private startPauseOnDisconnect() {
@@ -363,6 +470,9 @@ export class GameInstance {
         this.players.forEach(player => {
             if (player.ws && player.ws.readyState === player.ws.OPEN)
                 player.ws.send(payload);
+        });
+        this.spectators.forEach(ws => {
+            if (ws.readyState === ws.OPEN) ws.send(payload);
         });
     }
 

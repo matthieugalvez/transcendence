@@ -1,7 +1,6 @@
 // C'est l'equivalent de notre MAIN en gros, on recupere le code et on le route au bon endroit grace a simpler router.
 // C'est un peu temporaire je pense qu'il faut le mettre dans le back peut etre.
 
-
 import { router } from './configs/simplerouter';
 import { renderIndexPage } from './pages/IndexPage';
 import { authPage } from './pages/AuthPage'
@@ -24,9 +23,16 @@ function startSPA() {
 	router.register('/game', renderPongGamePage);
 	router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async () => await oauth2FAPage());
-	router.register('/game/online/:gameId', async (params = {}) => await renderJoinPage({ gameId: params.gameId })); // Fix: pass params properly
+	router.register(
+		'/game/online/duo/:gameId',
+		params => renderJoinPage({ gameId: params.gameId, mode: 'duo' })
+	);
+	router.register(
+		'/game/online/tournament/:gameId',
+		params => renderJoinPage({ gameId: params.gameId, mode: 'tournament' })
+	);
 	router.register('/profile', async () => await StatsPage()); // Own profile
-	router.register('/profile/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's profile by displayName
+    router.register('/profile/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's profile by displayName
 	router.register('/users', async () => await UsersPage()); // Add this line
 	router.register('/friendlist', async () => await FriendsPage());
 	router.register('/statistics', async () => await StatsPage()); // Own statistics

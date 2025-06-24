@@ -1,5 +1,5 @@
 /** Identifiant d’un joueur (1 ou 2 par défaut) */
-export type PlayerId = 1 | 2;
+export type PlayerId = number;
 
 /** Direction possible pour déplacer une raquette */
 export type Direction = 'up' | 'down';

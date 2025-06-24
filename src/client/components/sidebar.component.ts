@@ -15,20 +15,20 @@ export interface SidebarOptions {
 }
 
 export class SidebarComponent {
-	static async render(opts: SidebarOptions): HTMLDivElement {
+	static async render(opts: SidebarOptions) {
 		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true } = opts;
 		const sidebar = document.createElement("div");
 		sidebar.className = `
-		fixed left-10 top-10 h-[90%] w-80
-		bg-blue-950/70 backdrop-blur-2xl
-		rounded-lg text-lg transition-colors
-		focus:outline-none focus:ring-2
-		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-		disabled:opacity-50 disabled:cursor-not-allowed
-		border-2 border-black
-		flex flex-col items-start p-6
-		space-y-4 z-11
-	`.trim();
+			fixed left-10 top-10 h-[90%] w-80
+			bg-blue-950/70 backdrop-blur-2xl
+			rounded-lg text-lg transition-colors
+			focus:outline-none focus:ring-2
+			shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+			disabled:opacity-50 disabled:cursor-not-allowed
+			border-2 border-black
+			flex flex-col items-start p-6
+			space-y-4 z-11
+    	`.trim();
 
 		// Profil picture of user (with default one if none)
 		// console.log(`Avatar URL: ${avatarUrl}`);
@@ -36,13 +36,13 @@ export class SidebarComponent {
 		profilPic.src = avatarUrl;
 		profilPic.alt = `${userName}'s profile`;
 		profilPic.className = `
-      w-30 h-30
-      rounded-full
-      border-2 border-white
-      object-cover
-      mb-2
-      mx-auto
-    `.replace(/\s+/g, " ").trim();
+			w-30 h-30
+			rounded-full
+			border-2 border-white
+			object-cover
+			mb-2
+			mx-auto
+    	`.replace(/\s+/g, " ").trim();
 		sidebar.appendChild(profilPic);
 
 
@@ -58,24 +58,22 @@ export class SidebarComponent {
 		const pageTitle = document.createElement('h1');
 		pageTitle.textContent = `Welcome ${userName}`;
 		pageTitle.className = `
-      font-['Canada-big'] uppercase font-bold
-      text-4xl text-center mb-2
-      bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
-      bg-clip-text text-transparent
-      select-none
-    `.replace(/\s+/g, ' ').trim();
+			font-['Canada-big'] uppercase font-bold
+			text-4xl text-center mb-2
+			bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+			bg-clip-text text-transparent
+			select-none
+    	`.replace(/\s+/g, ' ').trim();
 		pageTitle.style.letterSpacing = "0.1em";
 		pageTitle.classList.add("w-full", "text-center");
 		sidebar.appendChild(pageTitle);
 
 		// Stat button
 		if (showStats) {
-			const statButton = CommonComponent.createStylizedButton('👤 My profile', 'blue');
-			statButton.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			statButton.addEventListener('click', () => {
-				router.navigate('/profile');
-			});
-			sidebar.appendChild(statButton);
+			const profileBtn = CommonComponent.createStylizedButton('👤 My profile', 'blue');
+			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
+			profileBtn.onclick = () => router.navigate('/profile');
+			sidebar.appendChild(profileBtn);
 		}
 
 
@@ -86,9 +84,7 @@ export class SidebarComponent {
 
 			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'blue');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			friendsBtn.addEventListener('click', () => {
-				router.navigate('/friendlist');
-			});
+			friendsBtn.onclick = () => router.navigate('/friendlist');
 
 			// Create notification bell (always create it, just hide/show as needed)
 			const notificationBell = document.createElement('div');
@@ -134,33 +130,30 @@ export class SidebarComponent {
 
 			// Render the user search component
 			UserSearchComponent.render(searchContainer);
-
 			sidebar.appendChild(searchContainer);
 		}
 
-		// pousse les bouttons suivants tout en bas
+		// Pousse les bouttons suivants tout en bas
 		const bottomContainer = document.createElement('div');
 		bottomContainer.className = 'mt-auto w-full space-y-2';
-
 		// Back to home button
 		if (showBackHome) {
 			const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
 			backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
-			backButton.addEventListener('click', () => {
-				router.navigate('/home');
-			});
+			backButton.onclick = () => {
+  				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
+   				router.navigate('/home');
+			}
 			bottomContainer.appendChild(backButton);
 		}
+		// Settings button
 		if (showSettings) {
 			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
-			settingBtn.addEventListener("click", async () => {
-				setTimeout(() => router.navigate("/settings"), 300);
-			});
+			settingBtn.onclick = () => router.navigate("/settings");
 			bottomContainer.appendChild(settingBtn);
 
 		}
-
 		// Logout button
 		const logoutBtn = CommonComponent.createStylizedButton("Logout", "red");
 		logoutBtn.classList.add("w-full", "text-center", "cursor-pointer");
@@ -172,6 +165,7 @@ export class SidebarComponent {
 			}
 		});
 		bottomContainer.appendChild(logoutBtn);
+
 		sidebar.appendChild(bottomContainer);
 		document.body.appendChild(sidebar);
 		return sidebar;

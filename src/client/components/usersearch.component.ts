@@ -2,7 +2,7 @@ import { UserService } from '../services/user.service';
 import { router } from '../configs/simplerouter';
 
 export class UserSearchComponent {
-    static render(container: HTMLElement): void {
+    static render(container: HTMLElement, onSelect?: (user: { displayName: string, avatar: string, id: string }) => void) {
         const searchSection = document.createElement('div');
         searchSection.className = 'mb-6';
 
@@ -20,7 +20,7 @@ export class UserSearchComponent {
         searchInput.addEventListener('input', async (e) => {
             const query = (e.target as HTMLInputElement).value.trim();
             if (query.length > 2) {
-                await this.performSearch(query, resultsContainer);
+                await this.performSearch(query, resultsContainer, onSelect);
             } else {
                 resultsContainer.innerHTML = '';
             }
@@ -31,7 +31,11 @@ export class UserSearchComponent {
         container.appendChild(searchSection);
     }
 
-    private static async performSearch(query: string, container: HTMLElement): Promise<void> {
+    private static async performSearch(
+        query: string,
+        container: HTMLElement,
+        onSelect?: (user: { displayName: string; avatar: string; id: string }) => void
+    ): Promise<void> {
         try {
             // You'll need to implement this in UserService
             const users = await UserService.searchUsers(query);
@@ -60,10 +64,18 @@ export class UserSearchComponent {
                     </button>
                 `;
 
-                const viewButton = userItem.querySelector('button');
-                viewButton?.addEventListener('click', () => {
-                    router.navigate(`/profile/${user.displayName}`);
-                });
+                const btn = document.createElement('button');
+                if (onSelect) {
+                    btn.textContent = 'Select';
+                    btn.className = 'px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700';
+                    btn.addEventListener('click', () => onSelect(user));
+                } else {
+                    btn.textContent = 'View';
+                    btn.className = 'px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700';
+                    btn.addEventListener('click', () => router.navigate(`/profile/${user.displayName}`));
+                }
+
+                userItem.appendChild(btn);
 
                 container.appendChild(userItem);
             });

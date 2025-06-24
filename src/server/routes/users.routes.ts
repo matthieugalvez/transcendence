@@ -157,6 +157,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getUserProfileByDisplayName);
 
+
 	fastify.get('/users/search', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.searchUsers);
@@ -164,4 +165,5 @@ export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.get('/users/:userId/online', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
+  
 }

@@ -37,7 +37,7 @@ export class UserController {
 		try {
 			const { name } = request.params as { name: string }
 
-			const user = await UserService.getUserByName(decodeURIComponent(name))
+			const user = await UserService.getUserByDisplayName(decodeURIComponent(name))
 
 			return Send.success(reply, { exists: !!user }, 'User check completed')
 

@@ -38,6 +38,7 @@ clean-build:
 	@echo "✅ Build artifacts cleaned"
 
 clean: clean-containers clean-db clean-build
+	npm cache clean --force
 	@echo "🧹 Full cleanup completed"
 
 clean-docker: clean

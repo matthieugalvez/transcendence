@@ -112,4 +112,4 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data transcendence
 ## Database
 
 - SQLite database persists in `./data/transcendence.db`
-- Database is automatically created on first run -->
+- Database is automatically created on first run

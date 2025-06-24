@@ -1,6 +1,7 @@
 import type { WebSocket } from 'ws';
-import { addPlayerToRoom, createGameRoom, getGameRoom } from '../../game/gameRooms';
+import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms';
 import { GameInstance } from '../../game/gameInstance';
+import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms';
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   ws.on('message', (data: string) => {
@@ -21,12 +22,44 @@ function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   });
 }
 
+function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 'spectator') {
+  ws.on('message', (data: string) => {
+    try {
+      const msg = JSON.parse(data);
+      if (msg.action === 'start' && playerId === 1 && !tour.currentGame) {
+        // if (this.currentGame && !this.currentGame.getCurrentState().isRunning) {
+        //   this.currentGame.start();
+        // }
+        tour.startTournament();
+        return;
+      }
+      tour.forwardMessage(playerId as number, msg);
+    } catch {}
+  });
+  if (ws.readyState === ws.OPEN) {
+    ws.send(
+      JSON.stringify({ type: 'playersJoined', players: tour.getConnectedPlayerIds() })
+    );
+  }
+}
+
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
-
-
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
+  const mode = req.query.mode as string | undefined;
+
+  if (mode === 'tournament') {
+    let tour = getTournamentRoom(gameId);
+    if (!tour) {
+      tour = createTournamentRoom(gameId, 'MEDIUM');
+    }
+    const username = req.query.username as string | undefined;
+    const role = tour.addClient(ws, username);
+    ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: '' }));
+    attachTournamentHandler(ws, tour, role);
+    return;
+  }
 
   // 1.1 Récupérer ou créer l’instance GameInstance
   let game = getGameRoom(gameId);
@@ -44,22 +77,6 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
         ws.close();
     }
     attachMessageHandler(ws, game);
-    // ws.on('message', (data: string) => {
-    //   try {
-    //     const msg = JSON.parse(data);
-    //     if (msg.action === 'start')      return game.start();
-    //     if (msg.action === 'pause')      return game.pause();
-    //     if (msg.action === 'resume')     return game.resume();
-    //     if (msg.action === 'difficulty' && msg.difficulty) {
-    //       return game.setDifficulty(msg.difficulty);
-    //     }
-    //     if (msg.action === 'up' || msg.action === 'down') {
-    //       return game.onClientAction(msg.playerId, msg.action);
-    //     }
-    //   } catch (err) {
-    //     console.error('WS message parse error:', err);
-    //   }
-    // });
     return;
   }
 
@@ -79,32 +96,5 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
 
   // 1.4 Quand on reçoit un message WS, on l’interprète
   attachMessageHandler(ws, game);
-  // ws.on('message', (data: string) => {
-  //   try {
-  //     const msg = JSON.parse(data);
-  //     if (msg.action === 'start') {
-  //       game.start(); // demarre partie
-  //       return;
-  //     }
-  //     if (msg.action === 'pause') {
-  //       game.pause(); // pause partie
-  //       return;
-  //     }
-  //     if (msg.action === 'resume') {
-  //       game.resume(); // reprend partie
-  //       return;
-  //     }
-  //     if (msg.action === 'difficulty' && msg.difficulty) {
-  //       game.setDifficulty(msg.difficulty);
-  //       return;
-  //     }
-  //     if (msg.action === 'up' || msg.action === 'down') {
-  //       game.onClientAction(msg.playerId, msg.action);
-  //       return;
-  //     }
-  //   } catch (err) {
-  //     console.error('WS message parse error:', err);
-  //   }
-  // });
   // 1.5 La destruction de l’instance se fera automatiquement quand il n’y a plus de sockets
 }

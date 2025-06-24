@@ -25,34 +25,6 @@ export async function renderTournamentPage() {
   });
   BackgroundComponent.applyNormalGradientLayout();
 
-  // settings bar initiale (demande alias)
-  GameSettingsComponent.tournamentStarted = false;
-  GameSettingsComponent.render('tournament-alias', {
-    onStartGame: (mode, _difficulty, aliases) => {
-      if (mode === 'tournament-settings' && Array.isArray(aliases)) {
-        // Quand les pseudos sont ok, affiche les settings tournoi (difficulté etc)
-        GameSettingsComponent.render('tournament-settings', {
-          onStartGame: () => {
-            GameSettingsComponent.tournamentStarted = true;
-            launchTournament(aliases, wrapper);
-          },
-          onPauseGame: () => {
-            pauseState.value = !pauseState.value;
-            if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
-              currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-            }
-          },
-          onRestartGame: () => renderTournamentPage(),
-        });
-      }
-    },
-    onDifficultyChange: (difficulty) => {
-      if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
-        currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-      }
-    },
-  });
-
   // Main layout
   const wrapper = document.createElement('div');
   wrapper.className = `
@@ -60,29 +32,45 @@ export async function renderTournamentPage() {
     flex items-center justify-center
     p-8 relative
   `.replace(/\s+/g, ' ').trim();
-		document.body.appendChild(wrapper);
+	document.body.appendChild(wrapper);
 
-  // Canvas de fond inactif (juste le visuel)
-  const canvasContainer = document.createElement('div');
-  canvasContainer.className = 'relative flex flex-col items-center justify-center';
-  wrapper.appendChild(canvasContainer);
-  startPongInContainer(
-    canvasContainer,
-    '', 'Player 1', 'Player 2', () => {}, Date.now().toString(), "duo-local"
-  );
-  const canvas = canvasContainer.querySelector('canvas') as HTMLCanvasElement | null;
-  if (canvas) canvas.classList.add('blur-xs');
+  // settings bar initiale (demande alias)
+  GameSettingsComponent.tournamentStarted = false;
 
-  // Overlay de saisie d’alias
-  // TournamentComponent.showAliasOverlay(canvas, wrapper, (aliases) => launchTournament(aliases, wrapper));
+  TournamentComponent.showPlayerSelection(wrapper, (players) => {
+    GameSettingsComponent.render('tournament-settings', {
+      onStartGame: () => {
+        GameSettingsComponent.tournamentStarted = true;
+        launchTournament(players, wrapper);
+      },
+      onPauseGame: () => {
+        pauseState.value = !pauseState.value;
+        if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+          currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+        }
+      },
+      onRestartGame: () => renderTournamentPage(),
+      onDifficultyChange: (difficulty) => {
+        if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+          currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+        }
+      },
+    });
+  });
+
+  const previewImg = document.createElement('img');
+  previewImg.src = '../assets/gameimg/screen-pongGame.png';
+  previewImg.alt = 'Pong preview';
+  previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
+  wrapper.appendChild(previewImg);
 }
 
-
-async function launchTournament(aliases: string[], wrapper: HTMLElement) {
+export async function launchTournament(aliases: string[], wrapper: HTMLElement) {
   // Prépare la structure des matchs (demi-finales + finale)
+  const shuffled = [...aliases].sort(() => Math.random() - 0.5); // clone et shuffle les alias pour pas voir toujours le meme ordre
   const matchups: [string, string][] = [
-    [aliases[0], aliases[1]],
-    [aliases[2], aliases[3]],
+    [shuffled[0], shuffled[1]],
+    [shuffled[2], shuffled[3]],
     ['', ''], // Finale, remplie après les demi-finales
   ];
   const winners: string[] = [];
@@ -116,11 +104,13 @@ async function launchTournament(aliases: string[], wrapper: HTMLElement) {
     // Lancement du match
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
-      (winnerAlias: string) => {
-        winners.push(winnerAlias);
-        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerAlias, winners, () => playMatch(i + 1));
+      (winnerId) => {
+        const winnerName = winnerId === 1 ? leftAlias : rightAlias;
+        winners.push(winnerName);
+        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, () => playMatch(i + 1));
       },
-      gameId
+      gameId,
+      'duo-online'
     );
     pongHandle.start();
     currentMatchSocket = pongHandle.socket;
@@ -128,5 +118,3 @@ async function launchTournament(aliases: string[], wrapper: HTMLElement) {
   }
   await playMatch(0);
 }
-
-// -> match des tournois doivent etre rqandom et pas toujours 0 vs 1 et 2 vs 3 au debut
