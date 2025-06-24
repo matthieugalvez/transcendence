@@ -59,9 +59,6 @@ export class UserSearchComponent {
                             <p class="font-bold">${user.displayName}</p>
                         </div>
                     </div>
-                    <button class="px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        View Profile
-                    </button>
                 `;
 
                 const btn = document.createElement('button');
