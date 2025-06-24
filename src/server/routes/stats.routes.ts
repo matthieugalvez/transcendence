@@ -1,62 +1,29 @@
 import { FastifyInstance } from 'fastify'
-import { StatsService } from '../services/stats.service'
+import { StatsController } from '../controllers/stats.controller';
 import { AuthMiddleware } from '../middlewares/auth.middleware'
 
+
 export async function statsRoutes(fastify: FastifyInstance) {
-    // Get user stats (public route - can view anyone's stats)
-    fastify.get('/users/:userId/stats', async (request, reply) => {
-        const { userId } = request.params as { userId: string };
+	// Get user stats (public route - can view anyone's stats)
+	fastify.get('/users/:userId/stats', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, StatsController.getUserStats);
 
-        try {
-            const [userStats, matchHistory] = await Promise.all([
-                StatsService.getUserStats(userId),
-                StatsService.getUserMatchHistory(userId, 5)
-            ]);
+	// Update user stats (protected route - requires authentication)
+	fastify.put('/users/:userId/stats', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, StatsController.updateUserStats);
 
-            return {
-                ...userStats,
-                matchHistory
-            };
-        } catch (error) {
-            console.error('Failed to fetch user stats:', error);
-            return reply.code(500).send({ error: 'Failed to fetch user stats' });
-        }
-    });
+	// Get leaderboard (public route)
+	fastify.get('/leaderboard',{
+		preHandler: AuthMiddleware.authenticateUser
+	}, StatsController.getLeaderboard);
 
+	fastify.get('/users/:userId/matches', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, StatsController.getUserMatches);
 
-    // Update user stats (protected route - requires authentication)
-    fastify.put('/users/:userId/stats', {
+    fastify.post('/match/create/:gameId', {
         preHandler: AuthMiddleware.authenticateUser
-    }, async (request, reply) => {
-        const { userId } = request.params as { userId: string };
-        const stats = request.body as {
-            oneVOneWins?: number;
-            oneVOneLosses?: number;
-            tournamentWins?: number;
-            tournamentLosses?: number;
-        };
-
-        // Check if user is updating their own stats or is admin
-        if (request.userId !== userId) {
-            return reply.code(403).send({ error: 'Cannot update other users stats' });
-        }
-
-        try {
-            const updatedStats = await StatsService.updateUserStats(userId, stats);
-            return updatedStats;
-        } catch (error) {
-            console.error('Failed to update user stats:', error);
-            return reply.code(500).send({ error: 'Failed to update user stats' });
-        }
-    });
-
-    fastify.get('/leaderboard', async (request, reply) => {
-        try {
-            const leaderboard = await StatsService.getLeaderboard(10);
-            return leaderboard;
-        } catch (error) {
-            console.error('Failed to fetch leaderboard:', error);
-            return reply.code(500).send({ error: 'Failed to fetch leaderboard' });
-        }
-    });
+    }, StatsController.createMatch);
 }

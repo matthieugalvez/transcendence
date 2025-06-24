@@ -90,6 +90,22 @@ async function main() {
         created_at: admin.created_at
     })
 
+	// Create test user for remote match
+	const userPwd_hash = await bcrypt.hash('Bonjour42!', 10)
+
+	const testUser = await prisma.user.create({
+		data: {
+			email: 'test@test.com',
+			password_hash: userPwd_hash,
+		}
+	})
+
+	console.log('👑 Test user created:', {
+		id: testUser.id,
+		email: testUser.email,
+		created_at: testUser.created_at
+	})
+
     console.log('👥 Test users created:', testUsers.length)
     console.log('🎮 Test matches created')
 }

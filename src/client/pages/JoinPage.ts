@@ -1,22 +1,32 @@
-import { startPongInContainer, showGameOverOverlay, getShareableLink } from '../utils/game.utils';
 import { SidebarComponent } from "../components/sidebar.component";
 import { BackgroundComponent } from '../components/background.component';
 import { GameSettingsComponent } from '../components/game.component';
-import { UserService } from '../services/user.service';
-import { router } from "../configs/simplerouter";
 import { AuthComponent } from '../components/auth.component';
+import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { router } from "../configs/simplerouter";
+import {
+  setCookie,
+  getCookie,
+  deleteCookie,
+  hideOverlay,
+  startPongInContainer,
+  showGameOverOverlay,
+  getShareableLink
+} from '../utils/game.utils';
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
 let bothPlayersConnected = false;
 let isrendered = true;
+let hasHadDisconnection = false;
+let resumeAlertShown = false;
 
 // Nouvelle fonction utilitaire pour récupérer le username connecté
 async function getUsername() {
   try {
     const user = await UserService.getCurrentUser();
-    return user?.name || "";
+    return user?.displayName || "";
   } catch {
     return "";
   }
@@ -43,11 +53,11 @@ export async function renderJoinPage(params: { gameId: string }) {
 
   // Only render UI if user is authenticated
   try {
-  AuthComponent.checkAndHandleDisplayName();
-  await SidebarComponent.render({ userName: user?.displayName || '', showStats: false, showBackHome: true });
-  BackgroundComponent.applyNormalGradientLayout();
+    AuthComponent.checkAndHandleDisplayName();
+    SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
+    BackgroundComponent.applyNormalGradientLayout();
   } catch(error) {
-	CommonComponent.handleAuthError();
+	  CommonComponent.handleAuthError();
   }
 
   // Wrapper principal
@@ -63,13 +73,21 @@ export async function renderJoinPage(params: { gameId: string }) {
   const myUsername = await getUsername();
 
   // --- Etats de la partie ---
-  // let playerId: number | 'spectator' | null = null;
-  let hostUsername = '';
-  let guestUsername = '';
+  let playerId: number | null = null;
+  let hostUsername = 'Player 1';
+  let guestUsername = 'Player 2';
 
-  let playerId: string | 'spectator' | null = null;
-  if (playerId === 1) hostUsername = user?.name;
-  if (playerId === 2) guestUsername = user?.name;
+  if (playerId === 1) hostUsername = user?.displayName;
+  if (playerId === 2) guestUsername = user?.displayName;
+
+  // S'assurer qu'on ne garde pas un vieux token si on entre dans une nouvelle room
+  const lastId = getCookie('lastGameId');
+  if (lastId && lastId !== gameId) {
+    deleteCookie(`pongPlayerToken-${getCookie('lastGameId')}`);
+    deleteCookie(`pongPlayerId-${getCookie('lastGameId')}`);
+  } else {
+    setCookie('lastGameId', gameId);
+  }
 
   // --- Attente de la websocket ---
   const matchTitle = `${hostUsername} vs ${guestUsername}`;
@@ -106,8 +124,10 @@ export async function renderJoinPage(params: { gameId: string }) {
       const data = JSON.parse(event.data);
 
       // PlayerId : host (1), guest (2), spectator
-      if (data.type === 'playerId') {
+      if (data.type === 'playerToken') {
         playerId = data.playerId;
+        setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
+        setCookie(`pongPlayerId-${gameId}`, data.playerId);
         // On assigne le username côté front localement
         if (playerId === 1) {
           hostUsername = myUsername;
@@ -118,15 +138,34 @@ export async function renderJoinPage(params: { gameId: string }) {
         renderSettingsBar();
       }
 
-      // GameState envoyé par le serveur à chaque frame
+      if (data.type === 'pause' && data.reason === 'disconnect') {
+        hasHadDisconnection = true;
+      }
+
       // On regarde si les deux joueurs sont connectés :
       if (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data) {
-        // Quand 2 joueurs sont connectés, le serveur commence à broadcast
         bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
-        if (data.connectedPlayers.length === 2 && isrendered == true) {
+
+        // SI les deux joueurs sont connectés ET il y a eu une déco
+        if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
+          if (playerId === 1 && !resumeAlertShown) {
+            alert("Both players are back. Click Start Game to continue.");
+            renderSettingsBar();
+            resumeAlertShown = true;
+            hideOverlay();
+          } else {
+            waiting.textContent = "Waiting for the host to restart the game...";
+            hideOverlay();
+          }
+        }
+
+        // rendu classique debut de partie
+        if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
           renderSettingsBar();
           isrendered = false;
+          hideOverlay();
         }
+
         // On met à jour le message d’attente
         if (playerId === 1 || playerId === 2) {
           waiting.textContent = data.isRunning
@@ -139,6 +178,8 @@ export async function renderJoinPage(params: { gameId: string }) {
             if (canvas) canvas.classList.remove('blur-xs');
             waiting.remove();
             gameStarted = true;
+            resumeAlertShown = false;
+            hideOverlay();
           }
         }
       }
@@ -150,8 +191,10 @@ export async function renderJoinPage(params: { gameId: string }) {
     if (playerId === 1) {
       GameSettingsComponent.render('duo-online', {
         getOnlineLink: () => getShareableLink(gameId),
-        onCopyLink: (link) => navigator.clipboard.writeText(link),
-        canStart: () => bothPlayersConnected,
+        onCopyLink: async (link) => {
+          navigator.clipboard.writeText(link)
+        },
+        canStart: () => bothPlayersConnected && playerId === 1,
         onStartGame: async () => {
           pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
           GameSettingsComponent.render('solo-start', {
@@ -183,7 +226,6 @@ export async function renderJoinPage(params: { gameId: string }) {
         },
       });
     }
-    // Spectateur : rien
     else {
       GameSettingsComponent.render('initial', {
       });

@@ -28,10 +28,10 @@ export class ProfileRender {
 		profileCard.appendChild(infoSection);
 
 		// Action Buttons (if not own profile)
-		if (!isOwnProfile) {
-			const actionsSection = await this.createActionsSection(user);
-			profileCard.appendChild(actionsSection);
-		}
+		// if (!isOwnProfile) {
+		// 	const actionsSection = await this.createActionsSection(user);
+		// 	profileCard.appendChild(actionsSection);
+		// }
 
 		// Edit Profile Section (if own profile)
 		if (isOwnProfile) {
@@ -139,9 +139,9 @@ export class ProfileRender {
 		const section = document.createElement('div');
 		section.className = 'mb-6';
 
-		const title = document.createElement('h2');
-		title.textContent = 'Profile Information';
-		title.className = ` font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
+		// const title = document.createElement('h2');
+		// title.textContent = 'Profile Information';
+		// title.className = ` font-['Orbitron'] text-2xl font-bold mb-4 mt-4 text-gray-800`;
 
 		const infoGrid = document.createElement('div');
 		infoGrid.className = 'grid grid-cols-2 gap-4';
@@ -159,149 +159,54 @@ export class ProfileRender {
 			console.error('Failed to fetch user stats:', error);
 		}
 
-		// Calculate total matches and wins
-		const totalMatches = userStats ?
-			(userStats.oneVOneWins + userStats.oneVOneLosses + userStats.tournamentWins + userStats.tournamentLosses) : 0;
-		const totalWins = userStats ?
-			(userStats.oneVOneWins + userStats.tournamentWins) : 0;
+		// // Calculate total matches and wins
+		// const totalMatches = userStats ?
+		// 	(userStats.oneVOneWins + userStats.oneVOneLosses + userStats.tournamentWins + userStats.tournamentLosses) : 0;
+		// const totalWins = userStats ?
+		// 	(userStats.oneVOneWins + userStats.tournamentWins) : 0;
 
-		const stats = [
-			{ label: 'Matches Played', value: totalMatches.toString() },
-			{ label: 'Matches Won', value: totalWins.toString() },
-			{ label: '1v1 Wins', value: userStats?.oneVOneWins?.toString() || '0' },
-			{ label: '1v1 Losses', value: userStats?.oneVOneLosses?.toString() || '0' },
-			{ label: 'Tournament Wins', value: userStats?.tournamentWins?.toString() || '0' },
-			{ label: 'Tournament Losses', value: userStats?.tournamentLosses?.toString() || '0' }
-		];
+		// const stats = [
+		// 	{ label: 'Matches Played', value: totalMatches.toString() },
+		// 	{ label: 'Matches Won', value: totalWins.toString() },
+		// 	{ label: '1v1 Wins', value: userStats?.oneVOneWins?.toString() || '0' },
+		// 	{ label: '1v1 Losses', value: userStats?.oneVOneLosses?.toString() || '0' },
+		// 	{ label: 'Tournament Wins', value: userStats?.tournamentWins?.toString() || '0' },
+		// 	{ label: 'Tournament Losses', value: userStats?.tournamentLosses?.toString() || '0' }
+		// ];
 
-		stats.forEach(stat => {
-			const statItem = document.createElement('div');
-			statItem.className = 'bg-gray-50 p-3 rounded-lg';
+		// stats.forEach(stat => {
+		// 	const statItem = document.createElement('div');
+		// 	statItem.className = 'bg-gray-50 p-3 rounded-lg';
 
-			const label = document.createElement('p');
-			label.textContent = stat.label;
-			label.className = 'text-sm text-gray-600 font-medium';
+		// 	const label = document.createElement('p');
+		// 	label.textContent = stat.label;
+		// 	label.className = 'text-sm text-gray-600 font-medium';
 
-			const value = document.createElement('p');
-			value.textContent = stat.value;
-			value.className = 'text-lg font-semibold text-gray-800';
+		// 	const value = document.createElement('p');
+		// 	value.textContent = stat.value;
+		// 	value.className = 'text-lg font-semibold text-gray-800';
 
-			statItem.appendChild(label);
-			statItem.appendChild(value);
-			infoGrid.appendChild(statItem);
-		});
+		// 	statItem.appendChild(label);
+		// 	statItem.appendChild(value);
+		// 	infoGrid.appendChild(statItem);
+		// });
 
-		section.appendChild(title);
-		section.appendChild(infoGrid);
+		const statsButton = CommonComponent.createStylizedButton('📊 Stats', 'purple');
+		statsButton.onclick = () => {
+			if (isOwnProfile) {
+				router.navigate('/statistics');
+			} else {
+				router.navigate(`/statistics/${user.displayName}`);
+			}
+		};
 
-		// Add match history section
-		if (userStats?.matchHistory && userStats.matchHistory.length > 0) {
-			const matchHistorySection = this.createMatchHistorySection(userStats.matchHistory, user.id, user);
-			section.appendChild(matchHistorySection);
-		}
+		section.appendChild(statsButton);
 
+		// section.appendChild(title);
+		// section.appendChild(infoGrid);
 		return section;
 	}
 
-	private static createMatchHistorySection(matches: any[], currentUserId: string, user: any): HTMLElement {
-		const historySection = document.createElement('div');
-		historySection.className = 'mt-8';
-
-		const historyTitle = document.createElement('h3');
-		historyTitle.textContent = 'Recent Matches';
-		historyTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
-
-		const matchList = document.createElement('div');
-		matchList.className = 'space-y-3';
-
-		matches.forEach(match => {
-			const matchItem = document.createElement('div');
-			matchItem.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm';
-
-			const isWinner = match.winnerId === currentUserId;
-			const opponent = match.playerOneId === currentUserId ? match.playerTwo : match.playerOne;
-			const currentUserScore = match.playerOneId === currentUserId ? match.playerOneScore : match.playerTwoScore;
-			const opponentScore = match.playerOneId === currentUserId ? match.playerTwoScore : match.playerOneScore;
-
-			const matchHeader = document.createElement('div');
-			matchHeader.className = 'flex justify-between items-center mb-2';
-
-			const vsInfo = document.createElement('div');
-			vsInfo.className = 'flex items-center space-x-3';
-
-			// Current user avatar
-			const userAvatar = document.createElement('img');
-			userAvatar.src = user.avatar || '/avatars/default.svg';
-			userAvatar.alt = user.displayName;
-			userAvatar.className = 'w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity';
-			userAvatar.onclick = () => {
-				router.navigate(`/profile/${opponent.displayName}`);
-			};
-
-			// VS text
-			const vsText = document.createElement('span');
-			vsText.textContent = 'vs';
-			vsText.className = 'text-sm font-medium text-gray-500';
-
-			// Opponent avatar
-			const opponentAvatar = document.createElement('img');
-			opponentAvatar.src = opponent.avatar || '/avatars/default.svg';
-			opponentAvatar.alt = opponent.displayName;
-			opponentAvatar.className = 'w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity';
-			opponentAvatar.onclick = () => {
-				router.navigate(`/profile/${opponent.displayName}`);
-			};
-
-			// Match details with opponent name
-			const matchDetails = document.createElement('div');
-			const matchType = document.createElement('span');
-			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
-			matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600';
-
-			matchDetails.appendChild(matchType);
-
-			vsInfo.appendChild(userAvatar);
-			vsInfo.appendChild(vsText);
-			vsInfo.appendChild(opponentAvatar);
-			vsInfo.appendChild(matchDetails);
-
-			const resultInfo = document.createElement('div');
-			resultInfo.className = 'text-right';
-
-			const score = document.createElement('div');
-			score.textContent = `${currentUserScore} - ${opponentScore}`;
-			score.className = `font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}`;
-
-			const result = document.createElement('div');
-			result.textContent = isWinner ? 'WIN' : 'LOSS';
-			result.className = `text-xs font-medium ${isWinner ? 'text-green-600' : 'text-red-600'}`;
-
-			resultInfo.appendChild(score);
-			resultInfo.appendChild(result);
-
-			matchHeader.appendChild(vsInfo);
-			matchHeader.appendChild(resultInfo);
-
-			const matchDate = document.createElement('div');
-			matchDate.textContent = new Date(match.playedAt).toLocaleDateString('en-GB', {
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit'
-			});
-			matchDate.className = 'text-sm text-gray-500';
-
-			matchItem.appendChild(matchHeader);
-			matchItem.appendChild(matchDate);
-			matchList.appendChild(matchItem);
-		});
-
-		historySection.appendChild(historyTitle);
-		historySection.appendChild(matchList);
-
-		return historySection;
-	}
 
 	private static async createActionsSection(user: any): Promise<HTMLElement> {
 		const section = document.createElement('div');
@@ -391,12 +296,6 @@ export class ProfileRender {
 		title.className = 'text-xl font-bold mb-4 text-gray-800';
 
 		const editButton = CommonComponent.createStylizedButton('Edit profile', 'blue')
-		// editButton.textContent = 'Edit Profile';
-		// editButton.className = `
-		//     px-6 py-2 bg-blue-600 text-white rounded-lg
-		//     hover:bg-blue-700 transition-colors
-		//     font-medium
-		// `;
 		editButton.onclick = () => {
 			router.navigate('/settings');
 		};

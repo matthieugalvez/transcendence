@@ -1,6 +1,7 @@
 import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
+import { router } from '../configs/simplerouter';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: string) => void;
@@ -9,60 +10,132 @@ export interface PongHandle {
   start: () => void;
 }
 
+// -- Useful functions for cookies ---
+export function setCookie(name: string, value: string, days = 2) {
+  const expires = new Date(Date.now() + days*864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+export function getCookie(name: string) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1]
+    ? decodeURIComponent(document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1] || '') : '';
+}
+export function deleteCookie(name: string) {
+  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
+// 
+function isGameState(data: any): data is GameState {
+  return data
+    && typeof data === "object"
+    && data.paddle1 && data.paddle2 && data.ball
+    && typeof data.paddle1.x === "number"
+    && typeof data.paddle2.x === "number"
+    && typeof data.ball.x === "number"
+    && typeof data.score1 === "number"
+    && typeof data.score2 === "number";
+}
+
 // --- WebSocket handler ---
 function createGameWebSocket(
   gameId: string,
   ctx: CanvasRenderingContext2D,
   leftPlayer: string,
   rightPlayer: string,
-  onFinish: FinishCallback
+  onFinish: FinishCallback,
+  mode: 'duo-local' | 'duo-online' | 'solo'
 ) {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  // const socketUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
   const port = 3000;
-  const socketUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
-  // localStorage.setItem('postAuthRedirect', socketUrl);
-  const socket = new WebSocket(socketUrl);
+  const playerToken = getCookie(`pongPlayerToken-${gameId}`);
+  let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+  if (playerToken) wsUrl += `?playerToken=${playerToken}`;
+  const socket = new WebSocket(wsUrl);
 
   let playerId = null;
-  let isSpectator = false;
   let wasRunning = false;
   let wasPaused = false;
 
   socket.addEventListener('message', (event) => {
     try {
-      const data = JSON.parse(event.data);
-      if (data.type === 'playerId') {
-        playerId = data.playerId;
-        isSpectator = (playerId === 'spectator');
-        // Ici, affiche overlay ou message spectateur si tu veux
+      if (typeof event.data !== 'string') {
+        console.warn('WS non-string message ignored:', event.data);
         return;
       }
-      // Sinon c'est un GameState
-      const state = data;
-      renderGame(ctx, state);
+      const data = JSON.parse(event.data);
 
-      if (wasRunning && !state.isRunning && !state.isPaused) {
-        const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
-        setTimeout(() => onFinish(winnerAlias), 150);
+      if (data.type === 'playerToken') {
+        const currentToken = getCookie(`pongPlayerToken-${gameId}`);
+        if (!currentToken || currentToken !== data.playerToken) {
+          setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
+          setCookie(`pongPlayerId-${gameId}`, String(data.playerId));
+        }
+        playerId = data.playerId;
+        return;
       }
-      wasRunning = state.isRunning;
-      wasPaused = state.isPaused;
+      // si deconnexion
+      if (data.type === 'pause') {
+        showOverlay(data.message);
+        return;
+      }
+      // si reconnexion
+      if (data.type === 'resume') {
+        hideOverlay();
+        return;
+      }
+      // si deconnexion sans reconnexion
+      if (data.type === 'end') {
+        alert(data.message);
+        deleteCookie(`pongPlayerToken-${gameId}`);
+        deleteCookie(`pongPlayerId-${gameId}`);
+        window.location.href = '/home';
+        return;
+      }
+      if (data.type === 'error') {
+        console.error('Server error:', data.error);
+        alert(`Error: ${data.error}`);
+        window.location.href = '/home';
+        return;
+      }
+
+      // const state = data;
+      // renderGame(ctx, state);
+
+      // if (wasRunning && !state.isRunning && !state.isPaused) {
+      //   const winnerAlias = state.score1 > state.score2 ? leftPlayer : rightPlayer;
+      //   setTimeout(() => onFinish(winnerAlias), 150);
+      // }
+      // wasRunning = state.isRunning;
+      // wasPaused = state.isPaused;
+      if (isGameState(data)) {
+        renderGame(ctx, data);
+
+        if (wasRunning && !data.isRunning && !data.isPaused) {
+          const winnerAlias = data.score1 > data.score2 ? leftPlayer : rightPlayer;
+          setTimeout(() => onFinish(winnerAlias), 150);
+        }
+        wasRunning = data.isRunning;
+        wasPaused = data.isPaused;
+      }
     } catch (err) {
-      // message inconnu, tu peux log
+      console.error('WS message parse error1:', err);
     }
   });
 
   socket.addEventListener('close', () => {
-    alert("La partie est terminée, inaccessible, ou pleine.");
+    alert("The game has ended or is no longer accessible.");
     window.location.reload();
   });
 
   // Expose ces méthodes pour le reste du code
   return {
     socket,
-    getPlayerId: () => playerId,
-    isSpectator: () => isSpectator,
+    getPlayerId: () => playerId
   };
 }
 
@@ -124,7 +197,6 @@ function startClientInputLoop(
   requestAnimationFrame(frame);
 }
 
-
 // --- Création du jeu et intégration au DOM ---
 export function startPongInContainer(
   container: HTMLDivElement,
@@ -152,21 +224,44 @@ export function startPongInContainer(
   if (!ctx) throw new Error('Impossible de récupérer le context 2D');
 
   // WebSocket
-  // const socket = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
-  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish);
-  const { socket, getPlayerId, isSpectator } = wsHandler;
+  const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
+  const { socket, getPlayerId } = wsHandler;
 
-  // Gestion clavier différée (pas avant .start())
+  // Gestion clavier différée
   let keyboardHandlerStarted = false;
-  const keysPressed: Record<string, boolean> = {};
+  let keysPressed: Record<string, boolean> = {};
+  let inputLoopStarted = false;
+
+  function setupInputHandlers() {
+    // Nettoie anciens listeners si besoin
+    window.onkeydown = null;
+    window.onkeyup = null;
+    keysPressed = {};
+
+    setupKeyboardHandlers(socket, keysPressed);
+    startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+    inputLoopStarted = true;
+  }
+
+  socket.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'playerToken') {
+        // Quand tu reçois le playerToken, lance (ou relance) la gestion input
+        if (!inputLoopStarted) {
+          setupInputHandlers();
+        }
+      }
+    } catch {}
+  });
 
   function start() {
-    if (!keyboardHandlerStarted && !isSpectator()) {
-      title.textContent = matchTitle;
-      setupKeyboardHandlers(socket, keysPressed);
-      startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-      keyboardHandlerStarted = true;
-    }
+    // if (!keyboardHandlerStarted) {
+    //   title.textContent = matchTitle;
+    //   setupKeyboardHandlers(socket, keysPressed);
+    //   startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+    //   keyboardHandlerStarted = true;
+    // }
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ action: 'start' }));
     } else {
@@ -216,13 +311,51 @@ export function showGameOverOverlay(
 
   const replay = CommonComponent.createStylizedButton('Play Again', 'blue');
   replay.onclick = () => {
-    if (canvas) canvas.classList.remove('blur-xs');
-    ov.remove();
-    onReplay();
+    // if (canvas) canvas.classList.remove('blur-xs');
+    // ov.remove();
+    // onReplay();
+    router.navigate('/game');
   };
   panel.appendChild(replay);
 }
 
 export function getShareableLink(gameId: string) {
+  const playerToken = getCookie(`pongPlayerToken-${gameId}`);
+  if (playerToken) {
+    return `${window.location.origin}/game/online/${gameId}?playerToken=${playerToken}`;
+  }
   return `${window.location.origin}/game/online/${gameId}`;
+}
+
+// --- Fonctions pour overlay en cas de deco/reco ---
+function showOverlay(message: string) {
+  let overlay = document.getElementById('game-overlay') as HTMLDivElement | null;
+
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'game-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    overlay.style.color = 'white';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.fontSize = '24px';
+    overlay.style.zIndex = '1000';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.textContent = message;
+  overlay.style.display = 'flex';
+}
+
+export function hideOverlay() {
+  const overlay = document.getElementById('game-overlay') as HTMLDivElement | null;
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
 }

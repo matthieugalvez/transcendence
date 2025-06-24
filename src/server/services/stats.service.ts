@@ -1,6 +1,63 @@
 import { prisma } from '../db'
 
 export class StatsService {
+
+	static async createMatch(
+    gameId: string,
+    playerOneId: string,
+    playerTwoId: string,
+    winnerId: string | null,
+    matchType: 'ONE_V_ONE' | 'TOURNAMENT',
+    playerOneScore: number,
+    playerTwoScore: number
+) {
+    try {
+        // Create the match record
+        const match = await prisma.match.create({
+            data: {
+                id: gameId, // Use gameId as the match ID
+                playerOneId,
+                playerTwoId,
+                winnerId,
+                matchType,
+                playerOneScore,
+                playerTwoScore,
+                playedAt: new Date()
+            },
+            include: {
+                playerOne: {
+                    select: {
+                        id: true,
+                        displayName: true,
+                        avatar: true
+                    }
+                },
+                playerTwo: {
+                    select: {
+                        id: true,
+                        displayName: true,
+                        avatar: true
+                    }
+                }
+            }
+        });
+
+        // Update user statistics for both players
+        if (winnerId) {
+            // Increment win for winner
+            await this.incrementWin(winnerId, matchType);
+
+            // Increment loss for loser
+            const loserId = winnerId === playerOneId ? playerTwoId : playerOneId;
+            await this.incrementLoss(loserId, matchType);
+        }
+
+        return match;
+    } catch (error) {
+        console.error('Error creating match:', error);
+        throw error;
+    }
+}
 	static async getUserStats(userId: string) {
 		try {
 			const userStats = await prisma.userStats.findUnique({
