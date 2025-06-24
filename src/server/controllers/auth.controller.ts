@@ -1,9 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { UserService } from '../services/users.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { UserService } from '../services/users.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 import jwt from 'jsonwebtoken'
-import authConfig from '../config/auth.config'
-import { AuthService } from '../services/auth.service'
+import authConfig from '../config/auth.config.js'
+import { AuthService } from '../services/auth.service.js'
 import OAuth2 from "@fastify/oauth2";
 
 export class AuthController {
@@ -48,12 +48,12 @@ export class AuthController {
 			// Set HttpOnly cookies
 			reply.setCookie('accessToken', accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
-				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 				domain: undefined,
 				path: '/',
 				maxAge: 15 * 60 * 1000
-			})
+			});
 
 			reply.setCookie('refreshToken', refreshToken, {
 				httpOnly: true,
@@ -101,7 +101,7 @@ export class AuthController {
 			}
 
 			// Generate JWT tokens
-						// @ts-ignore
+			// @ts-ignore
 
 			const accessToken = jwt.sign(
 				{ userId: user.id },
@@ -216,7 +216,7 @@ export class AuthController {
 			}
 
 			// Generate new access token
-						// @ts-ignore
+			// @ts-ignore
 
 			const newAccessToken = jwt.sign(
 				{ userId: user.id },
@@ -225,7 +225,7 @@ export class AuthController {
 			);
 
 			// Rotate refresh token
-						// @ts-ignore
+			// @ts-ignore
 
 			const newRefreshToken = jwt.sign(
 				{ userId: user.id },
@@ -383,7 +383,7 @@ export class AuthController {
 				return reply.redirect('http://localhost:5173/auth?error=invalid_google_token');
 			}
 
-			const googleUser : any = await response.json();
+			const googleUser: any = await response.json();
 			console.log('✅ Google user data received:', { email: googleUser.email });
 
 			// Check if user exists or create new one
@@ -428,7 +428,7 @@ export class AuthController {
 
 			// Continue with normal JWT token generation if no 2FA...
 			console.log('🔍 Generating JWT tokens...');
-						// @ts-ignore
+			// @ts-ignore
 
 			const jwtAccessToken: string = jwt.sign(
 				{ userId: user.id },
@@ -563,14 +563,14 @@ export class AuthController {
 			}
 
 			// Generate actual JWT tokens (same logic as in googleCallback)
-						// @ts-ignore
+			// @ts-ignore
 
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
 				{ expiresIn: authConfig.secret_expires_in }
 			);
-						// @ts-ignore
+			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
@@ -634,7 +634,7 @@ export class AuthController {
 			const user = await AuthService.createUser(email, password)
 
 			// Generate JWT tokens - use same pattern as regular signup
-						// @ts-ignore
+			// @ts-ignore
 
 			const accessToken = jwt.sign(
 				{ userId: user.id },

@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 export default defineConfig({
-    root: resolve(__dirname, '../src/client'), // Point to client directory
+    root: resolve(__dirname, '../src/client'),
     plugins: [tailwindcss()],
     server: {
         host: '0.0.0.0',
@@ -30,23 +30,18 @@ export default defineConfig({
         }
     },
     build: {
-        outDir: '../../dist', // Output to project root dist folder
+        outDir: '../../dist',
         emptyOutDir: true,
         sourcemap: false,
-        minify: 'esbuild',
-        assetsDir: 'assets',
         rollupOptions: {
-            input: path.resolve(__dirname, '../src/client/index.html'), // Point to correct location
-            output: {
-                assetFileNames: 'assets/[name]-[hash][extname]',
-                chunkFileNames: 'assets/[name]-[hash].js',
-                entryFileNames: 'assets/[name]-[hash].js'
+            input: {
+                main: resolve(__dirname, '../src/client/index.html')
             }
-        }
+        },
+        assetsDir: 'assets',
+        // Ensure fonts and other assets are properly copied
+        copyPublicDir: true,
     },
-    resolve: {
-        alias: {
-            '@': path.resolve(__dirname, '../src/client'),
-        }
-    }
+    publicDir: resolve(__dirname, '../src/client/assets'),
+    assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2', '**/*.eot', '**/*.otf']
 })

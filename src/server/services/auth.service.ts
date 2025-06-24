@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import bcrypt from 'bcrypt'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'

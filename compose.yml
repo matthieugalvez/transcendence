@@ -4,17 +4,20 @@ services:
       context: .
       dockerfile: configs/Dockerfile
     ports:
-      - "3000:3000"
+      - "3000"  # Only expose for internal communication
     environment:
       - NODE_ENV=production
       - PORT=3000
       - HOST=0.0.0.0
       - DATABASE_URL=file:./data/transcendence.db
       - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_SECRET_EXPIRES_IN=15m
       - AUTH_REFRESH_SECRET=${AUTH_REFRESH_SECRET}
+      - AUTH_REFRESH_SECRET_EXPIRES_IN=24h
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - BASE_URL=http://localhost:3000
+      - BASE_URL=https://localhost:8443
+      - GOOGLE_REDIRECT_URI=https://localhost:8443/api/auth/oauth2/google/callback
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
@@ -22,3 +25,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - transcendence
+
+  nginx:
+    build:
+      context: .
+      dockerfile: configs/nginx.Dockerfile
+    ports:
+      - "8080:8080"
+      - "8443:443"
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
+    driver: bridge

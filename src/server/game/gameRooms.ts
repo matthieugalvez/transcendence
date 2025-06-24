@@ -1,5 +1,5 @@
 import type { WebSocket } from 'ws';
-import { GameInstance } from './gameInstance';
+import { GameInstance } from './gameInstance.js';
 
 // Une map central de toutes les parties en cours
 const gameRooms: Map<string, GameInstance> = new Map();

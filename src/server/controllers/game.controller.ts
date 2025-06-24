@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { GameService } from '../services/game.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { GameService } from '../services/game.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 export class GameController {
 	static async getGameStatus(request: FastifyRequest, reply: FastifyReply) {

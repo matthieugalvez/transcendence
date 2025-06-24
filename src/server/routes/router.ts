@@ -39,6 +39,4 @@ export async function registerRoutes(app: FastifyInstance) {
             return reply.code(404).send({ error: 'Avatar not found' });
         }
     });
-
-	console.log('✅ Routes registered')
 }

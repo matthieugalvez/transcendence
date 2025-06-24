@@ -1,4 +1,28 @@
-# configs/Dockerfile
+FROM node:18-slim AS builder
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy configuration files
+COPY configs ./configs/
+COPY prisma ./prisma/
+COPY .env* ./
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy source files
+COPY src ./src/
+
+# Build the frontend and backend
+RUN npm run build:frontend && npm run build:backend
+
+# Production stage
 FROM node:18-slim
 
 # Install curl and other dependencies
@@ -9,45 +33,31 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copy package files
 COPY package*.json ./
 
-# Use npm install instead of ci (slower but more reliable)
-RUN npm install
+# Install only production dependencies
+RUN npm install --omit=dev
 
-# Copy configuration files
-COPY configs ./configs/
+# Copy built backend from builder stage
+COPY --from=builder /app/dist-back ./dist-back
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
-# Copy prisma schema
-COPY prisma ./prisma/
+# Create data directory with proper permissions
+RUN mkdir -p /app/data && \
+    chown -R node:node /app && \
+    chmod -R 755 /app
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy source files (make sure index.html is included)
-COPY src ./src/
-
-# Copy any other necessary files
-COPY .env* ./
-
-# Debug: List files to see what's available
-RUN ls -la && ls -la src/ && ls -la src/client/ || echo "Missing directories"
-
-RUN npm run generate:jwt > .env.build && \
-    cat .env.build >> .env
-
-# Build frontend and backend (needs devDependencies)
-RUN npm run build:frontend && npm run build:backend
-
-# Remove devDependencies after build
-RUN npm prune --omit=dev
-
-# Create data directory for SQLite with proper permissions
-RUN mkdir -p /app/data
-
-# Create non-root user for security
-RUN chown -R node:node /app/data /app/dist /app/dist-back
+# Switch to non-root user
 USER node
+
+# Set the DATABASE_URL environment variable
+ENV DATABASE_URL="file:./data/transcendence.db"
+
+# Initialize database and seed data
+RUN npx prisma db push --accept-data-loss && \
+    npx prisma db seed
 
 # Expose port
 EXPOSE 3000
@@ -56,5 +66,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start the application
-CMD ["npm", "run", "server:start"]
+# Start the backend only
+CMD ["node", "dist-back/app.js"]

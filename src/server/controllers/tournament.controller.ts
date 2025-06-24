@@ -1,6 +1,6 @@
-// import { FastifyRequest, FastifyReply } from 'fastify';
-// // import { TournamentService } from '../services/tournament.service';
-// import { ResponseUtils as Send } from '../utils/response.utils';
+import { FastifyRequest, FastifyReply } from 'fastify'
+// // import { TournamentService } from '../services/tournament.service.js';
+// import { ResponseUtils as Send } from '../utils/response.utils.js';
 
 // export class TournamentController {
 //   static async getTournamentDetails(request: FastifyRequest, reply: FastifyReply) {

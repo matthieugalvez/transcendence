@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { UserService, UserOnline } from '../services/users.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { UserService, UserOnline } from '../services/users.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import path from 'path'; // Add this import

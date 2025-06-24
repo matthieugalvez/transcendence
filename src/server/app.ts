@@ -8,33 +8,40 @@ import { registerRoutes } from './routes/router.js';
 import { registerPongWebSocket } from './routes/game.routes.js';
 import { registerUserStatusWebSocket } from './routes/users.routes.js';
 
-
-
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // Create Fastify instance
 const app = Fastify({
   logger: {
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
-  }
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  },
+  trustProxy: true,  // Move this outside of logger config
 });
 
-// Register plugin websocket
+// Register essential plugins first (before any other setup)
 await app.register(fastifyWebsocket);
+
+// Register cookie plugin once at the top level
+await app.register(import('@fastify/cookie'), {
+  secret: process.env.COOKIE_SECRET || 'your-cookie-secret',
+  parseOptions: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
+});
 
 // Server setup function
 async function setupServer() {
   try {
     console.log('🔧 Setting up server...');
 
-   // await app.register(fastifyWebsocket);
     await registerDb(app);
     await registerPlugins(app, __dirname);
     await registerRoutes(app);
     await registerPongWebSocket(app);
-    await registerUserStatusWebSocket(app); // Register status WebSocket
+    await registerUserStatusWebSocket(app);
 
     console.log('✅ Server setup completed');
   } catch (error) {
@@ -42,8 +49,6 @@ async function setupServer() {
     throw error;
   }
 }
-
-
 
 // Start server
 async function start() {
@@ -65,10 +70,7 @@ start();
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-	console.log('\n🛑 Shutting down gracefully...')
-	await app.close()
-	console.log('✅ Server closed')
-	process.exit(0)
+  console.log('\n🛑 Shutting down gracefully...')
+  await app.close()
+  process.exit(0)
 })
-
-start()

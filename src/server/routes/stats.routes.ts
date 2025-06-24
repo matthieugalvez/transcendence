@@ -1,6 +1,6 @@
-import { FastifyInstance } from 'fastify'
-import { StatsController } from '../controllers/stats.controller';
-import { AuthMiddleware } from '../middlewares/auth.middleware'
+import type { FastifyInstance } from 'fastify';
+import { StatsController } from '../controllers/stats.controller.js';
+import { AuthMiddleware } from '../middlewares/auth.middleware.js'
 
 
 export async function statsRoutes(fastify: FastifyInstance) {

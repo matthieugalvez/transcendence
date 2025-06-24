@@ -1,20 +1,12 @@
 import { FastifyInstance } from 'fastify'
-import { authSchema } from '../validations/auth.schema'
-import ValidationMiddleware from '../middlewares/validation.middleware'
-import { AuthController } from '../controllers/auth.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
-import { userSchema } from '../validations/auth.schema'
+import { authSchema } from '../validations/auth.schema.js'
+import ValidationMiddleware from '../middlewares/validation.middleware.js'
+import { AuthController } from '../controllers/auth.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
+import { userSchema } from '../validations/auth.schema.js'
 
 
 export default async function authRoutes(fastify: FastifyInstance) {
-	// Register cookie plugin
-
-	// PUBLIC ROUTES
-	// fastify.post('/signup', {
-	// 	preHandler: [
-	// 		ValidationMiddleware.validateBody(authSchema.signup),
-	// 	]
-	// }, AuthController.signup)
 
 	fastify.post('/login', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.login)

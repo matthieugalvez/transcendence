@@ -6,8 +6,11 @@ export const prisma = new PrismaClient()
 
 // Plugin to register Prisma with Fastify
 export async function registerDb(fastify: FastifyInstance) {
-  // Add Prisma to Fastify instance
-  fastify.decorate('prisma', prisma)
+  // Check if Prisma decorator already exists
+  if (!fastify.hasDecorator('prisma')) {
+    // Add Prisma to Fastify instance
+    fastify.decorate('prisma', prisma)
+  }
 
   // Connect to database
   await prisma.$connect()

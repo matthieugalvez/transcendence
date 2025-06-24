@@ -1,13 +1,13 @@
 import { FastifyInstance } from 'fastify'
 import { userSchema } from '../validations/auth.schema.js'
-import ValidationMiddleware from '../middlewares/validation.middleware'
-import { UserController } from '../controllers/user.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
+import ValidationMiddleware from '../middlewares/validation.middleware.js'
+import { UserController } from '../controllers/user.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import { UserOnline } from '../services/users.service'
+import { UserOnline } from '../services/users.service.js'
 import jsonwebtoken from 'jsonwebtoken';
-import authConfig from '../config/auth.config';
+import authConfig from '../config/auth.config.js';
 const pump = promisify(pipeline);
 
 
