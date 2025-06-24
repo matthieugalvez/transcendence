@@ -24,13 +24,13 @@ function startSPA() {
 	router.register('/game', renderPongGamePage);
 	router.register('/tournament', renderTournamentPage);
 	router.register('/auth/oauth-2fa', async () => await oauth2FAPage());
-	router.register('/game/online/:gameId', async ()=> await renderJoinPage);
+	router.register('/game/online/:gameId', async (params = {}) => await renderJoinPage({ gameId: params.gameId })); // Fix: pass params properly
 	router.register('/profile', async () => await StatsPage()); // Own profile
-	router.register('/profile/:displayName', async(params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's profile by displayName
+	router.register('/profile/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's profile by displayName
 	router.register('/users', async () => await UsersPage()); // Add this line
 	router.register('/friendlist', async () => await FriendsPage());
-	 router.register('/statistics', async () => await StatsPage()); // Own statistics
-    router.register('/statistics/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's statistics
+	router.register('/statistics', async () => await StatsPage()); // Own statistics
+	router.register('/statistics/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's statistics
 
 	router.start();
 }
