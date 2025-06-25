@@ -5,6 +5,7 @@ import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRo
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   ws.on('message', (data: string) => {
+	console.log('[WS] Raw message:', data);
     try {
       const msg = JSON.parse(data);
       if (msg.action === 'start')      return game.start();
