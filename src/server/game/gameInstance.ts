@@ -7,7 +7,6 @@ import { StatsController } from '../controllers/stats.controller.js'
 
 import { StatsService } from '../services/stats.service.js';
 // Import NodeJS types for Timeout
-import type {} from 'node';
 
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
