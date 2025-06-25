@@ -96,15 +96,18 @@ export class UserSearchComponent {
 							buttonContainer.appendChild(addBtn);
 						} else if (statusResult.status === 'pending') {
 							const pendingBtn = document.createElement('button');
-							pendingBtn.textContent = 'Request Sent';
+							pendingBtn.textContent = 'Sent';
 							pendingBtn.className = 'px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed text-sm';
 							pendingBtn.disabled = true;
 							buttonContainer.appendChild(pendingBtn);
 						} else if (statusResult.status === 'incoming') {
 							const incomingBtn = document.createElement('button');
-							incomingBtn.textContent = 'Incoming Request';
+							incomingBtn.textContent = 'Accept';
 							incomingBtn.className = 'px-3 py-1 bg-yellow-500 text-white rounded cursor-not-allowed text-sm';
 							incomingBtn.disabled = true;
+							incomingBtn.addEventListener('click', async () => {
+								await FriendService.rejectFriendRequest(user.id);
+							});
 							buttonContainer.appendChild(incomingBtn);
 						} else if (statusResult.status === 'friends') {
 							const friendsBtn = document.createElement('button');

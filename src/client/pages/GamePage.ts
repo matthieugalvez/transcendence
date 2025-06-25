@@ -99,7 +99,7 @@ export async function GamePageCheck() {
 			showStats: true,
 			showSettings: true,
 			showBackHome: false,
-			showUserSearch: true
+			showUserSearch: false
 		});
 
 		const main = document.createElement("div");
