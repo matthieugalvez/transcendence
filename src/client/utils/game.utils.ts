@@ -73,7 +73,7 @@ function createGameWebSocket(
 					setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
 					setCookie(`pongPlayerId-${gameId}`, String(data.playerId));
 				}
-				console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
+				// console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
 				playerId = data.playerId;
 				return;
 			}

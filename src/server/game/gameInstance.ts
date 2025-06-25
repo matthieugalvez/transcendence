@@ -199,7 +199,7 @@ constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
 		} else {
 			this.movePaddle(this.paddle2Pos, action, dt);
 		}
-		console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
+		// console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
 	}
 	// start game
 	public start() {
