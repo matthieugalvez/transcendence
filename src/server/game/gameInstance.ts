@@ -121,36 +121,37 @@ export class GameInstance {
 	// List of connected websockets(players)
 	// private playerSockets: { [playerId: number]: WebSocket | null } = { 1: null, 2: null };
 	// Tick interval
-	private intervalHandle?: NodeJS.Timeout;
 	// Parameters that won't change
 	private readonly canvasWidth = 800;
 	private readonly canvasHeight = 600;
 	private paddleSpeed = 400; // px/sec
 	private basePaddleSpeed = 400;
 	private tickIntervalMs = 1000 / 60;
-	private lastTickTime: number = Date.now();
+	private intervalHandle?: NodeJS.Timeout;
+	private running = false;
 
-	constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
-		this.gameId = gameId;
-		this.setDifficulty(difficulty);
-		// initial pos of paddles
-		this.paddle1Pos = { x: 20, y: (this.canvasHeight - this.paddleHeight) / 2 };
-		this.paddle2Pos = { x: this.canvasWidth - 20 - this.paddleWidth, y: (this.canvasHeight - this.paddleHeight) / 2 };
-		this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
-		this.ballVel = this.randomBallVel();
-		// Main loop (tick) at 60 FPS
-		this.lastTickTime = Date.now();
-		this.runTickLoop();
+
+constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
+    this.gameId = gameId;
+    this.setDifficulty(difficulty);
+    this.paddle1Pos = { x: 20, y: (this.canvasHeight - this.paddleHeight) / 2 };
+    this.paddle2Pos = { x: this.canvasWidth - 20 - this.paddleWidth, y: (this.canvasHeight - this.paddleHeight) / 2 };
+    this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
+    this.ballVel = this.randomBallVel();
+    this.running = true; // <--- Make sure this is set!
+    this.runTickLoop();
+}
+
+	private runTickLoop() {
+		if (!this.running) return;
+		const start = Date.now();
+
+		this.tick().finally(() => {
+			const elapsed = Date.now() - start;
+			const delay = Math.max(0, this.tickIntervalMs - elapsed);
+			this.intervalHandle = setTimeout(() => this.runTickLoop(), delay);
+		});
 	}
-
-    private runTickLoop() {
-        if (this.intervalHandle) {
-            clearInterval(this.intervalHandle);
-        }
-        this.intervalHandle = setInterval(() => {
-            this.tick();
-        }, this.tickIntervalMs);
-    }
 
 
 
@@ -203,13 +204,18 @@ export class GameInstance {
 	// start game
 	public start() {
 		this.isRunning = true;
+		this.running = true;
 		this.resetBall();
 		if (this.pauseTimeoutHandle) {
 			clearTimeout(this.pauseTimeoutHandle);
 			this.pauseTimeoutHandle = null;
 		}
 		this.broadcastState(true);
+		if (!this.intervalHandle) {
+			this.runTickLoop();
+		}
 	}
+
 	// pause game
 	public pause() {
 		this.isPaused = true;
@@ -280,12 +286,13 @@ export class GameInstance {
 		};
 	}
 	// if no player we stop the instance
-    private destroy() {
-        if (this.intervalHandle) {
-            clearInterval(this.intervalHandle);
-            this.intervalHandle = undefined;
-        }
-    }
+	private destroy() {
+		this.running = false;
+		if (this.intervalHandle) {
+			clearTimeout(this.intervalHandle);
+			this.intervalHandle = undefined;
+		}
+	}
 	// move paddle up or down
 	private movePaddle(paddlePos: Position, action: 'up' | 'down', dt: number) {
 		if (action === 'up') {
