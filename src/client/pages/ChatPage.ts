@@ -7,6 +7,12 @@ import { renderNotFoundPage } from './NotFoundPage';
 let		g_edit_box: boolean = false;
 let		g_last_fetch_date: Date;
 
+async function	delay(ms: number, state = null) {
+	return new Promise((resolve, reject) => {
+		window.setTimeout( () => resolve(state), ms);
+	});
+}
+
 export async function renderChatPage() {
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
@@ -27,14 +33,6 @@ export async function renderChatPage() {
 		renderNotFoundPage();
 		return;
 	}
-
-	const	getAllMessagescb = async () => {
-		try {
-			getAllMessages(user.id, receiver.id, messages_box);
-		} catch (error) {
-			console.error('Failed to fetch messages:', error);
-		}
-	};
 
 	BackgroundComponent.applyCenteredGradientLayout();
 
@@ -119,7 +117,6 @@ export async function renderChatPage() {
 		if (event.key === "Enter" && prompt_area.value) {
 			await ChatService.postMessage(receiver.id, prompt_area.value);
 			prompt_area.value = '';
-			getAllMessagescb;
 		}
 	};
 
@@ -132,7 +129,6 @@ export async function renderChatPage() {
 		if (prompt_area.value) {
 			await ChatService.postMessage(receiver.id, prompt_area.value);
 			prompt_area.value = '';
-			getAllMessagescb;
 		}
 	};
 
@@ -141,7 +137,10 @@ export async function renderChatPage() {
 	prompt_box.appendChild(send_button);
 	document.body.appendChild(prompt_box);
 
-	setInterval(getAllMessagescb, 100);
+	while (true) {
+		await getAllMessages(user.id, receiver.id, messages_box);
+		await delay(100);
+	}
 }
 
 async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
