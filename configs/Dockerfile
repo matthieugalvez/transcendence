@@ -1,4 +1,4 @@
-FROM node:18-slim AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -23,13 +23,10 @@ COPY src ./src/
 RUN npm run build:frontend && npm run build:backend
 
 # Production stage
-FROM node:18-slim
+FROM node:18-alpine
 
 # Install curl and other dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl ca-certificates
 
 WORKDIR /app
 

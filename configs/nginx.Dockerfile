@@ -1,4 +1,4 @@
-FROM node:18-slim AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -30,6 +30,12 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -out /etc/nginx/ssl/cert.pem \
     -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
     -addext "subjectAltName=DNS:localhost,DNS:app,IP:127.0.0.1"
+
+	# --- For production with a real domain and certbot ---
+# If you have obtained a certificate for pong42.click with certbot on your host,
+# you can mount or copy it into the container like this:
+# COPY /var/cert/fullchain.pem /etc/nginx/ssl/cert.pem
+# COPY /var/cert/privkey.pem /etc/nginx/ssl/key.pem
 
 # Copy built frontend files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
