@@ -254,8 +254,6 @@ export class GameInstance {
         return;
     }
 
-    this.broadcastState(this.isRunning);
-}
 
 	private moveBall() {
 		const dt = 1 / 60;
