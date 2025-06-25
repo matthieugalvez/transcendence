@@ -267,12 +267,9 @@ constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
             return;
         }
 
-			this.isRunning = false;
-			removeGameRoom(this.gameId);
-			return;
-		}
-
-		this.broadcastState(this.isRunning);
+		this.isRunning = false;
+		removeGameRoom(this.gameId);
+		return;
 	}
 
 	private moveBall() {
