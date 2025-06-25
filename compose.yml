@@ -35,13 +35,16 @@ services:
       context: .
       dockerfile: configs/nginx.Dockerfile
     ports:
-      - "8080:8080"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     depends_on:
       - app
     restart: unless-stopped
     networks:
       - transcendence
+    volumes:
+      - /var/cert/fullchain.pem:/etc/nginx/ssl/cert.pem:ro
+      - /var/cert/privkey.pem:/etc/nginx/ssl/key.pem:ro
 
 networks:
   transcendence:

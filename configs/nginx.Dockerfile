@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -25,11 +25,11 @@ RUN apk add --no-cache openssl
 RUN mkdir -p /etc/nginx/ssl
 
 # Generate self-signed SSL certificates
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/nginx/ssl/key.pem \
-    -out /etc/nginx/ssl/cert.pem \
-    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
-    -addext "subjectAltName=DNS:localhost,DNS:app,IP:127.0.0.1"
+#RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+#    -keyout /etc/nginx/ssl/key.pem \
+#    -out /etc/nginx/ssl/cert.pem \
+#    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
+#    -addext "subjectAltName=DNS:localhost,DNS:app,IP:127.0.0.1"
 
 	# --- For production with a real domain and certbot ---
 # If you have obtained a certificate for pong42.click with certbot on your host,
@@ -54,11 +54,11 @@ COPY src/client/assets/img /usr/share/nginx/html/assets/img
 COPY configs/nginx.conf /etc/nginx/nginx.conf
 
 # Set proper permissions
-RUN chmod 644 /etc/nginx/ssl/cert.pem && \
-    chmod 600 /etc/nginx/ssl/key.pem
+#RUN chmod 644 /etc/nginx/ssl/cert.pem && \
+#    chmod 600 /etc/nginx/ssl/key.pem
 
 # Expose ports
-EXPOSE 8080 443
+EXPOSE 80 443
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
