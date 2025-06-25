@@ -13,108 +13,68 @@ import { statsRoutes } from './stats.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
-	await app.register(healthRoutes)
 
 	// API routes with /api prefix
 	await app.register(async function (fastify) {
+		await app.register(healthRoutes)
 		await fastify.register(authRoutes, { prefix: '/auth' })
 		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
 		await fastify.register(friendsRoutes);
 		await fastify.register(statsRoutes);
 	}, { prefix: '/api' })
+app.get('/avatars/:filename', async (request, reply) => {
+    const { filename } = request.params as { filename: string };
 
-    app.get('/avatars/:filename', async (request: FastifyRequest, reply: FastifyReply) => {
-        try {
-            const { filename } = request.params as { filename: string };
-            console.log('🖼️ Avatar request for:', filename);
+    // Use different paths for development vs production
+    let avatarDir: string;
 
-            // Validate filename for security
-            if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-                console.log('❌ Invalid filename:', filename);
-                return reply.code(400).send({ error: 'Invalid filename' });
-            }
+    if (process.env.NODE_ENV === 'production') {
+        // In Docker container, use the uploaded avatars directory
+        avatarDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
+    } else {
+        // In development, use the source directory
+        avatarDir = path.join(process.cwd(), 'src/server/db/users');
+    }
 
-            const uploadDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
-            const filePath = path.join(uploadDir, filename);
+    const avatarPath = path.join(avatarDir, filename);
 
-            console.log('🔍 Looking for avatar at:', filePath);
-            console.log('📁 Upload directory:', uploadDir);
-
-            // Check if upload directory exists
-            if (!fs.existsSync(uploadDir)) {
-                console.log('❌ Upload directory does not exist:', uploadDir);
-                return reply.code(404).send({ error: 'Upload directory not found' });
-            }
-
-            // Check if file exists
-            if (!fs.existsSync(filePath)) {
-                console.log('❌ Avatar file not found:', filePath);
-
-                // List files for debugging
-                try {
-                    const files = fs.readdirSync(uploadDir);
-                    console.log('📋 Files in upload directory:', files);
-                } catch (listError) {
-                    console.log('❌ Could not list directory contents:', listError);
-                }
-
-                return reply.code(404).send({ error: 'Avatar not found' });
-            }
-
-            // Get file stats
-            const stats = fs.statSync(filePath);
-            console.log('✅ File found, size:', stats.size);
-
-            // Determine content type from extension
-            const ext = path.extname(filename).toLowerCase();
-            let contentType = 'application/octet-stream';
-
-            switch (ext) {
-                case '.jpg':
-                case '.jpeg':
-                    contentType = 'image/jpeg';
-                    break;
-                case '.png':
-                    contentType = 'image/png';
-                    break;
-                case '.gif':
-                    contentType = 'image/gif';
-                    break;
-                case '.svg':
-                    contentType = 'image/svg+xml';
-                    break;
-                case '.webp':
-                    contentType = 'image/webp';
-                    break;
-            }
-
-            // Set proper headers
-            reply.header('Content-Type', contentType);
-            reply.header('Content-Length', stats.size);
-            reply.header('Cache-Control', 'public, max-age=86400'); // 1 day cache
-            reply.header('Last-Modified', stats.mtime.toUTCString());
-            reply.header('Accept-Ranges', 'bytes');
-
-            console.log('📤 Serving avatar with content-type:', contentType);
-
-            // Create read stream and send file
-            const stream = fs.createReadStream(filePath);
-
-            // Handle stream errors
-            stream.on('error', (streamError) => {
-                console.error('❌ Stream error:', streamError);
-                if (!reply.sent) {
-                    reply.code(500).send({ error: 'Failed to read file' });
-                }
-            });
-
-            return reply.send(stream);
-
-        } catch (error) {
-            console.error('❌ Avatar serving error:', error);
-            return reply.code(500).send({ error: 'Internal server error' });
-        }
+    console.log('🔍 Avatar request:', {
+        filename,
+        avatarDir,
+        avatarPath,
+        nodeEnv: process.env.NODE_ENV,
+        exists: fs.existsSync(avatarPath)
     });
+
+    try {
+        if (fs.existsSync(avatarPath)) {
+            console.log('✅ Serving avatar from:', avatarPath);
+            return reply.sendFile(filename, avatarDir);
+        } else {
+            console.log('❌ Avatar not found, trying default');
+
+            // Try default from the same directory first
+            const defaultPath = path.join(avatarDir, 'default.svg');
+            if (fs.existsSync(defaultPath)) {
+                console.log('✅ Serving default avatar from:', defaultPath);
+                return reply.sendFile('default.svg', avatarDir);
+            } else {
+                // Fallback to development path for default avatar
+                const devDefaultPath = path.join(process.cwd(), 'src/server/db/users', 'default.svg');
+                if (fs.existsSync(devDefaultPath)) {
+                    console.log('✅ Serving default avatar from dev path:', devDefaultPath);
+                    return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
+                } else {
+                    console.log('❌ Default avatar not found anywhere');
+                    return reply.code(404).send({ error: 'Avatar not found' });
+                }
+            }
+        }
+    } catch (error) {
+        console.error('❌ Avatar serving error:', error);
+        return reply.code(404).send({ error: 'Avatar not found' });
+    }
+});
 
 }

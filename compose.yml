@@ -18,7 +18,8 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - BASE_URL=https://localhost:8443
       - GOOGLE_REDIRECT_URI=https://localhost:8443/api/auth/oauth2/google/callback
-      - AVATAR_UPLOAD_DIR=/app/uploads/avatars
+      # Set to use db/users directory consistently
+      - AVATAR_UPLOAD_DIR=/app/src/server/db/users
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
@@ -28,8 +29,6 @@ services:
       start_period: 40s
     networks:
       - transcendence
-    volumes:
-      - avatar_uploads:/app/uploads/avatars
 
   nginx:
     build:
@@ -47,7 +46,3 @@ services:
 networks:
   transcendence:
     driver: bridge
-
-volumes:
-  avatar_uploads:
-    driver: local

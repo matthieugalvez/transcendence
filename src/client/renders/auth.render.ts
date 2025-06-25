@@ -507,7 +507,6 @@ export class AuthRender {
 				submitButton.textContent = 'Checking...';
 
 				try {
-					// Use the existing service method
 					const availabilityResult = await UserService.checkDisplayNameAvailability(displayName);
 
 					console.log('🔍 Display name availability result:', availabilityResult);

@@ -46,19 +46,22 @@ COPY --from=builder /app/prisma ./prisma
 
 # Create data directory with proper permissions
 RUN mkdir -p /app/data && \
-	mkdir -p /app/uploads/avatars && \
+    mkdir -p /app/src/server/db/users && \
     chown -R node:node /app && \
     chmod -R 755 /app && \
-    chmod -R 777 /app/uploads/avatars
+    chmod -R 777 /app/src/server/db/users
+
+# Copy the default avatar from the builder stage
+COPY --from=builder /app/src/server/db/users/default.svg /app/src/server/db/users/default.svg
+
+# Set proper permissions for the default avatar
+RUN chmod 644 /app/src/server/db/users/default.svg && chown node:node /app/src/server/db/users/default.svg
 
 # Switch to non-root user
 USER node
 
 # Set the DATABASE_URL environment variable
 ENV DATABASE_URL="file:./data/transcendence.db"
-ENV AVATAR_UPLOAD_DIR="/app/uploads/avatars"
-
-
 
 # Initialize database and seed data
 RUN npx prisma db push --accept-data-loss && \

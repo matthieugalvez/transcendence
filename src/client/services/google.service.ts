@@ -6,11 +6,27 @@ export class GoogleService {
         try {
             console.log('🔍 Initiating Google signin...');
 
-            // Always use the current page's origin for consistency
-            const baseUrl = window.location.origin;
+            // Determine the correct base URL based on environment
+            let baseUrl: string;
+
+            // Check if we're in development (Vite dev server)
+            if (window.location.port === '5173' || window.location.hostname === 'localhost' && window.location.protocol === 'http:') {
+                // In development, redirect to the backend server
+                baseUrl = 'http://localhost:3000';
+            } else {
+                // In production, use current origin
+                baseUrl = window.location.origin;
+            }
+
             const googleUrl = `${baseUrl}/api/auth/oauth2/google`;
 
-            console.log('🔗 Redirecting to:', googleUrl);
+            console.log('🔗 Google signin URL:', {
+                currentOrigin: window.location.origin,
+                currentPort: window.location.port,
+                baseUrl,
+                googleUrl
+            });
+
             window.location.href = googleUrl;
         } catch (error) {
             console.error('❌ Error initiating Google signin:', error);

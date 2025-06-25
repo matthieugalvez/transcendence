@@ -30,6 +30,16 @@ export class SidebarComponent {
 			space-y-4 z-11
     	`.trim();
 
+		console.log('🔍 Sidebar Avatar URL Debug:', {
+    avatarUrl,
+    type: typeof avatarUrl,
+    isNull: avatarUrl === null,
+    isUndefined: avatarUrl === undefined,
+    isEmpty: avatarUrl === '',
+    isNullString: avatarUrl === 'null'
+});
+
+
 		// Profil picture of user (with default one if none)
 		// console.log(`Avatar URL: ${avatarUrl}`);
 		const profilPic = document.createElement('img');

@@ -60,12 +60,15 @@ export class UserController {
 			if (!user) {
 				return Send.notFound(reply, 'User not found');
 			}
-			// AVATAR
+
+			// Handle avatar URL - if it's just a filename, create the proper URL
 			let avatarUrl = user.avatar;
-			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
-				// Extract filename from path
-				const filename = avatarUrl.replace('./db/users/', '');
-				avatarUrl = `/avatars/${filename}`;
+			if (avatarUrl && !avatarUrl.startsWith('/avatars/')) {
+				// If it's just a filename, prepend /avatars/
+				avatarUrl = `/avatars/${avatarUrl}`;
+			} else if (!avatarUrl) {
+				// No avatar set, use default
+				avatarUrl = `/avatars/default.svg`;
 			}
 
 			const userData = {
@@ -74,14 +77,14 @@ export class UserController {
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,
-				updated_at: user.updated_at // Fix: was update_at
+				updated_at: user.updated_at
 			};
 
 			return Send.success(reply, userData, 'Current user retrieved successfully');
 
 		} catch (error) {
-			console.error('Get current user error:', error);
-			return Send.internalError(reply, 'Failed to get current user');
+			console.error('Error fetching current user:', error);
+			return Send.internalError(reply, 'Failed to fetch user data');
 		}
 	}
 
@@ -180,81 +183,84 @@ export class UserController {
 		return Send.success(reply, {}, 'Avatar link succes');
 	}
 
-	static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
-		try {
-			console.log('=== AVATAR UPLOAD DEBUG ===');
 
-			const userId = (request as any).userId;
-			if (!userId) {
-				return Send.unauthorized(reply, 'Authentication required');
-			}
+static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
+    try {
+        console.log('=== AVATAR UPLOAD DEBUG ===');
 
-			const data = await request.file();
-			if (!data) {
-				return Send.badRequest(reply, 'No file uploaded');
-			}
+        const userId = (request as any).userId;
+        if (!userId) {
+            return Send.unauthorized(reply, 'Authentication required');
+        }
 
-			// Validate file type and size
-			if (!data.mimetype.startsWith('image/')) {
-				return Send.badRequest(reply, 'Only image files are allowed');
-			}
+        const data = await request.file();
+        if (!data) {
+            return Send.badRequest(reply, 'No file uploaded');
+        }
 
-			const fileSize = parseInt(request.headers['content-length'] || '0');
-			if (fileSize > 5 * 1024 * 1024) {
-				return Send.badRequest(reply, 'File size must be less than 5MB');
-			}
+        // Validate file type and size
+        if (!data.mimetype.startsWith('image/')) {
+            return Send.badRequest(reply, 'Only image files are allowed');
+        }
 
-			// Create upload directory
-			const uploadDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
-			if (!fs.existsSync(uploadDir)) {
-				fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 });
-			}
+        const fileSize = parseInt(request.headers['content-length'] || '0');
+        if (fileSize > 5 * 1024 * 1024) {
+            return Send.badRequest(reply, 'File size must be less than 5MB');
+        }
 
-			// Generate filename with proper extension
-			const fileExtension = path.extname(data.filename || '');
-			const timestamp = Date.now();
-			const fileName = `${userId}_${timestamp}${fileExtension || '.jpg'}`;
-			const filePath = path.join(uploadDir, fileName);
+        // Use the same directory as defined in environment variable
+        const uploadDir = process.env.AVATAR_UPLOAD_DIR || path.join(process.cwd(), 'src/server/db/users');
+        console.log('📁 Using upload directory:', uploadDir);
 
-			console.log('💾 Saving file:', {
-				fileName,
-				filePath,
-				uploadDir,
-				originalName: data.filename,
-				mimetype: data.mimetype
-			});
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 });
+        }
 
-			// Save the file
-			await pump(data.file, fs.createWriteStream(filePath, { mode: 0o666 }));
+        // Generate filename with proper extension
+        const fileExtension = path.extname(data.filename || '');
+        const timestamp = Date.now();
+        const fileName = `${userId}_${timestamp}${fileExtension || '.jpg'}`;
+        const filePath = path.join(uploadDir, fileName);
 
-			// Verify file was saved
-			if (!fs.existsSync(filePath)) {
-				throw new Error('File was not saved successfully');
-			}
+        console.log('💾 Saving file:', {
+            fileName,
+            filePath,
+            uploadDir,
+            originalName: data.filename,
+            mimetype: data.mimetype
+        });
 
-			const stats = fs.statSync(filePath);
-			console.log('✅ File saved successfully:', {
-				size: stats.size,
-				path: filePath
-			});
+        // Save the file
+        await pump(data.file, fs.createWriteStream(filePath, { mode: 0o666 }));
 
-			// Update database
-			const avatarUrl = `/avatars/${fileName}`;
-			await UserService.updateUserAvatar(userId, avatarUrl);
+        // Verify file was saved
+        if (!fs.existsSync(filePath)) {
+            throw new Error('File was not saved successfully');
+        }
 
-			console.log('✅ Database updated with avatar URL:', avatarUrl);
+        const stats = fs.statSync(filePath);
+        console.log('✅ File saved successfully:', {
+            size: stats.size,
+            path: filePath
+        });
 
-			return Send.success(reply, {
-				avatarUrl: avatarUrl,
-				fileName: fileName,
-				message: 'Avatar uploaded successfully'
-			}, 'Avatar uploaded successfully');
+        // Update database with just the filename (not full path)
+        await UserService.updateUserAvatar(userId, fileName);
 
-		} catch (error) {
-			console.error('❌ Avatar upload error:', error);
-			return Send.internalError(reply, 'Failed to upload avatar');
-		}
-	}
+        console.log('✅ Database updated with avatar filename:', fileName);
+
+        return Send.success(reply, {
+            avatarUrl: `/avatars/${fileName}`,
+            fileName: fileName,
+            message: 'Avatar uploaded successfully'
+        }, 'Avatar uploaded successfully');
+
+    } catch (error) {
+        console.error('❌ Avatar upload error:', error);
+        return Send.internalError(reply, 'Failed to upload avatar');
+    }
+}
+
 
 
 
@@ -346,7 +352,6 @@ export class UserController {
 				return Send.notFound(reply, 'User not found');
 			}
 
-			// Handle avatar URL - same as existing method
 			let avatarUrl = user.avatar;
 			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
 				const filename = avatarUrl.replace('./db/users/', '');

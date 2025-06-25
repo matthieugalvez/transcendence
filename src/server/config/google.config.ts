@@ -5,7 +5,24 @@ import { appConfig } from "./app.config.js";
 export const createGoogleOAuth2Options = (request: FastifyRequest) => {
   const protocol = request.protocol;
   const host = request.headers.host;
-  const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
+
+  // Determine base URL based on environment
+  let baseUrl: string;
+
+  if (process.env.NODE_ENV === 'production') {
+    baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
+  } else {
+    // In development, use the backend server URL (not the Vite dev server)
+    baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  }
+
+  console.log('🔍 Google OAuth config:', {
+    nodeEnv: process.env.NODE_ENV,
+    protocol,
+    host,
+    baseUrl,
+    callbackUri: `${baseUrl}/api/auth/oauth2/google/callback`
+  });
 
   return {
     name: 'GoogleOAuth2',
@@ -34,6 +51,6 @@ export const googleOAuth2Options = {
     auth: OAuth2.GOOGLE_CONFIGURATION
   },
   startRedirectPath: '/api/auth/oauth2/google',
-  // Use the BASE_URL from environment
-  callbackUri: `${process.env.BASE_URL || 'https://localhost:8443'}/api/auth/oauth2/google/callback`,
+  // Use the BASE_URL from environment or fallback
+  callbackUri: `${process.env.BASE_URL || 'http://localhost:3000'}/api/auth/oauth2/google/callback`,
 };

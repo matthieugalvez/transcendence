@@ -36,13 +36,13 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Create directories for additional assets
 RUN mkdir -p /usr/share/nginx/html/assets/fonts
-RUN mkdir -p /usr/share/nginx/html/avatars
+RUN mkdir -p /usr/share/nginx/html/assets/img
 
-# Copy font files from source (since they might not be in dist)
+# Copy font files from source
 COPY src/client/assets/fonts /usr/share/nginx/html/assets/fonts
 
-# Create default avatar SVG (single line to avoid parsing issues)
-RUN echo '<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" fill="#e2e8f0"/><circle cx="50" cy="35" r="15" fill="#94a3b8"/><ellipse cx="50" cy="75" rx="25" ry="20" fill="#94a3b8"/></svg>' > /usr/share/nginx/html/avatars/default.svg
+# Copy image files from source
+COPY src/client/assets/img /usr/share/nginx/html/assets/img
 
 # Copy nginx configuration
 COPY configs/nginx.conf /etc/nginx/nginx.conf
