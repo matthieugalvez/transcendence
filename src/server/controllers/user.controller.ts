@@ -320,9 +320,9 @@ export class UserController {
 			const userData = users.map(user => ({
 				id: user.id,
 				displayName: user.displayName,
-				avatar: user.avatar?.startsWith('./db/users/')
-					? `/avatars/${user.avatar.replace('./db/users/', '')}`
-					: user.avatar
+				avatar: user.avatar
+					? (user.avatar.startsWith('/avatars/') ? user.avatar : `/avatars/${user.avatar}`)
+					: '/avatars/default.svg'
 			}));
 
 			return Send.success(reply, userData, 'Users search completed');
