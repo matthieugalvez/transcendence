@@ -302,7 +302,7 @@ export class UserService {
 
 	static async getUserProfileByDisplayName(displayName: string): Promise<{ id: string; name: string; displayName: string; avatar: string; created_at: string; updated_at: string }> {
 		try {
-			const response = await ApiClient.authenticatedFetch(`/api/users/profile/${encodeURIComponent(displayName.toLowerCase().trim())}`);
+			const response = await ApiClient.authenticatedFetch(`/api/users/profile/${encodeURIComponent(displayName)}`);
 
 			const data = await response.json();
 
