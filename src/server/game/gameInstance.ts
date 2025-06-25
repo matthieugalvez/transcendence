@@ -142,8 +142,8 @@ export class GameInstance {
 	}
 
 	private runTickLoop() {
-		if (!this.isRunning && !this.intervalHandle) {
-			// Don't run if destroyed
+		if (!this.isRunning) {
+			this.intervalHandle = undefined;
 			return;
 		}
 		const now = Date.now();
@@ -158,6 +158,7 @@ export class GameInstance {
 
 		this.intervalHandle = setTimeout(() => this.runTickLoop(), nextTick);
 	}
+
 
 
 	/** ---------- PUBLIC METHODS ----------- */
@@ -329,16 +330,6 @@ export class GameInstance {
 
 			// Only create match if both players exist in database
 			if (playerOne && playerTwo) {
-				let gameResult = {
-					gameId: this.gameId,
-					playerOneId: playerOne.id,
-					playerTwoId: playerTwo.id,
-					winnerId: winnerUser ? winnerUser.id : null,
-					playerOneScore: this.score1,
-					playerTwoScore: this.score2,
-					matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
-				};
-
 				// Call setGameStats with proper validation
 				await setGameStats(
 					this.gameId,
@@ -357,10 +348,7 @@ export class GameInstance {
 				});
 			}
 
-			if (this.intervalHandle) {
-				clearTimeout(this.intervalHandle);
-				this.intervalHandle = undefined;
-			}
+			this.isRunning = false;
 			removeGameRoom(this.gameId);
 			return;
 		}
