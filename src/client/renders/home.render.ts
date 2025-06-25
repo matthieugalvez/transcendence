@@ -153,17 +153,11 @@ export class HomeRender {
 				rank.className = `font-bold w-6 text-center ${index < 3 ? 'text-yellow-400' : 'text-white/70'}`;
 
 				const avatar = document.createElement('img');
-				avatar.src = player.avatar && player.avatar !== 'null' && player.avatar !== 'undefined' && player.avatar.trim() !== ''
-					? player.avatar
-					: '/avatars/default.svg';
+				avatar.src = player.avatar
+				console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
 				avatar.alt = player.displayName;
 				avatar.className = 'w-6 h-6 rounded-full flex-shrink-0';
 
-				avatar.onerror = () => {
-					if (!avatar.src.endsWith('/avatars/default.svg')) {
-						avatar.src = '/avatars/default.svg';
-					}
-				};
 
 				const name = document.createElement('span');
 				name.textContent = player.displayName;
