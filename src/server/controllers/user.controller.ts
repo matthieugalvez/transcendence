@@ -184,82 +184,82 @@ export class UserController {
 	}
 
 
-static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
-    try {
-        console.log('=== AVATAR UPLOAD DEBUG ===');
+	static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			console.log('=== AVATAR UPLOAD DEBUG ===');
 
-        const userId = (request as any).userId;
-        if (!userId) {
-            return Send.unauthorized(reply, 'Authentication required');
-        }
+			const userId = (request as any).userId;
+			if (!userId) {
+				return Send.unauthorized(reply, 'Authentication required');
+			}
 
-        const data = await request.file();
-        if (!data) {
-            return Send.badRequest(reply, 'No file uploaded');
-        }
+			const data = await request.file();
+			if (!data) {
+				return Send.badRequest(reply, 'No file uploaded');
+			}
 
-        // Validate file type and size
-        if (!data.mimetype.startsWith('image/')) {
-            return Send.badRequest(reply, 'Only image files are allowed');
-        }
+			// Validate file type and size
+			if (!data.mimetype.startsWith('image/')) {
+				return Send.badRequest(reply, 'Only image files are allowed');
+			}
 
-        const fileSize = parseInt(request.headers['content-length'] || '0');
-        if (fileSize > 5 * 1024 * 1024) {
-            return Send.badRequest(reply, 'File size must be less than 5MB');
-        }
+			const fileSize = parseInt(request.headers['content-length'] || '0');
+			if (fileSize > 5 * 1024 * 1024) {
+				return Send.badRequest(reply, 'File size must be less than 5MB');
+			}
 
-        // Use the same directory as defined in environment variable
-        const uploadDir = process.env.AVATAR_UPLOAD_DIR || path.join(process.cwd(), 'src/server/db/users');
-        console.log('📁 Using upload directory:', uploadDir);
+			// Use the same directory as defined in environment variable
+			const uploadDir = process.env.AVATAR_UPLOAD_DIR || path.join(process.cwd(), 'src/server/db/users');
+			console.log('📁 Using upload directory:', uploadDir);
 
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 });
-        }
+			if (!fs.existsSync(uploadDir)) {
+				fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 });
+			}
 
-        // Generate filename with proper extension
-        const fileExtension = path.extname(data.filename || '');
-        const timestamp = Date.now();
-        const fileName = `${userId}_${timestamp}${fileExtension || '.jpg'}`;
-        const filePath = path.join(uploadDir, fileName);
+			// Generate filename with proper extension
+			const fileExtension = path.extname(data.filename || '');
+			const timestamp = Date.now();
+			const fileName = `${userId}_${timestamp}${fileExtension || '.jpg'}`;
+			const filePath = path.join(uploadDir, fileName);
 
-        console.log('💾 Saving file:', {
-            fileName,
-            filePath,
-            uploadDir,
-            originalName: data.filename,
-            mimetype: data.mimetype
-        });
+			console.log('💾 Saving file:', {
+				fileName,
+				filePath,
+				uploadDir,
+				originalName: data.filename,
+				mimetype: data.mimetype
+			});
 
-        // Save the file
-        await pump(data.file, fs.createWriteStream(filePath, { mode: 0o666 }));
+			// Save the file
+			await pump(data.file, fs.createWriteStream(filePath, { mode: 0o666 }));
 
-        // Verify file was saved
-        if (!fs.existsSync(filePath)) {
-            throw new Error('File was not saved successfully');
-        }
+			// Verify file was saved
+			if (!fs.existsSync(filePath)) {
+				throw new Error('File was not saved successfully');
+			}
 
-        const stats = fs.statSync(filePath);
-        console.log('✅ File saved successfully:', {
-            size: stats.size,
-            path: filePath
-        });
+			const stats = fs.statSync(filePath);
+			console.log('✅ File saved successfully:', {
+				size: stats.size,
+				path: filePath
+			});
 
-        // Update database with just the filename (not full path)
-        await UserService.updateUserAvatar(userId, fileName);
+			// Update database with just the filename (not full path)
+			await UserService.updateUserAvatar(userId, fileName);
 
-        console.log('✅ Database updated with avatar filename:', fileName);
+			console.log('✅ Database updated with avatar filename:', fileName);
 
-        return Send.success(reply, {
-            avatarUrl: `/avatars/${fileName}`,
-            fileName: fileName,
-            message: 'Avatar uploaded successfully'
-        }, 'Avatar uploaded successfully');
+			return Send.success(reply, {
+				avatarUrl: `/avatars/${fileName}`,
+				fileName: fileName,
+				message: 'Avatar uploaded successfully'
+			}, 'Avatar uploaded successfully');
 
-    } catch (error) {
-        console.error('❌ Avatar upload error:', error);
-        return Send.internalError(reply, 'Failed to upload avatar');
-    }
-}
+		} catch (error) {
+			console.error('❌ Avatar upload error:', error);
+			return Send.internalError(reply, 'Failed to upload avatar');
+		}
+	}
 
 
 
@@ -353,11 +353,13 @@ static async uploadAvatar(request: FastifyRequest, reply: FastifyReply) {
 			}
 
 			let avatarUrl = user.avatar;
-			if (avatarUrl && avatarUrl.startsWith('./db/users/')) {
-				const filename = avatarUrl.replace('./db/users/', '');
+			if (avatarUrl && !avatarUrl.startsWith('/avatars/')) {
+				// If it's just a filename or starts with ./db/users/, normalize it
+				const filename = avatarUrl.replace(/^\.\/db\/users\//, '');
 				avatarUrl = `/avatars/${filename}`;
+			} else if (!avatarUrl) {
+				avatarUrl = '/avatars/default.svg';
 			}
-
 			const userData = {
 				id: user.id,
 				displayName: user.displayName,
