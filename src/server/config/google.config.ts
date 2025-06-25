@@ -7,12 +7,11 @@ export const createGoogleOAuth2Options = (request: FastifyRequest) => {
   const host = request.headers.host;
 
   // Determine base URL based on environment
-  let baseUrl: string;
 
+  let baseUrl: string;
   if (process.env.NODE_ENV === 'production') {
     baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
   } else {
-    // In development, use the backend server URL (not the Vite dev server)
     baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   }
 

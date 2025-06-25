@@ -1,4 +1,4 @@
-FROM node:24-alpine AS builder
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --loglevel verbose
 
 # Copy configuration files needed for build
 COPY configs ./configs/
@@ -31,7 +31,7 @@ RUN mkdir -p /etc/nginx/ssl
 #    -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
 #    -addext "subjectAltName=DNS:localhost,DNS:app,IP:127.0.0.1"
 
-	# --- For production with a real domain and certbot ---
+    # --- For production with a real domain and certbot ---
 # If you have obtained a certificate for pong42.click with certbot on your host,
 # you can mount or copy it into the container like this:
 # COPY /var/cert/fullchain.pem /etc/nginx/ssl/cert.pem
@@ -61,4 +61,4 @@ COPY configs/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80 443
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon]

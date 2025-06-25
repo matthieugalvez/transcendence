@@ -1,4 +1,4 @@
-FROM node:24-alpine AS builder
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
@@ -23,10 +23,10 @@ COPY src ./src/
 RUN npm run build:frontend && npm run build:backend
 
 # Production stage
-FROM node:18-alpine
+FROM node:24-slim
 
 # Install curl and other dependencies
-RUN apk add --no-cache curl ca-certificates
+RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm install --omit=dev
+RUN npm install --omit=dev --loglevel verbose
 
 # Copy built backend from builder stage
 COPY --from=builder /app/dist-back ./dist-back
