@@ -1,6 +1,6 @@
 import type { WebSocket } from 'ws';
-import type { GameState } from '../config/game.types';
-import { removeGameRoom } from './gameRooms';
+import type { GameState } from '../config/game.types.js';
+import { removeGameRoom } from './gameRooms.js';
 import { v4 as uuidv4 } from 'uuid';
 import { UserService } from '../services/users.service';
 
