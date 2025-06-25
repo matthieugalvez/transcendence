@@ -44,30 +44,29 @@ export class UserSearchComponent {
 
 			container.innerHTML = '';
 
-			users.forEach(user => {
+			users.forEach(async user => {
 				const userItem = document.createElement('div');
 				userItem.className = `
-                    flex items-center justify-between p-3
-                    bg-white border-2 border-black rounded-lg
-                    hover:bg-gray-50 transition-colors
-                `;
+        flex items-center justify-between p-3
+        bg-white border-2 border-black rounded-lg
+        hover:bg-gray-50 transition-colors
+    `;
 
 				userItem.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <img src="${user.avatar || '/avatars/default.svg'}"
-                             alt="${user.displayName}"
-                             class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
-                        <div>
-                            <p class="font-bold text-gray-900">${user.displayName}</p>
-                        </div>
-                    </div>
-                `;
+        <div class="flex items-center space-x-3">
+            <img src="${user.avatar || '/avatars/default.svg'}"
+                 alt="${user.displayName}"
+                 class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
+            <div>
+                <p class="font-bold text-gray-900">${user.displayName}</p>
+            </div>
+        </div>
+    `;
 
 				// Create button container
 				const buttonContainer = document.createElement('div');
 				buttonContainer.className = 'flex gap-2';
 
-				// Add different buttons based on context
 				if (onSelect) {
 					// Select button (for tournament selection, etc.)
 					const selectBtn = document.createElement('button');
@@ -83,14 +82,21 @@ export class UserSearchComponent {
 					viewBtn.addEventListener('click', () => router.navigate(`/profile/${user.displayName}`));
 					buttonContainer.appendChild(viewBtn);
 
-					// Add friend button
-					const addBtn = document.createElement('button');
-					addBtn.textContent = 'Add Friend';
-					addBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm';
-					addBtn.addEventListener('click', async () => {
-						await this.handleAddFriend(user, addBtn);
-					});
-					buttonContainer.appendChild(addBtn);
+					// Check friendship status before showing Add Friend
+					try {
+						const statusResult = await UserService.getFriendshipStatus(user.id);
+						if (statusResult.status === 'none') {
+							const addBtn = document.createElement('button');
+							addBtn.textContent = 'Add Friend';
+							addBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm';
+							addBtn.addEventListener('click', async () => {
+								await this.handleAddFriend(user, addBtn);
+							});
+							buttonContainer.appendChild(addBtn);
+						}
+					} catch (e) {
+						console.log('Error retrieving friendship status', e);
+					}
 				}
 
 				userItem.appendChild(buttonContainer);

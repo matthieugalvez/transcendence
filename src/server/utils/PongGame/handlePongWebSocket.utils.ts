@@ -75,7 +75,7 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
   if (playerToken) {
     const success = game.tryReconnectPlayer(playerToken, ws);
     if (!success) {
-        ws.send(JSON.stringify({ type: 'error', error: 'invalid_token' }));
+        ws.send(JSON.stringify({ type: 'error', error: 'invalid_token', clearCookies: true }));
         ws.close();
     }
 	console.log("Attaching message handler for game", gameId);
