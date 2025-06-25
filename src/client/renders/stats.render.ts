@@ -16,7 +16,8 @@ export class StatsRender {
         avatarContainer.className = 'relative';
 
         const avatar = document.createElement('img');
-        avatar.src = user.avatar || '/avatars/default.svg';
+        avatar.src = user.avatar;
+		console.log(`Avatar URL for stats: ${user.avatar}`);
         avatar.alt = user.displayName;
         avatar.className = 'w-14 h-14 rounded-full border-2 border-purple-400 shadow';
 
