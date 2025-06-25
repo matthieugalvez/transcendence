@@ -358,7 +358,7 @@ export class GameInstance {
 			}
 
 			if (this.intervalHandle) {
-				clearInterval(this.intervalHandle);
+				clearTimeout(this.intervalHandle);
 				this.intervalHandle = undefined;
 			}
 			removeGameRoom(this.gameId);
