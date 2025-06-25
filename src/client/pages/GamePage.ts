@@ -8,6 +8,7 @@ import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
 import { deleteCookie } from '../utils/cookies.utils';
+import previewImg from '../assets/gameimg/screen-pongGame.png'
 
 // memoriser etat de la partie en cours
 let pongHandle: { start: () => void; socket: any } | null = null;
@@ -64,7 +65,7 @@ function createGameControls(
     controls.remove();
     onTournament();
   };
-  controls.appendChild(tourBtn);
+  controls.appendChild(tourBtn);'../assets/gameimg/screen-pongGame.png';
 
   wrapper.appendChild(controls);
 }
@@ -143,11 +144,11 @@ export async function renderPongGamePage() {
   gameContainer.appendChild(initialTitle);
 
   // screen du jeu avant toute partie
-  const previewImg = document.createElement('img');
-  previewImg.src = '../assets/gameimg/screen-pongGame.png';
-  previewImg.alt = 'Pong preview';
-  previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-  gameContainer.appendChild(previewImg);
+  const previewImgElement = document.createElement('img');
+  previewImgElement.src = previewImg;
+  previewImgElement.alt = 'Pong preview';
+  previewImgElement.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
+  gameContainer.appendChild(previewImgElement);
 
   createGameControls(
     wrapper,
