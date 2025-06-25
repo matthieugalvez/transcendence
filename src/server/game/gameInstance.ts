@@ -65,7 +65,6 @@ export class GameInstance {
 	private basePaddleSpeed = 400;
 	private tickIntervalMs = 1000 / 60;
 	private intervalHandle?: NodeJS.Timeout;
-	private running = false;
 
 
 constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
@@ -75,12 +74,12 @@ constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
     this.paddle2Pos = { x: this.canvasWidth - 20 - this.paddleWidth, y: (this.canvasHeight - this.paddleHeight) / 2 };
     this.ballPos = { x: this.canvasWidth / 2, y: this.canvasHeight / 2 };
     this.ballVel = this.randomBallVel();
-    this.running = true; // <--- Make sure this is set!
+    this.isRunning = false;
     this.runTickLoop();
 }
 
 	private runTickLoop() {
-		if (!this.running) return;
+		if (!this.isRunning) return;
 		const start = Date.now();
 
 		this.tick().finally(() => {
@@ -141,7 +140,6 @@ constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
 	// start game
 	public start() {
 		this.isRunning = true;
-		this.running = true;
 		this.resetBall();
 		if (this.pauseTimeoutHandle) {
 			clearTimeout(this.pauseTimeoutHandle);
