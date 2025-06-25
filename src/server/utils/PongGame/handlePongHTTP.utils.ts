@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { createGameRoom, getGameRoom } from '../../game/gameRooms';
-import { createTournamentRoom, getTournamentRoom } from '../../game/tournamentRooms';
+import { createGameRoom, getGameRoom } from '../../game/gameRooms.js';
+import { createTournamentRoom, getTournamentRoom } from '../../game/tournamentRooms.js';
 
 /** Création d’une nouvelle partie via HTTP (pour CLI) */
 export async function handleStartGame(request: FastifyRequest, reply: FastifyReply) {
@@ -14,7 +14,7 @@ export async function handleStartGame(request: FastifyRequest, reply: FastifyRep
   return reply.send({ success: true, gameId });
 }
 
-/** Démarrer un TOURNOI (4 joueurs) */ 
+/** Démarrer un TOURNOI (4 joueurs) */
 export async function handleStartTournament(req: FastifyRequest, reply: FastifyReply) {
   const gameId = uuidv4();
   const difficulty = (req.body as any)?.difficulty || 'MEDIUM';

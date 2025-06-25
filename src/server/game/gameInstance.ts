@@ -1,12 +1,12 @@
 import type { WebSocket } from 'ws';
-import type { GameState } from '../../client/types/game.types';
-import { removeGameRoom } from './gameRooms';
+import type { GameState } from '../types/game.types.js';
+import { removeGameRoom } from './gameRooms.js';
 import { v4 as uuidv4 } from 'uuid';
-import { GameService } from '../../client/services/game.service';
-import { UserService } from '../services/users.service';
-import { StatsController } from '../controllers/stats.controller'
+import { UserService } from '../services/users.service.js';
+import { StatsController } from '../controllers/stats.controller.js'
 
-import { StatsService } from '../services/stats.service';
+import { StatsService } from '../services/stats.service.js';
+
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 

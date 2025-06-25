@@ -34,7 +34,7 @@ function createGameWebSocket(
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const port = 3000;
   const playerToken = getCookie(`pongPlayerToken-${gameId}`);
-  let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+let wsUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
   // if (playerToken) wsUrl += `?playerToken=${playerToken}`;
   // else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
   const params: string[] = [];
@@ -187,7 +187,7 @@ function startClientInputLoop(
           socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
         }
       }
-      
+
     }
     requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
   }
@@ -335,7 +335,7 @@ export function showGameOverOverlay(
     setTimeout(() => {
       window.dispatchEvent(new Event('app:close-sockets'));
       router.navigate('/statistics');
-    }, 2000); 
+    }, 2000);
   }
 }
 

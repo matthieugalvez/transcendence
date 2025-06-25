@@ -1,8 +1,9 @@
 import { router } from '../configs/simplerouter';
 import { CommonComponent } from '../components/common.component';
+import { WebSocketService } from '../services/websocket.service';
 
 export class StatsRender {
-    private static createStatsHeader(user: any, isOwnStats: boolean): HTMLElement {
+        private static createStatsHeader(user: any, isOwnStats: boolean): HTMLElement {
         const header = document.createElement('div');
         header.className = 'flex items-center justify-between mb-8';
 
@@ -10,18 +11,69 @@ export class StatsRender {
         title.textContent = isOwnStats ? 'Your Stats' : `${user.displayName}'s Stats`;
         title.className = `font-['Orbitron'] text-3xl font-bold text-gray-900`;
 
-        // Optionally add avatar
+        // Avatar container with status dot
+        const avatarContainer = document.createElement('div');
+        avatarContainer.className = 'relative';
+
         const avatar = document.createElement('img');
-        avatar.src = user.avatar || '/avatars/default.svg';
+        avatar.src = user.avatar;
+		console.log(`Avatar URL for stats: ${user.avatar}`);
         avatar.alt = user.displayName;
         avatar.className = 'w-14 h-14 rounded-full border-2 border-purple-400 shadow';
 
+        // Add status dot (same logic as ProfileRender)
+        const statusDot = document.createElement('span');
+        statusDot.setAttribute('data-user-status', user.id);
+        statusDot.style.position = 'absolute';
+        statusDot.style.bottom = '2px';
+        statusDot.style.right = '2px';
+        statusDot.style.display = 'inline-block';
+        statusDot.style.width = '12px';
+        statusDot.style.height = '12px';
+        statusDot.style.borderRadius = '50%';
+        statusDot.style.background = 'gray';
+        statusDot.style.border = '2px solid white';
+        statusDot.title = 'Checking status...';
+
+        const wsService = WebSocketService.getInstance();
+
+        // Set up status change listener (same as ProfileRender)
+        wsService.onStatusChange((userId, isOnline) => {
+            if (userId === user.id) {
+                statusDot.style.background = isOnline ? 'green' : 'red';
+                statusDot.title = isOnline ? 'Online' : 'Offline';
+            }
+        });
+
+        // Get initial status (same as ProfileRender)
+        (async () => {
+            try {
+                const connected = await wsService.waitForConnection(3000);
+                if (connected) {
+                    setTimeout(() => {
+                        const isOnline = wsService.isUserOnline(user.id);
+                        statusDot.style.background = isOnline ? 'green' : 'red';
+                        statusDot.title = isOnline ? 'Online' : 'Offline';
+                    }, 500);
+                } else {
+                    statusDot.style.background = 'red';
+                    statusDot.title = 'Offline';
+                }
+            } catch (error) {
+                console.error('Error getting initial status:', error);
+                statusDot.style.background = 'red';
+                statusDot.title = 'Offline';
+            }
+        })();
+
+        avatarContainer.appendChild(avatar);
+        avatarContainer.appendChild(statusDot);
+
         header.appendChild(title);
-        header.appendChild(avatar);
+        header.appendChild(avatarContainer);
 
         return header;
     }
-
     static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
         const container = document.createElement('div');
         container.className = 'min-h-screen flex items-center justify-center p-8';

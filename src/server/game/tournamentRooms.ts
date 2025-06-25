@@ -1,5 +1,5 @@
 import type { WebSocket } from 'ws';
-import { GameInstance } from './gameInstance';
+import { GameInstance } from './gameInstance.js';
 
 export type TournamentDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 

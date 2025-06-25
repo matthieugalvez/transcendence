@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { HealthService } from "../services/health.service"
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { HealthService } from "../services/health.service.js"
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 export class HealthController {
 	static async healthCheck(request: FastifyRequest, reply: FastifyReply) {

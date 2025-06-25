@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import { FriendshipStatus } from '@prisma/client'
 
 
@@ -113,7 +113,7 @@ export class FriendService {
 	}
 
 	// Get pending friend requests
-	static async getPendingRequests(userId: number) {
+	static async getPendingRequests(userId: string) {
 		return await prisma.friendship.findMany({
 			where: {
 				receiverId: userId,
@@ -121,7 +121,7 @@ export class FriendService {
 			},
 			include: {
 				sender: {
-					select: { id: true, username: true, email: true }
+					select: { id: true, displayName: true, email: true }
 				}
 			}
 		});
