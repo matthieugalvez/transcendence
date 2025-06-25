@@ -46,6 +46,7 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
+	console.log("handlePongWebSocket called", req.url);
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
   const mode = req.query.mode as string | undefined;
@@ -77,6 +78,8 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
         ws.send(JSON.stringify({ type: 'error', error: 'invalid_token' }));
         ws.close();
     }
+	console.log("Attaching message handler for game", gameId);
+
     attachMessageHandler(ws, game);
 	console.log("We are here");
     return;
