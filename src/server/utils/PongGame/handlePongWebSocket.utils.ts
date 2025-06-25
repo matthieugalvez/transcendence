@@ -2,6 +2,7 @@ import type { WebSocket } from 'ws';
 import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms';
 import { GameInstance } from '../../game/gameInstance';
 import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms';
+import { router } from '../../../client/configs/simplerouter';
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   ws.on('message', (data: string) => {
