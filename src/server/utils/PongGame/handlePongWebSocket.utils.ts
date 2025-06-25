@@ -1,7 +1,7 @@
 import type { WebSocket } from 'ws';
-import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms';
+import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms.js';
 import { GameInstance } from '../../game/gameInstance';
-import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms';
+import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms.js';
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   ws.on('message', (data: string) => {
