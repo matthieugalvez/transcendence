@@ -317,6 +317,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           if (playerId === 1 || playerId === 2) {
             pongHandle?.start();
             if (canvas) canvas.classList.remove('blur-xs');
+			if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
             waiting.remove();
             gameStarted = true;
             resumeAlertShown = false;
