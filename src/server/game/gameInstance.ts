@@ -2,7 +2,6 @@ import type { WebSocket } from 'ws';
 import type { GameState } from '../types/game.types';
 import { removeGameRoom } from './gameRooms';
 import { v4 as uuidv4 } from 'uuid';
-import { GameService } from '../../client/services/game.service.js';
 import { UserService } from '../services/users.service.js';
 import { StatsController } from '../controllers/stats.controller.js'
 
