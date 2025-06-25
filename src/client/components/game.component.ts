@@ -78,7 +78,7 @@ export class GameSettingsComponent {
             startBtn.classList.add('w-full');
             startBtn.onclick = () => callbacks.onStartGame?.('solo', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
-            
+
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
@@ -289,7 +289,7 @@ export class GameSettingsComponent {
                 };
                 settingsBar.appendChild(startBtn);
             }
-           
+
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
