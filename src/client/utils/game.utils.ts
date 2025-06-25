@@ -34,7 +34,7 @@ function createGameWebSocket(
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const port = 3000;
   const playerToken = getCookie(`pongPlayerToken-${gameId}`);
-  let wsUrl = `${protocol}://${location.hostname}:${port}/ws/pong/${gameId}`;
+let wsUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
   // if (playerToken) wsUrl += `?playerToken=${playerToken}`;
   // else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
   const params: string[] = [];
