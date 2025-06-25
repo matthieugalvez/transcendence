@@ -4,8 +4,9 @@ import { GameSettingsComponent } from '../components/game.component';
 import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
+
+import { GameService } from "../services/game.service";
 import {
   hideOverlay,
   startPongInContainer,
@@ -112,16 +113,27 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
   const matchTitle = `${hostUsername} vs ${guestUsername}`;
   // duo finish
   const onFinish = mode === 'duo'
-    ? (winnerId: number) => {
+    ? async (winnerId: number, score1: number, score2: number) => {
         const titleText = gameContainer.querySelector('h2')!.textContent!;
         const [hostName, guestName] = titleText.split(' vs ');
         const winnerName = winnerId === 1 ? hostName : guestName;
-        showGameOverOverlay(wrapper, `${winnerName}`, () => {
-          pongHandle?.socket.close();
-          deleteCookie(`pongPlayerToken-${gameId}`);
-          deleteCookie(`pongPlayerId-${gameId}`);
-          renderJoinPage(params)
-        });
+        const p1 = await UserService.getUserProfileByDisplayName(hostName);
+        const p2 = await UserService.getUserProfileByDisplayName(guestName);
+
+        showGameOverOverlay(wrapper, `${winnerName}`, "online");
+        // pongHandle?.socket.close();
+        // deleteCookie(`pongPlayerToken-${gameId}`);
+        // deleteCookie(`pongPlayerId-${gameId}`);
+
+        await GameService.createMatch(gameId, {
+          playerOneId: p1.id,
+          playerTwoId: p2.id,
+          winnerId: winnerId === 1 ? p1.id : p2.id,
+          matchType: 'ONE_V_ONE',
+          playerOneScore: score1,
+          playerTwoScore: score2
+        }
+        ).catch(err => console.error('Erreur stats:', err));
       }
     : () => {};
   const wsHandler = startPongInContainer(
@@ -256,21 +268,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
           transition.appendChild(winnerMsg);
           // Bouton replay
-          const replayBtn = CommonComponent.createStylizedButton('Play again', 'orange');
+          const replayBtn = CommonComponent.createStylizedButton('Back to home', 'orange');
           replayBtn.classList.add('mt-4');
-          replayBtn.onclick = () => router.navigate('/game');
+          replayBtn.onclick = () => router.navigate('/statistics');
           transition.appendChild(replayBtn);
 
           wrapper.appendChild(transition);
-
-          // TournamentComponent.showTransitionPanel(
-          //   gameContainer,
-          //   currentMatchIndex,
-          //   matchups,
-          //   data.winner,
-          //   winners,
-          //   () => {}
-          // );
         }
       }
 
@@ -292,6 +295,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
             renderSettingsBar();
             resumeAlertShown = true;
             hideOverlay();
+            previewImg.remove();
           } else {
             waiting.textContent = "Waiting for the host to restart the game...";
             hideOverlay();
@@ -300,6 +304,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
         // rendu classique debut de partie
         if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
+          previewImg.remove();
           renderSettingsBar();
           isrendered = false;
           hideOverlay();
@@ -328,6 +333,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           gameStarted = true;
           resumeAlertShown = false;
           hideOverlay();
+          previewImg.remove();
         }
       }
     } catch {}

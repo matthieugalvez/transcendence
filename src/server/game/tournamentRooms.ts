@@ -92,7 +92,15 @@ export class TournamentRoom {
   private handleMatchEnd(winnerId: number) {
     if (!this.currentPlayers) return;
     const winner = winnerId === 1 ? this.currentPlayers[0] : this.currentPlayers[1];
-    this.broadcastAll(JSON.stringify({ type: 'matchEnd', winner: winner.username }));
+    // this.broadcastAll(JSON.stringify({ type: 'matchEnd', winner: winner.username }));
+    const state = this.currentGame!.getCurrentState();
+    this.broadcastAll(JSON.stringify({
+      type: 'matchEnd',
+      winner: winner.username,
+      score1: state.score1,
+      score2: state.score2,
+      matchType: 'TOURNAMENT',
+    }));
     if (this.currentMatch < 2) {
       this.winners.push(winner);
     }

@@ -2,11 +2,7 @@ import type { WebSocket } from 'ws';
 import type { GameState } from '../config/game.types'
 import { removeGameRoom } from './gameRooms.js';
 import { v4 as uuidv4 } from 'uuid';
-import { UserService } from '../services/users.service.js';
-import { StatsController } from '../controllers/stats.controller.js'
-
-import { StatsService } from '../services/stats.service.js';
-// Import NodeJS types for Timeout
+import { UserService } from '../services/users.service';
 
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
@@ -21,65 +17,6 @@ type PlayerInfo = {
 	playerToken: string,
 	ws: WebSocket | null,
 };
-
-
-const setGameStats = async (
-	gameId: string,
-	playerOneId: string,
-	playerTwoId: string,
-	winnerId: string | null,
-	playerOneScore: number,
-	playerTwoScore: number,
-	matchType: 'ONE_V_ONE' | 'TOURNAMENT'
-) => {
-	try {
-		// Validate that both players exist before creating the match
-		console.log('🔍 Attempting to create match with:', {
-			gameId,
-			playerOneId,
-			playerTwoId,
-			winnerId,
-			matchType
-		});
-
-		// Check if players exist
-		const playerOne = await UserService.getUserById(playerOneId);
-		const playerTwo = await UserService.getUserById(playerTwoId);
-
-		if (!playerOne) {
-			console.error('❌ Player One not found:', playerOneId);
-			return null;
-		}
-
-		if (!playerTwo) {
-			console.error('❌ Player Two not found:', playerTwoId);
-			return null;
-		}
-
-		// Validate winner exists if provided
-		if (winnerId && winnerId !== playerOneId && winnerId !== playerTwoId) {
-			console.error('❌ Winner ID does not match any player:', winnerId);
-			return null;
-		}
-
-		const match = await StatsService.createMatch(
-			gameId,
-			playerOneId,
-			playerTwoId,
-			winnerId,
-			matchType,
-			playerOneScore,
-			playerTwoScore
-		);
-
-		console.log('🏓 Match recorded successfully:', match);
-		return match;
-	} catch (error) {
-		console.error('🏓 Failed to record match:', error);
-		return null;
-	}
-};
-
 
 /**
  * Store state of game
@@ -262,91 +199,73 @@ constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM') {
 		return player?.playerToken;
 	}
 
-	/** ----------- PRIVATE METHODS ------------ */
-	private setupDisconnect(ws: WebSocket, id: number) {
-		ws.on('close', () => {
-			const player = this.players.find(p => p.playerId === id);
-			if (player) player.ws = null;
-			this.broadcastState(this.isRunning);
-			if (this.players.every(p => !p.ws)) {
-				this.destroy();
-				removeGameRoom(this.gameId);
-			} else {
-				this.startPauseOnDisconnect();
-			}
-		});
-	}
-	// to have random initial velocity of ball
-	private randomBallVel(): Velocity {
-		const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
-		const dir = Math.random() < 0.5 ? -1 : 1;
-		return {
-			vx: this.currentBallSpeed * Math.cos(angle) * dir,
-			vy: this.currentBallSpeed * Math.sin(angle),
-		};
-	}
-	// if no player we stop the instance
-	private destroy() {
-		this.running = false;
-		if (this.intervalHandle) {
-			clearTimeout(this.intervalHandle);
-			this.intervalHandle = undefined;
-		}
-	}
-	// move paddle up or down
-	private movePaddle(paddlePos: Position, action: 'up' | 'down', dt: number) {
-		if (action === 'up') {
-			paddlePos.y = Math.max(0, paddlePos.y - this.paddleSpeed * dt);
-		} else {
-			paddlePos.y = Math.min(
-				this.canvasHeight - this.paddleHeight,
-				paddlePos.y + this.paddleSpeed * dt
-			);
-		}
-	}
-	// 60 FPS loop
-	private async tick() {
-		// Get users by username first
-		let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
-		let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
-
-		if (!this.isRunning || this.isPaused) {
-			this.broadcastState(false);
-			return;
-		}
-
-		this.moveBall();
-		this.checkCollisions();
-		this.checkScoreAndReset();
-		const ended = this.checkEndOfGame();
-
-		if (ended) {
-			this.broadcastState(false);
-			const winner = this.score1 > this.score2 ? 1 : 2;
-			const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
-			let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
-
-			if (this.onEndCallback) this.onEndCallback(winner);
-
-			// Only create match if both players exist in database
-			if (playerOne && playerTwo) {
-				// Call setGameStats with proper validation
-				await setGameStats(
-					this.gameId,
-					playerOne.id,
-					playerTwo.id,
-					winnerUser ? winnerUser.id : null,
-					this.score1,
-					this.score2,
-					'ONE_V_ONE'
-				);
-			} else {
-				console.warn('⚠️  Cannot create match: One or both players not found in database', {
-					playerOne: playerOne ? playerOne.id : 'NOT_FOUND',
-					playerTwo: playerTwo ? playerTwo.id : 'NOT_FOUND',
-					usernames: [this.players[0].username, this.players[1].username]
-				});
-			}
+    /** ----------- PRIVATE METHODS ------------ */
+    private setupDisconnect(ws: WebSocket, id: number) {
+        ws.on('close', () => {
+            const player = this.players.find(p => p.playerId === id);
+            if (player) player.ws = null;
+            this.broadcastState(this.isRunning);
+            if (this.players.every(p => !p.ws)) {
+                this.destroy();
+                removeGameRoom(this.gameId);
+            } else {
+            this.startPauseOnDisconnect();
+            }
+        });
+    }
+    // to have random initial velocity of ball
+    private randomBallVel(): Velocity {
+        const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        return {
+            vx: this.currentBallSpeed * Math.cos(angle) * dir,
+            vy: this.currentBallSpeed * Math.sin(angle),
+        };
+    }
+    // if no player we stop the instance
+    private destroy() {
+        if (this.intervalHandle) {
+            clearInterval(this.intervalHandle);
+            this.intervalHandle = undefined;
+        }
+    }
+    // move paddle up or down
+    private movePaddle(paddlePos: Position, action: 'up' | 'down', dt: number) {
+        if (action === 'up') {
+            paddlePos.y = Math.max(0, paddlePos.y - this.paddleSpeed * dt);
+        } else {
+            paddlePos.y = Math.min(
+                this.canvasHeight - this.paddleHeight,
+                paddlePos.y + this.paddleSpeed * dt
+            );
+        }
+    }
+    // 60 FPS loop
+    private async tick() {
+        if (!this.isRunning || this.isPaused) {
+            this.broadcastState(false);
+            return;
+        }
+        this.moveBall();
+        this.checkCollisions();
+        this.checkScoreAndReset();
+        const ended = this.checkEndOfGame();
+        if (ended) {
+            this.broadcastState(false);
+            const winner = this.score1 > this.score2 ? 1 : 2;
+            const payload = JSON.stringify({
+                type: 'matchEnd',
+                winner,
+                score1: this.score1,
+                score2: this.score2,
+                matchType: 'ONE_V_ONE'
+            });
+            this.broadcastToAll(payload);
+            if (this.onEndCallback) this.onEndCallback(winner);
+            // if (this.intervalHandle)
+            this.destroy();
+            return;
+        }
 
 			this.isRunning = false;
 			removeGameRoom(this.gameId);
