@@ -6,6 +6,9 @@ import { UserService } from '../services/users.service.js';
 import { StatsController } from '../controllers/stats.controller.js'
 
 import { StatsService } from '../services/stats.service.js';
+// Import NodeJS types for Timeout
+import type {} from 'node';
+
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -141,23 +144,14 @@ export class GameInstance {
 		this.runTickLoop();
 	}
 
-	private runTickLoop() {
-		if (!this.isRunning) {
-			this.intervalHandle = undefined;
-			return;
-		}
-		const now = Date.now();
-		const elapsed = now - this.lastTickTime;
-		this.lastTickTime = now;
-
-		this.tick();
-
-		// Calculate drift and adjust next tick
-		const drift = elapsed - this.tickIntervalMs;
-		const nextTick = Math.max(0, this.tickIntervalMs - drift);
-
-		this.intervalHandle = setTimeout(() => this.runTickLoop(), nextTick);
-	}
+    private runTickLoop() {
+        if (this.intervalHandle) {
+            clearInterval(this.intervalHandle);
+        }
+        this.intervalHandle = setInterval(() => {
+            this.tick();
+        }, this.tickIntervalMs);
+    }
 
 
 
@@ -287,12 +281,12 @@ export class GameInstance {
 		};
 	}
 	// if no player we stop the instance
-	private destroy() {
-		if (this.intervalHandle) {
-			clearTimeout(this.intervalHandle);
-			this.intervalHandle = undefined;
-		}
-	}
+    private destroy() {
+        if (this.intervalHandle) {
+            clearInterval(this.intervalHandle);
+            this.intervalHandle = undefined;
+        }
+    }
 	// move paddle up or down
 	private movePaddle(paddlePos: Position, action: 'up' | 'down', dt: number) {
 		if (action === 'up') {
