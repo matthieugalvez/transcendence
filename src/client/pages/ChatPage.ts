@@ -39,6 +39,7 @@ export async function renderChatPage() {
 	BackgroundComponent.applyCenteredGradientLayout();
 
 	const	title_box = document.createElement('div');
+	title_box.title = 'title_box';
 	title_box.className = `
 		font-['Orbitron']
 		text-white font-semibold
@@ -58,6 +59,7 @@ export async function renderChatPage() {
 	document.body.appendChild(title_box);
 
 	const	messages_box = document.createElement('div');
+	messages_box.title = 'messages_box';
 	messages_box.className = `
         fixed top-[7%] h-[65%] w-[95%]
         bg-amber-300/50
@@ -71,10 +73,12 @@ export async function renderChatPage() {
     `.trim();
 	messages_box.style.overflow = 'auto';
 
-	getAllMessagescb;
+	await getAllMessages(user.id, receiver.id, messages_box);
 	document.body.appendChild(messages_box);
+	messages_box.scrollTop = messages_box.scrollHeight;
 
 	const	prompt_box = document.createElement('div');
+	prompt_box.title = 'prompt_box';
 	prompt_box.className = `
         fixed bottom-5 h-[25%] w-[99%]
         bg-amber-300/50
@@ -88,6 +92,7 @@ export async function renderChatPage() {
 	`.trim()
 
 	const	prompt_title = document.createElement('label');
+	prompt_title.title = 'prompt_title';
 	prompt_title.className = `
     font-['Orbitron']
     text-white font-semibold
@@ -95,6 +100,7 @@ export async function renderChatPage() {
 	prompt_title.textContent = 'New message:';
 
 	const	prompt_area = document.createElement('textarea');
+	prompt_area.title = 'prompt_area';
 	prompt_area.className = `
     font-['Orbitron']
     bg-purple-900/100 backdrop-blur-2xl
@@ -110,7 +116,6 @@ export async function renderChatPage() {
 	prompt_area.placeholder = 'Type Message here...';
 
 	prompt_area.onkeydown = async (event) => {
-		console.log(event.key);
 		if (event.key === "Enter" && prompt_area.value) {
 			await ChatService.postMessage(receiver.id, prompt_area.value);
 			prompt_area.value = '';
@@ -119,6 +124,7 @@ export async function renderChatPage() {
 	};
 
 	const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
+	send_button.title = 'send_button';
 	send_button.style.position = 'inherit';
 	send_button.style.right = '35px';
 	send_button.style.bottom = '35px';
@@ -139,27 +145,43 @@ export async function renderChatPage() {
 }
 
 async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
+	const	previous_fetch = g_last_fetch_date;
+	const	messages_list = messages_box.childNodes;
 	let		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
 	g_last_fetch_date = new Date();
 
 	for (const message of messages) {
-		if (message.sender_id === user_id)
-			makeMsgBox(messages_box, message, false);
-		if (message.receiver_id === user_id)
-			makeMsgBox(messages_box, message, true);
-	}
-	if (messages.length) {
-		messages_box.scrollTop = messages_box.scrollHeight;
+		if (previous_fetch
+			&& message.created_at < previous_fetch.toJSON()
+			&& message.updated_at > previous_fetch.toJSON()) {
+			for (const message_box of messages_list) {
+				if (message.id == message_box.title) {
+					message_box.firstElementChild.firstElementChild.textContent = `\n${message.content} `;
+				}
+			}
+		} else {
+			let	message_box;
+
+			if (message.sender_id === user_id)
+				message_box = makeMsgBox(messages_box, message, false);
+			if (message.receiver_id === user_id)
+				message_box = makeMsgBox(messages_box, message, true);
+			if (previous_fetch && message === messages[0]) {
+				message_box.scrollIntoView({behavior: 'smooth', block: 'center'});
+			}
+		}
 	}
 }
 
 function makeMsgBox(content_box: Element, message, received: boolean) {
 	const	box = document.createElement('div');
+	box.title = `${message.id}`;
 	box.className = `
 	w-full flex flex-col
 	`.trim();
 
 	const	box_content = document.createElement('div');
+	box_content.title = 'box_content';
 	box_content.className = `
     font-['Orbitron']
     backdrop-blur-2xl
@@ -175,6 +197,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_content.style.maxWidth = '40%';
 
 	const	box_text = document.createElement('div');
+	box_text.title = 'box_text';
 	box_text.className = `
 	w-full h-full
 	px-2
@@ -188,8 +211,8 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	box_content.appendChild(box_text);
 
-
 	const	box_date = document.createElement('div');
+	box_date.title = 'box_date';
 	box_date.className = `
     font-['Orbitron']
 	absolute top-[-10px] left-[-10px]
@@ -210,9 +233,10 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_date.style.whiteSpace = 'wrap';
 	box_date.style.maxHeight = '25px';
 	box_date.style.maxWidth = '50%';
-	box_date.style.overflow = 'auto';
+//	box_date.style.overflow = 'auto';
 
 	const	buttons_box = document.createElement('div');
+	buttons_box.title = 'buttons_box';
 	buttons_box.className = `
 	absolute
 	w-full h-full
@@ -220,6 +244,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	buttons_box.style.display = 'none';
 
 	const	edit_button = document.createElement('div');
+	edit_button.title = 'edit_button';
 	edit_button.className = `
     font-['Orbitron']
 	h-[50%]
@@ -237,12 +262,14 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 
 	edit_button.onclick = async () => {
 		if (!g_edit_box) {
-			const prompt_area = makeEditPromptArea(message, content_box, box_text);
+			const prompt_area = makeEditPromptArea(message, box_text);
 			box.appendChild(prompt_area);
+			prompt_area.scrollIntoView({behavior: 'smooth', block: 'center'});
 		}
 	}
 
 	const	delete_button = document.createElement('div');
+	delete_button.title = 'delete_button';
 	delete_button.className = `
     font-['Orbitron']
 	h-[50%]
@@ -289,14 +316,18 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	content_box.appendChild(box);
 
 	const	margin = document.createElement('div');
+	margin.title = 'margin';
 	margin.style.margin = '5px';
 	box.appendChild(margin);
+
+	return (box);
 }
 
-function	makeEditPromptArea(message, content_box: Element, box_text: Element) {
+function	makeEditPromptArea(message, box_text: Element) {
 	g_edit_box = true;
 
 	const	prompt_box = document.createElement('div');
+	prompt_box.title = 'prompt_box';
 	prompt_box.className = `
         bg-amber-300/50
         rounded-lg text-lg transition-colors
@@ -309,6 +340,7 @@ function	makeEditPromptArea(message, content_box: Element, box_text: Element) {
 	`.trim()
 
 	const	prompt_title = document.createElement('label');
+	prompt_title.title = 'prompt_title';
 	prompt_title.className = `
     font-['Orbitron']
     text-white font-semibold
@@ -316,6 +348,7 @@ function	makeEditPromptArea(message, content_box: Element, box_text: Element) {
 	prompt_title.textContent = 'Edit message:';
 
 	const	prompt_area = document.createElement('textarea');
+	prompt_area.title = 'prompt_area';
 	prompt_area.className = `
     font-['Orbitron']
     bg-purple-900/100 backdrop-blur-2xl
@@ -328,38 +361,43 @@ function	makeEditPromptArea(message, content_box: Element, box_text: Element) {
     disabled:opacity-50 disabled:cursor-not-allowed
 	resize-none
 	`.replace(/\s+/g, ' ').trim()
-	prompt_area.value = message.content;
+	if (box_text.textContent) {
+		prompt_area.value = box_text.textContent.trim();
+	}
 
 	prompt_area.onkeydown = async (event) => {
 		console.log(event.key);
 		if (event.key === "Enter" && prompt_area.value) {
 			await ChatService.editMessage(message.id, prompt_area.value.trim());
-			box_text.textContent = `\n ${prompt_area.value}`;
+			box_text.textContent = `\n${prompt_area.value}`;
 			g_edit_box = false;
 			prompt_box.remove();
 		}
 	};
 
 	const	button_area = document.createElement('div');
+	button_area.title = 'button_area';
 	button_area.className = `
 	grid grid-flow-col place-items-center
 	w-full
 	`;
 
 	const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
+	send_button.title = 'send_button';
 	send_button.style.width = 'fit-content';
 	send_button.style.blockSize = 'fit-content';
 	send_button.style.padding = '10px';
 	send_button.onclick = async () => {
 		if (prompt_area.value) {
 			await ChatService.editMessage(message.id, prompt_area.value.trim());
-			box_text.textContent = `\n ${prompt_area.value}`;
+			box_text.textContent = `\n${prompt_area.value}`;
 			g_edit_box = false;
 			prompt_box.remove();
 		}
 	};
 
 	const	close_button = CommonComponent.createStylizedButton("Close", 'red');
+	close_button.title = 'close_button';
 	close_button.style.width = 'fit-content';
 	close_button.style.blockSize = 'fit-content';
 	close_button.style.padding = '10px';

@@ -27,9 +27,6 @@ export class ChatService {
 	static async	getMessages(userId: string, otheruserId: string, last_fetch?: Date) {
 		return await prisma.message.findMany({
 			where: {
-				created_at: {
-					gte: last_fetch,
-				},
 				OR: [
 					{
 						sender_id: userId,
@@ -39,6 +36,22 @@ export class ChatService {
 						sender_id: otheruserId,
 						receiver_id: userId
 					}
+				],
+				AND: [
+					{
+					OR: [
+						{
+							created_at: {
+								gte: last_fetch,
+							},
+						},
+						{
+							updated_at: {
+								gte: last_fetch,
+							}
+						},
+						],
+					},
 				]
 			}
 		})
