@@ -85,6 +85,7 @@ export class UserSearchComponent {
 					// Check friendship status before showing Add Friend
 					try {
 						const statusResult = await UserService.getFriendshipStatus(user.id);
+
 						if (statusResult.status === 'none') {
 							const addBtn = document.createElement('button');
 							addBtn.textContent = 'Add Friend';
@@ -93,6 +94,24 @@ export class UserSearchComponent {
 								await this.handleAddFriend(user, addBtn);
 							});
 							buttonContainer.appendChild(addBtn);
+						} else if (statusResult.status === 'pending') {
+							const pendingBtn = document.createElement('button');
+							pendingBtn.textContent = 'Request Sent';
+							pendingBtn.className = 'px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed text-sm';
+							pendingBtn.disabled = true;
+							buttonContainer.appendChild(pendingBtn);
+						} else if (statusResult.status === 'incoming') {
+							const incomingBtn = document.createElement('button');
+							incomingBtn.textContent = 'Incoming Request';
+							incomingBtn.className = 'px-3 py-1 bg-yellow-500 text-white rounded cursor-not-allowed text-sm';
+							incomingBtn.disabled = true;
+							buttonContainer.appendChild(incomingBtn);
+						} else if (statusResult.status === 'friends') {
+							const friendsBtn = document.createElement('button');
+							friendsBtn.textContent = 'Friends';
+							friendsBtn.className = 'px-3 py-1 bg-green-600 text-white rounded cursor-not-allowed text-sm';
+							friendsBtn.disabled = true;
+							buttonContainer.appendChild(friendsBtn);
 						}
 					} catch (e) {
 						console.log('Error retrieving friendship status', e);
