@@ -162,7 +162,7 @@ export class GameInstance {
         player.ws = ws;
         this.setupDisconnect(ws, player.playerId);
         this.cancelPauseOnReconnect();
-        this.broadcastState(this.isRunning);  
+        this.broadcastState(this.isRunning);
         this.broadcastPlayerReconnected(player.playerId);
         ws.send(JSON.stringify({ type: "resume", message: "You have reconnected. Game resumes." }));
         ws.send(JSON.stringify({
@@ -245,8 +245,17 @@ export class GameInstance {
             this.destroy();
             return;
         }
-        this.broadcastState(true);
+
+        if (this.intervalHandle) {
+            clearInterval(this.intervalHandle);
+            this.intervalHandle = undefined;
+        }
+        removeGameRoom(this.gameId);
+        return;
     }
+
+    this.broadcastState(this.isRunning);
+}
 
 	private moveBall() {
 		const dt = 1 / 60;
@@ -436,10 +445,10 @@ export class GameInstance {
     }
 
     private broadcastPlayerReconnected(playerId: number) {
-    const payload = JSON.stringify({ 
-        type: 'playerReconnected', 
+    const payload = JSON.stringify({
+        type: 'playerReconnected',
         playerId,
-        message: `Player ${playerId} has reconnected.` 
+        message: `Player ${playerId} has reconnected.`
     });
     this.broadcastToAll(payload);
     }
