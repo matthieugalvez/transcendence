@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy configuration files
 COPY configs ./configs/
@@ -34,7 +34,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm install --omit=dev --loglevel verbose
+RUN npm ci
 
 # Copy built backend from builder stage
 COPY --from=builder /app/dist-back ./dist-back

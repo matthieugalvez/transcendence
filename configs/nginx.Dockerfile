@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --loglevel verbose
+RUN npm ci
 
 # Copy configuration files needed for build
 COPY configs ./configs/
