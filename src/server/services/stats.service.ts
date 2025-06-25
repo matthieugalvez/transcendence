@@ -209,6 +209,7 @@ export class StatsService {
             // Transform data to include user info at top level
             return leaderboard.map(stats => ({
                 ...stats.user,
+				avatar: stats.user.avatar,
                 oneVOneWins: stats.oneVOneWins,
                 oneVOneLosses: stats.oneVOneLosses,
                 tournamentWins: stats.tournamentWins,
