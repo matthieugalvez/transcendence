@@ -78,6 +78,7 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
         ws.close();
     }
     attachMessageHandler(ws, game);
+	console.log("We are here");
     return;
   }
 
