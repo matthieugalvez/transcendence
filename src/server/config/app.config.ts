@@ -1,43 +1,41 @@
 interface AppConfig {
-  port: number;
-  host: string;
-  protocol: 'http' | 'https';
-  baseUrl: string;
-  clientUrl: string;
-  isDevelopment: boolean;
-  isProduction: boolean;
+	port: number;
+	host: string;
+	protocol: 'http' | 'https';
+	baseUrl: string;
+	clientUrl: string;
+	isDevelopment: boolean;
+	isProduction: boolean;
 }
 
 const createAppConfig = (): AppConfig => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  // Server configuration
-  const port = parseInt(process.env.PORT || '3000');
-  const host = process.env.HOST || 'localhost';
+	const isDevelopment = process.env.NODE_ENV === 'development';
+	const isProduction = process.env.NODE_ENV === 'production';
 
-  // Base URL (where the API is accessible from outside)
-  const baseUrl = process.env.BASE_URL || (isProduction ? 'https://localhost:8443' : 'http://localhost:3000');
+	// Server configuration
+	const port = parseInt(process.env.PORT || '3000');
+	const host = process.env.HOST || 'localhost';
 
-  // Client URL (where the frontend is served from)
-  const clientUrl = process.env.CLIENT_URL || (isProduction ? 'https://localhost:8443' : 'http://localhost:5173');
+	// Base URL (where the API is accessible from outside)
+	const baseUrl = process.env.BASE_URL || (isProduction ? 'https://pong42.click' : 'http://localhost:3000');
+	const clientUrl = process.env.CLIENT_URL || (isProduction ? 'https://pong42.click' : 'http://localhost:5173');
 
-  const protocol = baseUrl.startsWith('https') ? 'https' : 'http';
+	const protocol = baseUrl.startsWith('https') ? 'https' : 'http';
 
-  return {
-    port,
-    host,
-    protocol,
-    baseUrl,
-    clientUrl,
-    isDevelopment,
-    isProduction
-  };
+	return {
+		port,
+		host,
+		protocol,
+		baseUrl,
+		clientUrl,
+		isDevelopment,
+		isProduction
+	};
 };
 
 export const appConfig = createAppConfig();
 
 // Helper function to get redirect URL for auth flows
 export const getAuthRedirectUrl = (path: string): string => {
-  return `${appConfig.clientUrl}${path}`;
+	return `${appConfig.clientUrl}${path}`;
 };
