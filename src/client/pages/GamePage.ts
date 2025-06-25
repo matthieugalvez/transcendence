@@ -157,7 +157,7 @@ export async function renderPongGamePage() {
       GameSettingsComponent.render('solo', {
         onStartGame: async () => {
           gameContainer.removeChild(initialTitle);
-          if (previewImg.parentNode) previewImg.remove();
+          if (previewImgElement.parentNode) previewImgElement.remove();
           const res = await fetch('/api/game/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -210,7 +210,7 @@ export async function renderPongGamePage() {
           // --- LOCAL ---
           if (mode === 'duo-local') {
             gameContainer.removeChild(initialTitle);
-            if (previewImg.parentNode) previewImg.remove();
+            if (previewImgElement.parentNode) previewImgElement.remove();
             const res = await fetch('/api/game/start', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
