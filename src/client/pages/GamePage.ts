@@ -211,6 +211,7 @@ export async function renderPongGamePage() {
           if (mode === 'duo-local') {
             gameContainer.removeChild(initialTitle);
             if (previewImgElement.parentNode) previewImgElement.remove();
+			// A CHANGER: APICLIENT.AUTHENTICATEDFETCH !!!!!!! PAS SAFE
             const res = await fetch('/api/game/start', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
