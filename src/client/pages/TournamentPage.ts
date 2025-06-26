@@ -117,26 +117,10 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
       async (winnerId, score1, score2) => {
-        // const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
-        // const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
+
         const p1 = participants.find(p => p.alias === leftAlias)!;
         const p2 = participants.find(p => p.alias === rightAlias)!;
         const winnerAliasId = winnerId === 1 ? p1.id : p2.id;
-        // if (!aliasesIdArray.length) {
-        //   aliasesIdArray = [
-        //     ...(await Promise.all(aliases.map(a =>
-        //       UserService.getUserProfileByDisplayName(a).then(u => u.id)
-        //     )))
-        //   ]
-        // }
-        // await GameService.createMatch(gameId, {
-        //   playerOneId: p1.id,
-        //   playerTwoId: p2.id,
-        //   winnerId: winnerId === 1 ? p1.id : p2.id,
-        //   matchType: 'TOURNAMENT',
-        //   playerOneScore: score1,
-        //   playerTwoScore: score2
-        // });
         playedMatches.push({
           playerOneId: p1.id,
           playerTwoId: p2.id,
@@ -149,6 +133,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 
         if (i === matchups.length - 1) {
           try {
+			console.log('typeof GameService.createTournament:', typeof GameService.createTournament);
             await GameService.createTournament({
               tournamentId: gameId,
               participants: participantsIds,
