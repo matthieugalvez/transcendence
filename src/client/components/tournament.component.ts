@@ -32,11 +32,50 @@ export class TournamentComponent {
       slot.className = 'w-full mb-2';
       overlay.appendChild(slot);
       slots.push({ elem: slot });
-      // pour chaque slot, on rend un UserSearchComponent et on récupère la sélection
-      UserSearchComponent.render(slot, async (user) => {
-        slots[i].user = user.displayName;
-        checkReady();
-      });
+
+      // rendre la search et resultats
+      function renderSearchUI() {
+        slot.innerHTML = '';
+        const searchSection = document.createElement('div');
+        slot.appendChild(searchSection);
+        UserSearchComponent.render(searchSection, (user) => {
+          // verif si deja selectionner
+          const already = slots.some((s, idx) => idx !== i && s.user === user.displayName);
+          if (already) {
+            alert("User already selected!");
+            return;
+          }
+          // on sélectionne
+          slots[i].user = user.displayName;
+          checkReady();
+          renderSelectedUI(user);
+        });
+      }
+      // UI une fois qu’on a sélectionné
+      function renderSelectedUI(user: { displayName: string; avatar: string; id: string }) {
+        slot.innerHTML = '';
+        const pill = document.createElement('div');
+        pill.className = 'flex items-center justify-between p-2 bg-purple-900/60 text-white rounded';
+        pill.innerHTML = `
+          <span>${user.displayName}</span>
+        `;
+        const deselectBtn = document.createElement('button');
+        deselectBtn.textContent = 'Deselect';
+        deselectBtn.className = 'ml-4 px-2 py-1 bg-red-600 rounded hover:bg-red-700';
+        deselectBtn.addEventListener('click', () => {
+          slots[i].user = undefined;
+          checkReady();
+          renderSearchUI();
+        });
+        pill.appendChild(deselectBtn);
+        slot.appendChild(pill);
+      }
+      // // pour chaque slot, on rend un UserSearchComponent et on récupère la sélection
+      // UserSearchComponent.render(slot, async (user) => {
+      //   slots[i].user = user.displayName;
+      //   checkReady();
+      // });
+      renderSearchUI();
     }
 
     const startBtn = document.createElement('button');

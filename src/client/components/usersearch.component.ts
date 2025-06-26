@@ -39,10 +39,11 @@ export class UserSearchComponent {
         try {
             // You'll need to implement this in UserService
             const users = await UserService.searchUsers(query);
-
+            const limited3Users = users.slice(0, 3); // limite a 3 user max 
+            
             container.innerHTML = '';
 
-            users.forEach(user => {
+            limited3Users.forEach(user => {
                 const userItem = document.createElement('div');
                 userItem.className = `
                     flex items-center justify-between p-3
@@ -59,16 +60,18 @@ export class UserSearchComponent {
                             <p class="font-bold">${user.displayName}</p>
                         </div>
                     </div>
-                    <button class="px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        View Profile
-                    </button>
                 `;
+                // <button class="px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                //         View Profile
+                //     </button>
 
                 const btn = document.createElement('button');
                 if (onSelect) {
                     btn.textContent = 'Select';
                     btn.className = 'px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700';
-                    btn.addEventListener('click', () => onSelect(user));
+                    btn.addEventListener('click', () => {
+                        onSelect(user);
+                    });
                 } else {
                     btn.textContent = 'View';
                     btn.className = 'px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700';
@@ -79,6 +82,12 @@ export class UserSearchComponent {
 
                 container.appendChild(userItem);
             });
+            if (users.length > limited3Users.length) {
+                const more = document.createElement('p');
+                more.textContent = `… et ${users.length - limited3Users.length} résultat(s) de plus`;
+                more.className = 'text-gray-400 italic text-sm mt-1';
+                container.appendChild(more);
+            }
 
         } catch (error) {
             console.error('Search error:', error);

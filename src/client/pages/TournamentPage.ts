@@ -104,13 +104,23 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     // Lancement du match
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
-      (winnerId) => {
+      async (winnerId, score1, score2) => {
+        const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
+        const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
+        await GameService.createMatch(gameId, {
+          playerOneId: p1.id,
+          playerTwoId: p2.id,
+          winnerId: winnerId === 1 ? p1.id : p2.id,
+          matchType: 'TOURNAMENT',
+          playerOneScore: score1,
+          playerTwoScore: score2
+        });
         const winnerName = winnerId === 1 ? leftAlias : rightAlias;
         winners.push(winnerName);
         TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, () => playMatch(i + 1));
       },
       gameId,
-      'duo-online'
+      'duo-local'
     );
     pongHandle.start();
     currentMatchSocket = pongHandle.socket;
