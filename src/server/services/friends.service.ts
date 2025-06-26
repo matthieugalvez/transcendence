@@ -127,6 +127,32 @@ export class FriendService {
 		});
 	}
 
+	static async blockUser(userId: string, otherUserId: string) {
+		const	friendship = await prisma.friendship.findFirst ({
+			where: {
+				senderId: userId,
+				receiverId: otherUserId,
+			},
+		});
+
+		if (!friendship) {
+			return await prisma.friendship.create({
+				data: {
+					senderId: userId,
+					receiverId: otherUserId,
+					status: FriendshipStatus.BLOCKED,
+				},
+			});
+		} else {
+			return await prisma.friendship.update({
+				where: {
+					id: friendship.id,
+				},
+				data: { status: FriendshipStatus.BLOCKED },
+			});
+		};
+	}
+
 	static async getFriendshipStatus(userId: string, otherUserId: string) {
 		const friendship = await prisma.friendship.findFirst({
 			where: {
@@ -137,11 +163,13 @@ export class FriendService {
 			}
 		});
 
-		let status: 'friends' | 'pending' | 'incoming' | 'none' = 'none';
+		let status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none' = 'none';
 		let requestId: string | undefined = undefined;
 
 		if (friendship) {
-			if (friendship.status === 'ACCEPTED') {
+			if (friendship.status === 'BLOCKED') {
+				status = 'blocked';
+			} else if (friendship.status === 'ACCEPTED') {
 				status = 'friends';
 			} else if (friendship.status === 'PENDING') {
 				if (friendship.senderId === userId) {

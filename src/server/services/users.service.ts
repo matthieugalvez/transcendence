@@ -143,12 +143,12 @@ export namespace UserOnline {
 
     export function addOnlineUser(userId: string, ws: WebSocket) {
         onlineUsers.set(userId, ws);
-        console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
+//        console.log(`User ${userId} added to online users. Total online: ${onlineUsers.size}`);
     }
 
     export function removeOnlineUser(userId: string) {
         const result = onlineUsers.delete(userId);
-        console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
+//        console.log(`User ${userId} removed from online users: ${result}. Total online: ${onlineUsers.size}`);
     }
 
     export function isUserOnline(userId: string): boolean {
@@ -160,7 +160,7 @@ export namespace UserOnline {
     }
 
     export function broadcastToAll(message: string) {
-        console.log(`Broadcasting to ${onlineUsers.size} users`);
+//        console.log(`Broadcasting to ${onlineUsers.size} users`);
         let sentCount = 0;
 
         onlineUsers.forEach((ws, userId) => {
@@ -172,7 +172,7 @@ export namespace UserOnline {
                 } else if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
                     onlineUsers.delete(userId);
                 } else if (!ws) {
-                    console.log(`Removing null WebSocket for user ${userId}`);
+//                    console.log(`Removing null WebSocket for user ${userId}`);
                     onlineUsers.delete(userId);
                 }
             } catch (error) {
@@ -180,6 +180,6 @@ export namespace UserOnline {
                 onlineUsers.delete(userId);
             }
         });
-        console.log(`Successfully sent message to ${sentCount} users`);
+//        console.log(`Successfully sent message to ${sentCount} users`);
     }
 }

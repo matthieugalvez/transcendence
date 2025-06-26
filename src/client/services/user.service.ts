@@ -6,8 +6,6 @@ import { WebSocket } from 'ws';
 
 
 export class UserService {
-
-
 	static async getAllUsers(): Promise<Array<{ id: string; name: string; created_at: string; update_at: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users');
@@ -376,7 +374,15 @@ export class UserService {
 		}
 	}
 
-	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
+	static async	blockUser(otherUserId: string): Promise<void> {
+		const	response = await ApiClient.authenticatedFetch(`/api/friends/block/${encodeURIComponent(otherUserId)}`,
+			{ method: 'POST' });
+	//	const data = await response.json();
+	//	if (!data.success) throw new Error(data.error || 'Failed to block user');
+	}
+
+	static async getFriendshipStatus(otherUserId: string): Promise<{
+		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
 		const data = await response.json();
 		if (!data.success)
@@ -392,7 +398,6 @@ export class UserService {
 		const data = await response.json();
 		if (!data.success) throw new Error(data.error || 'Failed to reject friend request');
 	}
-
 
 	static async removeFriend(friendId: string): Promise<void> {
 		const response = await ApiClient.authenticatedFetch(

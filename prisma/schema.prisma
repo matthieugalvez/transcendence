@@ -69,9 +69,9 @@ model Friendship {
 }
 
 enum FriendshipStatus {
-  PENDING
-  ACCEPTED
-  BLOCKED
+	PENDING
+	ACCEPTED
+	BLOCKED
 }
 
 model UserStats {

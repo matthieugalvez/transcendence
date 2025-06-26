@@ -74,6 +74,13 @@ export class FriendsController {
 		}
 	}
 
+	static async blockUser(request: FastifyRequest, reply: FastifyReply) {
+		const	userId = (request as any).userId;
+		const { otherUserId } = request.params as { otherUserId: string };
+		const	result = await FriendService.blockUser(userId, otherUserId);
+		return Send.success(reply, result, 'User blocked');
+	}
+
 	static async getFriendshipStatus(request: FastifyRequest, reply: FastifyReply) {
 		const userId = (request as any).userId;
 		const { otherUserId } = request.params as { otherUserId: string };

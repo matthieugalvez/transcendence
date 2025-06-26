@@ -13,6 +13,10 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, FriendsController.sendFriendRequest);
 
+	fastify.post('/friends/block/:otherUserId', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.blockUser);
+
 	// Accept friend request (protected)
 	fastify.put('/friends/request/:requestId/accept', {
 		preHandler: [AuthMiddleware.authenticateUser]
