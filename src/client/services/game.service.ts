@@ -47,7 +47,7 @@ export class GameService {
       playerTwoScore: number
       winnerId: string
     }[]
-  }) {
+  }): Promise<any> {
     try {
       const res = await fetch('/api/tournament/create', {
         method: 'POST',

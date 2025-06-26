@@ -4,10 +4,9 @@ import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
 import { TournamentComponent } from '../components/tournament.component';
 import { UserService } from '../services/user.service';
-import { GameService } from '../services/game.service';
+import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -140,7 +139,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
             })
           } catch (error) {
             console.error('Error creating tournament: ', error);
-            throw error;
+            // throw error;
           }
         }
 
