@@ -8,9 +8,6 @@ import { registerRoutes } from './routes/router';
 import { registerPongWebSocket } from './routes/game.routes';
 import { registerUserStatusWebSocket } from './routes/users.routes';
 
-
-
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
@@ -43,8 +40,6 @@ async function setupServer() {
   }
 }
 
-
-
 // Start server
 async function start() {
   try {
@@ -58,7 +53,6 @@ async function start() {
     process.exit(1);
   }
 }
-
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

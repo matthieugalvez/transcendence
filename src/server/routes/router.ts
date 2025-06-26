@@ -9,6 +9,7 @@ import healthRoutes from './health.routes'
 import userRoutes from './users.routes'
 import authRoutes from './auth.routes'
 import friendsRoutes from './friends.routes';
+import { tournamentRoutes } from './tournament.routes';
 import { statsRoutes } from './stats.routes';
 
 export async function registerRoutes(app: FastifyInstance) {
@@ -22,6 +23,7 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
 		await fastify.register(friendsRoutes);
 		await fastify.register(statsRoutes);
+        await fastify.register(tournamentRoutes);
 	}, { prefix: '/api' })
 
     app.get('/avatars/:filename', async (request, reply) => {

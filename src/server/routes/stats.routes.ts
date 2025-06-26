@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify'
 import { StatsController } from '../controllers/stats.controller';
 import { AuthMiddleware } from '../middlewares/auth.middleware'
 
-
 export async function statsRoutes(fastify: FastifyInstance) {
 	// Get user stats (public route - can view anyone's stats)
 	fastify.get('/users/:userId/stats', {
