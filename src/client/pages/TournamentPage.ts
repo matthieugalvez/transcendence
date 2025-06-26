@@ -6,7 +6,6 @@ import { TournamentComponent } from '../components/tournament.component';
 import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service';
 import { GameSettingsComponent } from '../components/game.component';
-import { CommonComponent } from '../components/common.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 
 
@@ -118,8 +117,10 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
       async (winnerId, score1, score2) => {
-        const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
-        const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
+        // const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
+        // const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
+        const p1 = participants.find(p => p.alias === leftAlias)!;
+        const p2 = participants.find(p => p.alias === rightAlias)!;
         const winnerAliasId = winnerId === 1 ? p1.id : p2.id;
         // if (!aliasesIdArray.length) {
         //   aliasesIdArray = [
