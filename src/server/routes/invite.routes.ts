@@ -1,17 +1,17 @@
 import { InviteController } from '../controllers/invite.controller.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
 export async function inviteRoutes(fastify) {
 	fastify.post('/invite', {
-		preHandler: authMiddleware },
+		preHandler: AuthMiddleware.authenticateUser },
 		InviteController.createInvite);
 	fastify.post('/invite/:inviteId/accept', {
-		preHandler: authMiddleware },
+		preHandler: AuthMiddleware.authenticateUser },
 		InviteController.acceptInvite);
 	fastify.post('/invite/:inviteId/decline', {
-		preHandler: authMiddleware },
+		preHandler: AuthMiddleware.authenticateUser },
 		InviteController.declineInvite);
 	fastify.get('/invites', {
-		preHandler: authMiddleware },
+		preHandler: AuthMiddleware.authenticateUser },
 		InviteController.getPendingInvites);
 }

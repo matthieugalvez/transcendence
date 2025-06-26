@@ -11,6 +11,7 @@ import authRoutes from './auth.routes.js'
 import friendsRoutes from './friends.routes.js';
 import { tournamentRoutes } from './tournament.routes.js';
 import { statsRoutes } from './stats.routes.js';
+import { inviteRoutes } from './invite.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
@@ -24,6 +25,7 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(friendsRoutes);
 		await fastify.register(statsRoutes);
         await fastify.register(tournamentRoutes);
+		await fastify.register(inviteRoutes);
 	}, { prefix: '/api' })
 app.get('/avatars/:filename', async (request, reply) => {
     const { filename } = request.params as { filename: string };
