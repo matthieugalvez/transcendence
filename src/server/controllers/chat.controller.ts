@@ -6,7 +6,7 @@ export class	ChatController {
 	static async	getMessages(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const	userId = ( request as any ).userId;
-			const	{ otheruser_id, last_fetch } = request.query as { otheruser_id: string, last_fetch?: Date };
+			const	{ otheruser_id, last_fetch } = request.query as { otheruser_id: string, last_fetch: Date };
 
 			const	messages = await ChatService.getMessages(userId, otheruser_id, last_fetch);
 			
@@ -17,7 +17,8 @@ export class	ChatController {
 					receiver_id: message.receiver_id,
 					created_at: message.created_at,
 					updated_at: message.updated_at,
-					content: message.content
+					content: message.content,
+					deleted: message.deleted
 				})),
 				count: messages.length
 			}

@@ -36,6 +36,7 @@ model	Message {
 	created_at	DateTime	@default(now())
 	updated_at	DateTime	@updatedAt
 	content		String
+	deleted		Boolean		@default(false)
 
 	sender		User	@relation("sender", fields: [sender_id], references: [id])
 	receiver	User	@relation("receiver", fields: [receiver_id], references: [id])

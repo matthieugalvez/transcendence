@@ -19,8 +19,13 @@ export class ChatService {
 	}
 
 	static async	deleteMessage(id: string) {
-		return await prisma.message.delete({
-			where: { id }
+		const	msg = await prisma.message.findFirst({
+			where: { id },
+		});
+
+		return await prisma.message.update({
+			where: { id },
+			data: { deleted: !msg.deleted },
 		})
 	}
 

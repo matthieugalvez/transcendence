@@ -137,7 +137,7 @@ export async function renderChatPage() {
 
 	while (true) {
 		await getAllMessages(user.id, receiver.id, messages_box);
-		await delay(100);
+		await delay(500);
 	}
 }
 
@@ -160,7 +160,13 @@ async function getAllMessages(user_id: string, receiver_id: string, messages_box
 			&& message.updated_at > previous_fetch.toJSON()) {
 			for (const message_box of messages_list) {
 				if (message.id == message_box.title) {
-					message_box.firstElementChild.firstElementChild.textContent = `\n${message.content} `;
+					if (!message.deleted) {
+						message_box.firstElementChild.firstElementChild.style.fontStyle = 'normal';
+						message_box.firstElementChild.firstElementChild.textContent = `\n${message.content} `;
+					} else {
+						message_box.firstElementChild.firstElementChild.style.fontStyle = 'italic';
+						message_box.firstElementChild.firstElementChild.textContent = '\nDELETED';
+					}
 				}
 			}
 		} else {
@@ -208,9 +214,13 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	`.trim();
 	box_text.style.whiteSpace = 'pre-line';
 	box_text.style.hyphens = 'auto';
-	box_text.textContent = `
-		${message.content}
-	`;
+	if (!message.deleted) {
+		box_text.style.fontStyle = 'normal';
+		box_text.textContent = `\n${message.content}`;
+	} else {
+		box_text.style.fontStyle = 'italic';
+		box_text.textContent = '\nDELETED';
+	}
 	box_text.style.paddingBottom = '2px';
 
 	box_content.appendChild(box_text);
@@ -237,7 +247,6 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_date.style.whiteSpace = 'wrap';
 	box_date.style.maxHeight = '25px';
 	box_date.style.maxWidth = '50%';
-//	box_date.style.overflow = 'auto';
 
 	const	buttons_box = document.createElement('div');
 	buttons_box.title = 'buttons_box';
@@ -247,52 +256,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	`.trim();
 	buttons_box.style.display = 'none';
 
-	const	edit_button = document.createElement('div');
-	edit_button.title = 'edit_button';
-	edit_button.className = `
-    font-['Orbitron']
-	h-[50%]
-    text-white font-semibold
-    bg-blue-700/100 backdrop-blur-2xl
-    border-1 border-black
-    rounded-lg text-lg transition-colors
-    focus:outline-none focus:ring-2
-	flex
-  `.replace(/\s+/g, ' ').trim();
-	edit_button.style.fontSize = '12px';
-	edit_button.style.userSelect = 'none';
-	edit_button.textContent = 'edit';
-	edit_button.style.justifyContent = 'center';
-
-	edit_button.onclick = async () => {
-		if (!g_edit_box) {
-			const prompt_area = makeEditPromptArea(message, box_text);
-			box.appendChild(prompt_area);
-			prompt_area.scrollIntoView({behavior: 'smooth', block: 'center'});
-		}
-	}
-
-	const	delete_button = document.createElement('div');
-	delete_button.title = 'delete_button';
-	delete_button.className = `
-    font-['Orbitron']
-	h-[50%]
-    text-white font-semibold
-    bg-red-700/100 backdrop-blur-2xl
-    border-1 border-black
-    rounded-lg text-lg transition-colors
-    focus:outline-none focus:ring-2
-	flex
-  `.replace(/\s+/g, ' ').trim();
-	delete_button.style.fontSize = '12px';
-	delete_button.style.userSelect = 'none';
-	delete_button.textContent = 'delete';
-	delete_button.style.justifyContent = 'center';
-
-	delete_button.onclick = async () => {
-			await ChatService.deleteMessage(message.id);
-			box.remove();
-	}
+	makeMsgButtons(message, buttons_box, box_text, box);
 
 	box_content.onmouseenter = () => {
 		buttons_box.style.display = 'block';
@@ -301,9 +265,6 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box_content.onmouseleave = () => {
 		buttons_box.style.display = 'none';
 	}
-
-	buttons_box.appendChild(edit_button);
-	buttons_box.appendChild(delete_button);
 
 	if (!received) {
 		box.style.alignItems = 'flex-start';
@@ -325,6 +286,95 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	box.appendChild(margin);
 
 	return (box);
+}
+
+function	makeMsgButtons(message, buttons_box: Element, box_text: Element, box: Element) {
+	if (!message.deleted) {
+		const	edit_button = document.createElement('div');
+
+		edit_button.title = 'edit_button';
+		edit_button.className = `
+		font-['Orbitron']
+		h-[50%]
+		text-white font-semibold
+		bg-blue-700/100 backdrop-blur-2xl
+		border-1 border-black
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		flex
+	  `.replace(/\s+/g, ' ').trim();
+		edit_button.style.fontSize = '12px';
+		edit_button.style.userSelect = 'none';
+		edit_button.textContent = 'edit';
+		edit_button.style.justifyContent = 'center';
+		edit_button.style.alignItems = 'center'
+
+		edit_button.onclick = async () => {
+			if (!g_edit_box) {
+				const prompt_area = makeEditPromptArea(message, box_text);
+				box.appendChild(prompt_area);
+				prompt_area.scrollIntoView({behavior: 'smooth', block: 'center'});
+			}
+		}
+
+		const	delete_button = document.createElement('div');
+
+		delete_button.title = 'delete_button';
+		delete_button.className = `
+		font-['Orbitron']
+		h-[50%]
+		text-white font-semibold
+		bg-red-700/100 backdrop-blur-2xl
+		border-1 border-black
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		flex
+	  `.replace(/\s+/g, ' ').trim();
+		delete_button.style.fontSize = '12px';
+		delete_button.style.userSelect = 'none';
+		delete_button.textContent = 'delete';
+		delete_button.style.justifyContent = 'center';
+		delete_button.style.alignItems = 'center'
+
+		delete_button.onclick = async () => {
+			await ChatService.deleteMessage(message.id);
+			edit_button.remove();
+			delete_button.remove();
+			message.deleted = !message.deleted;
+			makeMsgButtons(message, buttons_box, box_text, box);
+		}
+
+		buttons_box.appendChild(edit_button);
+		buttons_box.appendChild(delete_button);
+	} else {
+		const	restore_button = document.createElement('div');
+
+		restore_button.title = 'restore_button';
+		restore_button.className = `
+		font-['Orbitron']
+		h-[100%]
+		text-white font-semibold
+		bg-green-600/100 backdrop-blur-2xl
+		border-1 border-black
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		flex
+	  `.replace(/\s+/g, ' ').trim();
+		restore_button.style.fontSize = '12px';
+		restore_button.style.userSelect = 'none';
+		restore_button.textContent = 'restore';
+		restore_button.style.justifyContent = 'center';
+		restore_button.style.alignItems = 'center'
+
+		restore_button.onclick = async () => {
+			await ChatService.deleteMessage(message.id);
+			restore_button.remove();
+			message.deleted = !message.deleted;
+			makeMsgButtons(message, buttons_box, box_text, box);
+		}
+
+		buttons_box.appendChild(restore_button);
+	}
 }
 
 function	makeEditPromptArea(message, box_text: Element) {
