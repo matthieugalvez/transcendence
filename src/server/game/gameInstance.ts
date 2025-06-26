@@ -86,7 +86,7 @@ export class GameInstance {
                 if (!player.playerToken) player.playerToken = uuidv4();
                 this.setupDisconnect(ws, player.playerId);
                 this.broadcastState(this.isRunning);
-                console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
+                // console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
                 return player.playerId;
             }
         }
@@ -120,7 +120,7 @@ export class GameInstance {
         } else {
             this.movePaddle(this.paddle2Pos, action, dt);
         }
-        console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
+        // console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
     }
     // start game
     public start() {

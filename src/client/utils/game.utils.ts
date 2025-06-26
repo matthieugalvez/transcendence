@@ -70,7 +70,7 @@ function createGameWebSocket(
           setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
           setCookie(`pongPlayerId-${gameId}`, String(data.playerId));
         }
-        console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
+        // console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
         playerId = data.playerId;
         return;
       }
@@ -173,9 +173,9 @@ function startClientInputLoop(
           }
         }
       } else {
-        if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
-          console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
-        }
+        // if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
+        //   console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
+        // }
         if (keysPressed['KeyW']) {
           socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
         } else if (keysPressed['KeyS']) {
