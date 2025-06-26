@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { handleStartGame, handleMove, handleStartTournament } from '../utils/PongGame/handlePongHTTP.utils.js';
 import { handlePongWebSocket } from '../utils/PongGame/handlePongWebSocket.utils.js';
 import { handleGetGame } from '../utils/PongGame/handleGetGameState.utils.js';

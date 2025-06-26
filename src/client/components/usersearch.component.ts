@@ -33,35 +33,36 @@ export class UserSearchComponent {
 		container.appendChild(searchSection);
 	}
 
-	private static async performSearch(
+    private static async performSearch(
+        query: string,
+        container: HTMLElement,
+        onSelect?: (user: { displayName: string; avatar: string; id: string }) => void
+    ): Promise<void> {
+        try {
+            // You'll need to implement this in UserService
+            const users = await UserService.searchUsers(query);
+            const limited3Users = users.slice(0, 3); // limite a 3 user max 
+            
+            container.innerHTML = '';
 
-		query: string,
-		container: HTMLElement,
-		onSelect?: (user: { displayName: string; avatar: string; id: string }) => void
-	): Promise<void> {
-		try {
-			const users = await UserService.searchUsers(query);
-
-			container.innerHTML = '';
-
-			users.forEach(async user => {
+			limited3Users.forEach(async user => {
 				const userItem = document.createElement('div');
 				userItem.className = `
-        flex items-center justify-between p-3
-        bg-white border-2 border-black rounded-lg
-        hover:bg-gray-50 transition-colors
-    `;
+					flex items-center justify-between p-3
+					bg-white border-2 border-black rounded-lg
+					hover:bg-gray-50 transition-colors
+				`;
 
-				userItem.innerHTML = `
-        <div class="flex items-center space-x-3">
-            <img src="${user.avatar || '/avatars/default.svg'}"
-                 alt="${user.displayName}"
-                 class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
-            <div>
-                <p class="font-bold text-gray-900">${user.displayName}</p>
-            </div>
-        </div>
-    `;
+			userItem.innerHTML = `
+				<div class="flex items-center space-x-3">
+					<img src="${user.avatar || '/avatars/default.svg'}"
+						alt="${user.displayName}"
+						class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
+					<div>
+						<p class="font-bold text-gray-900">${user.displayName}</p>
+					</div>
+				</div>
+			`;
 
 				// Create button container
 				const buttonContainer = document.createElement('div');
@@ -124,7 +125,12 @@ export class UserSearchComponent {
 				userItem.appendChild(buttonContainer);
 				container.appendChild(userItem);
 			});
-
+			if (users.length > limited3Users.length) {
+                const more = document.createElement('p');
+                more.textContent = `… et ${users.length - limited3Users.length} résultat(s) de plus`;
+                more.className = 'text-gray-400 italic text-sm mt-1';
+                container.appendChild(more);
+            }
 		} catch (error) {
 			console.error('Search error:', error);
 			container.innerHTML = `

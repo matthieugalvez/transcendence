@@ -148,7 +148,7 @@ export class GameInstance {
                 if (!player.playerToken) player.playerToken = uuidv4();
                 this.setupDisconnect(ws, player.playerId);
                 this.broadcastState(this.isRunning);
-                console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
+                // console.log(`[GameInstance][addClient] username=${username}, assigné à playerId=${player.playerId}, token=${player.playerToken}`);
                 return player.playerId;
             }
         }
@@ -182,7 +182,7 @@ export class GameInstance {
         } else {
             this.movePaddle(this.paddle2Pos, action, dt);
         }
-        console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
+        // console.log(`[GameInstance][onClientAction] Reçu action: ${action} pour playerId: ${playerId}`);
     }
     // start game
     public start() {
@@ -300,50 +300,67 @@ export class GameInstance {
     if (ended) {
         this.broadcastState(false);
         const winner = this.score1 > this.score2 ? 1 : 2;
-        const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
-        let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
-
+        const payload = JSON.stringify({
+            type: 'matchEnd',
+            winner,
+            score1: this.score1,
+            score2: this.score2,
+            matchType: 'ONE_V_ONE'
+        });
+        this.broadcastToAll(payload);
         if (this.onEndCallback) this.onEndCallback(winner);
-
-        // Only create match if both players exist in database
-        if (playerOne && playerTwo) {
-            let gameResult = {
-                gameId: this.gameId,
-                playerOneId: playerOne.id,
-                playerTwoId: playerTwo.id,
-                winnerId: winnerUser ? winnerUser.id : null,
-                playerOneScore: this.score1,
-                playerTwoScore: this.score2,
-                matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
-            };
-
-            // Call setGameStats with proper validation
-            await setGameStats(
-                this.gameId,
-                playerOne.id,
-                playerTwo.id,
-                winnerUser ? winnerUser.id : null,
-                this.score1,
-                this.score2,
-                'ONE_V_ONE'
-            );
-        } else {
-            console.warn('⚠️  Cannot create match: One or both players not found in database', {
-                playerOne: playerOne ? playerOne.id : 'NOT_FOUND',
-                playerTwo: playerTwo ? playerTwo.id : 'NOT_FOUND',
-                usernames: [this.players[0].username, this.players[1].username]
-            });
-        }
-
-        if (this.intervalHandle) {
-            clearInterval(this.intervalHandle);
-            this.intervalHandle = undefined;
-        }
-        removeGameRoom(this.gameId);
+        // if (this.intervalHandle)
+        this.destroy();
         return;
     }
+    this.broadcastState(true);
 
-    this.broadcastState(this.isRunning);
+    // if (ended) {
+    //     this.broadcastState(false);
+    //     const winner = this.score1 > this.score2 ? 1 : 2;
+    //     const winnerUsername = this.score1 > this.score2 ? this.players[0].username : this.players[1].username;
+    //     let winnerUser = await UserService.getUserByDisplayName(winnerUsername);
+
+    //     if (this.onEndCallback) this.onEndCallback(winner);
+
+    //     // Only create match if both players exist in database
+    //     if (playerOne && playerTwo) {
+    //         let gameResult = {
+    //             gameId: this.gameId,
+    //             playerOneId: playerOne.id,
+    //             playerTwoId: playerTwo.id,
+    //             winnerId: winnerUser ? winnerUser.id : null,
+    //             playerOneScore: this.score1,
+    //             playerTwoScore: this.score2,
+    //             matchType: 'ONE_V_ONE' as 'ONE_V_ONE'
+    //         };
+
+    //         // Call setGameStats with proper validation
+    //         await setGameStats(
+    //             this.gameId,
+    //             playerOne.id,
+    //             playerTwo.id,
+    //             winnerUser ? winnerUser.id : null,
+    //             this.score1,
+    //             this.score2,
+    //             'ONE_V_ONE'
+    //         );
+    //     } else {
+    //         console.warn('⚠️  Cannot create match: One or both players not found in database', {
+    //             playerOne: playerOne ? playerOne.id : 'NOT_FOUND',
+    //             playerTwo: playerTwo ? playerTwo.id : 'NOT_FOUND',
+    //             usernames: [this.players[0].username, this.players[1].username]
+    //         });
+    //     }
+
+    //     if (this.intervalHandle) {
+    //         clearInterval(this.intervalHandle);
+    //         this.intervalHandle = undefined;
+    //     }
+    //     removeGameRoom(this.gameId);
+    //     return;
+    // }
+    // this.broadcastState(this.isRunning);
 }
 
 	private moveBall() {

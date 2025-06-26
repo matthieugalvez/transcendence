@@ -6,12 +6,13 @@ import { TournamentComponent } from '../components/tournament.component';
 import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service';
 import { GameSettingsComponent } from '../components/game.component';
-import { CommonComponent } from '../components/common.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
+const playedMatches: any[] = [];
+// let aliasesIdArray: string[] = [];
 
 export async function renderTournamentPage() {
   document.title = 'Tournoi';
@@ -78,6 +79,15 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
   const winners: string[] = [];
   wrapper.innerHTML = '';
 
+  // recupere id des 4 joueurs
+  const participants = await Promise.all(
+    aliases.map(async alias => {
+      const profile = await UserService.getUserProfileByDisplayName(alias);
+      return { alias, id: profile.id };
+    })
+  );
+  const participantsIds = participants.map(p => p.id);
+
   // Fonction récursive pour enchaîner les matchs
   async function playMatch(i: number) {
     if (i === 2) {
@@ -106,13 +116,55 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     // Lancement du match
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
-      (winnerId) => {
+      async (winnerId, score1, score2) => {
+        // const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
+        // const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
+        const p1 = participants.find(p => p.alias === leftAlias)!;
+        const p2 = participants.find(p => p.alias === rightAlias)!;
+        const winnerAliasId = winnerId === 1 ? p1.id : p2.id;
+        // if (!aliasesIdArray.length) {
+        //   aliasesIdArray = [
+        //     ...(await Promise.all(aliases.map(a =>
+        //       UserService.getUserProfileByDisplayName(a).then(u => u.id)
+        //     )))
+        //   ]
+        // }
+        // await GameService.createMatch(gameId, {
+        //   playerOneId: p1.id,
+        //   playerTwoId: p2.id,
+        //   winnerId: winnerId === 1 ? p1.id : p2.id,
+        //   matchType: 'TOURNAMENT',
+        //   playerOneScore: score1,
+        //   playerTwoScore: score2
+        // });
+        playedMatches.push({
+          playerOneId: p1.id,
+          playerTwoId: p2.id,
+          playerOneScore: score1,
+          playerTwoScore: score2,
+          winnerId: winnerId === 1 ? p1.id : p2.id
+        })
         const winnerName = winnerId === 1 ? leftAlias : rightAlias;
         winners.push(winnerName);
-        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, () => playMatch(i + 1));
+
+        if (i === matchups.length - 1) {
+          try {
+            await GameService.createTournament({
+              tournamentId: gameId,
+              participants: participantsIds,
+              winnerId: winnerAliasId,
+              matches: playedMatches
+            })
+          } catch (error) {
+            console.error('Error creating tournament: ', error);
+            throw error;
+          }
+        }
+
+        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, async () => {playMatch(i + 1)});
       },
       gameId,
-      'duo-online'
+      'duo-local'
     );
     pongHandle.start();
     currentMatchSocket = pongHandle.socket;

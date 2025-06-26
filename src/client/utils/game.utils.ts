@@ -70,7 +70,7 @@ function createGameWebSocket(
 					setCookie(`pongPlayerToken-${gameId}`, data.playerToken); // BACKEND
 					setCookie(`pongPlayerId-${gameId}`, String(data.playerId)); // BACKEND USING USER.UUID
 				}
-				console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
+				// console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
 				playerId = data.playerId;
 				return;
 			}
@@ -153,45 +153,45 @@ function startClientInputLoop(
 	getPlayerId,
 	mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
-	function frame() {
-		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
-		const pId = getPlayerId();
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
-			if (mode === 'duo-online') {
-				if (pId === 1) {
-					if (keysPressed['KeyW']) {
-						socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-					} else if (keysPressed['KeyS']) {
-						socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-					}
-				}
-				else if (pId === 2) {
-					if (keysPressed['ArrowUp']) {
-						socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-					} else if (keysPressed['ArrowDown']) {
-						socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-					}
-				}
-			} else {
-				if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
-					console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
-				}
-				if (keysPressed['KeyW']) {
-					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-				} else if (keysPressed['KeyS']) {
-					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-				}
-				if (keysPressed['ArrowUp']) {
-					socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-				} else if (keysPressed['ArrowDown']) {
-					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-				}
-			}
-
-		}
-		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
-	}
-	requestAnimationFrame(frame);
+  function frame() {
+    // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+    const pId = getPlayerId();
+    if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
+      if (mode === 'duo-online') {
+        if (pId === 1) {
+          if (keysPressed['KeyW']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+          } else if (keysPressed['KeyS']) {
+            socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+          }
+        }
+        else if (pId === 2) {
+          if (keysPressed['ArrowUp']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+          } else if (keysPressed['ArrowDown']) {
+            socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+          }
+        }
+      } else {
+        // if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
+        //   console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
+        // }
+        if (keysPressed['KeyW']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+        } else if (keysPressed['KeyS']) {
+          socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+        }
+        if (keysPressed['ArrowUp']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+        } else if (keysPressed['ArrowDown']) {
+          socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+        }
+      }
+      
+    }
+    requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
+  }
+  requestAnimationFrame(frame);
 }
 
 // --- Création du jeu et intégration au DOM ---

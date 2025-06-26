@@ -25,25 +25,27 @@ model User {
   receivedFriendRequests Friendship[] @relation("UserReceivedRequests")
 
   // User stats
-	userStats	UserStats?
-	playerOneMatches  Match[] @relation("PlayerOne")
-	playerTwoMatches  Match[] @relation("PlayerTwo")
+  userStats        UserStats?
+  playerOneMatches Match[]    @relation("PlayerOne")
+  playerTwoMatches Match[]    @relation("PlayerTwo")
 
-
+  // Tournament
+  tournamentsWon    Tournament[]     @relation("WonTournaments")
+  tournamentEntries TournamentUser[]
 
   @@map("users")
 }
 
 model Friendship {
-  id          String             @id @default(cuid())
-  senderId    String
-  receiverId  String
-  status      FriendshipStatus	@default(PENDING)
-  createdAt   DateTime       	@default(now())
-  updatedAt   DateTime       	@updatedAt
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
-  sender      User @relation("UserSentRequests", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver    User @relation("UserReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender   User @relation("UserSentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("UserReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
   @@map("friendships")
@@ -55,10 +57,9 @@ enum FriendshipStatus {
   BLOCKED
 }
 
-
 model UserStats {
-  id               String @id @default(cuid())
-  userId           String @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   oneVOneWins      Int @default(0)
   oneVOneLosses    Int @default(0)
@@ -71,19 +72,22 @@ model UserStats {
 }
 
 model Match {
-  id            String    @id @default(cuid())
-  playerOneId   String
-  playerTwoId   String
-  winnerId      String?
-  matchType     MatchType
+  id          String    @id @default(cuid())
+  playerOneId String
+  playerTwoId String
+  winnerId    String?
+  matchType   MatchType
 
   playerOneScore Int @default(0)
   playerTwoScore Int @default(0)
 
-  playedAt      DateTime @default(now())
+  playedAt DateTime @default(now())
 
-  playerOne  User @relation("PlayerOne", fields: [playerOneId], references: [id], onDelete: Cascade)
-  playerTwo  User @relation("PlayerTwo", fields: [playerTwoId], references: [id], onDelete: Cascade)
+  playerOne User @relation("PlayerOne", fields: [playerOneId], references: [id], onDelete: Cascade)
+  playerTwo User @relation("PlayerTwo", fields: [playerTwoId], references: [id], onDelete: Cascade)
+
+  tournamentId String?
+  tournament   Tournament? @relation("TournamentMatches", fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@map("matches")
 }
@@ -91,4 +95,29 @@ model Match {
 enum MatchType {
   ONE_V_ONE
   TOURNAMENT
+}
+
+model Tournament {
+  id           String           @id @default(cuid())
+  winnerId     String?
+  participants TournamentUser[]
+  matches      Match[]          @relation("TournamentMatches")
+  winner       User?            @relation("WonTournaments", fields: [winnerId], references: [id])
+
+  playedAt DateTime @default(now())
+
+  @@map("tournaments")
+}
+
+model TournamentUser {
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+
+  rank     Int?
+  joinedAt DateTime @default(now())
+
+  @@id([tournamentId, userId])
+  @@map("tournament_users")
 }
