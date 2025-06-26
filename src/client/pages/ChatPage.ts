@@ -17,10 +17,8 @@ export async function renderChatPage() {
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
 	let	user;
-	let	user_list;
 	try {
 		user = await UserService.getCurrentUser();
-		user_list = await UserService.getAllUsers();
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);
 		CommonComponent.handleAuthError();
@@ -146,7 +144,14 @@ export async function renderChatPage() {
 async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
 	const	previous_fetch = g_last_fetch_date;
 	const	messages_list = messages_box.childNodes;
-	let		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
+	let		messages;
+	try {
+		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
+	}
+	catch(error) {
+		console.error('Failed to fetch messages:', error);
+		return;
+	}
 	g_last_fetch_date = new Date();
 
 	for (const message of messages) {
@@ -365,7 +370,6 @@ function	makeEditPromptArea(message, box_text: Element) {
 	}
 
 	prompt_area.onkeydown = async (event) => {
-		console.log(event.key);
 		if (event.key === "Enter" && prompt_area.value) {
 			await ChatService.editMessage(message.id, prompt_area.value.trim());
 			box_text.textContent = `\n${prompt_area.value}`;

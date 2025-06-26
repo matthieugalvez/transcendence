@@ -17,7 +17,7 @@ const __dirname = dirname(__filename)
 // Create Fastify instance
 const app = Fastify({
   logger: {
-    level: process.env.LOG_LEVEL || 'info'
+    level: process.env.LOG_LEVEL || 'error'
   }
 });
 

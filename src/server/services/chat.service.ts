@@ -24,7 +24,10 @@ export class ChatService {
 		})
 	}
 
-	static async	getMessages(userId: string, otheruserId: string, last_fetch?: Date) {
+	static async	getMessages(userId: string, otheruserId: string, last_fetch: Date) {
+		if (!last_fetch) {
+			last_fetch = new Date(0);
+		}
 		return await prisma.message.findMany({
 			where: {
 				OR: [

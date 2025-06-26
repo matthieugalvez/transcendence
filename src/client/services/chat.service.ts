@@ -8,12 +8,15 @@ export class	ChatService {
 																							updated_at: string,
 																							content: string }>> {
 		try {
-			const	response = await ApiClient.authenticatedFetch('/api/chat/messages', {
-				method: 'POST',
+			if (last_fetch === undefined) {
+				last_fetch = new Date(0);
+			};
+			const	response = await ApiClient.authenticatedFetch(
+				`/api/chat/messages?otheruser_id=${otheruser_id}&last_fetch=${last_fetch.toISOString()}`, {
+				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ otheruser_id, last_fetch })
 			});
 			const	data = await response.json();
 			
