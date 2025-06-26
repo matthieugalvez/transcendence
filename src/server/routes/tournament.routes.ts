@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { AuthMiddleware } from '../middlewares/auth.middleware.js;
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 import { StatsService } from '../services/stats.service.js';
 
 export async function tournamentRoutes(fastify: FastifyInstance) {
