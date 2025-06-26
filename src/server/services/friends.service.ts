@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import { FriendshipStatus } from '@prisma/client'
 
 
@@ -48,15 +48,54 @@ export class FriendService {
 		});
 	}
 
+	static async rejectFriendRequest(requestId: string) {
+    const deletedFriendship = await prisma.friendship.delete({
+        where: {
+            id: requestId
+        }
+    });
+
+    return deletedFriendship;
+}
+
+	static async getAllUserFriendships(userId: string) {
+    return await prisma.friendship.findMany({
+        where: {
+            OR: [
+                { senderId: userId },
+                { receiverId: userId }
+            ]
+        },
+        include: {
+            sender: {
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatar: true
+                }
+            },
+            receiver: {
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatar: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+}
+
 	// Get user's friends
 	static async getUserFriends(userId: string) {
 		const friendships = await prisma.friendship.findMany({
 			where: {
 				OR: [
 					{ senderId: userId },
-					{ receiverId: userId }
-				],
-				status: FriendshipStatus.ACCEPTED
+					{ receiverId: userId },
+				]
 			},
 			include: {
 				sender: {
@@ -74,7 +113,7 @@ export class FriendService {
 	}
 
 	// Get pending friend requests
-	static async getPendingRequests(userId: number) {
+	static async getPendingRequests(userId: string) {
 		return await prisma.friendship.findMany({
 			where: {
 				receiverId: userId,
@@ -82,7 +121,7 @@ export class FriendService {
 			},
 			include: {
 				sender: {
-					select: { id: true, username: true, email: true }
+					select: { id: true, displayName: true, email: true }
 				}
 			}
 		});

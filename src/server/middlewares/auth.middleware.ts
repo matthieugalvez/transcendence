@@ -1,9 +1,9 @@
-import authConfig from "../config/auth.config";
-import { ResponseUtils as Send } from "../utils/response.utils";
+import authConfig from "../config/auth.config.js";
+import { ResponseUtils as Send } from "../utils/response.utils.js";
 import { FastifyRequest, FastifyReply } from "fastify";
 import jwt from "jsonwebtoken";
-import { UserService } from "../services/users.service";
-import { AuthService } from "../services/auth.service";
+import { UserService } from "../services/users.service.js";
+import { AuthService } from "../services/auth.service.js";
 
 export interface DecodedToken {
 	userId: string;
@@ -14,7 +14,7 @@ interface FastifyRequestWithCookies extends FastifyRequest {
 	cookies: { [cookieName: string]: string | undefined };
 }
 
-class AuthMiddleware {
+export class AuthMiddleware {
 	/**
 	 * Middleware to authenticate the user based on the access token stored in the HttpOnly cookie.
 	 */

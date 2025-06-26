@@ -1,5 +1,5 @@
 import type { WebSocket } from 'ws';
-import { GameInstance } from './gameInstance';
+import { GameInstance } from './gameInstance.js';
 
 // Une map central de toutes les parties en cours
 const gameRooms: Map<string, GameInstance> = new Map();
@@ -30,7 +30,7 @@ export function removeGameRoom(gameId: string): void {
 /**
  * Ajoute un joueur (WebSocket) à la partie
  */
-export function addPlayerToRoom(gameId: string, ws: WebSocket, username: string | undefined): number | null {
+export function addPlayerToRoom(gameId: string, ws: WebSocket, username: string | undefined): number | 'spectator' | null {
     const game = getGameRoom(gameId);
     if (!game) return null;
     return game.addClient(ws, username); // 1, 2

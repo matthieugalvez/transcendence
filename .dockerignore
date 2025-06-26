@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.vite
+.env.local
+.env.development
+.env.test
+data/
+*.db
+*.log
+.git
+.gitignore
+README.md
+docker-compose.override.yml
+dist
+dist-back
+package-lock.json

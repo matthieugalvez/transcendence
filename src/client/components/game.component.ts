@@ -1,5 +1,6 @@
 import { CommonComponent } from './common.component';
 import { validatePlayerNames } from '../utils/player.utils';
+import { router } from '../configs/simplerouter';
 
 export interface GameSetOptions {
   showUrl?: boolean;
@@ -15,7 +16,10 @@ type SettingState =
     | 'duo'
     | 'duo-local'
     | 'duo-online'
+    | 'tournament'
     | 'tournament-alias'
+    | 'tournament-local'
+    | 'tournament-online'
     | 'duo-guest'
     | 'tournament-settings';
 
@@ -74,7 +78,7 @@ export class GameSettingsComponent {
             startBtn.classList.add('w-full');
             startBtn.onclick = () => callbacks.onStartGame?.('solo', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
-            
+
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
@@ -88,16 +92,7 @@ export class GameSettingsComponent {
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
-        // 2.5
-        if (state === 'duo-guest') {
-            // Play/Pause
-            settingsBar.appendChild(GameSettingsComponent.renderPlayPause(callbacks));
-
-            // Difficulté
-            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
-        }
-
-         // 2. DUO
+        // 2. DUO
         if (state === 'duo') {
             // Choix local/online
             const chooseMode = document.createElement('div');
@@ -112,6 +107,15 @@ export class GameSettingsComponent {
             chooseMode.appendChild(localBtn);
             chooseMode.appendChild(onlineBtn);
             settingsBar.appendChild(chooseMode);
+        }
+
+        // 2.5
+        if (state === 'duo-guest') {
+            // Play/Pause
+            settingsBar.appendChild(GameSettingsComponent.renderPlayPause(callbacks));
+
+            // Difficulté
+            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
         // 3. DUO LOCAL
@@ -157,6 +161,53 @@ export class GameSettingsComponent {
         }
 
         // 4. TOURNOI
+        if (state === 'tournament') {
+            // Choix local/online
+            const chooseMode = document.createElement('div');
+            chooseMode.className = 'flex flex-col w-full space-y-4';
+
+            const localBtn = CommonComponent.createStylizedButton('Local', 'red');
+            localBtn.onclick = () => router.navigate('/tournament');
+
+            const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+            onlineBtn.onclick = () => callbacks.onStartGame?.('tournament-online');
+
+            chooseMode.appendChild(localBtn);
+            chooseMode.appendChild(onlineBtn);
+            settingsBar.appendChild(chooseMode);
+        }
+
+        if (state === 'tournament-online') {
+            settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
+            // Lien de jeu online
+            const link = callbacks.getOnlineLink?.() ?? '';
+            const linkBox = document.createElement('div');
+            linkBox.className = 'flex flex-col items-center w-full mt-4';
+            const copyBtn = CommonComponent.createStylizedButton('Copy Game Link', 'orange');
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(link);
+                callbacks.onCopyLink?.(link);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => (copyBtn.textContent = 'Copy Link'), 1200);
+            };
+            linkBox.appendChild(copyBtn);
+            settingsBar.appendChild(linkBox);
+
+            const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
+            startBtn.classList.add('w-full');
+            let canStart = callbacks.canStart ? callbacks.canStart() : false;
+            if (!canStart) {
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            } else {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+            startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
+            settingsBar.appendChild(startBtn);
+            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+        }
+
         if (state === 'tournament-alias') {
             // Titre
             const title = document.createElement('h2');
@@ -238,7 +289,7 @@ export class GameSettingsComponent {
                 };
                 settingsBar.appendChild(startBtn);
             }
-           
+
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }

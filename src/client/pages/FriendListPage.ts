@@ -5,6 +5,8 @@ import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { FriendsRender } from '../renders/friends.render';
 
+// ...existing imports...
+
 export async function FriendsPage(): Promise<void> {
   document.title = 'Transcendence - Friends';
   document.body.innerHTML = '';
@@ -22,7 +24,7 @@ export async function FriendsPage(): Promise<void> {
       }
     }
 
-    SidebarComponent.render({
+    await SidebarComponent.render({
       userName: currentUser.displayName,
       avatarUrl: currentUser.avatar,
       showStats: true,
@@ -42,7 +44,7 @@ export async function FriendsPage(): Promise<void> {
     `;
 
     const title = document.createElement('h1');
-    title.textContent = 'Friends List';
+    title.textContent = 'Friends & Requests';
     title.className = `
       font-['Canada-big'] text-4xl font-bold text-center mb-8
       bg-gradient-to-r from-purple-600 to-orange-400
@@ -51,13 +53,13 @@ export async function FriendsPage(): Promise<void> {
 
     friendsCard.appendChild(title);
 
-    // Add a search area for adding new friends
+    // --- Search Section ---
     const searchSection = document.createElement('div');
     searchSection.className = 'mb-8 pb-8 border-b border-gray-300';
 
     const searchTitle = document.createElement('h3');
     searchTitle.textContent = 'Find Friends';
-    searchTitle.className = ` font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
+    searchTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
 
     const searchForm = document.createElement('div');
     searchForm.className = 'flex gap-2';
@@ -99,8 +101,13 @@ export async function FriendsPage(): Promise<void> {
           const userInfo = document.createElement('div');
           userInfo.className = 'flex items-center space-x-3';
 
+          // Normalize avatar path
+          const avatarUrl = user.avatar && user.avatar.startsWith('/avatars/')
+            ? user.avatar
+            : `/avatars/${user.avatar || 'default.svg'}`;
+
           const avatar = document.createElement('img');
-          avatar.src = user.avatar || '/avatars/default.svg';
+          avatar.src = avatarUrl;
           avatar.alt = `${user.displayName}'s avatar`;
           avatar.className = 'w-12 h-12 rounded-full object-cover';
 

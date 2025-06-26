@@ -1,13 +1,13 @@
 import { FastifyInstance } from 'fastify'
-import { userSchema } from '../validations/auth.schema'
-import ValidationMiddleware from '../middlewares/validation.middleware'
-import { UserController } from '../controllers/user.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
+import { userSchema } from '../validations/auth.schema.js'
+import ValidationMiddleware from '../middlewares/validation.middleware.js'
+import { UserController } from '../controllers/user.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import { UserOnline } from '../services/users.service'
+import { UserOnline } from '../services/users.service.js'
 import jsonwebtoken from 'jsonwebtoken';
-import authConfig from '../config/auth.config';
+import authConfig from '../config/auth.config.js';
 const pump = promisify(pipeline);
 
 
@@ -110,7 +110,6 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
 export default async function userRoutes(fastify: FastifyInstance) {
 
-	await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
 	fastify.get('/users', {
 		preHandler: [AuthMiddleware.authenticateUser]
@@ -140,10 +139,18 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		]
 	}, UserController.changeUserPassword);
 
-	fastify.post('/me/avatar', {
-		preHandler:
-			[AuthMiddleware.authenticateUser]
-	}, UserController.uploadAvatar);
+    fastify.post('/me/avatar', {
+        preHandler: [AuthMiddleware.authenticateUser],
+        // schema: {
+        //     body: {
+        //         type: 'object',
+        //         properties: {
+        //             file: { type: 'object' }
+        //         }
+        //     },
+        //     consumes: ['multipart/form-data']
+        // }
+    }, UserController.uploadAvatar);
 
 	fastify.get('/check-display-name', {
 		preHandler: AuthMiddleware.authenticateUser
@@ -157,6 +164,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getUserProfileByDisplayName);
 
+
 	fastify.get('/users/search', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.searchUsers);
@@ -164,4 +172,5 @@ export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.get('/users/:userId/online', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
+
 }

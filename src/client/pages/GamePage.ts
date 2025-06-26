@@ -1,11 +1,14 @@
 import '../styles.css';
-import { startPongInContainer, showGameOverOverlay, deleteCookie } from '../utils/game.utils';
+import { startPongInContainer, showGameOverOverlay } from '../utils/game.utils';
 import { UserService } from '../services/user.service';
 import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
+import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
+import { deleteCookie } from '../utils/cookies.utils';
+import previewImg from '../assets/gameimg/screen-pongGame.png'
 
 // memoriser etat de la partie en cours
 let pongHandle: { start: () => void; socket: any } | null = null;
@@ -57,41 +60,39 @@ function createGameControls(
   controls.appendChild(gameMode);
 
   const tourBtn = CommonComponent.createStylizedButton('Tournament', 'red');
+  tourBtn.classList.add("cursor-pointer");
   tourBtn.onclick = () => {
     controls.remove();
     onTournament();
   };
-  controls.appendChild(tourBtn);
+  controls.appendChild(tourBtn);'../assets/gameimg/screen-pongGame.png';
 
   wrapper.appendChild(controls);
 }
 
-// Fonction principale
-
-import { AuthComponent } from '../components/auth.component';
-
+// Verifie auth avant d'ouvrir page
 export async function GamePageCheck() {
-    document.title = "Home";
-    document.body.innerHTML = "";
-    BackgroundComponent.applyAnimatedGradient();
+  document.title = "Home";
+  document.body.innerHTML = "";
+  BackgroundComponent.applyAnimatedGradient();
 
-    try {
-      // Fetch user data first - if this fails, we handle it in catch block
-      let user = await UserService.getCurrentUser();
+  try {
+    // Fetch user data first - if this fails, we handle it in catch block
+    let user = await UserService.getCurrentUser();
 
-      if (!user.displayName || user.displayName == '') {
-        const result = await AuthComponent.checkAndHandleDisplayName();
-        if (result.success && result.userData) {
-          // Use the updated user data
-          user = result.userData;
-        } else {
-          // If checkAndHandleDisplayName failed, it already handled redirect
-          return;
-        }
+    if (!user.displayName || user.displayName == '') {
+      const result = await AuthComponent.checkAndHandleDisplayName();
+      if (result.success && result.userData) {
+        // Use the updated user data
+        user = result.userData;
+      } else {
+        // If checkAndHandleDisplayName failed, it already handled redirect
+        return;
       }
+    }
 
       // Only render sidebar and main content if authentication succeeds
-    SidebarComponent.render({
+    await SidebarComponent.render({
       userName: user.displayName,
       avatarUrl: user.avatar,
       showStats: true,
@@ -108,9 +109,10 @@ export async function GamePageCheck() {
 
       // Show error and redirect to auth - same as SettingsRender
       CommonComponent.handleAuthError();
-    }
   }
+}
 
+// Fonction principale
 export async function renderPongGamePage() {
   await GamePageCheck();
   // clean page
@@ -129,16 +131,24 @@ export async function renderPongGamePage() {
   GameSettingsComponent.render('initial');
 
   const wrapper = createMainWrapper();
+
+  // Game container
   const gameContainer = document.createElement('div');
   gameContainer.className = 'relative z-0';
   wrapper.appendChild(gameContainer);
 
+  // Titre initial avant le canvas / preview
+  const initialTitle = document.createElement('h2');
+  initialTitle.textContent = 'Ready to pong?';
+  initialTitle.className = 'text-2xl font-["Orbitron"] text-white text-center mb-4';
+  gameContainer.appendChild(initialTitle);
+
   // screen du jeu avant toute partie
-  const previewImg = document.createElement('img');
-  previewImg.src = '../assets/gameimg/screen-pongGame.png';
-  previewImg.alt = 'Pong preview';
-  previewImg.className = 'w-[800px] h-[610px] mt-15 opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-  gameContainer.appendChild(previewImg);
+  const previewImgElement = document.createElement('img');
+  previewImgElement.src = previewImg;
+  previewImgElement.alt = 'Pong preview';
+  previewImgElement.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
+  gameContainer.appendChild(previewImgElement);
 
   createGameControls(
     wrapper,
@@ -146,19 +156,26 @@ export async function renderPongGamePage() {
     async () => {
       GameSettingsComponent.render('solo', {
         onStartGame: async () => {
-          if (previewImg.parentNode) previewImg.remove();
+          gameContainer.removeChild(initialTitle);
+          if (previewImgElement.parentNode) previewImgElement.remove();
           const res = await fetch('/api/game/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
           });
           const { gameId } = await res.json();
+          const matchTitle = `${leftPlayer} vs Bot`;
           pongHandle = startPongInContainer(
             gameContainer,
             matchTitle,
             leftPlayer,
-            rightPlayer,
-            (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
+            "Bot",
+            (winnerId) => {
+              const titleText = gameContainer.querySelector('h2')!.textContent!;
+              const [name1, name2] = titleText.split(' vs ');
+              const winnerName = winnerId === 1 ? name1 : name2;
+              showGameOverOverlay(wrapper, `${winnerName}`, "local")
+            },
             gameId,
             "solo"
           );
@@ -192,7 +209,9 @@ export async function renderPongGamePage() {
         onStartGame: async (mode) => {
           // --- LOCAL ---
           if (mode === 'duo-local') {
-            if (previewImg.parentNode) previewImg.remove();
+            gameContainer.removeChild(initialTitle);
+            if (previewImgElement.parentNode) previewImgElement.remove();
+			// A CHANGER: APICLIENT.AUTHENTICATEDFETCH !!!!!!! PAS SAFE
             const res = await fetch('/api/game/start', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -201,7 +220,12 @@ export async function renderPongGamePage() {
             const { gameId } = await res.json();
             pongHandle = startPongInContainer(
               gameContainer, matchTitle, leftPlayer, rightPlayer,
-              (winnerAlias: string) => showGameOverOverlay(wrapper, winnerAlias, renderPongGamePage),
+              (winnerId) => {
+                const titleText = gameContainer.querySelector('h2')!.textContent!;
+                const [name1, name2] = titleText.split(' vs ');
+                const winnerName = winnerId === 1 ? name1 : name2;
+                showGameOverOverlay(wrapper, `${winnerName}`, "local")
+              },
               gameId, "duo-local"
             );
             pongHandle?.start();
@@ -223,7 +247,6 @@ export async function renderPongGamePage() {
           }
           // --- ONLINE ---
           else if (mode === 'duo-online') {
-            // if (previewImg.parentNode) previewImg.remove();
             const res = await fetch('/api/game/start', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -232,12 +255,39 @@ export async function renderPongGamePage() {
             const { gameId } = await res.json();
             deleteCookie(`pongPlayerToken-${gameId}`);
             deleteCookie(`pongPlayerId-${gameId}`);
-            router.navigate(`/game/online/${gameId}`);
+            router.navigate(`/game/online/duo/${gameId}`);
           }
         }
       });
     },
     // --- TOURNOI ---
-    () => router.navigate('/tournament')
+    () => {
+      GameSettingsComponent.render('tournament', {
+        onStartGame: async (mode) => {
+          // --- LOCAL ---
+          if (mode === 'tournament-local') {
+            router.navigate('/tournament');
+          }
+          // --- ONLINE ---
+          else if (mode === 'tournament-online') {
+            const res = await fetch('/api/game/tournament/start', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+            });
+            const { gameId } = await res.json();
+            deleteCookie(`pongPlayerToken-${gameId}`);
+            deleteCookie(`pongPlayerId-${gameId}`);
+            router.navigate(`/game/online/tournament/${gameId}`);
+          }
+        }
+      });
+    }
   );
+  window.addEventListener('beforeunload', () => {
+    pongHandle?.socket.close();
+  });
+  window.addEventListener('popstate', () => {
+    pongHandle?.socket.close();
+  });
 }

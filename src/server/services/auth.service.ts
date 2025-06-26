@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import bcrypt from 'bcrypt'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
@@ -7,13 +7,25 @@ export class AuthService {
 	static async createUser(email: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
 
-		return await prisma.user.create({
+		const user = await prisma.user.create({
 			data: {
 				email: email.toLowerCase().trim(),
 				displayName: '',
 				password_hash
 			}
-		})
+		});
+
+		await prisma.userStats.create({
+			data: {
+				userId: user.id,
+				oneVOneWins: 0,
+				oneVOneLosses: 0,
+				tournamentWins: 0,
+				tournamentLosses: 0,
+			}
+		});
+
+		return user;
 	}
 
 	static async createGoogleUserPending(email: string, defaultName: string) {
@@ -100,7 +112,7 @@ export class AuthService {
 			where: { id: userId },
 			data: { twoFASecret: secret.base32 }
 		});
-		const otpAuthUrl = secret.otpauth_url;
+		const otpAuthUrl = secret.otpauth_url || '';
 		const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
 		console.log(otpAuthUrl);
 		return { secret: secret.base32, otpAuthUrl: otpAuthUrl, qrCodeDataURL: qrCodeDataURL }
@@ -149,6 +161,15 @@ export class AuthService {
 				displayName,
 				password_hash: '', // Empty for OAuth users
 				provider: 'google'
+			}
+		});
+		await prisma.userStats.create({
+			data: {
+				userId: user.id,
+				oneVOneWins: 0,
+				oneVOneLosses: 0,
+				tournamentWins: 0,
+				tournamentLosses: 0,
 			}
 		});
 		return user;

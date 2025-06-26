@@ -1,20 +1,15 @@
 import { FastifyInstance } from 'fastify'
-import { authSchema } from '../validations/auth.schema'
-import ValidationMiddleware from '../middlewares/validation.middleware'
-import { AuthController } from '../controllers/auth.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
-import { userSchema } from '../validations/auth.schema'
+import { authSchema } from '../validations/auth.schema.js'
+import ValidationMiddleware from '../middlewares/validation.middleware.js'
+import { AuthController } from '../controllers/auth.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
+import OAuth2 from '@fastify/oauth2'
+import { googleOAuth2Options } from '../config/google.config.js'
 
 
 export default async function authRoutes(fastify: FastifyInstance) {
-	// Register cookie plugin
 
-	// PUBLIC ROUTES
-	// fastify.post('/signup', {
-	// 	preHandler: [
-	// 		ValidationMiddleware.validateBody(authSchema.signup),
-	// 	]
-	// }, AuthController.signup)
+	await fastify.register(OAuth2, googleOAuth2Options);
 
 	fastify.post('/login', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.login)
@@ -22,23 +17,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
 	// Public but protected by Google OAuth2
 
+	fastify.get('/oauth2/google', AuthController.googleSignin);
 	fastify.get('/oauth2/google/callback', AuthController.googleCallback);
 	fastify.get('/google/signin', AuthController.googleSignin);
 	fastify.get('/oauth-2fa/status', AuthController.checkOAuth2FAStatus);
 	fastify.post('/oauth-2fa/verify', AuthController.verifyOAuth2FA);
-
-	// ...existing routes...
-
-	// Google setup routes
-	// fastify.get('/google-setup/status',
-	// 	AuthController.googleSetupStatus
-	// );
-
-	// fastify.post('/google-setup/complete', {
-	// 	preHandler: ValidationMiddleware.validateBody(userSchema.updateDisplayName),
-	// }, AuthController.completeGoogleSetup);
-
-	// ...existing routes...
 
 	fastify.post('/signup', {
 		preHandler: ValidationMiddleware.validateBody(authSchema.signup),

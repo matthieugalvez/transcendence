@@ -16,7 +16,7 @@ export class WebSocketService {
     try {
       const user = await import('../services/user.service').then(m => m.UserService.getCurrentUser());
       this.currentUserId = user.id;
-      console.log('WebSocket service initialized with user ID:', this.currentUserId);
+    //   console.log('WebSocket service initialized with user ID:', this.currentUserId);
     } catch (error) {
       console.error('Failed to get current user for WebSocket:', error);
     }
@@ -34,18 +34,22 @@ export class WebSocketService {
 
     try {
       const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-      const port = 3000;
+      // Use the same host and port as the current page (goes through Nginx)
+      const port = location.port || (protocol === 'wss' ? '443' : '80');
       const socketUrl = `${protocol}://${location.hostname}:${port}/ws/status`;
 
       console.log('Connecting to WebSocket:', socketUrl);
       this.socket = new WebSocket(socketUrl);
 
+    //   console.log('Connecting to WebSocket:', socketUrl);
+      this.socket = new WebSocket(socketUrl);
+
       this.socket.addEventListener('open', () => {
-        console.log('WebSocket connected for online status');
+        // console.log('WebSocket connected for online status');
         // Add current user to online set immediately upon connection
         if (this.currentUserId) {
           this.onlineUsers.add(this.currentUserId);
-          console.log(`Added current user ${this.currentUserId} to online set`);
+        //   console.log(`Added current user ${this.currentUserId} to online set`);
         }
 
         if (this.reconnectTimer) {
@@ -57,11 +61,11 @@ export class WebSocketService {
       this.socket.addEventListener('message', (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('WebSocket received:', data);
+        //   console.log('WebSocket received:', data);
 
           // Handle welcome message
           if (data.type === 'welcome') {
-            console.log('Received welcome message');
+            // console.log('Received welcome message');
             return;
           }
 
@@ -77,8 +81,8 @@ export class WebSocketService {
 
             // Only notify if status actually changed OR if it's the first time we see this user
             if (wasOnline !== data.online) {
-              console.log(`User ${data.userId} status changed: ${data.online ? 'online' : 'offline'}`);
-              console.log(`Current user: ${this.currentUserId}, Status update for: ${data.userId}`);
+            //   console.log(`User ${data.userId} status changed: ${data.online ? 'online' : 'offline'}`);
+            //   console.log(`Current user: ${this.currentUserId}, Status update for: ${data.userId}`);
 
               // Notify all callbacks
               this.statusCallbacks.forEach(callback => {
@@ -99,7 +103,7 @@ export class WebSocketService {
       });
 
       this.socket.addEventListener('close', (event) => {
-        console.log(`WebSocket disconnected (${event.code}): ${event.reason}`);
+        // console.log(`WebSocket disconnected (${event.code}): ${event.reason}`);
         // Clear all users from online list when disconnected
         this.onlineUsers.clear();
         this.reconnectTimer = setTimeout(() => this.connect(), 5000);
@@ -119,15 +123,15 @@ export class WebSocketService {
       if (element instanceof HTMLElement) {
         element.style.background = isOnline ? 'green' : 'red';
         element.title = isOnline ? 'Online' : 'Offline';
-        console.log(`Updated status indicator for ${userId}: ${isOnline ? 'online' : 'offline'}`);
+        // console.log(`Updated status indicator for ${userId}: ${isOnline ? 'online' : 'offline'}`);
       }
     });
   }
 
   isUserOnline(userId: string): boolean {
     const isOnline = this.onlineUsers.has(userId);
-    console.log(`Checking if user ${userId} is online: ${isOnline}`);
-    console.log('Current online users:', Array.from(this.onlineUsers));
+    // console.log(`Checking if user ${userId} is online: ${isOnline}`);
+    // console.log('Current online users:', Array.from(this.onlineUsers));
     return isOnline;
   }
 

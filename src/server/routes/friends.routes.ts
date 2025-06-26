@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { FriendsController } from '../controllers/friends.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
+import { FriendsController } from '../controllers/friends.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
 	// Get user's friends (protected)
@@ -17,6 +17,10 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
 	fastify.put('/friends/request/:requestId/accept', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, FriendsController.acceptFriendRequest);
+
+	fastify.delete('/friends/request/:requestId/reject', {
+		preHandler: [AuthMiddleware.authenticateUser]
+	}, FriendsController.rejectFriendRequest);
 
 	fastify.get('/friends/status/:otherUserId', {
 		preHandler: [AuthMiddleware.authenticateUser]

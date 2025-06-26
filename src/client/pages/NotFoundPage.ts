@@ -79,9 +79,7 @@ export function renderNotFoundPage(): void {
         shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     `;
 	goHomeBtn.style.letterSpacing = "0.2em";
-	goHomeBtn.addEventListener('click', () => {
-		router.navigate('/home');
-	});
+	goHomeBtn.onclick = () => router.navigate('/home');
 	btnContainer.appendChild(goHomeBtn);
 	container.appendChild(btnContainer);
 

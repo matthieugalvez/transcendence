@@ -1,6 +1,26 @@
 import { router } from '../configs/simplerouter';
 
 export class ApiClient {
+
+	private static getBaseUrl(): string {
+		// In production, API calls should go through the same host as the page
+		// In development, Vite proxy handles this
+		return '';
+	}
+
+	static async fetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
+		const url = `${this.getBaseUrl()}${endpoint}`;
+		console.log('API request:', url);
+
+		return fetch(url, {
+			credentials: 'include', // Always include cookies
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				...options.headers
+			}
+		});
+	}
 	/**
 	 * Make authenticated API requests with automatic redirect on 401
 	 */
