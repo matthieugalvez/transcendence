@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { getGameRoom } from '../../game/gameRooms';
+import { getGameRoom } from '../../game/gameRooms.js';
 
 /** Envoi le state actuel du jeu */
 export async function handleGetGame(request: FastifyRequest, reply: FastifyReply) {

@@ -50,7 +50,7 @@ export async function ProfilePage(params?: { userId?: string; displayName?: stri
             showStats: true,
             showSettings: !isOwnProfile,
             showBackHome: true,
-            showUserSearch: true
+            showUserSearch: false
         });
 
         // Render the profile content

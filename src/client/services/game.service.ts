@@ -1,7 +1,7 @@
 export class GameService {
   static async requestNewGameId(): Promise<string> {
     const res = await fetch('/api/game/start', { method: 'POST' });
-    const data = await res.json();
+    const data : any = await res.json();
     if (!data.success) throw new Error('Impossible de démarrer la partie');
     return data.gameId;
   }

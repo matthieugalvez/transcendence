@@ -1,4 +1,4 @@
-import { GameState } from '../types/game.types';
+import { GameState } from '../types/game.types.js';
 
 // --- Fonctions utilitaires de dessin ---
 function drawRoundedRect(

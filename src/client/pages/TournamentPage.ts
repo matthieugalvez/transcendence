@@ -6,6 +6,9 @@ import { TournamentComponent } from '../components/tournament.component';
 import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service';
 import { GameSettingsComponent } from '../components/game.component';
+import { CommonComponent } from '../components/common.component';
+import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -60,7 +63,7 @@ export async function renderTournamentPage() {
   });
 
   const previewImg = document.createElement('img');
-  previewImg.src = '../assets/gameimg/screen-pongGame.png';
+  previewImg.src = pongPreviewImg;
   previewImg.alt = 'Pong preview';
   previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
   wrapper.appendChild(previewImg);

@@ -5,8 +5,9 @@ import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from "../configs/simplerouter";
+
 import { GameService } from "../services/game.service";
-import { 
+import {
   hideOverlay,
   startPongInContainer,
   showGameOverOverlay,
@@ -17,6 +18,8 @@ import {
   getCookie,
   deleteCookie,
 } from '../utils/cookies.utils'
+import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -75,7 +78,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
   // screen du jeu avant toute partie
   const previewImg = document.createElement('img');
-  previewImg.src = '/assets/gameimg/screen-pongGame.png';
+  previewImg.src = pongPreviewImg;
   previewImg.alt = 'Pong preview';
   previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
   gameContainer.appendChild(previewImg);
@@ -116,7 +119,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         const winnerName = winnerId === 1 ? hostName : guestName;
         const p1 = await UserService.getUserProfileByDisplayName(hostName);
         const p2 = await UserService.getUserProfileByDisplayName(guestName);
-        
+
         showGameOverOverlay(wrapper, `${winnerName}`, "online");
         // pongHandle?.socket.close();
         // deleteCookie(`pongPlayerToken-${gameId}`);
@@ -319,6 +322,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           if (playerId === 1 || playerId === 2) {
             pongHandle?.start();
             if (canvas) canvas.classList.remove('blur-xs');
+			if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
             waiting.remove();
             gameStarted = true;
             resumeAlertShown = false;

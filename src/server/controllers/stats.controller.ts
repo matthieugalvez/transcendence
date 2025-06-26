@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { StatsService } from '../services/stats.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { StatsService } from '../services/stats.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 export class StatsController {
 

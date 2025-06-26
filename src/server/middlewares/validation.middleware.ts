@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { ZodError, ZodSchema } from "zod";
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 class ValidationMiddleware {
 

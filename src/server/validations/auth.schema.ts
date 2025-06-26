@@ -37,19 +37,21 @@ const signup = z.object({
 	password: passwordSchema
 });
 
-const IMAGE_SCHEMA = z
-  .instanceof(File)
-  .refine(
-    (file) =>
-      [
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/svg+xml",
-        "image/gif",
-      ].includes(file.type),
-    { message: "Invalid image file type" }
-  );
+const IMAGE_SCHEMA = z.object({
+    filename: z.string(),
+    mimetype: z.string().refine(
+        (mimetype) => [
+            "image/png",
+            "image/jpeg", 
+            "image/jpg",
+            "image/svg+xml",
+            "image/gif",
+        ].includes(mimetype),
+        { message: "Invalid image file type" }
+    ),
+    // Add size validation if needed
+    // size: z.number().max(5 * 1024 * 1024, "File size must be less than 5MB")
+});
 
 
 

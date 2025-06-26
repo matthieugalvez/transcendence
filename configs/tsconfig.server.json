@@ -1,20 +1,16 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "ES2022",
-    "lib": ["ES2017"],
-    "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
     "outDir": "../dist-back",
     "rootDir": "../src/server",
-    "allowImportingTsExtensions": false,
-    "noEmit": false,
-    "sourceMap": true,
-    "strictPropertyInitialization": false
+    "module": "ES2022",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmitOnError": false
   },
   "include": ["../src/server/**/*"],
-  "exclude": ["../src/client", "../node_modules"]
+  "exclude": ["../node_modules", "../dist", "../dist-back"]
 }

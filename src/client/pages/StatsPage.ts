@@ -44,9 +44,9 @@ export async function StatsPage(params?: { userId?: string; displayName?: string
             userName: currentUser.displayName,
             avatarUrl: currentUser.avatar,
             showStats: true,
-            showSettings: !isOwnStats,
+            showSettings: true,
             showBackHome: true,
-            showUserSearch: true,
+            showUserSearch: false,
             showFriendsBtn: true
         });
 

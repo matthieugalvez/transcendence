@@ -1,11 +1,11 @@
 import type { WebSocket } from 'ws';
-import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms';
+import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms.js';
 import { GameInstance } from '../../game/gameInstance';
-import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms';
-import { router } from '../../../client/configs/simplerouter';
+import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms.js';
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
   ws.on('message', (data: string) => {
+	// console.log('[WS] Raw message:', data);
     try {
       const msg = JSON.parse(data);
       if (msg.action === 'start')      return game.start();
@@ -46,6 +46,7 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 
 /** Gere jeu via websocket (pour site web) */
 export function handlePongWebSocket(ws: WebSocket, req: any) {
+	console.log("handlePongWebSocket called", req.url);
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
   const mode = req.query.mode as string | undefined;
@@ -74,10 +75,13 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
   if (playerToken) {
     const success = game.tryReconnectPlayer(playerToken, ws);
     if (!success) {
-        ws.send(JSON.stringify({ type: 'error', error: 'invalid_token' }));
+        ws.send(JSON.stringify({ type: 'error', error: 'invalid_token', clearCookies: true }));
         ws.close();
     }
+	console.log("Attaching message handler for game", gameId);
+
     attachMessageHandler(ws, game);
+	console.log("We are here");
     return;
   }
 
@@ -89,9 +93,12 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
     ws.close();
     return;
   }
-  let token = game.getPlayerToken(role);
-  if (!token) {
-    token = game.assignTokenToPlayer(role);
+  let token: string | undefined;
+  if (typeof role === 'number') {
+    token = game.getPlayerToken(role);
+    if (!token) {
+      token = game.assignTokenToPlayer(role);
+    }
   }
   ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
 

@@ -170,10 +170,9 @@ export class SettingsRender {
         return loadingContainer;
     }
 
-	private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
+private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
+    console.log('🔍 Creating avatar section with URL:', currentAvatarUrl);
 
-		    // console.log('🔍 Avatar URL received:', currentAvatarUrl);
-    // console.log('🔍 Avatar URL type:', typeof currentAvatarUrl);
     const avatarContainer = document.createElement('div');
     avatarContainer.className = `
         bg-gray-50/80 backdrop-blur-sm
@@ -188,7 +187,16 @@ export class SettingsRender {
 
     // Current avatar display
     const currentAvatar = document.createElement('img');
-    currentAvatar.src = currentAvatarUrl;
+
+    // Set src with better fallback logic
+    if (currentAvatarUrl && currentAvatarUrl !== 'null' && currentAvatarUrl !== 'undefined' && currentAvatarUrl.trim() !== '') {
+        console.log('✅ Using provided avatar URL:', currentAvatarUrl);
+        currentAvatar.src = currentAvatarUrl;
+    } else {
+        console.log('⚠️ No valid avatar URL, using default');
+        currentAvatar.src = '/avatars/default.svg';
+    }
+
     currentAvatar.alt = 'Current avatar';
     currentAvatar.className = `
         w-24 h-24 rounded-full
@@ -196,36 +204,43 @@ export class SettingsRender {
         object-cover mx-auto mb-4
     `.replace(/\s+/g, ' ').trim();
 
-    // Handle avatar load error
-    currentAvatar.onerror = () => {
-        currentAvatar.src = '/avatars/default.svg';
+    // Handle avatar load error with better debugging
+    currentAvatar.onerror = (e) => {
+        console.error('❌ Avatar load failed for:', currentAvatar.src);
+        console.error('Error event:', e);
+
+        if (currentAvatar.src.includes('default.svg')) {
+            console.error('❌ Even default avatar failed to load!');
+            // Don't set onerror to null here, let it fail visibly
+        } else {
+            console.log('🔄 Falling back to default avatar');
+            currentAvatar.src = '/avatars/default.svg';
+        }
     };
 
-    // Hidden file input
+    currentAvatar.onload = () => {
+        console.log('✅ Avatar loaded successfully:', currentAvatar.src);
+    };
+
+    // Rest of your avatar section code...
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
     fileInput.id = 'avatar-input';
 
-    // Upload butto
-
-    // Handle file selection
     const uploadButton = CommonComponent.createStylizedButton('Change Avatar', 'blue');
-    uploadButton.id = 'avatar-upload-btn'; // Add ID for easier selection
+    uploadButton.id = 'avatar-upload-btn';
     uploadButton.addEventListener('click', () => {
         fileInput.click();
     });
 
-	    fileInput.addEventListener('change', async (event) => {
+    fileInput.addEventListener('change', async (event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
             await UserService.handleAvatarUpload(file, currentAvatar);
         }
     });
-
-
-
 
     avatarContainer.appendChild(avatarLabel);
     avatarContainer.appendChild(currentAvatar);
