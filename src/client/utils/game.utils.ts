@@ -5,7 +5,7 @@ import { router } from '../configs/simplerouter';
 import { setCookie, getCookie, deleteCookie } from './cookies.utils';
 
 // type pour le callback de fin de match
-type FinishCallback = (winnerAlias: 1|2, score1: number, score2: number) => void;
+type FinishCallback = (winnerAlias: 1|2) => void;
 
 export interface PongHandle {
   start: () => void;
@@ -89,35 +89,28 @@ function createGameWebSocket(
         alert(data.message);
         deleteCookie(`pongPlayerToken-${gameId}`);
         deleteCookie(`pongPlayerId-${gameId}`);
-        router.navigate('/home');
-        // window.location.href = '/home';
+        window.location.href = '/home';
         return;
       }
       if (data.type === 'error') {
         console.error('Server error:', data.error);
-        // alert(`Error: ${data.error}`);
-        router.navigate('/statistics');
-        // window.location.href = '/home';
-        return;
-      }
-      // si partie finie
-      if (data.type === 'matchEnd') {
-        setTimeout(() => onFinish(data.winner, data.score1, data.score2), 150);
+        alert(`Error: ${data.error}`);
+        window.location.href = '/home';
         return;
       }
 
       if (isGameState(data)) {
         renderGame(ctx, data);
 
-        // if (wasRunning && !data.isRunning && !data.isPaused) {
-        //   const winnerId = data.score1 > data.score2 ? 1 : 2;
-        //   setTimeout(() => onFinish(winnerId, data.score1, data.score2), 150);
-        // }
+        if (wasRunning && !data.isRunning && !data.isPaused) {
+          const winnerId = data.score1 > data.score2 ? 1 : 2;
+          setTimeout(() => onFinish(winnerId), 150);
+        }
         wasRunning = data.isRunning;
         wasPaused = data.isPaused;
       }
     } catch (err) {
-      console.error('WS message parse error:', err);
+      console.error('WS message parse error1:', err);
     }
   });
 
@@ -281,7 +274,7 @@ export function startPongInContainer(
 export function showGameOverOverlay(
   parent: HTMLElement,
   winner: string,
-  mode: string
+  onReplay: () => void
 ) {
   const ov = document.createElement('div');
   ov.className = `
@@ -311,32 +304,14 @@ export function showGameOverOverlay(
   `;
   panel.appendChild(msg);
 
-  if (mode === "local") {
-    const replay = CommonComponent.createStylizedButton('Back to home', 'blue');
-    replay.onclick = () => {
-      window.dispatchEvent(new Event('app:close-sockets'));
-      router.navigate('/game');
-    };
-    panel.appendChild(replay);
-  } else if (mode === "online") {
-    const info = document.createElement('p');
-    info.textContent = `Going to your stats…`;
-    info.className = `
-      text-lg text-gray-300
-      font-["Orbitron"]
-      border-2 border-black
-      py-2 px-12
-      bg-blue-500
-      rounded-lg text-lg transition-colors
-      focus:outline-none focus:ring-2
-      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    `;
-    panel.appendChild(info);
-    setTimeout(() => {
-      window.dispatchEvent(new Event('app:close-sockets'));
-      router.navigate('/statistics');
-    }, 2000); 
-  }
+  const replay = CommonComponent.createStylizedButton('Play Again', 'blue');
+  replay.onclick = () => {
+    // ov.remove();
+    // onReplay();
+    window.dispatchEvent(new Event('app:close-sockets'));
+    router.navigate('/game');
+  };
+  panel.appendChild(replay);
 }
 
 export function getShareableLink(gameId: string, mode: string) {
