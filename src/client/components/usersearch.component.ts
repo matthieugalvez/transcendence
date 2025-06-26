@@ -45,24 +45,24 @@ export class UserSearchComponent {
             
             container.innerHTML = '';
 
-            limited3Users.forEach(user => {
-                const userItem = document.createElement('div');
-                userItem.className = `
-                    flex items-center justify-between p-3
-                    bg-white border-2 border-black rounded-lg
-                    hover:bg-gray-50 transition-colors
-                `;
+			limited3Users.forEach(async user => {
+				const userItem = document.createElement('div');
+				userItem.className = `
+					flex items-center justify-between p-3
+					bg-white border-2 border-black rounded-lg
+					hover:bg-gray-50 transition-colors
+				`;
 
-				userItem.innerHTML = `
-        <div class="flex items-center space-x-3">
-            <img src="${user.avatar || '/avatars/default.svg'}"
-                 alt="${user.displayName}"
-                 class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
-            <div>
-                <p class="font-bold text-gray-900">${user.displayName}</p>
-            </div>
-        </div>
-    `;
+			userItem.innerHTML = `
+				<div class="flex items-center space-x-3">
+					<img src="${user.avatar || '/avatars/default.svg'}"
+						alt="${user.displayName}"
+						class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
+					<div>
+						<p class="font-bold text-gray-900">${user.displayName}</p>
+					</div>
+				</div>
+			`;
 
 				// Create button container
 				const buttonContainer = document.createElement('div');
