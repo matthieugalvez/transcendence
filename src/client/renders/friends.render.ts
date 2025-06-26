@@ -220,11 +220,10 @@ export class FriendsRender {
 		} else if (type === 'accepted') {
 			const removeBtn = CommonComponent.createStylizedButton('Remove', 'red');
 			removeBtn.onclick = async () => {
-				// if (confirm(`Remove ${friend.displayName} from friends?`)) {
 				try {
 					removeBtn.disabled = true;
 					removeBtn.textContent = 'Removing...';
-					await UserService.removeFriend(friend.id); // Use friend.id instead of friendship.id
+					await UserService.removeFriend(friend.id);
 					window.location.reload();
 				} catch (error) {
 					console.error('Failed to remove friend:', error);
@@ -232,7 +231,6 @@ export class FriendsRender {
 					removeBtn.disabled = false;
 					removeBtn.textContent = 'Remove';
 				}
-				// }
 			};
 			actions.appendChild(removeBtn);
 
@@ -251,10 +249,15 @@ export class FriendsRender {
 					});
 					if (!inviteRes.ok) throw new Error('Failed to send invite');
 					CommonComponent.showMessage('✅ Game invite sent!', 'success');
+
+					// Replace button with "Requested..." label
+					const requestedLabel = document.createElement('span');
+					requestedLabel.textContent = 'Requested...';
+					requestedLabel.className = 'text-gray-400 ml-2';
+					inviteBtn.replaceWith(requestedLabel);
 				} catch (error) {
 					console.error('Failed to invite:', error);
 					CommonComponent.showMessage('❌ Failed to send game invite', 'error');
-				} finally {
 					inviteBtn.disabled = false;
 					inviteBtn.textContent = 'Invite to Game';
 				}
