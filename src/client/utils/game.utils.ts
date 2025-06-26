@@ -38,7 +38,8 @@ function createGameWebSocket(
 	// if (playerToken) wsUrl += `?playerToken=${playerToken}`;
 	// else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
 	const params: string[] = [];
-	if (playerToken) params.push(`playerToken=${playerToken}`);
+	if (playerToken)
+		params.push(`playerToken=${playerToken}`);
 	else params.push(`username=${encodeURIComponent(leftPlayer)}`);
 	if (mode === 'tournament-online') params.push('mode=tournament');
 	if (params.length) wsUrl += `?${params.join('&')}`;
@@ -187,7 +188,7 @@ function startClientInputLoop(
           socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
         }
       }
-      
+
     }
     requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
   }

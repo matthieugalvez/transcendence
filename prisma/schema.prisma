@@ -121,3 +121,13 @@ model TournamentUser {
   @@id([tournamentId, userId])
   @@map("tournament_users")
 }
+
+model GameInvite {
+  id          String   @id @default(uuid())
+  gameId      String
+  inviterId   String   // User who sends the invite
+  inviteeId   String   // User who receives the invite
+  status      String   // 'pending', 'accepted', 'declined', 'expired'
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+}
