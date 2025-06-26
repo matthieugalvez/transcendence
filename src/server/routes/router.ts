@@ -10,7 +10,7 @@ import userRoutes from './users.routes.js'
 import authRoutes from './auth.routes.js'
 import friendsRoutes from './friends.routes.js';
 import chatRoutes from './chat.route.js'
-import { tournamentRoutes } from './tournament.routes';
+import { tournamentRoutes } from './tournament.routes.js';
 import { statsRoutes } from './stats.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {

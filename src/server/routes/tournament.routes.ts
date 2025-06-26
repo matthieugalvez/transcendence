@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { AuthMiddleware } from '../middlewares/auth.middleware';
-import { StatsService } from '../services/stats.service';
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
+import { StatsService } from '../services/stats.service.js';
 
 export async function tournamentRoutes(fastify: FastifyInstance) {
     fastify.post('/tournament/create', {
