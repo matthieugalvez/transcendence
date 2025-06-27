@@ -13,13 +13,13 @@ export class InviteController {
 		const invite = await InviteService.createInvite(gameId, inviterId, inviteeId);
 		reply.send({ success: true, invite });
 	}
-	static async acceptInvite(request: FastifyRequest<{ Params: { inviteId: string } }>, reply: FastifyReply) {
+	static async acceptInvite(request: FastifyRequest, reply: FastifyReply) {
 		const { inviteId } = (request as any).params;
 		await InviteService.acceptInvite(inviteId);
 		reply.send({ success: true });
 	}
 
-	static async declineInvite(request: FastifyRequest<{ Params: { inviteId: string } }>, reply: FastifyReply) {
+	static async declineInvite(request: FastifyRequest, reply: FastifyReply) {
 		const { inviteId } = (request as any).params;
 		await InviteService.declineInvite(inviteId);
 		reply.send({ success: true });
