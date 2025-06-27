@@ -1,7 +1,8 @@
+import { FastifyInstance } from 'fastify';
 import { InviteController } from '../controllers/invite.controller.js';
 import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
-export async function inviteRoutes(fastify) {
+export async function inviteRoutes(fastify : FastifyInstance) {
 	fastify.post('/invite', {
 		preHandler: AuthMiddleware.authenticateUser },
 		InviteController.createInvite);
