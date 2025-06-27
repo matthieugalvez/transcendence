@@ -251,6 +251,16 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         }
 
         if (data.type === 'tournamentEnd') {
+          // try {
+          //   await GameService.createTournament({
+          //     tournamentId: gameId,
+          //     participants: participantsIds,
+          //     winnerId: currentUser.id,
+          //     matches: []
+          //   });
+          // } catch (err) {
+          //   console.error('Impossible d’enregistrer le tournoi', err);
+          // }
           const transition = document.createElement('div');
           transition.style.backgroundColor = "#530196";
           transition.className = `
@@ -268,10 +278,23 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
           winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
           transition.appendChild(winnerMsg);
           // Bouton replay
-          const replayBtn = CommonComponent.createStylizedButton('Back to home', 'orange');
-          replayBtn.classList.add('mt-4');
-          replayBtn.onclick = () => router.navigate('/statistics');
-          transition.appendChild(replayBtn);
+          const info = document.createElement('p');
+          info.textContent = `Going to your stats…`;
+          info.className = `
+            text-lg text-gray-300
+            font-["Orbitron"]
+            border-2 border-black
+            py-2 px-12
+            bg-blue-500
+            rounded-lg text-lg transition-colors
+            focus:outline-none focus:ring-2
+            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+          `;
+          setTimeout(() => {
+            window.dispatchEvent(new Event('app:close-sockets'));
+            router.navigate('/statistics');
+          }, 2000);
+          transition.appendChild(info);
 
           wrapper.appendChild(transition);
         }

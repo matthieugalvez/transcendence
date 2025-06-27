@@ -4,10 +4,9 @@ import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
 import { TournamentComponent } from '../components/tournament.component';
 import { UserService } from '../services/user.service';
-import { GameService } from '../services/game.service';
+import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -117,9 +116,8 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
       async (winnerId, score1, score2) => {
-
-        const p1 = participants.find(p => p.alias === leftAlias)!;
-        const p2 = participants.find(p => p.alias === rightAlias)!;
+        const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
+        const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
         const winnerAliasId = winnerId === 1 ? p1.id : p2.id;
         playedMatches.push({
           playerOneId: p1.id,
@@ -142,7 +140,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
             })
           } catch (error) {
             console.error('Error creating tournament: ', error);
-            throw error;
+            // throw error;
           }
         }
 

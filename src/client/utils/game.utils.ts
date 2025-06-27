@@ -71,7 +71,6 @@ function createGameWebSocket(
 					setCookie(`pongPlayerToken-${gameId}`, data.playerToken); // BACKEND
 					setCookie(`pongPlayerId-${gameId}`, String(data.playerId)); // BACKEND USING USER.UUID
 				}
-				// console.log(`[CLIENT][WS] Reçu playerToken: playerId=${data.playerId}, playerToken=${data.playerToken}`);
 				playerId = data.playerId;
 				return;
 			}
@@ -323,15 +322,15 @@ export function showGameOverOverlay(
 		const info = document.createElement('p');
 		info.textContent = `Going to your stats…`;
 		info.className = `
-      text-lg text-gray-300
-      font-["Orbitron"]
-      border-2 border-black
-      py-2 px-12
-      bg-blue-500
-      rounded-lg text-lg transition-colors
-      focus:outline-none focus:ring-2
-      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    `;
+			text-lg text-gray-300
+			font-["Orbitron"]
+			border-2 border-black
+			py-2 px-12
+			bg-blue-500
+			rounded-lg text-lg transition-colors
+			focus:outline-none focus:ring-2
+			shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+		`;
 		panel.appendChild(info);
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
