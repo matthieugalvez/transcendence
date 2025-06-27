@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { incrementWin, incrementLoss } from "./stats.service.js";
+import { StatsService } from "./stats.service.js";
 
 export class TournamentStatService {
     static async createTournament(payload: {
@@ -46,8 +46,8 @@ export class TournamentStatService {
             await Promise.all(
                 payload.participants.map(uid =>
                     uid === payload.winnerId
-                        ? incrementWin(uid, 'TOURNAMENT')
-                        : incrementLoss(uid, 'TOURNAMENT')
+                        ? StatsService.incrementWin(uid, 'TOURNAMENT')
+                        : StatsService.incrementLoss(uid, 'TOURNAMENT')
                 )
             )
         })
