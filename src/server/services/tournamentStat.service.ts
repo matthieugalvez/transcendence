@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { incrementWin, incrementLoss } from "./stats.service";
+import { incrementWin, incrementLoss } from "./stats.service.js";
 
 export class TournamentStatService {
     static async createTournament(payload: {
