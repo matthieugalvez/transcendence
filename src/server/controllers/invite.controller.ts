@@ -14,13 +14,13 @@ export class InviteController {
 		reply.send({ success: true, invite });
 	}
 	static async acceptInvite(request: FastifyRequest<{ Params: { inviteId: string } }>, reply: FastifyReply) {
-		const { inviteId } = request.params;
+		const { inviteId } = (request as any).params;
 		await InviteService.acceptInvite(inviteId);
 		reply.send({ success: true });
 	}
 
 	static async declineInvite(request: FastifyRequest<{ Params: { inviteId: string } }>, reply: FastifyReply) {
-		const { inviteId } = request.params;
+		const { inviteId } = (request as any).params;
 		await InviteService.declineInvite(inviteId);
 		reply.send({ success: true });
 	}
