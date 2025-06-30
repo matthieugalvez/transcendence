@@ -251,16 +251,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
         }
 
         if (data.type === 'tournamentEnd') {
-          // try {
-          //   await GameService.createTournament({
-          //     tournamentId: gameId,
-          //     participants: participantsIds,
-          //     winnerId: currentUser.id,
-          //     matches: []
-          //   });
-          // } catch (err) {
-          //   console.error('Impossible d’enregistrer le tournoi', err);
-          // }
           const transition = document.createElement('div');
           transition.style.backgroundColor = "#530196";
           transition.className = `
