@@ -15,7 +15,7 @@ export class ChatService {
 		return await prisma.message.update({
 			where: { id },
 			data: { content },
-		})
+		});
 	}
 
 	static async	deleteMessage(id: string) {
@@ -23,10 +23,13 @@ export class ChatService {
 			where: { id },
 		});
 
+		if (!msg) {
+			return;
+		}
 		return await prisma.message.update({
 			where: { id },
 			data: { deleted: !msg.deleted },
-		})
+		});
 	}
 
 	static async	getMessages(userId: string, otheruserId: string, last_fetch: Date) {
@@ -62,6 +65,6 @@ export class ChatService {
 					},
 				]
 			}
-		})
+		});
 	}
 }

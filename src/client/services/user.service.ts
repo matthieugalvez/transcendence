@@ -374,13 +374,6 @@ export class UserService {
 		}
 	}
 
-	static async	blockUser(otherUserId: string): Promise<void> {
-		const	response = await ApiClient.authenticatedFetch(`/api/friends/block/${encodeURIComponent(otherUserId)}`,
-			{ method: 'POST' });
-	//	const data = await response.json();
-	//	if (!data.success) throw new Error(data.error || 'Failed to block user');
-	}
-
 	static async getFriendshipStatus(otherUserId: string): Promise<{
 		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);

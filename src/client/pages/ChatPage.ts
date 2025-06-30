@@ -4,6 +4,7 @@ import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
 import { UserService } from '../services/user.service';
 import { renderNotFoundPage } from './NotFoundPage';
+import { FriendService } from '../services/friend.service';
 let		g_edit_box: boolean = false;
 let		g_last_fetch_date: Date;
 
@@ -74,6 +75,31 @@ export async function renderChatPage() {
 	document.body.appendChild(messages_box);
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
+
+	// ___________ TEST BLOCK ___________
+	
+	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
+	block_button.title = 'block_button',
+	block_button.onclick = async () => {
+		await FriendService.blockUser(receiver.id);
+		location.reload();
+	}
+
+	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
+	unblock_button.title = 'unblock_button',
+	unblock_button.onclick = async () => {
+		await FriendService.unblockUser(receiver.id);
+		location.reload();
+	}
+
+	if (friendship_status.status === 'blocked') {
+		title_box.appendChild(unblock_button);
+	} else {
+		title_box.appendChild(block_button);
+	}
+
+	// ___________ /TEST BLOCK ___________
+
 
 	if (friendship_status.status === 'blocked') {
 		messages_box.textContent = `User ${ receiver.displayName } is blocked`;

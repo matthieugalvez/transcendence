@@ -127,6 +127,23 @@ export class FriendService {
 		});
 	}
 
+	static async unblockUser(userId: string, otherUserId: string) {
+		const	friendship = await prisma.friendship.findFirst ({
+			where: {
+				senderId: userId,
+				receiverId: otherUserId,
+				status: FriendshipStatus.BLOCKED
+			}
+		});
+
+		if (!friendship) {
+			return;
+		};
+		return await prisma.friendship.delete ({
+			where: { id: friendship.id }
+		});
+	}
+
 	static async blockUser(userId: string, otherUserId: string) {
 		const	friendship = await prisma.friendship.findFirst ({
 			where: {
