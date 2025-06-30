@@ -41,7 +41,7 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 }
 
 /** Gere jeu via websocket (pour site web) */
-export function handlePongWebSocket(ws: WebSocket, req: any) {
+export async function handlePongWebSocket(ws: WebSocket, req: any) {
 	console.log("handlePongWebSocket called", req.url);
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
@@ -53,7 +53,7 @@ export function handlePongWebSocket(ws: WebSocket, req: any) {
       tour = createTournamentRoom(gameId, 'MEDIUM');
     }
     const username = req.query.username as string | undefined;
-    const role = tour.addClient(ws, username);
+    const role = await tour.addClient(ws, username);
     ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: '' }));
     attachTournamentHandler(ws, tour, role);
     return;

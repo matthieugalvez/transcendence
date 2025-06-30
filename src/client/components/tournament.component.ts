@@ -118,7 +118,7 @@ export class TournamentComponent {
     transition.style.backgroundColor = "#530196";
     transition.className = `
       absolute flex flex-col items-center justify-center p-8
-      backdrop-blur-2xl z-50 w-[28%] h-[22%]
+      backdrop-blur-2xl z-50 w-[35%] h-[23%]
       border-2 border-black
       whitespace-nowrap
       rounded-lg
