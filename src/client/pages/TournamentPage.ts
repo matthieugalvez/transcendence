@@ -131,6 +131,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 
         if (i === matchups.length - 1) {
           try {
+			console.log('typeof GameService.createTournament:', typeof GameService.createTournament);
             await GameService.createTournament({
               tournamentId: gameId,
               participants: participantsIds,

@@ -35,6 +35,10 @@ model	User {
 	tournamentsWon    Tournament[]     @relation("WonTournaments")
 	tournamentEntries TournamentUser[]
 
+  // GameInvite
+  sentGameInvites     GameInvite[] @relation("Inviter")
+  receivedGameInvites GameInvite[] @relation("Invitee")
+
   @@map("users")
 }
 
@@ -137,4 +141,19 @@ model TournamentUser {
 
   @@id([tournamentId, userId])
   @@map("tournament_users")
+}
+
+model GameInvite {
+  id          String   @id @default(uuid())
+  gameId      String
+  inviterId   String
+  inviteeId   String
+  status      String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  inviter     User     @relation("Inviter", fields: [inviterId], references: [id])
+  invitee     User     @relation("Invitee", fields: [inviteeId], references: [id])
+  // Optionally, if you have a Game model:
+  // game        Game?    @relation(fields: [gameId], references: [id])
 }
