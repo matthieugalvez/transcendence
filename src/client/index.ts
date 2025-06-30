@@ -10,6 +10,7 @@ import { RenderHomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { oauth2FAPage } from './pages/OAuth2FAPage';
 import { renderJoinPage } from './pages/JoinPage';
+import { renderChatPage } from './pages/ChatPage';
 import { ProfilePage } from './pages/UserProfilePage';
 import { UsersPage } from './pages/UserPage';
 import { FriendsPage } from './pages/FriendListPage'
@@ -37,8 +38,9 @@ function startSPA() {
 	router.register('/friendlist', async () => await FriendsPage());
 	router.register('/statistics', async () => await StatsPage()); // Own statistics
 	router.register('/statistics/:displayName', async (params = {}) => await StatsPage({ displayName: params.displayName })); // Other user's statistics
+	router.register('/chat/:displayName', async() => await renderChatPage());
 
-	router.start();
+    router.start();
 }
 
 if (document.readyState === 'loading') {

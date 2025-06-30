@@ -6,8 +6,6 @@ import { WebSocket } from 'ws';
 
 
 export class UserService {
-
-
 	static async getAllUsers(): Promise<Array<{ id: string; name: string; created_at: string; update_at: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users');
@@ -317,7 +315,6 @@ export class UserService {
 		}
 	}
 
-
 	static async searchUsers(query: string, limit: number = 10): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch(
@@ -377,7 +374,8 @@ export class UserService {
 		}
 	}
 
-	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
+	static async getFriendshipStatus(otherUserId: string): Promise<{
+		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
 		const data = await response.json();
 		if (!data.success)
@@ -393,7 +391,6 @@ export class UserService {
 		const data = await response.json();
 		if (!data.success) throw new Error(data.error || 'Failed to reject friend request');
 	}
-
 
 	static async removeFriend(friendId: string): Promise<void> {
 		const response = await ApiClient.authenticatedFetch(

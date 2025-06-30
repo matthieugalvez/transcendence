@@ -57,4 +57,29 @@ export class FriendService {
             return { success: false, message: 'Failed to reject friend request' };
         }
     }
+
+	static async	unblockUser(otherUserId: string): Promise<{ success: boolean; message?: string }> {
+		try {
+			const	response = await ApiClient.authenticatedFetch(`/api/friends/unblock/${encodeURIComponent(otherUserId)}`,
+				{ method: 'POST' });
+			const data = await response.json();
+			return data;
+		} catch (error) {
+            console.error('Error unblocking user:', error);
+            return { success: false, message: 'Failed to unblock user' };
+		}
+	}
+
+	static async	blockUser(otherUserId: string): Promise<{ success: boolean; message?: string }> {
+		try {
+			const	response = await ApiClient.authenticatedFetch(`/api/friends/block/${encodeURIComponent(otherUserId)}`,
+				{ method: 'POST' });
+			const data = await response.json();
+			return data;
+		} catch (error) {
+            console.error('Error blocking user:', error);
+            return { success: false, message: 'Failed to block user' };
+		}
+	}
+
 }

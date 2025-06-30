@@ -7,7 +7,7 @@ datasource db {
   url      = "file:./transcendence.db"
 }
 
-model User {
+model	User {
   id            String   @id @default(uuid()) // Changed from Int to String with UUID
   email         String   @unique
   displayName   String?
@@ -20,24 +20,41 @@ model User {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  // FriendlistInvite
-  sentFriendRequests     Friendship[] @relation("UserSentRequests")
-  receivedFriendRequests Friendship[] @relation("UserReceivedRequests")
+  // Friendlist functions
+	messages_send			Message[]		@relation("sender")
+	messages_received		Message[]		@relation("receiver")
+	sentFriendRequests		Friendship[]	@relation("UserSentRequests")
+	receivedFriendRequests	Friendship[]	@relation("UserReceivedRequests")
 
   // User stats
-  userStats        UserStats?
-  playerOneMatches Match[]    @relation("PlayerOne")
-  playerTwoMatches Match[]    @relation("PlayerTwo")
+	userStats        UserStats?
+	playerOneMatches Match[]    @relation("PlayerOne")
+	playerTwoMatches Match[]    @relation("PlayerTwo")
 
-  // Tournament
-  tournamentsWon    Tournament[]     @relation("WonTournaments")
-  tournamentEntries TournamentUser[]
+	// Tournament
+	tournamentsWon    Tournament[]     @relation("WonTournaments")
+	tournamentEntries TournamentUser[]
 
   // GameInvite
   sentGameInvites     GameInvite[] @relation("Inviter")
   receivedGameInvites GameInvite[] @relation("Invitee")
 
   @@map("users")
+}
+
+model	Message {
+	id			String		@id @default(uuid())
+	sender_id	String
+	receiver_id	String
+	created_at	DateTime	@default(now())
+	updated_at	DateTime	@updatedAt
+	content		String
+	deleted		Boolean		@default(false)
+
+	sender		User	@relation("sender", fields: [sender_id], references: [id])
+	receiver	User	@relation("receiver", fields: [receiver_id], references: [id])
+
+	@@map("messages")
 }
 
 model Friendship {
@@ -56,9 +73,9 @@ model Friendship {
 }
 
 enum FriendshipStatus {
-  PENDING
-  ACCEPTED
-  BLOCKED
+	PENDING
+	ACCEPTED
+	BLOCKED
 }
 
 model UserStats {
