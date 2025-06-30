@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
 
-
 export class AuthService {
 	static async createUser(email: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
@@ -158,9 +157,9 @@ export class AuthService {
 		// Create user without password since they login via Google
 		const user = await prisma.user.create({
 			data: {
-				email: email.toLocaleLowerCase().trim(),
-				displayName: '',
-				password_hash: '',
+				email: email.toLocaleLowerCase().trim(), // Use email as username
+				displayName,
+				password_hash: '', // Empty for OAuth users
 				provider: 'google'
 			}
 		});

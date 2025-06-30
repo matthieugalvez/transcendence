@@ -9,6 +9,7 @@ import healthRoutes from './health.routes.js'
 import userRoutes from './users.routes.js'
 import authRoutes from './auth.routes.js'
 import friendsRoutes from './friends.routes.js';
+import chatRoutes from './chat.route.js'
 import { tournamentRoutes } from './tournament.routes.js';
 import { statsRoutes } from './stats.routes.js';
 
@@ -21,7 +22,8 @@ export async function registerRoutes(app: FastifyInstance) {
 		await fastify.register(authRoutes, { prefix: '/auth' })
 		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
-		await fastify.register(friendsRoutes);
+		await fastify.register(chatRoutes, { prefix: '/chat' });
+		await fastify.register(friendsRoutes)
 		await fastify.register(statsRoutes);
         await fastify.register(tournamentRoutes);
 	}, { prefix: '/api' })
@@ -78,5 +80,4 @@ app.get('/avatars/:filename', async (request, reply) => {
         return reply.code(404).send({ error: 'Avatar not found' });
     }
 });
-
 }

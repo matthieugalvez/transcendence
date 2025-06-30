@@ -17,7 +17,7 @@ export class UserController {
 			const userData = {
 				users: users.map(user => ({
 					id: user.id,
-					name: user.displayName,
+					name: user.email,
 					displayName: user.displayName,
 					created_at: user.created_at,
 					updated_at: user.updated_at
@@ -73,7 +73,7 @@ export class UserController {
 
 			const userData = {
 				id: user.id,
-				name: user.displayName,
+				name: user.email,
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,
@@ -112,7 +112,7 @@ export class UserController {
 
 			const userData = {
 				id: updatedUser.id,
-				name: updatedUser.displayName,
+				name: updatedUser.email,
 				displayName: updatedUser.displayName,
 				created_at: updatedUser.created_at,
 				updated_at: updatedUser.updated_at
@@ -261,9 +261,6 @@ export class UserController {
 		}
 	}
 
-
-
-
 	static async getUserProfile(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const { userId } = request.params as { userId: string };
@@ -288,6 +285,7 @@ export class UserController {
 
 			const userData = {
 				id: user.id,
+				email: user.email,
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,
@@ -333,7 +331,6 @@ export class UserController {
 		}
 	}
 
-
 	static async getUserProfileByDisplayName(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			const { displayName } = request.params as { displayName: string };
@@ -362,6 +359,7 @@ export class UserController {
 			}
 			const userData = {
 				id: user.id,
+				email: user.email,
 				displayName: user.displayName,
 				avatar: avatarUrl,
 				created_at: user.created_at,

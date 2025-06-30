@@ -24,23 +24,23 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
         try {
           const decoded = jsonwebtoken.verify(token, authConfig.secret) as { userId: string };
           userId = decoded.userId;
-          console.log('WebSocket authenticated user:', userId);
+//          console.log('WebSocket authenticated user:', userId);
         } catch (jwtError) {
           console.error('Invalid JWT token in cookie:', jwtError);
         }
       } else {
-        console.log('No access token in cookies');
+//        console.log('No access token in cookies');
       }
     } catch (error) {
       console.error('Error authenticating WebSocket connection:', error);
     }
 
     if (!userId || !connection) {
-      console.log('WebSocket connection rejected: Missing authentication or invalid connection');
+//      console.log('WebSocket connection rejected: Missing authentication or invalid connection');
       return;
     }
 
-    console.log(`User ${userId} connected to online status WebSocket`);
+//    console.log(`User ${userId} connected to online status WebSocket`);
 
     // Add user to online list
     UserOnline.addOnlineUser(userId, connection);
@@ -53,7 +53,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
           message: 'Connected successfully',
           userId: userId
         }));
-        console.log('Welcome message sent successfully');
+//        console.log('Welcome message sent successfully');
       }
     } catch (error) {
       console.error('Error sending welcome message:', error);
@@ -69,7 +69,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
           online: true
         }));
       }
-      console.log(`Sent ${onlineUsers.length} online users to ${userId}`);
+//      console.log(`Sent ${onlineUsers.length} online users to ${userId}`);
     } catch (error) {
       console.error('Error sending online users list:', error);
     }
@@ -87,7 +87,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
     // Handle disconnect
     connection.on('close', () => {
-      console.log(`User ${userId} disconnected from online status WebSocket`);
+//      console.log(`User ${userId} disconnected from online status WebSocket`);
       UserOnline.removeOnlineUser(userId);
 
       try {

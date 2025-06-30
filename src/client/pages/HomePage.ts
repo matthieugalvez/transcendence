@@ -4,7 +4,7 @@ import { SidebarComponent } from "../components/sidebar.component";
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { AuthRender } from '../renders/auth.render';
+//import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
 import { UserSearchComponent } from '../components/usersearch.component';
 
@@ -13,6 +13,7 @@ export async function RenderHomePage(): Promise<void> {
 	document.title = "Home";
 	document.body.innerHTML = "";
 	BackgroundComponent.applyAnimatedGradient();
+
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
 		let user = await UserService.getCurrentUser();

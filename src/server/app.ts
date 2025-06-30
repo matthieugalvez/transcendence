@@ -13,9 +13,9 @@ const __dirname = dirname(__filename)
 
 // Create Fastify instance with proper configuration
 const app = Fastify({
-  logger: {
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  },
+  logger: false,//{
+ //   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+//  },
   trustProxy: true,
   bodyLimit: 10 * 1024 * 1024, // 10MB limit for file uploads
 });
