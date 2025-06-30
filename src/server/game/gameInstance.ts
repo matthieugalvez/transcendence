@@ -219,10 +219,6 @@ export class GameInstance {
     }
     // 60 FPS loop
     private async tick() {
-    // Get users by username first
-    let playerOne = await UserService.getUserByDisplayName(this.players[0].username);
-    let playerTwo = await UserService.getUserByDisplayName(this.players[1].username);
-
     if (!this.isRunning || this.isPaused) {
         this.broadcastState(false);
         return;
