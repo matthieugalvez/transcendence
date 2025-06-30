@@ -3,6 +3,7 @@ import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { setCookie, getCookie, deleteCookie } from './cookies.utils';
+let	g_game_state: GameState
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -107,6 +108,7 @@ function createGameWebSocket(
 			}
 
 			if (isGameState(data)) {
+				g_game_state = data;
 				renderGame(ctx, data);
 
 				// if (wasRunning && !data.isRunning && !data.isPaused) {
@@ -146,6 +148,13 @@ function setupKeyboardHandlers(
 	});
 }
 
+class	AI_class {
+	lastCheck = new Date(0);
+	pointVec: Array<{x: number, y: number}> = Array();
+	projectedPoint: {x: number, y: number};
+	knownScore: {p1: number, p2: number} = {p1: -1, p2:  -1};
+}
+
 // --- Boucle de polling des touches ---
 function startClientInputLoop(
 	socket: WebSocket,
@@ -153,45 +162,90 @@ function startClientInputLoop(
 	getPlayerId,
 	mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
-  function frame() {
-    // On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
-    const pId = getPlayerId();
-    if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
-      if (mode === 'duo-online') {
-        if (pId === 1) {
-          if (keysPressed['KeyW']) {
-            socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-          } else if (keysPressed['KeyS']) {
-            socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-          }
-        }
-        else if (pId === 2) {
-          if (keysPressed['ArrowUp']) {
-            socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-          } else if (keysPressed['ArrowDown']) {
-            socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-          }
-        }
-      } else {
-        // if (keysPressed['KeyW'] || keysPressed['KeyS'] || keysPressed['ArrowUp'] || keysPressed['ArrowDown']) {
-        //   console.log(`[CLIENT][INPUT] playerId utilisé pour ce match: ${pId}, Keys:`, JSON.stringify(keysPressed));
-        // }
-        if (keysPressed['KeyW']) {
-          socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-        } else if (keysPressed['KeyS']) {
-          socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-        }
-        if (keysPressed['ArrowUp']) {
-          socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-        } else if (keysPressed['ArrowDown']) {
-          socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-        }
-      }
+	let	AI: AI_class;
+	if (mode === 'solo') {
+		AI = new AI_class
+	}
+	function frame() {
+	// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+		const pId = getPlayerId();
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isPaused) {
+			if (mode === 'duo-local') {
+				if (keysPressed['KeyW']) {
+				  socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+				} else if (keysPressed['KeyS']) {
+				  socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+				}
+				if (keysPressed['ArrowUp']) {
+				  socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+				} else if (keysPressed['ArrowDown']) {
+				  socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+				}
+			} else {
+				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
+				  socket.send(JSON.stringify({ playerId: pId, action: 'up' }));
+				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
+				  socket.send(JSON.stringify({ playerId: pId, action: 'down' }));
+				}
+			} if (mode === 'solo') {
+				makeAIInput(AI, socket);
+			}
+		}
+		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
+	}
+	requestAnimationFrame(frame);
+}
 
-    }
-    requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
-  }
-  requestAnimationFrame(frame);
+function	makeAIInput(AI: AI_class, socket: WebSocket) {
+	const	date = new Date;
+	const	current_position = {x: g_game_state.paddle2.x, y: g_game_state.paddle2.y};
+	let		expected_hitpoint: number;
+
+	if (g_game_state.score1 != AI.knownScore.p1 || g_game_state.score2 != AI.knownScore.p2) {
+		AI.pointVec = [{x: 400, y: 300}];
+		AI.knownScore = {p1: g_game_state.score1, p2: g_game_state.score2};
+		expected_hitpoint = -1;
+	}
+
+	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
+		AI.lastCheck = date;
+		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+
+		if (AI.pointVec.length > 1 && (Number(AI.pointVec[AI.pointVec.length - 2].x) > Number(AI.pointVec[AI.pointVec.length - 1].x))) {
+			if (Number(AI.pointVec[AI.pointVec.length - 1].x) < Number(ball_position.x)) {
+				expected_hitpoint = -1;
+			} else {
+				expected_hitpoint = 300;
+			}
+			AI.pointVec = [];
+		}
+		AI.pointVec.push(ball_position);
+	}
+	if (AI.pointVec.length > 1) {
+		expected_hitpoint = linear_extrapolation(AI.pointVec, current_position.x);
+		if (expected_hitpoint < 0) {
+			expected_hitpoint *= -1;
+		} else if (expected_hitpoint > 600) {
+			expected_hitpoint = 600 - expected_hitpoint % 600;
+		}
+	} else if (expected_hitpoint = -1) {
+		expected_hitpoint = AI.pointVec[AI.pointVec.length - 1].y;
+	}
+	if (Number(expected_hitpoint) < Number(current_position.y + g_game_state.paddle2.height / 2)
+		&& Number(current_position.y + g_game_state.paddle2.height / 2) - Number(expected_hitpoint) > 5) {
+		socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+	} else if (Number(expected_hitpoint) > Number(current_position.y + g_game_state.paddle2.height / 2)
+		&& Number(expected_hitpoint) - Number(current_position.y + g_game_state.paddle2.height / 2) > 5) {
+		socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+	}
+}
+
+function	linear_extrapolation(pointVec:Array<{x: number, y: number}>, x_hitpoint: number) {
+	let	x_line = pointVec[pointVec.length - 1].x - pointVec[pointVec.length - 2].x;
+	let	y_line = pointVec[pointVec.length - 1].y - pointVec[pointVec.length - 2].y;
+	const	slope = y_line / x_line;
+
+	return pointVec[pointVec.length - 2].y + slope * (x_hitpoint - pointVec[pointVec.length - 2].x);
 }
 
 // --- Création du jeu et intégration au DOM ---
