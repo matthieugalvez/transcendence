@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 
 export class ChatService {
 	static async	createMessage(sender_id: string, receiver_id: string, content: string) {

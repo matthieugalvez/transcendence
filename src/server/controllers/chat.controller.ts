@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { ChatService } from '../services/chat.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { ChatService } from '../services/chat.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 export class	ChatController {
 	static async	getMessages(request: FastifyRequest, reply: FastifyReply) {
@@ -9,7 +9,7 @@ export class	ChatController {
 			const	{ otheruser_id, last_fetch } = request.query as { otheruser_id: string, last_fetch: Date };
 
 			const	messages = await ChatService.getMessages(userId, otheruser_id, last_fetch);
-			
+
 			const messagesData = {
 				users: messages.map(message => ({
 					id: message.id,

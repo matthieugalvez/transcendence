@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { ChatController } from '../controllers/chat.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
+import { ChatController } from '../controllers/chat.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
 
 export default async function	chatRoutes(fastify: FastifyInstance) {
 	fastify.get('/messages', {
