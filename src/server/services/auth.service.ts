@@ -158,7 +158,7 @@ export class AuthService {
 		const user = await prisma.user.create({
 			data: {
 				email: email.toLocaleLowerCase().trim(), // Use email as username
-				displayName,
+				displayName: '',
 				password_hash: '', // Empty for OAuth users
 				provider: 'google'
 			}
