@@ -255,6 +255,7 @@ export class FriendsRender {
 					requestedLabel.textContent = 'Requested...';
 					requestedLabel.className = 'text-gray-400 ml-2';
 					inviteBtn.replaceWith(requestedLabel);
+					window.location.href = `/game/online/duo/${gameId}`;
 				} catch (error) {
 					console.error('Failed to invite:', error);
 					CommonComponent.showMessage('❌ Failed to send game invite', 'error');

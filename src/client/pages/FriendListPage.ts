@@ -217,10 +217,10 @@ export async function FriendsPage(): Promise<void> {
 					const actions = document.createElement('div');
 					actions.className = 'flex space-x-2';
 
-					const acceptBtn = CommonComponent.createStylizedButton('Accept', 'green');
+					const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
 					acceptBtn.onclick = async () => {
 						await fetch(`/api/invite/${invite.id}/accept`, { method: 'POST' });
-						window.location.href = `/join/${invite.gameId}`;
+						window.location.href = `/game/online/duo/${invite.gameId}`;
 					};
 
 					const declineBtn = CommonComponent.createStylizedButton('Decline', 'red');
