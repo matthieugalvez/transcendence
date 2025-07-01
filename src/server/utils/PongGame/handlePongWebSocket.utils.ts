@@ -5,22 +5,36 @@ import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRo
 import { prisma } from '../../db.js'
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
-	ws.on('message', (data: string) => {
-		try {
-			const msg = JSON.parse(data);
-			if (msg.action === 'start') return game.start();
-			if (msg.action === 'pause') return game.pause();
-			if (msg.action === 'resume') return game.resume();
-			if (msg.action === 'difficulty' && msg.difficulty) {
-				return game.setDifficulty(msg.difficulty);
-			}
-			if (msg.action === 'up' || msg.action === 'down') {
-				return game.onClientAction(msg.playerId, msg.action);
-			}
-		} catch (err) {
-			console.error('WS message parse error:', err);
-		}
-	});
+    ws.on('message', (data: string) => {
+        try {
+            const msg = JSON.parse(data);
+            console.log('Received message:', msg); // Debug log
+
+            if (msg.action === 'start') return game.start();
+            if (msg.action === 'pause') return game.pause();
+            if (msg.action === 'resume') return game.resume();
+            if (msg.action === 'difficulty' && msg.difficulty) {
+                return game.setDifficulty(msg.difficulty);
+            }
+
+            // Handle player input with playerId from message
+            if (msg.action === 'up' || msg.action === 'down') {
+                if (msg.playerId) {
+                    console.log(`Player ${msg.playerId} action: ${msg.action}`); // Debug log
+                    return game.onClientAction(msg.playerId, msg.action);
+                } else {
+                    // Fallback: determine playerId from WebSocket
+                    const playerId = game.getPlayerIdByWebSocket(ws);
+                    if (playerId) {
+                        console.log(`Player ${playerId} action: ${msg.action} (from WS)`); // Debug log
+                        return game.onClientAction(playerId, msg.action);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('WS message parse error:', err);
+        }
+    });
 }
 
 function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 'spectator') {

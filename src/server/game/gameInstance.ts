@@ -205,6 +205,11 @@ export class GameInstance {
 			}
 		});
 	}
+
+	public getPlayerIdByWebSocket(ws: WebSocket): number | null {
+		const player = this.players.find(p => p.ws === ws);
+		return player ? player.playerId : null;
+	}
 	// to have random initial velocity of ball
 	private randomBallVel(): Velocity {
 		const angle = (Math.random() * 2 - 1) * (Math.PI / 4); // [-45°, +45°]
