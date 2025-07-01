@@ -5,7 +5,6 @@ import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from "../configs/simplerouter";
-
 import { GameService } from "../services/game.service";
 import {
 	hideOverlay,
@@ -13,11 +12,6 @@ import {
 	showGameOverOverlay,
 	getShareableLink
 } from '../utils/game.utils';
-// import {
-//   setCookie,
-//   getCookie,
-//   deleteCookie,
-// } from '../utils/cookies.utils'
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 
 
@@ -84,7 +78,9 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			avatarUrl: user.avatar,
 			showStats: false,
 			showBackHome: true,
-			showUserSearch: false
+			showUserSearch: false,
+			showFriendsBtn: true
+
 		});
 	} catch (error) {
 		CommonComponent.handleAuthError();
@@ -211,9 +207,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	// Pour savoir si la partie est lancée (venant du host)
 	let gameStarted = false;
 	let hasError = false; // Add error state tracking
-
-	// Ecoute les messages du WS
-	// ...existing code...
 
 	// Ecoute les messages du WS
 	pongHandle.socket.addEventListener('message', async (event: MessageEvent) => {

@@ -57,8 +57,6 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 
 /** Gere jeu via websocket (pour site web) */
 
-/** Gere jeu via websocket (pour site web) */
-// ...existing code...
 
 export async function handlePongWebSocket(ws: WebSocket, req: any) {
     console.log("handlePongWebSocket called", req.url);

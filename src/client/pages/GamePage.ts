@@ -7,7 +7,6 @@ import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
-import { deleteCookie } from '../utils/cookies.utils';
 import previewImg from '../assets/gameimg/screen-pongGame.png'
 
 // memoriser etat de la partie en cours
@@ -71,9 +70,6 @@ function createGameControls(
 }
 
 // Verifie auth avant d'ouvrir page
-// ...existing code...
-
-// Verifie auth avant d'ouvrir page
 export async function GamePageCheck() {
 	document.title = "Home";
 	document.body.innerHTML = "";
@@ -102,7 +98,8 @@ export async function GamePageCheck() {
 			showStats: true,
 			showSettings: true,
 			showBackHome: false,
-			showUserSearch: false
+			showUserSearch: false,
+			showFriendsBtn: true
 		});
 
 		const main = document.createElement("div");
