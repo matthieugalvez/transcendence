@@ -230,10 +230,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					waiting.textContent = "❌ You are already in this game";
 					waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
-					CommonComponent.showMessage(
-						`❌ ${data.message || 'You are already in this game'}`,
-						'error'
-					);
+					// CommonComponent.showMessage(
+					// 	`❌ ${data.message || 'You are already in this game'}`,
+					// 	'error'
+					// );
 
 					setTimeout(() => {
 						console.log('Redirecting to home...');
@@ -266,7 +266,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// If assigned as spectator, show message but allow viewing
 					if (playerId === 'spectator') {
 						waiting.textContent = "👀 Watching as spectator";
-						CommonComponent.showMessage('👀 Watching as spectator', 'info');
+						// CommonComponent.showMessage('👀 Watching as spectator', 'info');
 					} else {
 						waiting.textContent = "Waiting for another player to join...";
 					}
@@ -459,13 +459,46 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	});
 
 	// Move event listeners OUTSIDE the message handler
-	window.addEventListener('beforeunload', () => {
-		pongHandle?.socket.close();
-	});
+    const cleanupGameOnLeave = async () => {
+        console.log('User leaving game, triggering cleanup...');
 
-	window.addEventListener('popstate', () => {
-		pongHandle?.socket.close();
-	});
+        try {
+            // Notify server that user is leaving
+            const response = await fetch('/api/game/cleanup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameId, mode })
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to notify server of game leave');
+            }
+        } catch (error) {
+            console.error('Error during game cleanup:', error);
+        }
+
+        // Close WebSocket
+        if (pongHandle?.socket) {
+            pongHandle.socket.close();
+        }
+
+        // Dispatch close event
+        window.dispatchEvent(new Event('app:close-sockets'));
+    };
+
+    // Move event listeners OUTSIDE the message handler
+    window.addEventListener('beforeunload', cleanupGameOnLeave);
+
+    window.addEventListener('popstate', cleanupGameOnLeave);
+
+    // Add cleanup when navigating away
+    const originalNavigate = router.navigate;
+    router.navigate = (path: string) => {
+        if (window.location.pathname.includes('/game/online/')) {
+            cleanupGameOnLeave();
+        }
+        return originalNavigate.call(router, path);
+    };
 
 	function renderSettingsBar() {
 		console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
@@ -477,7 +510,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					getOnlineLink: () => getShareableLink(gameId, 'duo'),
 					onCopyLink: async (link) => {
 						navigator.clipboard.writeText(link);
-						CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
+						// CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
 					},
 					canStart: () => {
 						const canStart = bothPlayersConnected && playerId === 1;
@@ -524,8 +557,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			GameSettingsComponent.render('tournament-online', {
 				getOnlineLink: () => getShareableLink(gameId, 'tournament'),
 				onCopyLink: async (link) => {
-					navigator.clipboard.writeText(link);
-					CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
+					// navigator.clipboard.writeText(link);
+					// CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
 				},
 				canStart: () => {
 					const canStart = bothPlayersConnected && playerId === 1;

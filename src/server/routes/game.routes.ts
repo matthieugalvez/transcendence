@@ -33,4 +33,28 @@ export async function registerPongWebSocket(fastify: FastifyInstance) {
 	fastify.post('/move', {
 		preHandler: AuthMiddleware.authenticateUser
 	}, handleMove);
+
+	fastify.post('/cleanup', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const userId = (request as any).userId;
+			const { gameId, mode } = request.body as { gameId: string; mode: string };
+
+			if (!userId || !gameId) {
+				return reply.code(400).send({ success: false, error: 'Missing required fields' });
+			}
+
+			const result = await GameCleanupService.cleanupGameAndInvites(gameId, userId);
+
+			reply.send({
+				success: true,
+				message: 'Game cleaned up successfully',
+				...result
+			});
+		} catch (error) {
+			console.error('Game cleanup error:', error);
+			reply.code(500).send({ success: false, error: 'Failed to cleanup game' });
+		}
+	});
 }

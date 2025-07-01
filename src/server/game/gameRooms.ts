@@ -7,11 +7,18 @@ const gameRooms: Map<string, GameInstance> = new Map();
 /**
  * Crée une nouvelle partie et l’ajoute au store
  */
-export function createGameRoom(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM'): GameInstance {
-    const game = new GameInstance(gameId, difficulty);
+export function createGameRoom(gameId: string, difficulty: Difficulty = 'MEDIUM', inviterId?: string): GameInstance {
+    if (gameRooms.has(gameId)) {
+        console.log(`Game room ${gameId} already exists`);
+        return gameRooms.get(gameId)!;
+    }
+
+    const game = new GameInstance(gameId, difficulty, inviterId);
     gameRooms.set(gameId, game);
+    console.log(`Game room created: ${gameId} (difficulty: ${difficulty}, inviter: ${inviterId})`);
     return game;
 }
+
 
 /**
  * Récupère une partie existante par son gameId
@@ -23,8 +30,12 @@ export function getGameRoom(gameId: string): GameInstance | undefined {
 /**
  * Supprime une partie de la map
  */
-export function removeGameRoom(gameId: string): void {
-    gameRooms.delete(gameId);
+export function removeGameRoom(gameId: string): boolean {
+    const success = gameRooms.delete(gameId);
+    if (success) {
+        console.log(`Game room removed: ${gameId}`);
+    }
+    return success;
 }
 
 /**
