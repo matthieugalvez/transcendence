@@ -2,7 +2,7 @@ import { GameState } from '../types/game.types';
 import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
-import { setCookie, getCookie, deleteCookie } from './cookies.utils';
+// import { setCookie, getCookie, deleteCookie } from './cookies.utils';
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -32,15 +32,15 @@ function createGameWebSocket(
 	mode: 'duo-local' | 'duo-online' | 'solo' | 'tournament-online'
 ) {
 	const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-	const port = 3000;
-	const playerToken = getCookie(`pongPlayerToken-${gameId}`); // BACKEND !!!
+	// const port = 3000;
+	// const playerToken = getCookie(`pongPlayerToken-${gameId}`); // BACKEND !!!
 	let wsUrl = `${protocol}://${location.host}/ws/pong/${gameId}`;
 	// if (playerToken) wsUrl += `?playerToken=${playerToken}`;
 	// else wsUrl += `?username=${encodeURIComponent(leftPlayer)}`;
 	const params: string[] = [];
-	if (playerToken)
-		params.push(`playerToken=${playerToken}`);
-	else params.push(`username=${encodeURIComponent(leftPlayer)}`);
+	// if (playerToken)
+	// 	params.push(`playerToken=${playerToken}`);
+	params.push(`username=${encodeURIComponent(leftPlayer)}`);
 	if (mode === 'tournament-online') params.push('mode=tournament');
 	if (params.length) wsUrl += `?${params.join('&')}`;
 	const socket = new WebSocket(wsUrl);
@@ -66,11 +66,11 @@ function createGameWebSocket(
 			const data = JSON.parse(event.data);
 
 			if (data.type === 'playerToken') {
-				const currentToken = getCookie(`pongPlayerToken-${gameId}`); // BACKEND
-				if (!currentToken || currentToken !== data.playerToken) {
-					setCookie(`pongPlayerToken-${gameId}`, data.playerToken); // BACKEND
-					setCookie(`pongPlayerId-${gameId}`, String(data.playerId)); // BACKEND USING USER.UUID
-				}
+				// const currentToken = getCookie(`pongPlayerToken-${gameId}`); // BACKEND
+				// if (!currentToken || currentToken !== data.playerToken) {
+				// 	setCookie(`pongPlayerToken-${gameId}`, data.playerToken); // BACKEND
+				// 	setCookie(`pongPlayerId-${gameId}`, String(data.playerId)); // BACKEND USING USER.UUID
+				// }
 				playerId = data.playerId;
 				return;
 			}
@@ -87,8 +87,8 @@ function createGameWebSocket(
 			// si deconnexion sans reconnexion
 			if (data.type === 'end') {
 				alert(data.message);
-				deleteCookie(`pongPlayerToken-${gameId}`); // BACKEND
-				deleteCookie(`pongPlayerId-${gameId}`); // BACKEND
+				// deleteCookie(`pongPlayerToken-${gameId}`); // BACKEND
+				// deleteCookie(`pongPlayerId-${gameId}`); // BACKEND
 				router.navigate('/home');
 				// window.location.href = '/home';
 				return;
@@ -340,17 +340,17 @@ export function showGameOverOverlay(
 }
 
 export function getShareableLink(gameId: string, mode: string) {
-	const playerToken = getCookie(`pongPlayerToken-${gameId}`);
+	// const playerToken = getCookie(`pongPlayerToken-${gameId}`);
 	if (mode === 'duo') {
-		if (playerToken) {
-			return `${window.location.origin}/game/online/duo/${gameId}?playerToken=${playerToken}`;
-		}
+		// if (playerToken) {
+		// 	return `${window.location.origin}/game/online/duo/${gameId}`;// ?playerToken=${playerToken}
+		// }
 		return `${window.location.origin}/game/online/duo/${gameId}`;
 	}
 	else if (mode === 'tournament') {
-		if (playerToken) {
-			return `${window.location.origin}/game/online/tournament/${gameId}?playerToken=${playerToken}`;
-		}
+		// if (playerToken) {
+		// 	return `${window.location.origin}/game/online/tournament/${gameId}`;
+		// }
 		return `${window.location.origin}/game/online/tournament/${gameId}`;
 	}
 }

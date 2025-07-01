@@ -253,8 +253,8 @@ export async function renderPongGamePage() {
               body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
             });
             const { gameId } = await res.json();
-            deleteCookie(`pongPlayerToken-${gameId}`);
-            deleteCookie(`pongPlayerId-${gameId}`);
+            // deleteCookie(`pongPlayerToken-${gameId}`);
+            // deleteCookie(`pongPlayerId-${gameId}`);
             router.navigate(`/game/online/duo/${gameId}`);
           }
         }
@@ -276,8 +276,8 @@ export async function renderPongGamePage() {
               body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
             });
             const { gameId } = await res.json();
-            deleteCookie(`pongPlayerToken-${gameId}`);
-            deleteCookie(`pongPlayerId-${gameId}`);
+            // deleteCookie(`pongPlayerToken-${gameId}`);
+            // deleteCookie(`pongPlayerId-${gameId}`);
             router.navigate(`/game/online/tournament/${gameId}`);
           }
         }
