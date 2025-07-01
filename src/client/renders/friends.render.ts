@@ -123,7 +123,7 @@ export class FriendsRender {
 		userInfo.className = 'flex items-center space-x-4 flex-grow';
 
 		const avatar = document.createElement('img');
-		avatar.src = friend.avatar || '/avatars/default.svg';
+		avatar.src = `/avatars/${friend.avatar}' || '/avatars/default.svg';
 		avatar.alt = `${friend.displayName}'s avatar`;
 		avatar.className = 'w-12 h-12 rounded-full object-cover';
 
