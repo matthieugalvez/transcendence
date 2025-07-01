@@ -236,31 +236,8 @@ export class FriendsRender {
 
 			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'blue');
 			inviteBtn.onclick = async () => {
-				inviteBtn.disabled = true;
-				inviteBtn.textContent = 'Inviting...';
-				try {
-					// Create a new game and send invite
-					const res = await fetch('/api/game/start', { method: 'POST' });
-					const { gameId } = await res.json();
-					const inviteRes = await fetch('/api/invite', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ gameId, inviteeId: friend.id })
-					});
-					if (!inviteRes.ok) throw new Error('Failed to send invite');
-					CommonComponent.showMessage('✅ Game invite sent!', 'success');
-
-					// Replace button with "Requested..." label
-					const requestedLabel = document.createElement('span');
-					requestedLabel.textContent = 'Requested...';
-					requestedLabel.className = 'text-gray-400 ml-2';
-					inviteBtn.replaceWith(requestedLabel);
-				} catch (error) {
-					console.error('Failed to invite:', error);
-					CommonComponent.showMessage('❌ Failed to send game invite', 'error');
-					inviteBtn.disabled = false;
-					inviteBtn.textContent = 'Invite to Game';
-				}
+				// Show game type selection modal
+				this.showGameTypeModal(friend);
 			};
 			actions.appendChild(inviteBtn);
 		}
@@ -270,4 +247,118 @@ export class FriendsRender {
 
 		return card;
 	}
+
+	private static showGameTypeModal(friend: any): void {
+		// Create modal overlay
+		const modalOverlay = document.createElement('div');
+		modalOverlay.className = `
+        fixed inset-0 bg-black/50 flex items-center justify-center z-50
+    `;
+
+		// Create modal content
+		const modal = document.createElement('div');
+		modal.className = `
+        bg-white rounded-lg p-6 max-w-md w-full mx-4
+        border-2 border-black shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    `;
+
+		// Modal title
+		const title = document.createElement('h3');
+		title.textContent = `Invite ${friend.displayName} to:`;
+		title.className = `font-['Orbitron'] text-xl font-bold mb-6 text-center`;
+		modal.appendChild(title);
+
+		// Game type buttons
+		const buttonContainer = document.createElement('div');
+		buttonContainer.className = 'flex flex-col space-y-4';
+
+		// Duo game button
+		const duoBtn = CommonComponent.createStylizedButton('Duo Game (1v1)', 'purple');
+		duoBtn.className += ' w-full';
+		duoBtn.onclick = async () => {
+			modalOverlay.remove();
+			await this.sendGameInvite(friend, 'duo');
+		};
+		buttonContainer.appendChild(duoBtn);
+
+		// Tournament button
+		const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
+		tournamentBtn.className += ' w-full';
+		tournamentBtn.onclick = async () => {
+			modalOverlay.remove();
+			await this.sendGameInvite(friend, 'tournament');
+		};
+		buttonContainer.appendChild(tournamentBtn);
+
+		// Cancel button
+		const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
+		cancelBtn.className += ' w-full';
+		cancelBtn.onclick = () => modalOverlay.remove();
+		buttonContainer.appendChild(cancelBtn);
+
+		modal.appendChild(buttonContainer);
+		modalOverlay.appendChild(modal);
+
+		// Close modal when clicking outside
+		modalOverlay.onclick = (e) => {
+			if (e.target === modalOverlay) {
+				modalOverlay.remove();
+			}
+		};
+
+		document.body.appendChild(modalOverlay);
+	}
+
+private static async sendGameInvite(friend: any, gameType: 'duo' | 'tournament'): Promise<void> {
+    try {
+        // Check if friend is currently the logged-in user
+        const currentUser = await UserService.getCurrentUser();
+        if (friend.id === currentUser?.id) {
+            CommonComponent.showMessage('❌ Cannot invite yourself!', 'error');
+            return;
+        }
+
+        // Create appropriate game based on type
+        const endpoint = gameType === 'duo' ? '/api/game/start' : '/api/game/tournament/start';
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ difficulty: 'MEDIUM' })
+        });
+
+        if (!res.ok) throw new Error(`Failed to create ${gameType} game`);
+
+        const { gameId } = await res.json();
+
+        // Send invite with gameType
+        const inviteRes = await fetch('/api/invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameId,
+                inviteeId: friend.id,
+                gameType
+            })
+        });
+
+        if (!inviteRes.ok) {
+            const errorData = await inviteRes.json();
+            throw new Error(errorData.error || 'Failed to send invite');
+        }
+
+        CommonComponent.showMessage(`✅ ${gameType === 'duo' ? 'Duo' : 'Tournament'} invite sent to ${friend.displayName}!`, 'success');
+
+        // Navigate to the appropriate game page
+        const route = gameType === 'duo'
+            ? `/game/online/duo/${gameId}`
+            : `/game/online/tournament/${gameId}`;
+        window.location.href = route;
+
+    } catch (error) {
+        console.error('Failed to invite:', error);
+        CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
+    }
+}
+
+
 }

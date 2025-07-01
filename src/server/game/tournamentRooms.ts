@@ -45,24 +45,36 @@ export class TournamentRoom {
     this.difficulty = difficulty;
   }
 
-  async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator'> {
-    const slot = this.players.find(p => !p.ws);
-    if (slot) {
-      slot.ws = ws;
-      if (!slot.username) slot.username = username || `Player ${slot.id}`;
-      const user = await UserService.getUserByDisplayName(slot.username);
-      slot.userId = user?.id ?? '';
-       ws.on('close', () => {
-        slot.ws = null;
-        this.broadcastPlayerList();
-      });
-      this.broadcastPlayerList();
-      return slot.id;
+    async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator' | 'already_joined'> {
+        // Check if user is already in the tournament by username
+        if (username) {
+            const existingPlayer = this.players.find(p => p.username === username && p.ws);
+            if (existingPlayer) {
+                console.log(`Player ${username} already in tournament ${this.gameId}`);
+                return 'already_joined'; // Return specific status
+            }
+        }
+
+        const slot = this.players.find(p => !p.ws);
+        if (slot) {
+            slot.ws = ws;
+            if (!slot.username) slot.username = username || `Player ${slot.id}`;
+            const user = await UserService.getUserByDisplayName(slot.username);
+            slot.userId = user?.id ?? '';
+
+            ws.on('close', () => {
+                slot.ws = null;
+                this.broadcastPlayerList();
+            });
+
+            this.broadcastPlayerList();
+            return slot.id;
+        }
+
+        if (this.currentGame) this.currentGame.addSpectator(ws);
+        else ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
+        return 'spectator';
     }
-    if (this.currentGame) this.currentGame.addSpectator(ws);
-    else ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
-    return 'spectator';
-  }
 
   startTournament() {
     this.currentMatch = 0;
