@@ -39,13 +39,14 @@ export class GameCleanupService {
             let hasOtherPlayers = false;
 
             if (gameRoom) {
-                // Check if there are other connected players
-                hasOtherPlayers = gameRoom.players.some(p => p.ws && p.username !== userId);
+                // Use public method to check players
+                hasOtherPlayers = gameRoom.getConnectedPlayersCount() > 1;
             }
 
             if (tournamentRoom) {
-                // Check if there are other connected players
-                hasOtherPlayers = tournamentRoom.players.some(p => p.ws && p.username !== userId);
+                // Use public method to check players
+                const connectedPlayerIds = tournamentRoom.getConnectedPlayerIds();
+                hasOtherPlayers = connectedPlayerIds.length > 1;
             }
 
             // 4. If no other players, remove the game room

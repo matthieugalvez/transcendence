@@ -48,11 +48,12 @@ export async function registerPongWebSocket(fastify: FastifyInstance) {
 			}
 
 			const result = await GameCleanupService.cleanupGameAndInvites(gameId, userId);
+			const { success, ...restResult } = result;
 
 			reply.send({
 				success: true,
 				message: 'Game cleaned up successfully',
-				...result
+				...restResult
 			});
 		} catch (error) {
 			console.error('Game cleanup error:', error);

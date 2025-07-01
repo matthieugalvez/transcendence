@@ -1,8 +1,8 @@
 import type { WebSocket } from 'ws';
-import { addPlayerToRoom, getGameRoom } from '../../game/gameRooms.js';
-import { GameInstance } from '../../game/gameInstance';
+import { addPlayerToRoom, getGameRoom, createGameRoom } from '../../game/gameRooms.js'; // Add createGameRoom import
+import { GameInstance } from '../../game/gameInstance.js'; // Add .js extension
 import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms.js';
-import {prisma} from '../../db.js'
+import { prisma } from '../../db.js'
 
 function attachMessageHandler(ws: WebSocket, game: GameInstance) {
 	ws.on('message', (data: string) => {
