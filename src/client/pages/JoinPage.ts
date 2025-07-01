@@ -40,32 +40,57 @@ async function getUsername() {
 }
 
 export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'tournament' }) {
-	const { gameId, mode } = params;
+    const { gameId, mode } = params;
 
-	document.body.innerHTML = '';
-	document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
+    document.body.innerHTML = '';
+    document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
 
-	let user;
-	try {
-		user = await UserService.getCurrentUser();
-	} catch (error) {
-		console.error('User not authenticated:', error);
-		// Set redirect before navigating to auth
-		if (!localStorage.getItem('postAuthRedirect')) {
-			localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
-		}
-		router.navigate('/auth');
-		return;
-	}
+    let user;
+    try {
+        user = await UserService.getCurrentUser();
+    } catch (error) {
+        console.error('User not authenticated:', error);
+        // Set redirect before navigating to auth
+        if (!localStorage.getItem('postAuthRedirect')) {
+            localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
+        }
+        router.navigate('/auth');
+        return;
+    }
 
-	// Only render UI if user is authenticated
-	try {
-		AuthComponent.checkAndHandleDisplayName();
-		SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true, showUserSearch: false });
-		BackgroundComponent.applyNormalGradientLayout();
-	} catch (error) {
-		CommonComponent.handleAuthError();
-	}
+    // Handle display name setup BEFORE rendering game UI
+    if (!user.displayName || user.displayName === '' || user.displayName === user.email) {
+        try {
+            const result = await AuthComponent.checkAndHandleDisplayName();
+            if (result.success && result.userData) {
+                // Use the updated user data
+                user = result.userData;
+            } else {
+                // If display name setup failed, user is already redirected
+                return;
+            }
+        } catch (error) {
+            console.error('Display name setup failed:', error);
+            router.navigate('/auth');
+            return;
+        }
+    }
+
+    // Only render UI if user is fully authenticated with display name
+    try {
+        SidebarComponent.render({
+            userName: user?.displayName || '',
+            avatarUrl: user.avatar,
+            showStats: false,
+            showBackHome: true,
+            showUserSearch: false
+        });
+        BackgroundComponent.applyNormalGradientLayout();
+    } catch (error) {
+        CommonComponent.handleAuthError();
+        return;
+    }
+
 
 	// Wrapper principal
 	const wrapper = document.createElement('div');
