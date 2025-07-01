@@ -150,9 +150,9 @@ function setupKeyboardHandlers(
 
 class	AI_class {
 	lastCheck = new Date(0);
-	pointVec: Array<{x: number, y: number}> = Array();
-	projectedPoint: {x: number, y: number};
-	knownScore: {p1: number, p2: number} = {p1: -1, p2:  -1};
+	expectedHitpoint = 300;
+//	pointVec: Array<{x: number, y: number}> = Array();
+	knownScore: {p1: number, p2: number} = {p1: 0, p2:  0};
 }
 
 // --- Boucle de polling des touches ---
@@ -199,53 +199,45 @@ function startClientInputLoop(
 function	makeAIInput(AI: AI_class, socket: WebSocket) {
 	const	date = new Date;
 	const	current_position = {x: g_game_state.paddle2.x, y: g_game_state.paddle2.y};
-	let		expected_hitpoint: number;
 
 	if (g_game_state.score1 != AI.knownScore.p1 || g_game_state.score2 != AI.knownScore.p2) {
-		AI.pointVec = [{x: 400, y: 300}];
+		AI.expectedHitpoint = 300;
 		AI.knownScore = {p1: g_game_state.score1, p2: g_game_state.score2};
-		expected_hitpoint = -1;
 	}
 
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
 		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-
-		if (AI.pointVec.length > 1 && (Number(AI.pointVec[AI.pointVec.length - 2].x) > Number(AI.pointVec[AI.pointVec.length - 1].x))) {
-			if (Number(AI.pointVec[AI.pointVec.length - 1].x) < Number(ball_position.x)) {
-				expected_hitpoint = -1;
-			} else {
-				expected_hitpoint = 300;
+		const	ball_speed = g_game_state.ballVelocity;
+		console.log(ball_speed);
+		if (ball_speed.vx < 0) {
+			AI.expectedHitpoint = 300;
+		} else {
+			AI.expectedHitpoint = linear_extrapolation(ball_position, ball_speed, current_position.x);
+			if (AI.expectedHitpoint < 0) {
+				AI.expectedHitpoint *= -1;
+			} else if (AI.expectedHitpoint > 600) {
+				AI.expectedHitpoint = 600 - (AI.expectedHitpoint % 600);
 			}
-			AI.pointVec = [];
 		}
-		AI.pointVec.push(ball_position);
 	}
-	if (AI.pointVec.length > 1) {
-		expected_hitpoint = linear_extrapolation(AI.pointVec, current_position.x);
-		if (expected_hitpoint < 0) {
-			expected_hitpoint *= -1;
-		} else if (expected_hitpoint > 600) {
-			expected_hitpoint = 600 - expected_hitpoint % 600;
-		}
-	} else if (expected_hitpoint = -1) {
-		expected_hitpoint = AI.pointVec[AI.pointVec.length - 1].y;
-	}
-	if (Number(expected_hitpoint) < Number(current_position.y + g_game_state.paddle2.height / 2)
-		&& Number(current_position.y + g_game_state.paddle2.height / 2) - Number(expected_hitpoint) > 5) {
+
+	if (Number(AI.expectedHitpoint) < Number(current_position.y + g_game_state.paddle2.height / 2)
+		&& Number(current_position.y + g_game_state.paddle2.height / 2) - Number(AI.expectedHitpoint) > 5) {
 		socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-	} else if (Number(expected_hitpoint) > Number(current_position.y + g_game_state.paddle2.height / 2)
-		&& Number(expected_hitpoint) - Number(current_position.y + g_game_state.paddle2.height / 2) > 5) {
+	} else if (Number(AI.expectedHitpoint) > Number(current_position.y + g_game_state.paddle2.height / 2)
+		&& Number(AI.expectedHitpoint) - Number(current_position.y + g_game_state.paddle2.height / 2) > 5) {
 		socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 	}
 }
 
-function	linear_extrapolation(pointVec:Array<{x: number, y: number}>, x_hitpoint: number) {
-	let	x_line = pointVec[pointVec.length - 1].x - pointVec[pointVec.length - 2].x;
-	let	y_line = pointVec[pointVec.length - 1].y - pointVec[pointVec.length - 2].y;
+function	linear_extrapolation(ball_position:{x: number, y: number}, ball_speed:{vx: number, vy: number}, x_hitpoint: number) {
+	const dt = 1 / 60;
+	const	x_line = (ball_position.x + ball_speed.vx * dt) - ball_position.x;
+	const	y_line = (ball_position.y + ball_speed.vy * dt) - ball_position.y;
 	const	slope = y_line / x_line;
 
-	return pointVec[pointVec.length - 2].y + slope * (x_hitpoint - pointVec[pointVec.length - 2].x);
+	return ball_position.y + slope * (x_hitpoint - ball_position.x);
 }
 
 // --- Création du jeu et intégration au DOM ---
