@@ -151,7 +151,6 @@ function setupKeyboardHandlers(
 class	AI_class {
 	lastCheck = new Date(0);
 	expectedHitpoint = 300;
-//	pointVec: Array<{x: number, y: number}> = Array();
 	knownScore: {p1: number, p2: number} = {p1: 0, p2:  0};
 }
 
@@ -223,10 +222,10 @@ function	makeAIInput(AI: AI_class, socket: WebSocket) {
 	}
 
 	if (Number(AI.expectedHitpoint) < Number(current_position.y + g_game_state.paddle2.height / 2)
-		&& Number(current_position.y + g_game_state.paddle2.height / 2) - Number(AI.expectedHitpoint) > 5) {
+		&& Number(current_position.y + g_game_state.paddle2.height / 2) - Number(AI.expectedHitpoint) > g_game_state.paddle2.height / 2) {
 		socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
 	} else if (Number(AI.expectedHitpoint) > Number(current_position.y + g_game_state.paddle2.height / 2)
-		&& Number(AI.expectedHitpoint) - Number(current_position.y + g_game_state.paddle2.height / 2) > 5) {
+		&& Number(AI.expectedHitpoint) - Number(current_position.y + g_game_state.paddle2.height / 2) > g_game_state.paddle2.height / 2) {
 		socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 	}
 }
