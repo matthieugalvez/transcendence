@@ -5,7 +5,6 @@ import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { router } from "../configs/simplerouter";
-
 import { GameService } from "../services/game.service";
 import {
 	hideOverlay,
@@ -13,11 +12,6 @@ import {
 	showGameOverOverlay,
 	getShareableLink
 } from '../utils/game.utils';
-// import {
-//   setCookie,
-//   getCookie,
-//   deleteCookie,
-// } from '../utils/cookies.utils'
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 
 

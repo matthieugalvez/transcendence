@@ -7,7 +7,6 @@ import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { GameSettingsComponent } from '../components/game.component';
-import { deleteCookie } from '../utils/cookies.utils';
 import previewImg from '../assets/gameimg/screen-pongGame.png'
 
 // memoriser etat de la partie en cours
