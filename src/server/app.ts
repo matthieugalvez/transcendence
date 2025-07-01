@@ -67,6 +67,9 @@ async function start() {
 		// Setup everything first
 		await setupServer();
 
+		console.log('🔍 Registered routes:');
+		app.printRoutes();
+
 		// Only AFTER setup is complete, start listening
 		const port = Number(process.env.PORT) || 3000;
 		const host = process.env.HOST || '0.0.0.0';
@@ -76,8 +79,7 @@ async function start() {
 		console.log(`🎮 Production mode: ${process.env.NODE_ENV === 'production'}`);
 
 		// Debug routes after server is ready
-		console.log('🔍 Registered routes:');
-		app.printRoutes();
+
 	} catch (error) {
 		app.log.error('Failed to start server:', error);
 		process.exit(1);

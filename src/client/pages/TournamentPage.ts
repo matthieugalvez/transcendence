@@ -25,6 +25,7 @@ export async function renderTournamentPage() {
     showStats: true,
     showBackHome: true,
 	showUserSearch: false,
+	showFriendsBtn: true,
   });
   BackgroundComponent.applyNormalGradientLayout();
 
