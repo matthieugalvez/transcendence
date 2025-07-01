@@ -232,165 +232,174 @@ function startClientInputLoop(
 
 // --- Création du jeu et intégration au DOM ---
 export function startPongInContainer(
-	container: HTMLDivElement,
-	matchTitle: string,
-	leftPlayer: string,
-	rightPlayer: string,
-	onFinish: FinishCallback,
-	gameId: string,
-	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
+    container: HTMLDivElement,
+    matchTitle: string,
+    leftPlayer: string,
+    rightPlayer: string,
+    onFinish: FinishCallback,
+    gameId: string,
+    mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
-	// Titre
-	const title = document.createElement('h2');
-	title.textContent = "Ready to pong?";
-	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
-	container.appendChild(title);
+    // Titre
+    const title = document.createElement('h2');
+    title.textContent = "Ready to pong?";
+    title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
+    container.appendChild(title);
 
-	// Canvas
-	const canvas = document.createElement('canvas');
-	canvas.width = 800;
-	canvas.height = 600;
-	canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
-	container.appendChild(canvas);
+    // Canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
+    container.appendChild(canvas);
 
-	const ctx = canvas.getContext('2d')!;
-	if (!ctx) throw new Error('Impossible de récupérer le context 2D');
+    const ctx = canvas.getContext('2d')!;
+    if (!ctx) throw new Error('Impossible de récupérer le context 2D');
 
-	// WebSocket
-	const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
-	const { socket, getPlayerId } = wsHandler;
+    // WebSocket
+    const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
+    const { socket, getPlayerId } = wsHandler;
 
-	// A chaque état reçu, on met à jour le titre
-	socket.addEventListener('message', (event) => {
-		try {
-			const data = JSON.parse(event.data);
-			if ((mode === 'duo-online' || mode === 'tournament-online') && data.playerNames && data.playerNames[1] && data.playerNames[2]) {
-				title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
-			}
-		} catch { }
-	});
+    // A chaque état reçu, on met à jour le titre
+    socket.addEventListener('message', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if ((mode === 'duo-online' || mode === 'tournament-online') && data.playerNames && data.playerNames[1] && data.playerNames[2]) {
+                title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+            }
+        } catch { }
+    });
 
-	// Gestion clavier différée
-	let keyboardHandlerStarted = false;
-	let keysPressed: Record<string, boolean> = {};
-	let inputLoopStarted = false;
+    // Gestion clavier différée
+    let keysPressed: Record<string, boolean> = {};
+    let inputLoopStarted = false;
 
-	function setupInputHandlers() {
-		// Nettoie anciens listeners si besoin
-		window.onkeydown = null;
-		window.onkeyup = null;
-		keysPressed = {};
+    function setupInputHandlers() {
+        if (inputLoopStarted) return; // Prevent multiple setups
 
-		setupKeyboardHandlers(socket, keysPressed);
-		startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-		inputLoopStarted = true;
-	}
+        console.log('[GAME UTILS] Setting up input handlers');
 
-socket.addEventListener('message', (event) => {
-    try {
-        if (typeof event.data !== 'string') {
-            console.warn('WS non-string message ignored:', event.data);
-            return;
-        }
-        const data = JSON.parse(event.data);
-        console.log('[GAME UTILS] WebSocket message:', data.type, data);
+        // Clear any existing handlers
+        keysPressed = {};
 
-        // Handle specific errors
-        if (data.type === 'error') {
-            console.error('Server error:', data.error);
-            // Don't handle errors here if we're in JoinPage context
-            if (!window.location.pathname.includes('/game/online/')) {
-                CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+        setupKeyboardHandlers(socket, keysPressed);
+        startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+        inputLoopStarted = true;
+    }
+
+    socket.addEventListener('message', (event) => {
+        try {
+            if (typeof event.data !== 'string') {
+                console.warn('WS non-string message ignored:', event.data);
+                return;
+            }
+            const data = JSON.parse(event.data);
+            console.log('[GAME UTILS] WebSocket message:', data.type, data);
+
+            // Handle specific errors
+            if (data.type === 'error') {
+                console.error('Server error:', data.error);
+                // Don't handle errors here if we're in JoinPage context
+                if (!window.location.pathname.includes('/game/online/')) {
+                    CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('app:close-sockets'));
+                        router.navigate('/home');
+                    }, 2000);
+                }
+                return;
+            }
+
+            // Handle other message types...
+            if (data.type === 'playerToken') {
+                console.log('[GAME UTILS] Player token received:', data.playerId);
+                // Set up input handlers when we get our player token
+                if (!inputLoopStarted) {
+                    setupInputHandlers();
+                }
+                return;
+            }
+
+            if (data.type === 'pause') {
+                console.log('[GAME UTILS] Game paused:', data.message);
+                showOverlay(data.message);
+                return;
+            }
+
+            if (data.type === 'resume') {
+                console.log('[GAME UTILS] Game resumed');
+                hideOverlay();
+                return;
+            }
+
+            if (data.type === 'end') {
+                console.log('[GAME UTILS] Game ended:', data.message);
+                CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
                 setTimeout(() => {
                     window.dispatchEvent(new Event('app:close-sockets'));
                     router.navigate('/home');
                 }, 2000);
+                return;
             }
-            return;
-        }
 
-        // Handle other message types...
-        if (data.type === 'playerToken') {
-            console.log('[GAME UTILS] Player token received:', data.playerId);
-            playerId = data.playerId;
-            return;
-        }
+            // ADDED: Game state detection and rendering
+            const isGameState = data.type === 'gameState' ||
+                               (typeof data === 'object' &&
+                                data.hasOwnProperty('paddle1') &&
+                                data.hasOwnProperty('paddle2') &&
+                                data.hasOwnProperty('ball') &&
+                                data.hasOwnProperty('score1') &&
+                                data.hasOwnProperty('score2'));
 
-        if (data.type === 'pause') {
-            console.log('[GAME UTILS] Game paused:', data.message);
-            showOverlay(data.message);
-            return;
-        }
+            if (isGameState) {
+                console.log('[GAME UTILS] Rendering game state:', {
+                    isRunning: data.isRunning,
+                    score1: data.score1,
+                    score2: data.score2,
+                    ball: data.ball,
+                    paddle1: data.paddle1,
+                    paddle2: data.paddle2
+                });
 
-        if (data.type === 'resume') {
-            console.log('[GAME UTILS] Game resumed');
-            hideOverlay();
-            return;
-        }
+                // Import and use renderGame
+                import('../renders/game.render.js').then(({ renderGame }) => {
+                    renderGame(ctx, data);
+                });
 
-        if (data.type === 'end') {
-            console.log('[GAME UTILS] Game ended:', data.message);
-            CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
-            setTimeout(() => {
-                window.dispatchEvent(new Event('app:close-sockets'));
-                router.navigate('/home');
-            }, 2000);
-            return;
-        }
-
-        // ADDED: Game state detection and rendering
-        const isGameState = data.type === 'gameState' ||
-                           (typeof data === 'object' &&
-                            data.hasOwnProperty('paddle1') &&
-                            data.hasOwnProperty('paddle2') &&
-                            data.hasOwnProperty('ball') &&
-                            data.hasOwnProperty('score1') &&
-                            data.hasOwnProperty('score2'));
-
-        if (isGameState) {
-            console.log('[GAME UTILS] Rendering game state:', {
-                isRunning: data.isRunning,
-                score1: data.score1,
-                score2: data.score2,
-                ball: data.ball,
-                paddle1: data.paddle1,
-                paddle2: data.paddle2
-            });
-
-            // Import and use renderGame
-            import('../renders/game.render.js').then(({ renderGame }) => {
-                renderGame(ctx, data);
-            });
-
-            // Check for match end
-            if (data.score1 >= 5 || data.score2 >= 5) {
-                const winnerId = data.score1 >= 5 ? 1 : 2;
-                console.log('[GAME UTILS] Match ended, winner:', winnerId);
-                onFinish(winnerId, data.score1, data.score2);
+                // Check for match end
+                if (data.score1 >= 5 || data.score2 >= 5) {
+                    const winnerId = data.score1 >= 5 ? 1 : 2;
+                    console.log('[GAME UTILS] Match ended, winner:', winnerId);
+                    onFinish(winnerId, data.score1, data.score2);
+                }
+                return;
             }
-            return;
+
+            // Log unhandled messages for debugging
+            console.log('[GAME UTILS] Unhandled message type:', data.type, data);
+
+        } catch (err) {
+            console.error('WS message parse error:', err);
         }
+    });
 
-        // Log unhandled messages for debugging
-        console.log('[GAME UTILS] Unhandled message type:', data.type, data);
-
-    } catch (err) {
-        console.error('WS message parse error:', err);
+    // Set up input handlers immediately for local modes
+    if (mode === 'duo-local' || mode === 'solo') {
+        setupInputHandlers();
     }
-});
 
-	function start() {
-		title.textContent = matchTitle;
-		if (socket.readyState === WebSocket.OPEN) {
-			socket.send(JSON.stringify({ action: 'start' }));
-		} else {
-			socket.addEventListener('open', () => {
-				socket.send(JSON.stringify({ action: 'start' }));
-			});
-		}
-	}
+    function start() {
+        title.textContent = matchTitle;
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ action: 'start' }));
+        } else {
+            socket.addEventListener('open', () => {
+                socket.send(JSON.stringify({ action: 'start' }));
+            });
+        }
+    }
 
-	return { start, socket };
+    return { start, socket };
 }
 
 // --- Overlay de fin de partie ---
