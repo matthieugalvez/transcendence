@@ -195,4 +195,51 @@ export class CommonComponent {
 			router.navigate('/auth');
 		}, 3000);
 	}
+
+	static showGameError(message: string, redirectPath: string = '/home', delay: number = 3000): void {
+        // Create error overlay
+        const errorOverlay = document.createElement('div');
+        errorOverlay.className = `
+            fixed inset-0 bg-black/70 flex items-center justify-center z-50
+            backdrop-blur-sm
+        `;
+
+        const errorModal = document.createElement('div');
+        errorModal.className = `
+            bg-white rounded-lg p-8 max-w-md w-full mx-4 text-center
+            border-2 border-red-500 shadow-[4.0px_5.0px_0.0px_rgba(220,38,38,0.8)]
+        `;
+
+        const errorIcon = document.createElement('div');
+        errorIcon.className = 'text-6xl mb-4';
+        errorIcon.textContent = '❌';
+        errorModal.appendChild(errorIcon);
+
+        const errorMessage = document.createElement('h2');
+        errorMessage.textContent = message;
+        errorMessage.className = `font-['Orbitron'] text-xl font-bold mb-6 text-red-600`;
+        errorModal.appendChild(errorMessage);
+
+        const redirectMessage = document.createElement('p');
+        redirectMessage.textContent = `Redirecting to home in ${delay / 1000} seconds...`;
+        redirectMessage.className = 'text-gray-600 mb-4';
+        errorModal.appendChild(redirectMessage);
+
+        errorOverlay.appendChild(errorModal);
+        document.body.appendChild(errorOverlay);
+
+        // Countdown and redirect
+        let countdown = delay / 1000;
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            redirectMessage.textContent = `Redirecting to home in ${countdown} seconds...`;
+
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                errorOverlay.remove();
+                window.dispatchEvent(new Event('app:close-sockets'));
+                router.navigate(redirectPath);
+            }
+        }, 1000);
+    }
 }

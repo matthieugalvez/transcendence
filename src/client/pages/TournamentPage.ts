@@ -23,7 +23,8 @@ export async function renderTournamentPage() {
     userName: user.displayName,
     avatarUrl: user.avatar,
     showStats: true,
-    showBackHome: true
+    showBackHome: true,
+	showUserSearch: false,
   });
   BackgroundComponent.applyNormalGradientLayout();
 

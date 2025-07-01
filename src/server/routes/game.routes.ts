@@ -1,8 +1,10 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { handleStartGame, handleMove, handleStartTournament } from '../utils/PongGame/handlePongHTTP.utils.js';
 import { handlePongWebSocket } from '../utils/PongGame/handlePongWebSocket.utils.js';
 import { handleGetGame } from '../utils/PongGame/handleGetGameState.utils.js';
 import AuthMiddleware from '../middlewares/auth.middleware.js';
+import { GameCleanupService } from '../services/gamecleanup.service.js';
+
 
 export async function registerPongWebSocket(fastify: FastifyInstance) {
 	// 1) Route WebSocket (consider adding auth validation here too)
@@ -33,4 +35,29 @@ export async function registerPongWebSocket(fastify: FastifyInstance) {
 	fastify.post('/move', {
 		preHandler: AuthMiddleware.authenticateUser
 	}, handleMove);
+
+	fastify.post('/cleanup', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const userId = (request as any).userId;
+			const { gameId, mode } = request.body as { gameId: string; mode: string };
+
+			if (!userId || !gameId) {
+				return reply.code(400).send({ success: false, error: 'Missing required fields' });
+			}
+
+			const result = await GameCleanupService.cleanupGameAndInvites(gameId, userId);
+			const { success, ...restResult } = result;
+
+			reply.send({
+				success: true,
+				message: 'Game cleaned up successfully',
+				...restResult
+			});
+		} catch (error) {
+			console.error('Game cleanup error:', error);
+			reply.code(500).send({ success: false, error: 'Failed to cleanup game' });
+		}
+	});
 }
