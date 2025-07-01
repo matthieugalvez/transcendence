@@ -30,10 +30,10 @@ export function removeGameRoom(gameId: string): void {
 /**
  * Ajoute un joueur (WebSocket) à la partie
  */
-export function addPlayerToRoom(gameId: string, ws: WebSocket, username: string | undefined): number | 'spectator' | null {
+export function addPlayerToRoom(gameId: string, ws: WebSocket, username: string | undefined): number | 'spectator' | 'already_joined' | null {
     const game = getGameRoom(gameId);
     if (!game) return null;
-    return game.addClient(ws, username); // 1, 2
+    return game.addClient(ws, username); // 1, 2, 'spectator', or 'already_joined'
 }
 
 export { gameRooms };

@@ -45,16 +45,13 @@ export class TournamentRoom {
     this.difficulty = difficulty;
   }
 
-    async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator'> {
+    async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator' | 'already_joined'> {
         // Check if user is already in the tournament by username
         if (username) {
             const existingPlayer = this.players.find(p => p.username === username && p.ws);
             if (existingPlayer) {
                 console.log(`Player ${username} already in tournament ${this.gameId}`);
-                // Force as spectator if already joined
-                if (this.currentGame) this.currentGame.addSpectator(ws);
-                else ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
-                return 'spectator';
+                return 'already_joined'; // Return specific status
             }
         }
 

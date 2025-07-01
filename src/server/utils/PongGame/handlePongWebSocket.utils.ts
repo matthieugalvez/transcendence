@@ -41,8 +41,12 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 }
 
 /** Gere jeu via websocket (pour site web) */
+
+/** Gere jeu via websocket (pour site web) */
+// ...existing code...
+
 export async function handlePongWebSocket(ws: WebSocket, req: any) {
-	console.log("handlePongWebSocket called", req.url);
+  console.log("handlePongWebSocket called", req.url);
   const gameId = req.params.gameId;
   const playerToken = req.query.playerToken as string | undefined;
   const mode = req.query.mode as string | undefined;
@@ -54,17 +58,27 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
     }
     const username = req.query.username as string | undefined;
     const role = await tour.addClient(ws, username);
+
+    // Handle already_joined for tournament
+    if (role === 'already_joined') {
+      ws.send(JSON.stringify({
+        type: 'error',
+        error: 'already_joined',
+        message: 'You are already in this tournament'
+      }));
+      ws.close();
+      return;
+    }
+
     ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: '' }));
     attachTournamentHandler(ws, tour, role);
     return;
   }
 
-  // 1.1 Récupérer ou créer l’instance GameInstance
+  // 1.1 Récupérer ou créer l'instance GameInstance
   let game = getGameRoom(gameId);
   if (!game) {
-    ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
-    ws.close();
-    return;
+    game = createGameRoom(gameId, 'MEDIUM');
   }
 
   // 1.2 En cas de deco, essayer de reconnecter le joueur
@@ -73,22 +87,35 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
     if (!success) {
         ws.send(JSON.stringify({ type: 'error', error: 'invalid_token', clearCookies: true }));
         ws.close();
+        return;
     }
-	console.log("Attaching message handler for game", gameId);
-
+    console.log("Attaching message handler for game", gameId);
     attachMessageHandler(ws, game);
-	console.log("We are here");
+    console.log("We are here");
     return;
   }
 
-  // 1.3 Ajouter ce client dans l’instance
+  // 1.3 Ajouter ce client dans l'instance
   let username = req.query.username as string | undefined;
   let role = addPlayerToRoom(gameId, ws, username);
+
+  // Handle already_joined for duo games
+  if (role === 'already_joined') {
+    ws.send(JSON.stringify({
+      type: 'error',
+      error: 'already_joined',
+      message: 'You are already in this game'
+    }));
+    ws.close();
+    return;
+  }
+
   if (role == null) {
     ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
     ws.close();
     return;
   }
+
   let token: string | undefined;
   if (typeof role === 'number') {
     token = game.getPlayerToken(role);
@@ -98,7 +125,6 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
   }
   ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
 
-  // 1.4 Quand on reçoit un message WS, on l’interprète
+  // 1.4 Quand on reçoit un message WS, on l'interprète
   attachMessageHandler(ws, game);
-  // 1.5 La destruction de l’instance se fera automatiquement quand il n’y a plus de sockets
 }

@@ -58,73 +58,109 @@ function createGameWebSocket(
 	let wasPaused = false;
 
 	socket.addEventListener('message', (event) => {
-		try {
-			if (typeof event.data !== 'string') {
-				console.warn('WS non-string message ignored:', event.data);
-				return;
-			}
-			const data = JSON.parse(event.data);
+        try {
+            if (typeof event.data !== 'string') {
+                console.warn('WS non-string message ignored:', event.data);
+                return;
+            }
+            const data = JSON.parse(event.data);
 
-			if (data.type === 'playerToken') {
-				// const currentToken = getCookie(`pongPlayerToken-${gameId}`); // BACKEND
-				// if (!currentToken || currentToken !== data.playerToken) {
-				// 	setCookie(`pongPlayerToken-${gameId}`, data.playerToken); // BACKEND
-				// 	setCookie(`pongPlayerId-${gameId}`, String(data.playerId)); // BACKEND USING USER.UUID
-				// }
-				playerId = data.playerId;
-				return;
-			}
-			// si deconnexion
-			if (data.type === 'pause') {
-				showOverlay(data.message);
-				return;
-			}
-			// si reconnexion
-			if (data.type === 'resume') {
-				hideOverlay();
-				return;
-			}
-			// si deconnexion sans reconnexion
-			if (data.type === 'end') {
-				alert(data.message);
-				// deleteCookie(`pongPlayerToken-${gameId}`); // BACKEND
-				// deleteCookie(`pongPlayerId-${gameId}`); // BACKEND
-				router.navigate('/home');
-				// window.location.href = '/home';
-				return;
-			}
-			if (data.type === 'error') {
-				console.error('Server error:', data.error);
-				// alert(`Error: ${data.error}`);
-				router.navigate('/statistics');
-				// window.location.href = '/home';
-				return;
-			}
-			// si partie finie
-			if (data.type === 'matchEnd') {
-				setTimeout(() => onFinish(data.winner, data.score1, data.score2), 150);
-				return;
-			}
+            // Handle specific errors with user-friendly messages
+            if (data.type === 'error') {
+                console.error('Server error:', data.error);
 
-			if (isGameState(data)) {
-				renderGame(ctx, data);
+                // Handle specific error types
+                if (data.error === 'already_joined') {
+                    CommonComponent.showMessage(
+                        `❌ ${data.message || 'You are already in this game'}`,
+                        'error'
+                    );
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('app:close-sockets'));
+                        router.navigate('/home');
+                    }, 2000);
+                    return;
+                }
 
-				// if (wasRunning && !data.isRunning && !data.isPaused) {
-				//   const winnerId = data.score1 > data.score2 ? 1 : 2;
-				//   setTimeout(() => onFinish(winnerId, data.score1, data.score2), 150);
-				// }
-				wasRunning = data.isRunning;
-				wasPaused = data.isPaused;
-			}
-		} catch (err) {
-			console.error('WS message parse error:', err);
-		}
-	});
+                if (data.error === 'game_not_found') {
+                    CommonComponent.showMessage('❌ Game not found', 'error');
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('app:close-sockets'));
+                        router.navigate('/home');
+                    }, 2000);
+                    return;
+                }
 
-	socket.addEventListener('close', () => {
-		if (shouldReloadOnClose)
-			window.location.reload();
-	});
+                if (data.error === 'invalid_token') {
+                    CommonComponent.showMessage('❌ Invalid game session', 'error');
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('app:close-sockets'));
+                        router.navigate('/home');
+                    }, 2000);
+                    return;
+                }
+
+                // Generic error handling
+                CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('app:close-sockets'));
+                    router.navigate('/home');
+                }, 2000);
+                return;
+            }
+
+            // Handle other message types...
+            if (data.type === 'playerToken') {
+                playerId = data.playerId;
+                return;
+            }
+
+            if (data.type === 'pause') {
+                showOverlay(data.message);
+                return;
+            }
+
+            if (data.type === 'resume') {
+                hideOverlay();
+                return;
+            }
+
+            if (data.type === 'end') {
+                CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('app:close-sockets'));
+                    router.navigate('/home');
+                }, 2000);
+                return;
+            }
+
+            // ...rest of existing message handling...
+
+        } catch (err) {
+            console.error('WS message parse error:', err);
+        }
+    });
+
+    // Handle WebSocket connection errors
+    socket.addEventListener('error', (error) => {
+        console.error('WebSocket error:', error);
+        CommonComponent.showMessage('❌ Connection error occurred', 'error');
+        setTimeout(() => {
+            window.dispatchEvent(new Event('app:close-sockets'));
+            router.navigate('/home');
+        }, 2000);
+    });
+
+    socket.addEventListener('close', (event) => {
+        console.log('WebSocket closed:', event.code, event.reason);
+        if (event.code !== 1000) { // Not a normal closure
+            CommonComponent.showMessage('❌ Connection lost', 'error');
+            setTimeout(() => {
+                window.dispatchEvent(new Event('app:close-sockets'));
+                router.navigate('/home');
+            }, 2000);
+        }
+    });
 
 	// Expose ces méthodes pour le reste du code
 	return {
@@ -250,17 +286,98 @@ export function startPongInContainer(
 		inputLoopStarted = true;
 	}
 
-	socket.addEventListener('message', (event) => {
-		try {
-			const data = JSON.parse(event.data);
-			if (data.type === 'playerToken') {
-				// Quand tu reçois le playerToken, lance (ou relance) la gestion input
-				if (!inputLoopStarted) {
-					setupInputHandlers();
-				}
-			}
-		} catch { }
-	});
+socket.addEventListener('message', (event) => {
+    try {
+        if (typeof event.data !== 'string') {
+            console.warn('WS non-string message ignored:', event.data);
+            return;
+        }
+        const data = JSON.parse(event.data);
+        console.log('[GAME UTILS] WebSocket message:', data.type, data);
+
+        // Handle specific errors
+        if (data.type === 'error') {
+            console.error('Server error:', data.error);
+            // Don't handle errors here if we're in JoinPage context
+            if (!window.location.pathname.includes('/game/online/')) {
+                CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('app:close-sockets'));
+                    router.navigate('/home');
+                }, 2000);
+            }
+            return;
+        }
+
+        // Handle other message types...
+        if (data.type === 'playerToken') {
+            console.log('[GAME UTILS] Player token received:', data.playerId);
+            playerId = data.playerId;
+            return;
+        }
+
+        if (data.type === 'pause') {
+            console.log('[GAME UTILS] Game paused:', data.message);
+            showOverlay(data.message);
+            return;
+        }
+
+        if (data.type === 'resume') {
+            console.log('[GAME UTILS] Game resumed');
+            hideOverlay();
+            return;
+        }
+
+        if (data.type === 'end') {
+            console.log('[GAME UTILS] Game ended:', data.message);
+            CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
+            setTimeout(() => {
+                window.dispatchEvent(new Event('app:close-sockets'));
+                router.navigate('/home');
+            }, 2000);
+            return;
+        }
+
+        // ADDED: Game state detection and rendering
+        const isGameState = data.type === 'gameState' ||
+                           (typeof data === 'object' &&
+                            data.hasOwnProperty('paddle1') &&
+                            data.hasOwnProperty('paddle2') &&
+                            data.hasOwnProperty('ball') &&
+                            data.hasOwnProperty('score1') &&
+                            data.hasOwnProperty('score2'));
+
+        if (isGameState) {
+            console.log('[GAME UTILS] Rendering game state:', {
+                isRunning: data.isRunning,
+                score1: data.score1,
+                score2: data.score2,
+                ball: data.ball,
+                paddle1: data.paddle1,
+                paddle2: data.paddle2
+            });
+
+            // Import and use renderGame
+            import('../renders/game.render.js').then(({ renderGame }) => {
+                renderGame(ctx, data);
+            });
+
+            // Check for match end
+            if (data.score1 >= 5 || data.score2 >= 5) {
+                const winnerId = data.score1 >= 5 ? 1 : 2;
+                console.log('[GAME UTILS] Match ended, winner:', winnerId);
+                onFinish(winnerId, data.score1, data.score2);
+            }
+            return;
+        }
+
+        // Log unhandled messages for debugging
+        console.log('[GAME UTILS] Unhandled message type:', data.type, data);
+
+    } catch (err) {
+        console.error('WS message parse error:', err);
+    }
+});
 
 	function start() {
 		title.textContent = matchTitle;

@@ -74,13 +74,13 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username: string | undefined): number | 'spectator' {
+    public addClient(ws: WebSocket, username: string | undefined): number | 'spectator' | 'already_joined' {
         // Check if user is already in the game by username
         if (username) {
             const existingPlayer = this.players.find(p => p.username === username && p.ws);
             if (existingPlayer) {
                 console.log(`Player ${username} already in game ${this.gameId}`);
-                return 'spectator'; // Force as spectator if already joined
+                return 'already_joined'; // Return specific status
             }
         }
 
