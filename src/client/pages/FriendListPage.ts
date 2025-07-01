@@ -97,7 +97,7 @@ export async function FriendsPage(): Promise<void> {
                     inviteCard.className = 'bg-yellow-50 p-6 rounded-lg flex items-center justify-between';
 
                     const info = document.createElement('span');
-                    info.textContent = `Game invite from ${invite.invitee.displayName} for game ${invite.gameId}`;
+                    info.textContent = `Game invite from ${invite.inviter.displayName} for a game of ${invite.gameType}`;
 
                     const actions = document.createElement('div');
                     actions.className = 'flex space-x-2';
