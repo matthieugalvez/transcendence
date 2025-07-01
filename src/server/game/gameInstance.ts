@@ -476,15 +476,15 @@ export class GameInstance {
 		}
 	}
 
-	private async handleInviterLeave(): void {
-		console.log(`Inviter left game ${this.gameId}, triggering cleanup`);
+    private async handleInviterLeave(): Promise<void> {
+        console.log(`Inviter left game ${this.gameId}, triggering cleanup`);
 
-		// Import cleanup service dynamically to avoid circular imports
-		try {
-			const { GameCleanupService } = await import('../services/gameCleanup.service.js');
-			await GameCleanupService.cleanupGameAndInvites(this.gameId, this.inviterId!);
-		} catch (error) {
-			console.error('Error handling inviter leave:', error);
-		}
-	}
+        // Import cleanup service dynamically to avoid circular imports
+        try {
+            const { GameCleanupService } = await import('../services/gamecleanup.service.js');
+            await GameCleanupService.cleanupGameAndInvites(this.gameId, this.inviterId!);
+        } catch (error) {
+            console.error('Error handling inviter leave:', error);
+        }
+    }
 }

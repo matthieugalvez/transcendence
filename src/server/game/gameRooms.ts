@@ -3,6 +3,8 @@ import { GameInstance } from './gameInstance.js';
 
 // Une map central de toutes les parties en cours
 const gameRooms: Map<string, GameInstance> = new Map();
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
 
 /**
  * Crée une nouvelle partie et l’ajoute au store

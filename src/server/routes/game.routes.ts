@@ -1,8 +1,10 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { handleStartGame, handleMove, handleStartTournament } from '../utils/PongGame/handlePongHTTP.utils.js';
 import { handlePongWebSocket } from '../utils/PongGame/handlePongWebSocket.utils.js';
 import { handleGetGame } from '../utils/PongGame/handleGetGameState.utils.js';
 import AuthMiddleware from '../middlewares/auth.middleware.js';
+import { GameCleanupService } from '../services/gamecleanup.service.js';
+
 
 export async function registerPongWebSocket(fastify: FastifyInstance) {
 	// 1) Route WebSocket (consider adding auth validation here too)

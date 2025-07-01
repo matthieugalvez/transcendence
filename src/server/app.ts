@@ -7,6 +7,7 @@ import { registerPlugins } from './config/plugins.config.js';
 import { registerRoutes } from './routes/router.js';
 import { registerPongWebSocket } from './routes/game.routes.js';
 import { registerUserStatusWebSocket } from './routes/users.routes.js';
+import { GameCleanupService } from './services/gamecleanup.service.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

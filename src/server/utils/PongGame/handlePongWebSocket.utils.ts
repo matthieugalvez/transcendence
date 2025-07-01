@@ -47,111 +47,111 @@ function attachTournamentHandler(ws: WebSocket, tour: any, playerId: number | 's
 // ...existing code...
 
 export async function handlePongWebSocket(ws: WebSocket, req: any) {
-	console.log("handlePongWebSocket called", req.url);
-	const gameId = req.params.gameId;
-	const playerToken = req.query.playerToken as string | undefined;
-	const mode = req.query.mode as string | undefined;
-	const username = req.query.username as string | undefined;
+    console.log("handlePongWebSocket called", req.url);
+    const gameId = req.params.gameId;
+    const playerToken = req.query.playerToken as string | undefined;
+    const mode = req.query.mode as string | undefined;
+    const username = req.query.username as string | undefined;
 
-	if (mode === 'tournament') {
-		let tour = getTournamentRoom(gameId);
-		if (!tour) {
-			tour = createTournamentRoom(gameId, 'MEDIUM');
-		}
-		const username = req.query.username as string | undefined;
-		const role = await tour.addClient(ws, username);
+    if (mode === 'tournament') {
+        let tour = getTournamentRoom(gameId);
+        if (!tour) {
+            tour = createTournamentRoom(gameId, 'MEDIUM');
+        }
+        const username = req.query.username as string | undefined;
+        const role = await tour.addClient(ws, username);
 
-		// Handle already_joined for tournament
-		if (role === 'already_joined') {
-			ws.send(JSON.stringify({
-				type: 'error',
-				error: 'already_joined',
-				message: 'You are already in this tournament'
-			}));
-			ws.close();
-			return;
-		}
+        // Handle already_joined for tournament
+        if (role === 'already_joined') {
+            ws.send(JSON.stringify({
+                type: 'error',
+                error: 'already_joined',
+                message: 'You are already in this tournament'
+            }));
+            ws.close();
+            return;
+        }
 
-		ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: '' }));
-		attachTournamentHandler(ws, tour, role);
-		return;
-	}
+        ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: '' }));
+        attachTournamentHandler(ws, tour, role);
+        return;
+    }
 
-	// 1.1 Récupérer ou créer l'instance GameInstance
-	let game = getGameRoom(gameId);
-	if (!game) {
-		// Check if this game was created via invite
-		const gameInvites = await prisma.gameInvite.findMany({
-			where: { gameId, status: 'pending' }
-		});
+    // 1.1 Récupérer ou créer l'instance GameInstance
+    let game = getGameRoom(gameId);
+    if (!game) {
+        // Check if this game was created via invite
+        const gameInvites = await prisma.gameInvite.findMany({
+            where: { gameId, status: 'pending' }
+        });
 
-		const inviterId = gameInvites.length > 0 ? gameInvites[0].inviterId : undefined;
+        const inviterId = gameInvites.length > 0 ? gameInvites[0].inviterId : undefined;
 
-		// Create the game room with inviter tracking
-		game = createGameRoom(gameId, 'MEDIUM', inviterId);
-	}
+        // Create the game room with inviter tracking
+        game = createGameRoom(gameId, 'MEDIUM', inviterId);
+    }
 
-	ws.on('close', () => {
-		console.log(`WebSocket closed for user ${username} in game ${gameId}`);
+    ws.on('close', () => {
+        console.log(`WebSocket closed for user ${username} in game ${gameId}`);
 
-		// If this was the inviter and no game has started, trigger cleanup
-		if (game?.inviterId === username && !game.isRunning) {
-			console.log(`Inviter ${username} left before game started, triggering cleanup`);
+        // If this was the inviter and no game has started, trigger cleanup
+        if (game && game.inviterId === username && !game.getCurrentState().isRunning) {
+            console.log(`Inviter ${username} left before game started, triggering cleanup`);
 
-			// Trigger cleanup asynchronously
-			import('../services/gameCleanup.service.js').then(({ GameCleanupService }) => {
-				GameCleanupService.cleanupGameAndInvites(gameId, username!);
-			}).catch(error => {
-				console.error('Error during cleanup:', error);
-			});
-		}
-	});
+            // Trigger cleanup asynchronously
+            import('../../services/gamecleanup.service.js').then(({ GameCleanupService }) => {
+                GameCleanupService.cleanupGameAndInvites(gameId, username!);
+            }).catch(error => {
+                console.error('Error during cleanup:', error);
+            });
+        }
+    });
 
+    // // 1.2 En cas de deco, essayer de reconnecter le joueur
+    if (playerToken && game) {
+        const success = game.tryReconnectPlayer(playerToken, ws);
+        if (!success) {
+            ws.send(JSON.stringify({ type: 'error', error: 'invalid_token', clearCookies: true }));
+            ws.close();
+            return;
+        }
+        console.log("Attaching message handler for game", gameId);
+        attachMessageHandler(ws, game);
+        console.log("We are here");
+        return;
+    }
 
-	// // 1.2 En cas de deco, essayer de reconnecter le joueur
-	if (playerToken) {
-		const success = game.tryReconnectPlayer(playerToken, ws);
-		if (!success) {
-			ws.send(JSON.stringify({ type: 'error', error: 'invalid_token', clearCookies: true }));
-			ws.close();
-			return;
-		}
-		console.log("Attaching message handler for game", gameId);
-		attachMessageHandler(ws, game);
-		console.log("We are here");
-		return;
-	}
+    // 1.3 Ajouter ce client dans l'instance
+    if (game) {
+        // let username = req.query.username as string | undefined;
+        let role = addPlayerToRoom(gameId, ws, username);
 
-	// 1.3 Ajouter ce client dans l'instance
-	// let username = req.query.username as string | undefined;
-	let role = addPlayerToRoom(gameId, ws, username);
+        // Handle already_joined for duo games
+        if (role === 'already_joined') {
+            ws.send(JSON.stringify({
+                type: 'error',
+                error: 'already_joined',
+                message: 'You are already in this game'
+            }));
+            ws.close();
+            return;
+        }
 
-	// Handle already_joined for duo games
-	if (role === 'already_joined') {
-		ws.send(JSON.stringify({
-			type: 'error',
-			error: 'already_joined',
-			message: 'You are already in this game'
-		}));
-		ws.close();
-		return;
-	}
+        if (role == null) {
+            ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
+            ws.close();
+            return;
+        }
 
-	if (role == null) {
-		ws.send(JSON.stringify({ type: 'error', error: 'game_not_found' }));
-		ws.close();
-		return;
-	}
+        let token: string | undefined;
+        if (typeof role === 'number') {
+            token = game.getPlayerToken(role);
+            if (!token) {
+                token = game.assignTokenToPlayer(role);
+            }
+        }
+        ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
 
-	let token: string | undefined;
-	if (typeof role === 'number') {
-		token = game.getPlayerToken(role);
-		if (!token) {
-			token = game.assignTokenToPlayer(role);
-		}
-	}
-	ws.send(JSON.stringify({ type: 'playerToken', playerId: role, playerToken: token }));
-
-	// 1.4 Quand on reçoit un message WS, on l'interprète
-	attachMessageHandler(ws, game);
+        attachMessageHandler(ws, game);
+    }
 }

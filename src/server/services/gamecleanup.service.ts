@@ -1,4 +1,4 @@
-import { prisma } from '../db.ts';
+import { prisma } from '../db.js';
 import { InviteService } from './invite.service.js';
 import { getGameRoom, removeGameRoom } from '../game/gameRooms.js';
 import { getTournamentRoom, removeTournamentRoom } from '../game/tournamentRooms.js';
