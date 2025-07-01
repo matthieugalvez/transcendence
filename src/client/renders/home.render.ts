@@ -45,8 +45,7 @@ export class HomeRender {
     `.trim();
 
 		const games = [
-			{ title: 'Pong', route: '/game', img: pongImg },
-			{ title: 'Space Invaders', route: '/spaceInvadersGame', img: spaceImg },
+			{ title: 'Pong', route: '/game', img: pongImg }
 		] as const
 
 		games.forEach(({ title, route, img }) => {
