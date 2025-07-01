@@ -44,6 +44,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
     document.body.innerHTML = '';
     document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
+	BackgroundComponent.applyNormalGradientLayout();
 
     let user;
     try {
@@ -85,7 +86,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
             showBackHome: true,
             showUserSearch: false
         });
-        BackgroundComponent.applyNormalGradientLayout();
     } catch (error) {
         CommonComponent.handleAuthError();
         return;

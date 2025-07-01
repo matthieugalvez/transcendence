@@ -71,6 +71,9 @@ function createGameControls(
 }
 
 // Verifie auth avant d'ouvrir page
+// ...existing code...
+
+// Verifie auth avant d'ouvrir page
 export async function GamePageCheck() {
   document.title = "Home";
   document.body.innerHTML = "";
@@ -80,7 +83,8 @@ export async function GamePageCheck() {
     // Fetch user data first - if this fails, we handle it in catch block
     let user = await UserService.getCurrentUser();
 
-    if (!user.displayName || user.displayName == '') {
+    // Handle display name setup BEFORE rendering any UI
+    if (!user.displayName || user.displayName === '' || user.displayName === user.email) {
       const result = await AuthComponent.checkAndHandleDisplayName();
       if (result.success && result.userData) {
         // Use the updated user data
@@ -91,7 +95,7 @@ export async function GamePageCheck() {
       }
     }
 
-      // Only render sidebar and main content if authentication succeeds
+    // Only render sidebar and main content if authentication succeeds
     await SidebarComponent.render({
       userName: user.displayName,
       avatarUrl: user.avatar,
@@ -101,14 +105,13 @@ export async function GamePageCheck() {
       showUserSearch: false
     });
 
-      const main = document.createElement("div");
-      main.className = "min-h-screen min-w-screen flex items-start justify-center";
-      document.body.appendChild(main);
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-
-      // Show error and redirect to auth - same as SettingsRender
-      CommonComponent.handleAuthError();
+    const main = document.createElement("div");
+    main.className = "min-h-screen min-w-screen flex items-start justify-center";
+    document.body.appendChild(main);
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    // Show error and redirect to auth - same as SettingsRender
+    CommonComponent.handleAuthError();
   }
 }
 
