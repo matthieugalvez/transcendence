@@ -30,7 +30,7 @@ export class InviteController {
         }
     }
 
-    static async getInvites(request: FastifyRequest, reply: FastifyReply) {
+    static async getPendingInvites(request: FastifyRequest, reply: FastifyReply) {
         try {
             const userId = (request as any).userId;
             const invites = await InviteService.getPendingInvites(userId);
