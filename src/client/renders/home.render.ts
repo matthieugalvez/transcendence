@@ -38,7 +38,7 @@ export class HomeRender {
 		// Grid de cartes
 		const grid = document.createElement('div')
 		grid.className = `
-      grid grid-cols-2 gap-20
+      grid grid-cols-1 gap-20
       relative z-10 mx-auto mt-15
       font-['Orbitron']
       place-items-center
