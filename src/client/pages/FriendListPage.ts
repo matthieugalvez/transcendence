@@ -6,9 +6,6 @@ import { CommonComponent } from '../components/common.component';
 import { FriendsRender } from '../renders/friends.render';
 import { UserSearchComponent } from '../components/usersearch.component';
 
-// ...existing imports...
-
-// ...existing code...
 export async function FriendsPage(): Promise<void> {
     document.title = 'Transcendence - Friends';
     document.body.innerHTML = '';
@@ -63,11 +60,9 @@ export async function FriendsPage(): Promise<void> {
         searchTitle.textContent = 'Find Friends';
         searchTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
 
-        // Create container for the UserSearchComponent
         const searchContainer = document.createElement('div');
         searchContainer.className = 'mt-4';
 
-        // Use the existing UserSearchComponent instead of custom search
         UserSearchComponent.render(searchContainer);
 
         searchSection.appendChild(searchTitle);

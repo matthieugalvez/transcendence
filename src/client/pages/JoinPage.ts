@@ -215,9 +215,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	let hasError = false; // Add error state tracking
 
 	// Ecoute les messages du WS
-	// ...existing code...
-
-	// Ecoute les messages du WS
 	pongHandle.socket.addEventListener('message', async (event: MessageEvent) => {
 		try {
 			const data = JSON.parse(event.data);

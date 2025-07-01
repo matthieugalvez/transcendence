@@ -134,8 +134,6 @@ function createGameWebSocket(
                 return;
             }
 
-            // ...rest of existing message handling...
-
         } catch (err) {
             console.error('WS message parse error:', err);
         }

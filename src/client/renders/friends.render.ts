@@ -309,56 +309,56 @@ export class FriendsRender {
 		document.body.appendChild(modalOverlay);
 	}
 
-private static async sendGameInvite(friend: any, gameType: 'duo' | 'tournament'): Promise<void> {
-    try {
-        // Check if friend is currently the logged-in user
-        const currentUser = await UserService.getCurrentUser();
-        if (friend.id === currentUser?.id) {
-            CommonComponent.showMessage('❌ Cannot invite yourself!', 'error');
-            return;
-        }
+	private static async sendGameInvite(friend: any, gameType: 'duo' | 'tournament'): Promise<void> {
+		try {
+			// Check if friend is currently the logged-in user
+			const currentUser = await UserService.getCurrentUser();
+			if (friend.id === currentUser?.id) {
+				CommonComponent.showMessage('❌ Cannot invite yourself!', 'error');
+				return;
+			}
 
-        // Create appropriate game based on type
-        const endpoint = gameType === 'duo' ? '/api/game/start' : '/api/game/tournament/start';
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ difficulty: 'MEDIUM' })
-        });
+			// Create appropriate game based on type
+			const endpoint = gameType === 'duo' ? '/api/game/start' : '/api/game/tournament/start';
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ difficulty: 'MEDIUM' })
+			});
 
-        if (!res.ok) throw new Error(`Failed to create ${gameType} game`);
+			if (!res.ok) throw new Error(`Failed to create ${gameType} game`);
 
-        const { gameId } = await res.json();
+			const { gameId } = await res.json();
 
-        // Send invite with gameType
-        const inviteRes = await fetch('/api/invite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                gameId,
-                inviteeId: friend.id,
-                gameType
-            })
-        });
+			// Send invite with gameType
+			const inviteRes = await fetch('/api/invite', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					gameId,
+					inviteeId: friend.id,
+					gameType
+				})
+			});
 
-        if (!inviteRes.ok) {
-            const errorData = await inviteRes.json();
-            throw new Error(errorData.error || 'Failed to send invite');
-        }
+			if (!inviteRes.ok) {
+				const errorData = await inviteRes.json();
+				throw new Error(errorData.error || 'Failed to send invite');
+			}
 
-        CommonComponent.showMessage(`✅ ${gameType === 'duo' ? 'Duo' : 'Tournament'} invite sent to ${friend.displayName}!`, 'success');
+			CommonComponent.showMessage(`✅ ${gameType === 'duo' ? 'Duo' : 'Tournament'} invite sent to ${friend.displayName}!`, 'success');
 
-        // Navigate to the appropriate game page
-        const route = gameType === 'duo'
-            ? `/game/online/duo/${gameId}`
-            : `/game/online/tournament/${gameId}`;
-        window.location.href = route;
+			// Navigate to the appropriate game page
+			const route = gameType === 'duo'
+				? `/game/online/duo/${gameId}`
+				: `/game/online/tournament/${gameId}`;
+			window.location.href = route;
 
-    } catch (error) {
-        console.error('Failed to invite:', error);
-        CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
-    }
-}
+		} catch (error) {
+			console.error('Failed to invite:', error);
+			CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
+		}
+	}
 
 
 }

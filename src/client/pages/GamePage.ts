@@ -71,9 +71,6 @@ function createGameControls(
 }
 
 // Verifie auth avant d'ouvrir page
-// ...existing code...
-
-// Verifie auth avant d'ouvrir page
 export async function GamePageCheck() {
 	document.title = "Home";
 	document.body.innerHTML = "";
