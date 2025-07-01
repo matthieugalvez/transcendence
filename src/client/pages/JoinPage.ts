@@ -61,7 +61,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	// Only render UI if user is authenticated
 	try {
 		AuthComponent.checkAndHandleDisplayName();
-		SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
+		SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true, showUserSearch: false });
 		BackgroundComponent.applyNormalGradientLayout();
 	} catch (error) {
 		CommonComponent.handleAuthError();

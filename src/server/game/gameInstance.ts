@@ -74,22 +74,29 @@ export class GameInstance {
 
     /** ---------- PUBLIC METHODS ----------- */
     // Add player (websocket) to this instance
-    public addClient(ws: WebSocket, username?: string): number | 'spectator' | null {
-        for (const player of this.players) {
-            if (!player.ws) {
-                player.ws = ws;
-                if (!player.username) player.username = username || `Player ${player.playerId}`;
-                if (!player.playerToken) player.playerToken = uuidv4();
-                this.setupDisconnect(ws, player.playerId);
-                this.broadcastState(this.isRunning);
-                ws.send(JSON.stringify({
-                    type: 'playerToken',
-                    playerId: player.playerId,
-                    playerToken: player.playerToken
-                }));
-                return player.playerId;
+    public addClient(ws: WebSocket, username: string | undefined): number | 'spectator' {
+        // Check if user is already in the game by username
+        if (username) {
+            const existingPlayer = this.players.find(p => p.username === username && p.ws);
+            if (existingPlayer) {
+                console.log(`Player ${username} already in game ${this.gameId}`);
+                return 'spectator'; // Force as spectator if already joined
             }
         }
+
+        // Find empty slot
+        for (let i = 0; i < this.players.length; i++) {
+            if (!this.players[i].ws) {
+                this.players[i].ws = ws;
+                this.players[i].username = username || `Player ${i + 1}`;
+                this.players[i].playerId = i + 1;
+                this.setupDisconnect(ws, i + 1);
+                this.broadcastState(this.isRunning);
+                return i + 1;
+            }
+        }
+
+        // If no slots available, add as spectator
         this.addSpectator(ws);
         return 'spectator';
     }

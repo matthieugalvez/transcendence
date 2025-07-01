@@ -126,7 +126,7 @@ export async function renderPongGamePage() {
   const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
   // layout de base
-  SidebarComponent.render({ userName: user.displayName, avatarUrl: user.avatar, showStats:true, showBackHome:true });
+  SidebarComponent.render({ userName: user.displayName, avatarUrl: user.avatar, showStats:true, showBackHome:true, showUserSearch: false });
   BackgroundComponent.applyNormalGradientLayout();
   GameSettingsComponent.render('initial');
 
