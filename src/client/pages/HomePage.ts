@@ -36,7 +36,8 @@ export async function RenderHomePage(): Promise<void> {
 			showSettings: true,
 			avatarUrl: user.avatar,
 			showBackHome: false,
-			showUserSearch: false
+			showUserSearch: false,
+			showFriendsBtn: true
 		});
 
 

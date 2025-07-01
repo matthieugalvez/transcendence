@@ -181,21 +181,27 @@ export class SidebarComponent {
 		return sidebar;
 	}
 
-	private static async checkForPendingRequests(): Promise<boolean> {
-		try {
-			const currentUser = await UserService.getCurrentUser();
-			const friendsResponse = await UserService.getFriends();
-			const friendsList = friendsResponse?.data || friendsResponse || [];
+private static async checkForPendingRequests(): Promise<boolean> {
+    try {
+        const currentUser = await UserService.getCurrentUser();
 
-			// Check for incoming pending requests
-			const pendingIncoming = friendsList.filter(f =>
-				f.status === 'PENDING' && f.receiverId === currentUser.id
-			);
+        // Check for incoming friend requests
+        const friendsResponse = await UserService.getFriends();
+        const friendsList = friendsResponse?.data || friendsResponse || [];
+        const pendingFriendRequests = friendsList.filter(f =>
+            f.status === 'PENDING' && f.receiverId === currentUser.id
+        );
 
-			return pendingIncoming.length > 0;
-		} catch (error) {
-			console.error('Failed to check pending requests:', error);
-			return false;
-		}
-	}
+        // Check for pending game invites
+        const invitesResponse = await fetch('/api/invites');
+        const invitesData = await invitesResponse.json();
+        const pendingGameInvites = invitesData.invites || [];
+
+        // Return true if there are any pending friend requests OR game invites
+        return pendingFriendRequests.length > 0 || pendingGameInvites.length > 0;
+    } catch (error) {
+        console.error('Failed to check pending requests:', error);
+        return false;
+    }
+}
 }

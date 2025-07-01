@@ -84,7 +84,9 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			avatarUrl: user.avatar,
 			showStats: false,
 			showBackHome: true,
-			showUserSearch: false
+			showUserSearch: false,
+			showFriendsBtn: true
+
 		});
 	} catch (error) {
 		CommonComponent.handleAuthError();

@@ -102,7 +102,8 @@ export async function GamePageCheck() {
 			showStats: true,
 			showSettings: true,
 			showBackHome: false,
-			showUserSearch: false
+			showUserSearch: false,
+			showFriendsBtn: true
 		});
 
 		const main = document.createElement("div");
