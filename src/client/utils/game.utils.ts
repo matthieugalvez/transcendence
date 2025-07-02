@@ -12,17 +12,6 @@ export interface PongHandle {
 	start: () => void;
 }
 
-//function isGameState(data: any): data is GameState {
-//	return data
-//		&& typeof data === "object"
-//		&& data.paddle1 && data.paddle2 && data.ball
-//		&& typeof data.paddle1.x === "number"
-//		&& typeof data.paddle2.x === "number"
-//		&& typeof data.ball.x === "number"
-//		&& typeof data.score1 === "number"
-//		&& typeof data.score2 === "number";
-//}
-
 // --- WebSocket handler ---
 function createGameWebSocket(
 	gameId: string,
@@ -213,30 +202,15 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 	function frame() {
-		//		if (!state) {
-		//			requestAnimationFrame(frame);
-		//			return;
-		//		}
+//			if (!g_game_state) {
+//				requestAnimationFrame(frame);
+//				return;
+//			}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
 		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
-			if (mode === 'duo-online') {
-				if (pId === 1) {
-					if (keysPressed['KeyW']) {
-						socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-					} else if (keysPressed['KeyS']) {
-						socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-					}
-				}
-				else if (pId === 2) {
-					if (keysPressed['ArrowUp']) {
-						socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-					} else if (keysPressed['ArrowDown']) {
-						socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
-					}
-				}
-			} else if (mode === 'duo-local') {
+			if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
@@ -251,19 +225,15 @@ function startClientInputLoop(
 					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 				}
-			} else if (mode === 'solo') {
-				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
-					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
-					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
-				}
-				makeAIInput(AI, socket);
 			} else {
 				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
 					socket.send(JSON.stringify({ playerId: pId, action: 'up' }));
 				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
 					socket.send(JSON.stringify({ playerId: pId, action: 'down' }));
 				}
+			}
+			if (mode === 'solo') {
+				makeAIInput(AI, socket);
 			}
 		}
 		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
