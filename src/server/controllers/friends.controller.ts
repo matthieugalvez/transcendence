@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { FriendService } from '../services/friends.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { FriendService } from '../services/friends.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 
 export class FriendsController {
     static async getFriends(request: FastifyRequest, reply: FastifyReply) {
@@ -29,7 +29,7 @@ export class FriendsController {
             return reply.code(500).send({
                 success: false,
                 error: 'Failed to fetch friends',
-                message: error.message
+                message: error instanceof Error ? error.message : 'Unknown error'
             });
         }
     }
@@ -49,9 +49,9 @@ export class FriendsController {
 
 		} catch (error) {
 			console.error('Send friend request error:', error);
-			if (error.message === 'Friend request already sent') {
-				return Send.conflict(reply, error.message);
-			}
+			if (error instanceof Error && error.message === 'Friend request already sent') {
+                return Send.conflict(reply, error.message);
+            }
 			return Send.internalError(reply, 'Failed to send friend request');
 		}
 	}
@@ -74,9 +74,33 @@ export class FriendsController {
 		}
 	}
 
-	static async getFriendshipStatus(request, reply) {
+	static async unblockUser(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const	userId = (request as any).userId;
+			const { otherUserId } = request.params as { otherUserId: string };
+			const	result = await FriendService.unblockUser(userId, otherUserId);
+			return Send.success(reply, result, 'User unblocked');
+		} catch (error) {
+			console.error('Unblocking user request error:', error);
+			return Send.internalError(reply, 'Failed to unblock user');
+		}
+	}
+
+	static async blockUser(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const	userId = (request as any).userId;
+			const { otherUserId } = request.params as { otherUserId: string };
+			const	result = await FriendService.blockUser(userId, otherUserId);
+			return Send.success(reply, result, 'User blocked');
+		} catch (error) {
+			console.error('Blocking user request error:', error);
+			return Send.internalError(reply, 'Failed to block user');
+		}
+	}
+
+	static async getFriendshipStatus(request: FastifyRequest, reply: FastifyReply) {
 		const userId = (request as any).userId;
-		const { otherUserId } = request.params;
+		const { otherUserId } = request.params as { otherUserId: string };
 		const { status, requestId } = await FriendService.getFriendshipStatus(userId, otherUserId);
 		return Send.success(reply, { status, requestId });
 	}

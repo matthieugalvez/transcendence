@@ -6,17 +6,15 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
-import { 
-  hideOverlay,
-  startPongInContainer,
-  showGameOverOverlay,
-  getShareableLink
-} from '../utils/game.utils';
+import { GameService } from "../services/game.service";
 import {
-  setCookie,
-  getCookie,
-  deleteCookie,
-} from '../utils/cookies.utils'
+	hideOverlay,
+	startPongInContainer,
+	showGameOverOverlay,
+	getShareableLink
+} from '../utils/game.utils';
+import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -28,389 +26,561 @@ let joinedPlayers: number[] = [];
 
 // Récupérer le username connecté
 async function getUsername() {
-  try {
-    const user = await UserService.getCurrentUser();
-    return user?.displayName || "";
-  } catch {
-    return "";
-  }
+	try {
+		const user = await UserService.getCurrentUser();
+		return user?.displayName || "";
+	} catch {
+		return "";
+	}
 }
 
 export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'tournament' }) {
-  const { gameId, mode } = params;
+	const { gameId, mode } = params;
 
-  document.body.innerHTML = '';
-  document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
+	document.body.innerHTML = '';
+	document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
+	BackgroundComponent.applyNormalGradientLayout();
 
-  let user;
-  try {
-    user = await UserService.getCurrentUser();
-  } catch (error) {
-    console.error('User not authenticated:', error);
-    // Set redirect before navigating to auth
-    if (!localStorage.getItem('postAuthRedirect')) {
-      localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
-    }
-    router.navigate('/auth');
-    return;
-  }
+	let user;
+	try {
+		user = await UserService.getCurrentUser();
+	} catch (error) {
+		console.error('User not authenticated:', error);
+		// Set redirect before navigating to auth
+		if (!localStorage.getItem('postAuthRedirect')) {
+			localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
+		}
+		router.navigate('/auth');
+		return;
+	}
 
-  // Only render UI if user is authenticated
-  try {
-    AuthComponent.checkAndHandleDisplayName();
-    SidebarComponent.render({ userName: user?.displayName || '', avatarUrl: user.avatar, showStats: false, showBackHome: true });
-    BackgroundComponent.applyNormalGradientLayout();
-  } catch(error) {
-	  CommonComponent.handleAuthError();
-  }
+	// Handle display name setup BEFORE rendering game UI
+	if (!user.displayName || user.displayName === '' || user.displayName === user.email) {
+		try {
+			const result = await AuthComponent.checkAndHandleDisplayName();
+			if (result.success && result.userData) {
+				// Use the updated user data
+				user = result.userData;
+			} else {
+				// If display name setup failed, user is already redirected
+				return;
+			}
+		} catch (error) {
+			console.error('Display name setup failed:', error);
+			router.navigate('/auth');
+			return;
+		}
+	}
 
-  // Wrapper principal
-  const wrapper = document.createElement('div');
-  wrapper.className = 'flex min-h-screen w-full items-center justify-center relative';
-  document.body.appendChild(wrapper);
+	// Only render UI if user is fully authenticated with display name
+	try {
+		SidebarComponent.render({
+			userName: user?.displayName || '',
+			avatarUrl: user.avatar,
+			showStats: false,
+			showBackHome: true,
+			showUserSearch: false,
+			showFriendsBtn: true
 
-  const gameContainer = document.createElement('div');
-  gameContainer.className = 'relative z-10';
-  wrapper.appendChild(gameContainer);
+		});
+	} catch (error) {
+		CommonComponent.handleAuthError();
+		return;
+	}
 
-  // screen du jeu avant toute partie
-  const previewImg = document.createElement('img');
-  previewImg.src = '/assets/gameimg/screen-pongGame.png';
-  previewImg.alt = 'Pong preview';
-  previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
-  gameContainer.appendChild(previewImg);
 
-  // --- Récupère le username du joueur connecté (GUEST ou HOST) ---
-  const myUsername = await getUsername();
+	// Wrapper principal
+	const wrapper = document.createElement('div');
+	wrapper.className = 'flex min-h-screen w-full items-center justify-center relative';
+	document.body.appendChild(wrapper);
 
-  // --- Etats de la partie ---
-  let playerId: number | null = null;
-  let hostUsername = 'Player 1';
-  let guestUsername = 'Player 2';
+	const gameContainer = document.createElement('div');
+	gameContainer.className = 'relative z-10';
+	wrapper.appendChild(gameContainer);
 
-  // --- Tournament tracking ---
-  const matchups: [string, string][] = [['', ''], ['', ''], ['', '']];
-  const winners: string[] = [];
-  let currentMatchIndex = 0;
-  let lastWinner: string | null = null;
+	// screen du jeu avant toute partie
+	const previewImg = document.createElement('img');
+	previewImg.src = pongPreviewImg;
+	previewImg.alt = 'Pong preview';
+	previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
+	gameContainer.appendChild(previewImg);
 
-  if (playerId === 1) hostUsername = user?.displayName;
-  if (playerId === 2) guestUsername = user?.displayName;
+	// --- Récupère le username du joueur connecté (GUEST ou HOST) ---
+	const myUsername = await getUsername();
 
-  // S'assurer qu'on ne garde pas un vieux token si on entre dans une nouvelle room
-  const lastId = getCookie('lastGameId');
-  if (lastId && lastId !== gameId) {
-    deleteCookie(`pongPlayerToken-${getCookie('lastGameId')}`);
-    deleteCookie(`pongPlayerId-${getCookie('lastGameId')}`);
-  } else {
-    setCookie('lastGameId', gameId);
-  }
+	// --- Etats de la partie ---
+	let playerId: number | null = null;
+	let hostUsername = 'Player 1';
+	let guestUsername = 'Player 2';
 
-  // --- Attente de la websocket ---
-  const matchTitle = `${hostUsername} vs ${guestUsername}`;
-  // duo finish
-  const onFinish = mode === 'duo'
-    ? (winnerId: number) => {
-        const titleText = gameContainer.querySelector('h2')!.textContent!;
-        const [hostName, guestName] = titleText.split(' vs ');
-        const winnerName = winnerId === 1 ? hostName : guestName;
-        showGameOverOverlay(wrapper, `${winnerName}`, () => {
-          pongHandle?.socket.close();
-          deleteCookie(`pongPlayerToken-${gameId}`);
-          deleteCookie(`pongPlayerId-${gameId}`);
-          renderJoinPage(params)
-        });
-      }
-    : () => {};
-  const wsHandler = startPongInContainer(
-    gameContainer,
-    matchTitle,
-    myUsername,
-    "",
-    onFinish,
-    gameId,
-    mode === 'duo' ? 'duo-online' : 'tournament-online'
-  );
-  pongHandle = wsHandler;
+	// --- Tournament tracking ---
+	const matchups: [string, string][] = [['', ''], ['', ''], ['', '']];
+	const winners: string[] = [];
+	let currentMatchIndex = 0;
+	let lastWinner: string | null = null;
 
-  const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
-  if (canvas) canvas.classList.add('blur-xs');
+	if (playerId === 1) hostUsername = user?.displayName;
+	if (playerId === 2) guestUsername = user?.displayName;
 
-  // Message d’attente
-  const waiting = document.createElement('div');
-  waiting.className = `
+	// S'assurer qu'on ne garde pas un vieux token si on entre dans une nouvelle room
+	//   const lastId = getCookie('lastGameId');
+	//   if (lastId && lastId !== gameId) {
+	//     deleteCookie(`pongPlayerToken-${getCookie('lastGameId')}`);
+	//     deleteCookie(`pongPlayerId-${getCookie('lastGameId')}`);
+	//   } else {
+	//     setCookie('lastGameId', gameId);
+	//   }
+
+	// --- Attente de la websocket ---
+	const matchTitle = `${hostUsername} vs ${guestUsername}`;
+	// duo finish
+	const onFinish = mode === 'duo'
+		? async (winnerId: number, score1: number, score2: number) => {
+			const titleText = gameContainer.querySelector('h2')!.textContent!;
+			const [hostName, guestName] = titleText.split(' vs ');
+			const winnerName = winnerId === 1 ? hostName : guestName;
+			const p1 = await UserService.getUserProfileByDisplayName(hostName);
+			const p2 = await UserService.getUserProfileByDisplayName(guestName);
+
+			showGameOverOverlay(wrapper, `${winnerName}`, "online");
+			// pongHandle?.socket.close();
+			// deleteCookie(`pongPlayerToken-${gameId}`);
+			// deleteCookie(`pongPlayerId-${gameId}`);
+
+			await GameService.createMatch(gameId, {
+				playerOneId: p1.id,
+				playerTwoId: p2.id,
+				winnerId: winnerId === 1 ? p1.id : p2.id,
+				matchType: 'ONE_V_ONE',
+				playerOneScore: score1,
+				playerTwoScore: score2
+			}
+			).catch(err => console.error('Erreur stats:', err));
+		}
+		: () => { };
+	const wsHandler = startPongInContainer(
+		gameContainer,
+		matchTitle,
+		myUsername,
+		"",
+		onFinish,
+		gameId,
+		mode === 'duo' ? 'duo-online' : 'tournament-online'
+	);
+	pongHandle = wsHandler;
+
+	const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
+	if (canvas) {
+    canvas.classList.add('blur-xs');
+
+    // Add debug info
+    console.log('Canvas debug info:', {
+        width: canvas.width,
+        height: canvas.height,
+        style: canvas.style.cssText,
+        classes: canvas.className,
+        display: getComputedStyle(canvas).display,
+        visibility: getComputedStyle(canvas).visibility,
+        opacity: getComputedStyle(canvas).opacity
+    });
+
+    // Force canvas to be visible
+    canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.opacity = '1';
+}
+
+	// Message d’attente
+	const waiting = document.createElement('div');
+	waiting.className = `
     text-white text-2xl p-10 z-20 absolute top-[14,5%] left-1/2 -translate-x-1/2
     capitalize
     font-[Orbitron]
   `;
-  waiting.textContent = "Waiting for another player to join...";
-  wrapper.appendChild(waiting);
+	waiting.textContent = "Connecting...";
+	wrapper.appendChild(waiting);
 
-  // Pour savoir si la partie est lancée (venant du host)
-  let gameStarted = false;
+	const messageDisplay = document.createElement('div');
+	messageDisplay.id = 'signup-msg-display';
+	messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
+	document.body.appendChild(messageDisplay);
 
-  // Ecoute les messages du WS
-  pongHandle.socket.addEventListener('message', async (event: MessageEvent) => {
-    try {
-      const data = JSON.parse(event.data);
+	// Pour savoir si la partie est lancée (venant du host)
+	let gameStarted = false;
+	let hasError = false; // Add error state tracking
 
-      // PlayerId : host (1), guest (2), spectator
-      if (data.type === 'playerToken') {
-        playerId = data.playerId;
-        setCookie(`pongPlayerToken-${gameId}`, data.playerToken);
-        setCookie(`pongPlayerId-${gameId}`, data.playerId);
-        // On assigne le username côté front localement
-        if (playerId === 1) {
-          hostUsername = myUsername;
-        } else if (playerId === 2) {
-          guestUsername = myUsername;
-        }
-        // Render de la settings bar (host = player 1)
-        renderSettingsBar();
-      }
+	// Ecoute les messages du WS
+	pongHandle.socket.addEventListener('message', async (event: MessageEvent) => {
+		try {
+			const data = JSON.parse(event.data);
+			//console.log('WebSocket message received:', data);
 
-      if (data.type === 'playersJoined') {
-        joinedPlayers = data.players as number[];
-        if (mode === 'tournament') {
-          bothPlayersConnected = joinedPlayers.length === 4;
-          renderSettingsBar();
-          if (bothPlayersConnected) {
-            waiting.textContent =
-              playerId === 1
-                ? "Click 'Start Game' to begin"
-                : 'Waiting for the host to start the game...';
-          } else {
-            waiting.textContent = 'Waiting for another player to join...';
-          }
-        }
-      }
+			if (data.type === 'error') {
+				console.log('Error message received:', data);
+				hasError = true;
 
-      if (mode === 'tournament') {
-        if (data.type === 'matchStart') {
-          previewImg.remove();
+				if (data.error === 'already_joined') {
+					console.log('Already joined error detected');
+					waiting.textContent = "❌ You are already in this game";
+					waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
-          const transition = document.createElement('div');
-          transition.style.backgroundColor = "#530196";
-          transition.className = `
-            fixed top-[40%]
-            flex flex-col items-center justify-center p-8
-            backdrop-blur-2xl z-100 w-[28%] h-[22%]
-            border-2 border-black
-            whitespace-nowrap
-            rounded-lg
-            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-          `;
-          if (lastWinner) {
-            // Sous message prochain match
-            let nextMatchMsg = '';
-            nextMatchMsg = `Next Match :⬆️`;
-            const nextMsg = document.createElement('p');
-            nextMsg.textContent = nextMatchMsg;
-            nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
-            transition.appendChild(nextMsg);
-            // Message principal
-            const winnerMsg = document.createElement('h2');
-            winnerMsg.textContent = `${lastWinner} wins this match!`;
-            winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
-            transition.appendChild(winnerMsg);
+					// CommonComponent.showMessage(
+					// 	`❌ ${data.message || 'You are already in this game'}`,
+					// 	'error'
+					// );
 
-            wrapper.appendChild(transition);
+					setTimeout(() => {
+						console.log('Redirecting to home...');
+						window.dispatchEvent(new Event('app:close-sockets'));
+						pongHandle?.socket.close();
+						router.navigate('/home');
+					}, 2000);
+					return;
+				}
 
-            lastWinner = null;
-            currentMatchIndex++;
-          }
-          matchups[currentMatchIndex] = [data.players[0], data.players[1]];
-          // ajout
-          gameStarted = false;
-          isrendered = true;
-          setTimeout(() => {
-            if (canvas) canvas.classList.remove('blur-xs');
-            transition.remove();
-            wsHandler.start();
-          }, 4000);
-          renderSettingsBar();
-        }
+				waiting.textContent = `❌ Error: ${data.error}`;
+				waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
-        if (data.type === 'matchEnd') {
-          lastWinner = data.winner;
-          winners.push(data.winner);
-        }
+				CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+				setTimeout(() => {
+					window.dispatchEvent(new Event('app:close-sockets'));
+					pongHandle?.socket.close();
+					router.navigate('/home');
+				}, 2000);
+				return;
+			}
 
-        if (data.type === 'tournamentEnd') {
-          const transition = document.createElement('div');
-          transition.style.backgroundColor = "#530196";
-          transition.className = `
-            fixed top-[40%]
-            flex flex-col items-center justify-center p-8
-            backdrop-blur-2xl z-100 w-[28%] h-[22%]
-            border-2 border-black
-            whitespace-nowrap
-            rounded-lg
-            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-          `;
-          // Message principal
-          const winnerMsg = document.createElement('h2');
-          winnerMsg.textContent = `${data.winner} wins this tournament!`;
-          winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
-          transition.appendChild(winnerMsg);
-          // Bouton replay
-          const replayBtn = CommonComponent.createStylizedButton('Play again', 'orange');
-          replayBtn.classList.add('mt-4');
-          replayBtn.onclick = () => router.navigate('/game');
-          transition.appendChild(replayBtn);
+			// Only process other messages if no error occurred
+			if (!hasError) {
+				// PlayerId : host (1), guest (2), spectator
+				if (data.type === 'playerToken') {
+					playerId = data.playerId;
+					console.log('Player ID assigned:', playerId);
 
-          wrapper.appendChild(transition);
+					// If assigned as spectator, show message but allow viewing
+					if (playerId === 'spectator') {
+						waiting.textContent = "👀 Watching as spectator";
+						// CommonComponent.showMessage('👀 Watching as spectator', 'info');
+					} else {
+						waiting.textContent = "Waiting for another player to join...";
+					}
 
-          // TournamentComponent.showTransitionPanel(
-          //   gameContainer,
-          //   currentMatchIndex,
-          //   matchups,
-          //   data.winner,
-          //   winners,
-          //   () => {}
-          // );
-        }
-      }
+					if (playerId === 1) {
+						hostUsername = myUsername;
+					} else if (playerId === 2) {
+						guestUsername = myUsername;
+					}
+					renderSettingsBar();
+					return;
+				}
 
-      if (data.type === 'pause' && data.reason === 'disconnect') {
-        hasHadDisconnection = true;
-      }
+				// Tournament specific logic
+				if (mode === 'tournament') {
+					if (data.type === 'playersJoined') {
+						joinedPlayers = data.players || [];
+						bothPlayersConnected = joinedPlayers.length === 4;
+						console.log('Tournament players joined:', joinedPlayers.length);
 
-      // On regarde si les deux joueurs sont connectés :
-      if (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data) {
-        if (mode === 'duo')
-          bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
-        else if (mode === 'tournament')
-          bothPlayersConnected = joinedPlayers.length === 4;
+						// Update waiting message for tournament
+						if (joinedPlayers.length < 4) {
+							waiting.textContent = `Waiting for players... (${joinedPlayers.length}/4)`;
+						} else {
+							waiting.textContent = "All players joined! Waiting for host to start...";
+						}
+						renderSettingsBar();
+						return;
+					}
 
-        // SI les deux joueurs sont connectés ET il y a eu une déco
-        if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
-          if (playerId === 1 && !resumeAlertShown) {
-            alert("Both players are back. Click Start Game to continue.");
-            renderSettingsBar();
-            resumeAlertShown = true;
-            hideOverlay();
-          } else {
-            waiting.textContent = "Waiting for the host to restart the game...";
-            hideOverlay();
-          }
-        }
+					if (data.type === 'matchStart') {
+						console.log('Tournament match starting');
+						previewImg.remove();
 
-        // rendu classique debut de partie
-        if (data.connectedPlayers.length === 2 && isrendered == true && !hasHadDisconnection) {
-          renderSettingsBar();
-          isrendered = false;
-          hideOverlay();
-        }
+						const transition = document.createElement('div');
+						transition.style.backgroundColor = "#530196";
+						transition.className = `
+                        fixed top-[40%]
+                        flex flex-col items-center justify-center p-8
+                        backdrop-blur-2xl z-100 w-[28%] h-[22%]
+                        border-2 border-black
+                        whitespace-nowrap
+                        rounded-lg
+                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+                    `;
 
-        // On met à jour le message d’attente
-        if (playerId === 1 || playerId === 2) {
-          waiting.textContent = data.isRunning
-            ? ''
-            : (playerId === 1
-                ? "Click 'Start Game' to begin"
-                : "Waiting for the host to start the game...");
-        }
-        if (data.isRunning && !gameStarted) {
-          if (playerId === 1 || playerId === 2) {
-            pongHandle?.start();
-            if (canvas) canvas.classList.remove('blur-xs');
-            waiting.remove();
-            gameStarted = true;
-            resumeAlertShown = false;
-            hideOverlay();
-          }
-          if (canvas) canvas.classList.remove('blur-xs');
-          waiting.remove();
-          gameStarted = true;
-          resumeAlertShown = false;
-          hideOverlay();
-        }
-      }
-    } catch {}
+						if (lastWinner) {
+							const nextMsg = document.createElement('p');
+							nextMsg.textContent = `Next Match :⬆️`;
+							nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
+							transition.appendChild(nextMsg);
 
-    // juste après avoir créé ou démarré la partie
-    window.addEventListener('beforeunload', () => {
-      pongHandle?.socket.close();
-    });
-    window.addEventListener('popstate', () => {
-      pongHandle?.socket.close();
-    });
-  });
+							const winnerMsg = document.createElement('h2');
+							winnerMsg.textContent = `${lastWinner} wins this match!`;
+							winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+							transition.appendChild(winnerMsg);
 
-  function renderSettingsBar() {
-    if (mode === 'duo') {
-      // Host : copy link, start game
-      if (playerId === 1) {
-        GameSettingsComponent.render('duo-online', {
-          getOnlineLink: () => getShareableLink(gameId, 'duo'),
-          onCopyLink: async (link) => {
-            navigator.clipboard.writeText(link)
-          },
-          canStart: () => bothPlayersConnected && playerId === 1,
-          onStartGame: async () => {
-            pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-            GameSettingsComponent.render('solo-start', {
-              onPauseGame: () => {
-                pauseState.value = !pauseState.value;
-                pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-              },
-              onRestartGame: () => window.location.reload(),
+							wrapper.appendChild(transition);
+							lastWinner = null;
+							currentMatchIndex++;
+						}
+
+						matchups[currentMatchIndex] = [data.players[0], data.players[1]];
+						gameStarted = false;
+						isrendered = true;
+
+						setTimeout(() => {
+							if (canvas) canvas.classList.remove('blur-xs');
+							transition.remove();
+							pongHandle?.start();
+						}, 4000);
+						renderSettingsBar();
+						return;
+					}
+
+					if (data.type === 'matchEnd') {
+						lastWinner = data.winner;
+						winners.push(data.winner);
+						return;
+					}
+
+					if (data.type === 'tournamentEnd') {
+						const transition = document.createElement('div');
+						transition.style.backgroundColor = "#530196";
+						transition.className = `
+                        fixed top-[40%]
+                        flex flex-col items-center justify-center p-8
+                        backdrop-blur-2xl z-100 w-[28%] h-[22%]
+                        border-2 border-black
+                        whitespace-nowrap
+                        rounded-lg
+                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+                    `;
+
+						const winnerMsg = document.createElement('h2');
+						winnerMsg.textContent = `${data.winner} wins this tournament!`;
+						winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+						transition.appendChild(winnerMsg);
+
+						const info = document.createElement('p');
+						info.textContent = `Going to your stats…`;
+						info.className = `
+                        text-lg text-gray-300
+                        font-["Orbitron"]
+                        border-2 border-black
+                        py-2 px-12
+                        bg-blue-500
+                        rounded-lg text-lg transition-colors
+                        focus:outline-none focus:ring-2
+                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+                    `;
+
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							router.navigate('/statistics');
+						}, 2000);
+
+						transition.appendChild(info);
+						wrapper.appendChild(transition);
+						return;
+					}
+				}
+
+				if (data.type === 'pause' && data.reason === 'disconnect') {
+					hasHadDisconnection = true;
+					return;
+				}
+
+				// Game state updates - THIS IS THE KEY PART
+				if (data.type === 'gameState' || (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data)) {
+					// console.log('Game state received:', { isRunning: data.isRunning, gameStarted, connectedPlayers: data.connectedPlayers });
+
+					if (mode === 'duo') {
+						bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
+					} else if (mode === 'tournament') {
+						bothPlayersConnected = joinedPlayers.length === 4;
+					}
+
+					// Handle reconnection scenario
+					if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
+						if (playerId === 1 && !resumeAlertShown) {
+							alert("Both players are back. Click Start Game to continue.");
+							renderSettingsBar();
+							resumeAlertShown = true;
+							hideOverlay();
+							if (previewImg.parentNode) previewImg.remove();
+						} else {
+							waiting.textContent = "Waiting for the host to restart the game...";
+							hideOverlay();
+						}
+						return;
+					}
+
+					// Initial game setup when both players connect (for duo mode)
+					if (mode === 'duo' && data.connectedPlayers && data.connectedPlayers.length === 2 && isrendered && !hasHadDisconnection) {
+						console.log('Both players connected for duo game');
+						if (previewImg.parentNode) previewImg.remove();
+						renderSettingsBar();
+						isrendered = false;
+						hideOverlay();
+					}
+
+					// Update waiting message based on game state
+					if (playerId === 1 || playerId === 2) {
+						if (data.isRunning) {
+							waiting.textContent = '';
+						} else {
+							waiting.textContent = bothPlayersConnected
+								? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
+								: "Waiting for another player to join...";
+						}
+					}
+
+					// Start the game when running
+					if (data.isRunning && !gameStarted) {
+						console.log('Starting game...');
+						pongHandle?.start();
+						if (canvas) canvas.classList.remove('blur-xs');
+						if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
+						if (waiting.parentNode) waiting.remove();
+						gameStarted = true;
+						resumeAlertShown = false;
+						hideOverlay();
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error parsing WebSocket message:', error);
+		}
+	});
+
+	// Move event listeners OUTSIDE the message handler
+    const cleanupGameOnLeave = async () => {
+        console.log('User leaving game, triggering cleanup...');
+
+        try {
+            // Notify server that user is leaving
+            const response = await fetch('/api/game/cleanup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameId, mode })
             });
-          },
-          onPauseGame: () => {
-            pauseState.value = !pauseState.value;
-            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-          },
-          onRestartGame: () => window.location.reload(),
-          onDifficultyChange: (difficulty) => {
-            if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-              pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+
+            if (!response.ok) {
+                console.warn('Failed to notify server of game leave');
             }
-          }
-        });
-      }
-      // Guest : pas de bouton start/copy, juste pause
-      else if (playerId === 2) {
-        GameSettingsComponent.render('duo-guest', {
-          onPauseGame: () => {
-            pauseState.value = !pauseState.value;
-            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-          },
-        });
-      }
-      else {
-        GameSettingsComponent.render('initial', {
-        });
-      }
-    } else {
-      GameSettingsComponent.render('tournament-online', {
-          getOnlineLink: () => getShareableLink(gameId, 'tournament'),
-          onCopyLink: async (link) => {
-            navigator.clipboard.writeText(link)
-          },
-          canStart: () => bothPlayersConnected && playerId === 1,
-          onStartGame: async () => {
-            pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-            GameSettingsComponent.render('solo', {
-              onPauseGame: () => {
-                pauseState.value = !pauseState.value;
-                pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-              },
-              onRestartGame: () => window.location.reload(),
-            });
-          },
-          onPauseGame: () => {
-            pauseState.value = !pauseState.value;
-            pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-          },
-          onRestartGame: () => window.location.reload(),
-          onDifficultyChange: (difficulty) => {
-            if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-              pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-            }
-          }
-      });
-    }
-  }
+        } catch (error) {
+            console.error('Error during game cleanup:', error);
+        }
+
+        // Close WebSocket
+        if (pongHandle?.socket) {
+            pongHandle.socket.close();
+        }
+
+        // Dispatch close event
+        window.dispatchEvent(new Event('app:close-sockets'));
+    };
+
+    // Move event listeners OUTSIDE the message handler
+    window.addEventListener('beforeunload', cleanupGameOnLeave);
+
+    window.addEventListener('popstate', cleanupGameOnLeave);
+
+    // Add cleanup when navigating away
+    const originalNavigate = router.navigate;
+    router.navigate = (path: string) => {
+        if (window.location.pathname.includes('/game/online/')) {
+            cleanupGameOnLeave();
+        }
+        return originalNavigate.call(router, path);
+    };
+
+	function renderSettingsBar() {
+		console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
+
+		if (mode === 'duo') {
+			// Host : copy link, start game
+			if (playerId === 1) {
+				GameSettingsComponent.render('duo-online', {
+					getOnlineLink: () => getShareableLink(gameId, 'duo'),
+					onCopyLink: async (link) => {
+						navigator.clipboard.writeText(link);
+						// CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
+					},
+					canStart: () => {
+						const canStart = bothPlayersConnected && playerId === 1;
+						console.log('Can start game check:', { bothPlayersConnected, playerId, canStart });
+						return canStart;
+					},
+					onStartGame: async () => {
+						console.log('Host starting game...');
+						pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
+						GameSettingsComponent.render('solo-start', {
+							onPauseGame: () => {
+								pauseState.value = !pauseState.value;
+								pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+							},
+							onRestartGame: () => window.location.reload(),
+						});
+					},
+					onPauseGame: () => {
+						pauseState.value = !pauseState.value;
+						pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+					},
+					onRestartGame: () => window.location.reload(),
+					onDifficultyChange: (difficulty) => {
+						if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+							pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+						}
+					}
+				});
+			}
+			// Guest : pas de bouton start/copy, juste pause
+			else if (playerId === 2) {
+				GameSettingsComponent.render('duo-guest', {
+					onPauseGame: () => {
+						pauseState.value = !pauseState.value;
+						pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+					},
+				});
+			}
+			else {
+				GameSettingsComponent.render('initial', {});
+			}
+		} else {
+			// Tournament mode
+			GameSettingsComponent.render('tournament-online', {
+				getOnlineLink: () => getShareableLink(gameId, 'tournament'),
+				onCopyLink: async (link) => {
+					// navigator.clipboard.writeText(link);
+					// CommonComponent.showMessage('✅ Link copied to clipboard!', 'success');
+				},
+				canStart: () => {
+					const canStart = bothPlayersConnected && playerId === 1;
+					console.log('Tournament can start check:', { bothPlayersConnected, playerId, joinedPlayers: joinedPlayers.length, canStart });
+					return canStart;
+				},
+				onStartGame: async () => {
+					console.log('Host starting tournament...');
+					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
+					GameSettingsComponent.render('solo', {
+						onPauseGame: () => {
+							pauseState.value = !pauseState.value;
+							pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+						},
+						onRestartGame: () => window.location.reload(),
+					});
+				},
+				onPauseGame: () => {
+					pauseState.value = !pauseState.value;
+					pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+				},
+				onRestartGame: () => window.location.reload(),
+				onDifficultyChange: (difficulty) => {
+					if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+						pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+					}
+				}
+			});
+		}
+	}
 }

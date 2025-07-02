@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { GameService } from '../services/game.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { GameService } from '../services/game.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
+import { GameCleanupService } from '../services/gamecleanup.service.js'
 
 export class GameController {
 	static async getGameStatus(request: FastifyRequest, reply: FastifyReply) {
@@ -37,6 +38,25 @@ export class GameController {
 		} catch (error) {
 			console.error('Get game error:', error)
 			return Send.internalError(reply, 'Failed to get game')
+		}
+	}
+
+	static async cleanupGame(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const userId = (request as any).userId;
+			const { gameId, mode } = request.body as { gameId: string; mode: string };
+
+			if (!userId || !gameId) {
+				return Send.badRequest(reply, 'Missing required fields');
+			}
+
+			const result = await GameCleanupService.cleanupGameAndInvites(gameId, userId);
+			const { success, ...restResult } = result;
+
+			return Send.success(reply, restResult, 'Game cleaned up successfully');
+		} catch (error) {
+			console.error('Game cleanup error:', error);
+			return Send.internalError(reply, 'Failed to cleanup game');
 		}
 	}
 }

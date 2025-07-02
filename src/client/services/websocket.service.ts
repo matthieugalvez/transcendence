@@ -34,8 +34,12 @@ export class WebSocketService {
 
     try {
       const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-      const port = 3000;
+      // Use the same host and port as the current page (goes through Nginx)
+      const port = location.port || (protocol === 'wss' ? '443' : '80');
       const socketUrl = `${protocol}://${location.hostname}:${port}/ws/status`;
+
+      console.log('Connecting to WebSocket:', socketUrl);
+      this.socket = new WebSocket(socketUrl);
 
     //   console.log('Connecting to WebSocket:', socketUrl);
       this.socket = new WebSocket(socketUrl);

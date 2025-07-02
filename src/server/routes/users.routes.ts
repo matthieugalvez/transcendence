@@ -1,13 +1,13 @@
 import { FastifyInstance } from 'fastify'
-import { userSchema } from '../validations/auth.schema'
-import ValidationMiddleware from '../middlewares/validation.middleware'
-import { UserController } from '../controllers/user.controller'
-import AuthMiddleware from '../middlewares/auth.middleware'
+import { userSchema } from '../validations/auth.schema.js'
+import ValidationMiddleware from '../middlewares/validation.middleware.js'
+import { UserController } from '../controllers/user.controller.js'
+import AuthMiddleware from '../middlewares/auth.middleware.js'
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import { UserOnline } from '../services/users.service'
+import { UserOnline } from '../services/users.service.js'
 import jsonwebtoken from 'jsonwebtoken';
-import authConfig from '../config/auth.config';
+import authConfig from '../config/auth.config.js';
 const pump = promisify(pipeline);
 
 
@@ -24,23 +24,23 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
         try {
           const decoded = jsonwebtoken.verify(token, authConfig.secret) as { userId: string };
           userId = decoded.userId;
-          console.log('WebSocket authenticated user:', userId);
+//          console.log('WebSocket authenticated user:', userId);
         } catch (jwtError) {
           console.error('Invalid JWT token in cookie:', jwtError);
         }
       } else {
-        console.log('No access token in cookies');
+//        console.log('No access token in cookies');
       }
     } catch (error) {
       console.error('Error authenticating WebSocket connection:', error);
     }
 
     if (!userId || !connection) {
-      console.log('WebSocket connection rejected: Missing authentication or invalid connection');
+//      console.log('WebSocket connection rejected: Missing authentication or invalid connection');
       return;
     }
 
-    console.log(`User ${userId} connected to online status WebSocket`);
+//    console.log(`User ${userId} connected to online status WebSocket`);
 
     // Add user to online list
     UserOnline.addOnlineUser(userId, connection);
@@ -53,7 +53,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
           message: 'Connected successfully',
           userId: userId
         }));
-        console.log('Welcome message sent successfully');
+//        console.log('Welcome message sent successfully');
       }
     } catch (error) {
       console.error('Error sending welcome message:', error);
@@ -69,7 +69,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
           online: true
         }));
       }
-      console.log(`Sent ${onlineUsers.length} online users to ${userId}`);
+//      console.log(`Sent ${onlineUsers.length} online users to ${userId}`);
     } catch (error) {
       console.error('Error sending online users list:', error);
     }
@@ -87,7 +87,7 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
     // Handle disconnect
     connection.on('close', () => {
-      console.log(`User ${userId} disconnected from online status WebSocket`);
+//      console.log(`User ${userId} disconnected from online status WebSocket`);
       UserOnline.removeOnlineUser(userId);
 
       try {
@@ -110,7 +110,6 @@ export async function registerUserStatusWebSocket(fastify: FastifyInstance) {
 
 export default async function userRoutes(fastify: FastifyInstance) {
 
-	await fastify.register(import('@fastify/multipart'));
 	// Get all users (protected)
 	fastify.get('/users', {
 		preHandler: [AuthMiddleware.authenticateUser]
@@ -140,10 +139,18 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		]
 	}, UserController.changeUserPassword);
 
-	fastify.post('/me/avatar', {
-		preHandler:
-			[AuthMiddleware.authenticateUser]
-	}, UserController.uploadAvatar);
+    fastify.post('/me/avatar', {
+        preHandler: [AuthMiddleware.authenticateUser],
+        // schema: {
+        //     body: {
+        //         type: 'object',
+        //         properties: {
+        //             file: { type: 'object' }
+        //         }
+        //     },
+        //     consumes: ['multipart/form-data']
+        // }
+    }, UserController.uploadAvatar);
 
 	fastify.get('/check-display-name', {
 		preHandler: AuthMiddleware.authenticateUser
@@ -165,5 +172,5 @@ export default async function userRoutes(fastify: FastifyInstance) {
 	fastify.get('/users/:userId/online', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
-  
+
 }

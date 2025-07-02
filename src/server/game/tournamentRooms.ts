@@ -1,11 +1,14 @@
 import type { WebSocket } from 'ws';
-import { GameInstance } from './gameInstance';
+import { GameInstance } from './gameInstance.js';
+import { UserService } from '../services/users.service.js';
+import { StatsService } from '../services/stats.service.js';
 
 export type TournamentDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 interface Player {
   id: number;
   username: string;
+  userId: string;
   ws: WebSocket | null;
 }
 
@@ -13,15 +16,22 @@ export class TournamentRoom {
   private gameId: string;
   private difficulty: TournamentDifficulty;
   private players: Player[] = [
-    { id: 1, username: '', ws: null },
-    { id: 2, username: '', ws: null },
-    { id: 3, username: '', ws: null },
-    { id: 4, username: '', ws: null },
+    { id: 1, username: '',  userId: '', ws: null },
+    { id: 2, username: '', userId: '', ws: null },
+    { id: 3, username: '', userId: '', ws: null },
+    { id: 4, username: '', userId: '', ws: null },
   ];
   private currentGame: GameInstance | null = null;
   private currentMatch = 0;
   private winners: Player[] = [];
   private currentPlayers: [Player, Player] | null = null;
+  private matches: {
+    playerOneId: string;
+    playerTwoId: string;
+    playerOneScore: number;
+    playerTwoScore: number;
+    winnerId: string;
+  }[] = [];
 
    broadcastPlayerList() {
     const joined = this.players.filter(p => p.ws).map(p => p.id);
@@ -35,22 +45,36 @@ export class TournamentRoom {
     this.difficulty = difficulty;
   }
 
-  addClient(ws: WebSocket, username?: string): number | 'spectator' {
-    const slot = this.players.find(p => !p.ws);
-    if (slot) {
-      slot.ws = ws;
-      if (!slot.username) slot.username = username || `Player ${slot.id}`;
-       ws.on('close', () => {
-        slot.ws = null;
-        this.broadcastPlayerList();
-      });
-      this.broadcastPlayerList();
-      return slot.id;
+    async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator' | 'already_joined'> {
+        // Check if user is already in the tournament by username
+        if (username) {
+            const existingPlayer = this.players.find(p => p.username === username && p.ws);
+            if (existingPlayer) {
+                console.log(`Player ${username} already in tournament ${this.gameId}`);
+                return 'already_joined'; // Return specific status
+            }
+        }
+
+        const slot = this.players.find(p => !p.ws);
+        if (slot) {
+            slot.ws = ws;
+            if (!slot.username) slot.username = username || `Player ${slot.id}`;
+            const user = await UserService.getUserByDisplayName(slot.username);
+            slot.userId = user?.id ?? '';
+
+            ws.on('close', () => {
+                slot.ws = null;
+                this.broadcastPlayerList();
+            });
+
+            this.broadcastPlayerList();
+            return slot.id;
+        }
+
+        if (this.currentGame) this.currentGame.addSpectator(ws);
+        else ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
+        return 'spectator';
     }
-    if (this.currentGame) this.currentGame.addSpectator(ws);
-    else ws.send(JSON.stringify({ type: 'playerToken', playerId: 'spectator', playerToken: '' }));
-    return 'spectator';
-  }
 
   startTournament() {
     this.currentMatch = 0;
@@ -75,31 +99,53 @@ export class TournamentRoom {
     }
     this.currentPlayers = [p1, p2];
     this.currentGame = new GameInstance(this.gameId, this.difficulty);
-    this.currentGame.onEnd((winnerId) => this.handleMatchEnd(winnerId));
+    this.currentGame.onEnd(async (winnerId) => await this.handleMatchEnd(winnerId));
     if (p1.ws) this.currentGame.addClient(p1.ws, p1.username);
     if (p2.ws) this.currentGame.addClient(p2.ws, p2.username);
-    console.log(`[Tournament][startMatch] Match ${this.currentMatch} :
-      Joueurs physiques: ${p1.username} (phys: ${p1.id}) et ${p2.username} (phys: ${p2.id})
-      → Sont assignés à GameInstance slots 1 et 2 (playerId: 1 et 2)
-    `);
 
     spectators.forEach(s => { if (s.ws) this.currentGame!.addSpectator(s.ws); });
     this.broadcastAll(JSON.stringify({ type: 'matchStart', players: [p1.username, p2.username] }));
     this.broadcastPlayerList();
-    // this.currentGame.start();
   }
 
-  private handleMatchEnd(winnerId: number) {
+  private async handleMatchEnd(winnerId: number) {
     if (!this.currentPlayers) return;
     const winner = winnerId === 1 ? this.currentPlayers[0] : this.currentPlayers[1];
-    this.broadcastAll(JSON.stringify({ type: 'matchEnd', winner: winner.username }));
+    const state = this.currentGame!.getCurrentState();
+    const p1 = this.currentPlayers[0];
+    const p2 = this.currentPlayers[1];
+    this.matches.push({
+      playerOneId: p1.userId,
+      playerTwoId: p2.userId,
+      playerOneScore: state.score1,
+      playerTwoScore: state.score2,
+      winnerId: winner.userId
+    });
+    this.broadcastAll(JSON.stringify({
+      type: 'matchEnd',
+      winner: winner.username,
+      score1: state.score1,
+      score2: state.score2,
+      matchType: 'TOURNAMENT',
+    }));
+    // if (this.currentMatch < 2) {
+    //   this.winners.push(winner);
+    // }
     if (this.currentMatch < 2) {
       this.winners.push(winner);
-    }
-    if (this.currentMatch < 2) {
       this.currentMatch++;
       this.startMatch();
     } else {
+      try {
+        await StatsService.createTournament({
+          tournamentId: this.gameId,
+          participants: this.players.map(p => p.userId),
+          winnerId: winner.userId,
+          matches: this.matches
+        });
+      } catch (e) {
+        console.error('[Tournament] save failed', e);
+      }
       this.broadcastAll(JSON.stringify({ type: 'tournamentEnd', winner: winner.username }));
     }
   }

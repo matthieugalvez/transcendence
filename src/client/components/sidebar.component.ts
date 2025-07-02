@@ -30,6 +30,16 @@ export class SidebarComponent {
 			space-y-4 z-11
     	`.trim();
 
+		console.log('🔍 Sidebar Avatar URL Debug:', {
+    avatarUrl,
+    type: typeof avatarUrl,
+    isNull: avatarUrl === null,
+    isUndefined: avatarUrl === undefined,
+    isEmpty: avatarUrl === '',
+    isNullString: avatarUrl === 'null'
+});
+
+
 		// Profil picture of user (with default one if none)
 		// console.log(`Avatar URL: ${avatarUrl}`);
 		const profilPic = document.createElement('img');
@@ -107,7 +117,7 @@ export class SidebarComponent {
 			updateNotification();
 
 			// Set up periodic refresh every 10 seconds
-			const notificationInterval = setInterval(updateNotification, 5000);
+			const notificationInterval = setInterval(updateNotification, 50000);
 
 			// Store interval ID for cleanup (optional)
 			friendsBtnContainer.setAttribute('data-interval-id', notificationInterval.toString());
@@ -171,21 +181,27 @@ export class SidebarComponent {
 		return sidebar;
 	}
 
-	private static async checkForPendingRequests(): Promise<boolean> {
-		try {
-			const currentUser = await UserService.getCurrentUser();
-			const friendsResponse = await UserService.getFriends();
-			const friendsList = friendsResponse?.data || friendsResponse || [];
+private static async checkForPendingRequests(): Promise<boolean> {
+    try {
+        const currentUser = await UserService.getCurrentUser();
 
-			// Check for incoming pending requests
-			const pendingIncoming = friendsList.filter(f =>
-				f.status === 'PENDING' && f.receiverId === currentUser.id
-			);
+        // Check for incoming friend requests
+        const friendsResponse = await UserService.getFriends();
+        const friendsList = friendsResponse?.data || friendsResponse || [];
+        const pendingFriendRequests = friendsList.filter(f =>
+            f.status === 'PENDING' && f.receiverId === currentUser.id
+        );
 
-			return pendingIncoming.length > 0;
-		} catch (error) {
-			console.error('Failed to check pending requests:', error);
-			return false;
-		}
-	}
+        // Check for pending game invites
+        const invitesResponse = await fetch('/api/invites');
+        const invitesData = await invitesResponse.json();
+        const pendingGameInvites = invitesData.invites || [];
+
+        // Return true if there are any pending friend requests OR game invites
+        return pendingFriendRequests.length > 0 || pendingGameInvites.length > 0;
+    } catch (error) {
+        console.error('Failed to check pending requests:', error);
+        return false;
+    }
+}
 }

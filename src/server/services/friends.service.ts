@@ -1,4 +1,4 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import { FriendshipStatus } from '@prisma/client'
 
 
@@ -113,7 +113,7 @@ export class FriendService {
 	}
 
 	// Get pending friend requests
-	static async getPendingRequests(userId: number) {
+	static async getPendingRequests(userId: string) {
 		return await prisma.friendship.findMany({
 			where: {
 				receiverId: userId,
@@ -121,10 +121,53 @@ export class FriendService {
 			},
 			include: {
 				sender: {
-					select: { id: true, username: true, email: true }
+					select: { id: true, displayName: true, email: true }
 				}
 			}
 		});
+	}
+
+	static async unblockUser(userId: string, otherUserId: string) {
+		const	friendship = await prisma.friendship.findFirst ({
+			where: {
+				senderId: userId,
+				receiverId: otherUserId,
+				status: FriendshipStatus.BLOCKED
+			}
+		});
+
+		if (!friendship) {
+			return;
+		};
+		return await prisma.friendship.delete ({
+			where: { id: friendship.id }
+		});
+	}
+
+	static async blockUser(userId: string, otherUserId: string) {
+		const	friendship = await prisma.friendship.findFirst ({
+			where: {
+				senderId: userId,
+				receiverId: otherUserId,
+			},
+		});
+
+		if (!friendship) {
+			return await prisma.friendship.create({
+				data: {
+					senderId: userId,
+					receiverId: otherUserId,
+					status: FriendshipStatus.BLOCKED,
+				},
+			});
+		} else {
+			return await prisma.friendship.update({
+				where: {
+					id: friendship.id,
+				},
+				data: { status: FriendshipStatus.BLOCKED },
+			});
+		};
 	}
 
 	static async getFriendshipStatus(userId: string, otherUserId: string) {
@@ -137,11 +180,13 @@ export class FriendService {
 			}
 		});
 
-		let status: 'friends' | 'pending' | 'incoming' | 'none' = 'none';
+		let status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none' = 'none';
 		let requestId: string | undefined = undefined;
 
 		if (friendship) {
-			if (friendship.status === 'ACCEPTED') {
+			if (friendship.status === 'BLOCKED') {
+				status = 'blocked';
+			} else if (friendship.status === 'ACCEPTED') {
 				status = 'friends';
 			} else if (friendship.status === 'PENDING') {
 				if (friendship.senderId === userId) {

@@ -1,12 +1,11 @@
 import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component'
 import { WebSocketService } from '../services/websocket.service'
+import { WebSocket } from 'ws';
 
 
 
 export class UserService {
-
-
 	static async getAllUsers(): Promise<Array<{ id: string; name: string; created_at: string; update_at: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users');
@@ -214,7 +213,7 @@ export class UserService {
 				return;
 			}
 
-			// Show loading state - use ID selector instead
+			// Show loading state
 			const uploadButton = document.getElementById('avatar-upload-btn') as HTMLButtonElement;
 			if (uploadButton) {
 				uploadButton.disabled = true;
@@ -225,40 +224,50 @@ export class UserService {
 			const formData = new FormData();
 			formData.append('avatar', file);
 
-			// Upload to server
+			// Upload to server - ADD credentials and better error handling
 			const response = await fetch('/api/me/avatar', {
 				method: 'POST',
-				body: formData
+				body: formData,
+				credentials: 'include' // This is crucial for authentication
 			});
 
+			console.log('Upload response status:', response.status);
+			console.log('Upload response headers:', response.headers);
+
 			if (!response.ok) {
-				throw new Error('Upload failed');
+				const errorText = await response.text();
+				console.error('Upload failed with status:', response.status, 'Error:', errorText);
+				throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
 			}
 
 			const result = await response.json();
+			console.log('Upload result:', result);
 
 			if (result.success) {
 				// Update avatar preview
-
 				const avatarUrl = result.data.avatarUrl;
-				avatarImg.src = avatarUrl;
+				avatarImg.src = avatarUrl + '?t=' + Date.now(); // Add cache busting
 
 				// Show success message
 				CommonComponent.showMessage('✅ Avatar updated successfully', 'success');
-				window.location.reload();
 
-				// Update sidebar avatar
+				// Update sidebar avatar if exists
 				const sidebarAvatar = document.querySelector('nav img') as HTMLImageElement;
 				if (sidebarAvatar) {
-					sidebarAvatar.src = result.data.avatarUrl;
+					sidebarAvatar.src = avatarUrl + '?t=' + Date.now();
 				}
+
+				// Reload page after a delay
+				setTimeout(() => {
+					window.location.reload();
+				}, 1000);
 			} else {
 				throw new Error(result.message || 'Upload failed');
 			}
 
 		} catch (error) {
 			console.error('Avatar upload error:', error);
-			CommonComponent.showMessage('❌ Failed to upload avatar', 'error');
+			CommonComponent.showMessage(`❌ Failed to upload avatar: ${error.message}`, 'error');
 		} finally {
 			// Reset upload button
 			const uploadButton = document.getElementById('avatar-upload-btn') as HTMLButtonElement;
@@ -306,7 +315,6 @@ export class UserService {
 		}
 	}
 
-
 	static async searchUsers(query: string, limit: number = 10): Promise<Array<{ id: string; displayName: string; avatar: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch(
@@ -341,32 +349,33 @@ export class UserService {
 		}
 	}
 
-static async getFriends(): Promise<any[]> {
-    try {
-        const response = await fetch('/api/friends', {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+	static async getFriends(): Promise<any[]> {
+		try {
+			const response = await fetch('/api/friends', {
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
 
-        const responseData = await response.json();
-        console.log('getFriends response:', responseData); // Debug log
+			const responseData = await response.json();
+			console.log('getFriends response:', responseData); // Debug log
 
-        // Return just the data array, not the whole response object
-        return responseData.data || [];
-    } catch (error) {
-        console.error('Error fetching friends:', error);
-        return []; // Return empty array instead of throwing to prevent render issues
-    }
-}
+			// Return just the data array, not the whole response object
+			return responseData.data || [];
+		} catch (error) {
+			console.error('Error fetching friends:', error);
+			return []; // Return empty array instead of throwing to prevent render issues
+		}
+	}
 
-	static async getFriendshipStatus(otherUserId: string): Promise<{ status: 'friends' | 'pending' | 'incoming' | 'none', requestId?: string }> {
+	static async getFriendshipStatus(otherUserId: string): Promise<{
+		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
 		const data = await response.json();
 		if (!data.success)
@@ -375,14 +384,13 @@ static async getFriends(): Promise<any[]> {
 	}
 
 	static async rejectFriendRequest(friendshipId: string): Promise<void> {
-    const response = await ApiClient.authenticatedFetch(
-        `/api/friends/request/${encodeURIComponent(friendshipId)}/reject`,
-        { method: 'DELETE' }
-    );
-    const data = await response.json();
-    if (!data.success) throw new Error(data.error || 'Failed to reject friend request');
-}
-
+		const response = await ApiClient.authenticatedFetch(
+			`/api/friends/request/${encodeURIComponent(friendshipId)}/reject`,
+			{ method: 'DELETE' }
+		);
+		const data = await response.json();
+		if (!data.success) throw new Error(data.error || 'Failed to reject friend request');
+	}
 
 	static async removeFriend(friendId: string): Promise<void> {
 		const response = await ApiClient.authenticatedFetch(

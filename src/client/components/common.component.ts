@@ -78,33 +78,33 @@ export class CommonComponent {
 		return button;
 	}
 
-static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'orange' | 'gray' = 'blue'): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.textContent = text;
+	static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'orange' | 'gray' = 'blue'): HTMLButtonElement {
+	  const button = document.createElement('button');
+	  button.textContent = text;
 
-		const colorClasses = {
-			blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
-			purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
-			gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
-			red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300',
-			orange: 'bg-orange-500 hover:bg-orange-700 focus:ring-orange-300',
-		};
+			const colorClasses = {
+				blue: 'bg-blue-500 hover:bg-blue-700 focus:ring-blue-300',
+				purple: 'bg-purple-500 hover:bg-purple-700 focus:ring-purple-300',
+				gray: 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-300',
+				red: 'bg-red-500 hover:bg-red-700 focus:ring-red-300',
+				orange: 'bg-orange-500 hover:bg-orange-700 focus:ring-orange-300',
+			};
 
-		button.className = `
-    font-['Orbitron']
-    ${colorClasses[color]} text-white font-semibold
-    border-2 border-black
-    py-2 px-12
-    rounded-lg text-lg transition-colors
-    focus:outline-none focus:ring-2
-    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    disabled:opacity-50 disabled:cursor-not-allowed
-  `.replace(/\s+/g, ' ').trim();
+			button.className = `
+		font-['Orbitron']
+		${colorClasses[color]} text-white font-semibold
+		border-2 border-black
+		py-2 px-12
+		rounded-lg text-lg transition-colors
+		focus:outline-none focus:ring-2
+		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+		disabled:opacity-50 disabled:cursor-not-allowed
+	  `.replace(/\s+/g, ' ').trim();
 
-		button.style.letterSpacing = "0.2em";
+			button.style.letterSpacing = "0.2em";
 
-		return button;
-	}
+			return button;
+		}
 
 	/**
 	 * Create a styled container div
@@ -195,4 +195,51 @@ static createStylizedButton(text: string, color: 'blue' | 'red' | 'purple' | 'or
 			router.navigate('/auth');
 		}, 3000);
 	}
+
+	static showGameError(message: string, redirectPath: string = '/home', delay: number = 3000): void {
+        // Create error overlay
+        const errorOverlay = document.createElement('div');
+        errorOverlay.className = `
+            fixed inset-0 bg-black/70 flex items-center justify-center z-50
+            backdrop-blur-sm
+        `;
+
+        const errorModal = document.createElement('div');
+        errorModal.className = `
+            bg-white rounded-lg p-8 max-w-md w-full mx-4 text-center
+            border-2 border-red-500 shadow-[4.0px_5.0px_0.0px_rgba(220,38,38,0.8)]
+        `;
+
+        const errorIcon = document.createElement('div');
+        errorIcon.className = 'text-6xl mb-4';
+        errorIcon.textContent = '❌';
+        errorModal.appendChild(errorIcon);
+
+        const errorMessage = document.createElement('h2');
+        errorMessage.textContent = message;
+        errorMessage.className = `font-['Orbitron'] text-xl font-bold mb-6 text-red-600`;
+        errorModal.appendChild(errorMessage);
+
+        const redirectMessage = document.createElement('p');
+        redirectMessage.textContent = `Redirecting to home in ${delay / 1000} seconds...`;
+        redirectMessage.className = 'text-gray-600 mb-4';
+        errorModal.appendChild(redirectMessage);
+
+        errorOverlay.appendChild(errorModal);
+        document.body.appendChild(errorOverlay);
+
+        // Countdown and redirect
+        let countdown = delay / 1000;
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            redirectMessage.textContent = `Redirecting to home in ${countdown} seconds...`;
+
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                errorOverlay.remove();
+                window.dispatchEvent(new Event('app:close-sockets'));
+                router.navigate(redirectPath);
+            }
+        }, 1000);
+    }
 }

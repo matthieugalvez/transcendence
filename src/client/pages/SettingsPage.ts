@@ -33,7 +33,9 @@ export async function SettingsPage(): Promise<void> {
 			showStats: true,
 			showSettings: false, // Don't show settings button on settings page
 			showBackHome: true,
-			showUserSearch: true
+			showUserSearch: false,
+			showFriendsBtn: true
+
 		});
 
 		// Render the main content with user data

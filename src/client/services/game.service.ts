@@ -1,7 +1,7 @@
 export class GameService {
   static async requestNewGameId(): Promise<string> {
     const res = await fetch('/api/game/start', { method: 'POST' });
-    const data = await res.json();
+    const data : any = await res.json();
     if (!data.success) throw new Error('Impossible de démarrer la partie');
     return data.gameId;
   }
@@ -34,7 +34,34 @@ export class GameService {
         console.error('Error creating match:', error);
         throw error;
     }
-};
-  // Ici ajout d'autres appels API si besoin
+  };
+
+  static async createTournament(payload: {
+    tournamentId: string
+    participants: string[]
+    winnerId: string
+    matches: {
+      playerOneId: string
+      playerTwoId: string
+      playerOneScore: number
+      playerTwoScore: number
+      winnerId: string
+    }[]
+  }): Promise<any> {
+    try {
+      const res = await fetch('/api/tournament/create', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) throw new Error('failed to create tournament')
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      console.error('Error creating tournament: ', e);
+      throw e;
+    }
+  }
 }
 
