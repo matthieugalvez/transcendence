@@ -59,7 +59,7 @@ setInterval(async () => {
 	} catch (error) {
 		console.error('Error during periodic cleanup:', error);
 	}
-}, 5 * 60 * 1000);
+}, 1 * 60 * 1000);
 
 // Start server function - call listen here
 async function start() {
