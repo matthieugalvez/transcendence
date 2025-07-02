@@ -165,8 +165,7 @@ function createGameWebSocket(
 	});
 
 	socket.addEventListener('close', (event) => {
-		if (!shouldReloadOnClose) return; 
-		// console.log('WebSocket closed:', event.code, event.reason);
+		if (!shouldReloadOnClose) return;
 		if (event.code !== 1000) { // Not a normal closure
 			CommonComponent.showMessage('❌ Connection lost', 'error');
 			setTimeout(() => {
@@ -283,9 +282,8 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
-		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-		const ball_speed = g_game_state.ballVelocity;
-		console.log(ball_speed);
+		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+		const	ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx < 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -362,7 +360,6 @@ export function startPongInContainer(
 
     function setupInputHandlers() {
         if (inputLoopStarted) return; // Prevent multiple setups
-        // console.log('[GAME UTILS] Setting up input handlers');
         // Clear any existing handlers
         keysPressed = {};
         setupKeyboardHandlers(socket, keysPressed);
@@ -377,10 +374,8 @@ export function startPongInContainer(
                 return;
             }
             const data = JSON.parse(event.data);
-            // console.log('[GAME UTILS] WebSocket message:', data.type, data);
 
             if (data.type === 'playerToken') {
-                // console.log('[GAME UTILS] Player token received:', data.playerId);
                 // Set up input handlers when we get our player token
                 if (!inputLoopStarted) {
                     setupInputHandlers();
@@ -398,8 +393,8 @@ export function startPongInContainer(
 					data.hasOwnProperty('score2'));
 
             if (isGameState) {
+				g_game_state = data;
                 import('../renders/game.render.js').then(({ renderGame }) => {
-					g_game_state = data;
 					renderGame(ctx, data);
 				});
 
