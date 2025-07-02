@@ -145,7 +145,7 @@ function createGameWebSocket(
 	});
 
 	socket.addEventListener('close', (event) => {
-		console.log('WebSocket closed:', event.code, event.reason);
+//		console.log('WebSocket closed:', event.code, event.reason);
 		if (event.code !== 1000) { // Not a normal closure
 			CommonComponent.showMessage('❌ Connection lost', 'error');
 			setTimeout(() => {
@@ -235,7 +235,6 @@ function	makeAIInput(AI: AI_class, socket: WebSocket) {
 		AI.lastCheck = date;
 		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
 		const	ball_speed = g_game_state.ballVelocity;
-		console.log(ball_speed);
 		if (ball_speed.vx < 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -313,7 +312,7 @@ export function startPongInContainer(
     function setupInputHandlers() {
         if (inputLoopStarted) return; // Prevent multiple setups
 
-        console.log('[GAME UTILS] Setting up input handlers');
+//        console.log('[GAME UTILS] Setting up input handlers');
 
         // Clear any existing handlers
         keysPressed = {};
@@ -330,7 +329,7 @@ export function startPongInContainer(
                 return;
             }
             const data = JSON.parse(event.data);
-            console.log('[GAME UTILS] WebSocket message:', data.type, data);
+//            console.log('[GAME UTILS] WebSocket message:', data.type, data);
 
             // Handle specific errors
             if (data.type === 'error') {
@@ -348,7 +347,7 @@ export function startPongInContainer(
 
             // Handle other message types...
             if (data.type === 'playerToken') {
-                console.log('[GAME UTILS] Player token received:', data.playerId);
+//                console.log('[GAME UTILS] Player token received:', data.playerId);
                 // Set up input handlers when we get our player token
                 if (!inputLoopStarted) {
                     setupInputHandlers();
@@ -357,19 +356,19 @@ export function startPongInContainer(
             }
 
             if (data.type === 'pause') {
-                console.log('[GAME UTILS] Game paused:', data.message);
+//                console.log('[GAME UTILS] Game paused:', data.message);
                 showOverlay(data.message);
                 return;
             }
 
             if (data.type === 'resume') {
-                console.log('[GAME UTILS] Game resumed');
+//                console.log('[GAME UTILS] Game resumed');
                 hideOverlay();
                 return;
             }
 
             if (data.type === 'end') {
-                console.log('[GAME UTILS] Game ended:', data.message);
+//                console.log('[GAME UTILS] Game ended:', data.message);
                 CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
                 setTimeout(() => {
                     window.dispatchEvent(new Event('app:close-sockets'));
@@ -388,18 +387,17 @@ export function startPongInContainer(
                                 data.hasOwnProperty('score2'));
 
             if (isGameState) {
-                console.log('[GAME UTILS] Rendering game state:', {
-                    isRunning: data.isRunning,
-                    score1: data.score1,
-                    score2: data.score2,
-                    ball: data.ball,
-                    paddle1: data.paddle1,
-                    paddle2: data.paddle2
-                });
-
+//                console.log('[GAME UTILS] Rendering game state:', {
+//                    isRunning: data.isRunning,
+//                    score1: data.score1,
+//                    score2: data.score2,
+//                    ball: data.ball,
+//                    paddle1: data.paddle1,
+//                    paddle2: data.paddle2
+//                });
+				g_game_state = data;
                 // Import and use renderGame
                 import('../renders/game.render.js').then(({ renderGame }) => {
-					g_game_state = data;
                     renderGame(ctx, data);
                 });
 
@@ -413,7 +411,7 @@ export function startPongInContainer(
             }
 
             // Log unhandled messages for debugging
-            console.log('[GAME UTILS] Unhandled message type:', data.type, data);
+//            console.log('[GAME UTILS] Unhandled message type:', data.type, data);
 
         } catch (err) {
             console.error('WS message parse error:', err);
