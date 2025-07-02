@@ -219,8 +219,8 @@ function startClientInputLoop(
 //		}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isFreeze) {
-				if (mode === 'duo-online') {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
+			if (mode === 'duo-online') {
 				if (pId === 1) {
 					if (keysPressed['KeyW']) {
 						socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
@@ -283,7 +283,7 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 		AI.lastCheck = date;
 		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
 		const	ball_speed = g_game_state.ballVelocity;
-		if (ball_speed.vx < 0) {
+		if (ball_speed.vx <= 0) {
 			AI.expectedHitpoint = 300;
 		} else {
 			AI.expectedHitpoint = linear_extrapolation(ball_position, ball_speed, current_position.x);
