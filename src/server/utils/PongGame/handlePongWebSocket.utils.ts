@@ -28,6 +28,7 @@ function attachMessageHandler(ws: WebSocket, game: GameInstance) {
 					const playerId = game.getPlayerIdByWebSocket(ws);
 					if (playerId) {
 						// console.log(`Player ${playerId} action: ${msg.action} (from WS)`); // Debug log
+						// console.log(`Player ${playerId} action: ${msg.action} (from WS)`); // Debug log
 						return game.onClientAction(playerId, msg.action);
 					}
 				}

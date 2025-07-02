@@ -14,6 +14,7 @@ type SettingState =
     | 'solo'
     | 'solo-start'
     | 'duo'
+    | 'duo-start'
     | 'duo-local'
     | 'duo-online'
     | 'tournament'
@@ -53,7 +54,7 @@ export class GameSettingsComponent {
         const settingsBar = document.createElement("nav");
         settingsBar.id = GameSettingsComponent.panelId;
         settingsBar.className = `
-            fixed right-30 top-63 h-[56%] w-80
+            fixed right-30 top-[20%] h-[69%] w-80
             bg-blue-950/70 backdrop-blur-2xl
             rounded-lg text-lg transition-colors
             shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
@@ -79,6 +80,9 @@ export class GameSettingsComponent {
             startBtn.onclick = () => callbacks.onStartGame?.('solo', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
 
+            // Touches
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
+
             // Difficulté
             // settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
@@ -88,6 +92,7 @@ export class GameSettingsComponent {
             // Play/Pause/Restart
             settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
 
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
             // Difficulté
             // settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
@@ -109,11 +114,21 @@ export class GameSettingsComponent {
             settingsBar.appendChild(chooseMode);
         }
 
+         if (state === 'duo-start') {
+            // Play/Pause/Restart
+            settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
+            // Guide touches
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
+            // Difficulté
+            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+        }
+
         // 2.5
         if (state === 'duo-guest') {
             // Play/Pause
             settingsBar.appendChild(GameSettingsComponent.renderPlayPause(callbacks));
 
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
@@ -125,6 +140,7 @@ export class GameSettingsComponent {
             startBtn.classList.add('w-full');
             startBtn.onclick = () => callbacks.onStartGame?.('duo-local', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
@@ -157,6 +173,7 @@ export class GameSettingsComponent {
             }
             startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
@@ -205,6 +222,7 @@ export class GameSettingsComponent {
             }
             startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
             settingsBar.appendChild(startBtn);
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
@@ -289,6 +307,7 @@ export class GameSettingsComponent {
                 };
                 settingsBar.appendChild(startBtn);
             }
+            settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
 
             // Difficulté
             settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
@@ -356,5 +375,64 @@ export class GameSettingsComponent {
         setBox.appendChild(playPauseImg);
 
         return setBox;
+    }
+
+    static renderGuide(mode: 'solo' | 'duo') {
+        const heightClass = mode === 'duo' ? 'h-[70%]' : 'h-[32%]'; 
+        /** conteneur bleu qui englobe les deux colonnes */
+        const wrapper = document.createElement('div');
+        wrapper.className = `
+            w-full ${heightClass} p-3
+            bg-blue-800/70 backdrop-blur-2xl
+            rounded-lg border-2 border-black
+            shadow-[4px_5px_0_rgba(0,0,0,0.8)]
+            flex ${mode === 'duo' ? 'justify-between' : 'justify-center'}
+        `.trim();
+
+        /** petite fabrique pour ne pas dupliquer le code */
+        const makeSide = (
+            label: string,
+            keyUp: string,
+            keyDown: string,
+            colorBg: string
+        ) => {
+            const widthClass = mode === 'duo' ? 'w-[48%]' : 'w-[85%]'; 
+
+            const box = document.createElement('div');
+            box.className = `
+            ${widthClass} py-4
+            ${colorBg} 
+            rounded-lg border-2 border-black
+            shadow-[4px_5px_0_rgba(0,0,0,0.8)]
+            flex flex-col items-center justify-center 
+            space-y-2
+            `.trim();
+
+            const title = document.createElement('p');
+            title.className = 'font-["Orbitron"] text-white text-center whitespace-normal';
+            title.textContent = label;
+
+            const up = document.createElement('p');
+            up.className   = 'text-white';
+            up.innerHTML   = `<span class="font-bold">${keyUp}</span> : up`;
+
+            const down = document.createElement('p');
+            down.className = 'text-white';
+            down.innerHTML = `<span class="font-bold">${keyDown}</span> : down`;
+
+            box.append(title, up, down);
+            return box;
+        };
+        if (mode === 'duo') {
+            wrapper.append(
+                makeSide('Left Player',  'W',  'S',  'bg-amber-500/90'),
+                makeSide('Right Player', '↑', '↓', 'bg-fuchsia-600/90')
+            );
+        } else {
+            wrapper.append(
+                makeSide('Player',  'W/↑',  'S/↓',  'bg-amber-500/90'),
+            );
+        }
+        return wrapper;
     }
 }

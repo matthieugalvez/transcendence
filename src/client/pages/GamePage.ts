@@ -234,7 +234,7 @@ export async function renderPongGamePage() {
 							gameId, "duo-local"
 						);
 						pongHandle?.start();
-						GameSettingsComponent.render('solo-start', {
+						GameSettingsComponent.render('duo-start', {
 							onPauseGame: () => {
 								pauseState.value = !pauseState.value;
 								const socket = pongHandle?.socket;
