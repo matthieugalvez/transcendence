@@ -4,6 +4,7 @@ import { removeGameRoom } from './gameRooms.js';
 import { v4 as uuidv4 } from 'uuid';
 import { UserService } from '../services/users.service.js';
 
+import { StatsService } from '../services/stats.service';
 interface Position { x: number; y: number; }
 interface Velocity { vx: number; vy: number; }
 
@@ -26,8 +27,10 @@ type PlayerInfo = {
 export class GameInstance {
 	private gameId: string;
 	private isRunning: boolean = false;
+	private hasReallyStarted: boolean = false;
 	// pour pause/resume
 	private isPaused: boolean = false;
+	private isFreeze: boolean = false;
 	private currentBallSpeed: number = 380;
 	// pour gerer deconnexions en remote
 	private players: PlayerInfo[] = [
@@ -128,6 +131,7 @@ export class GameInstance {
 	}
 	// when player moves
 	public onClientAction(playerId: number, action: 'up' | 'down') {
+		if (this.isFreeze) return;
 		const dt = 1 / 60;
 		if (playerId === 1) {
 			this.movePaddle(this.paddle1Pos, action, dt);
@@ -137,22 +141,40 @@ export class GameInstance {
 	}
 	// start game
 	public start() {
-		this.isRunning = true;
+		if (this.hasReallyStarted) return;
+		this.isFreeze = true;
+  		this.hasReallyStarted = true;
+		this.broadcastToAll(JSON.stringify({ type:'countdown', seconds:3 }));
+		this.isRunning = false;
 		this.resetBall();
+		this.resetPaddles();
 		if (this.pauseTimeoutHandle) {
 			clearTimeout(this.pauseTimeoutHandle);
 			this.pauseTimeoutHandle = null;
 		}
+		let s = 3;
+		const id = setInterval(() => {
+			s--;
+			if (s >= 0) this.broadcastToAll(JSON.stringify({type:'countdown', seconds:s}));
+			else {
+				clearInterval(id);
+				this.isFreeze = false;
+				this.ballVel = this.randomBallVel();
+				this.isRunning = true;
+			}
+		}, 1000);
 		this.broadcastState(true);
 	}
 	// pause game
 	public pause() {
 		this.isPaused = true;
+		this.isFreeze = true;
 		this.broadcastState(this.isRunning);
 	}
 	// resume game
 	public resume() {
 		this.isPaused = false;
+		this.isFreeze = false;
 		this.broadcastState(this.isRunning);
 	}
 	// set difficulty
@@ -336,10 +358,28 @@ export class GameInstance {
 		if (this.ballPos.x - this.ballRadius <= 0) {
 			this.score2++;
 			this.resetBall();
+			this.resetPaddles();
+			this.freezeAfterScore();
 		} else if (this.ballPos.x + this.ballRadius >= this.canvasWidth) {
 			this.score1++;
 			this.resetBall();
+			this.resetPaddles();
+			this.freezeAfterScore();
 		}
+	}
+
+	private resetPaddles() {
+		this.paddle1Pos.y = this.paddle2Pos.y = (this.canvasHeight - this.paddleHeight) / 2;
+		this.ballVel = { vx: 0, vy: 0 };
+	}
+
+	private freezeAfterScore() {
+		this.isFreeze = true;
+		this.broadcastState(true);
+		setTimeout(() => {
+			this.ballVel = this.randomBallVel();
+			this.isFreeze = false;
+		}, 1000);
 	}
 
 	private checkEndOfGame(): boolean {
@@ -376,6 +416,7 @@ export class GameInstance {
 			},
 			isRunning: this.isRunning && isRunning,
 			isPaused: this.isPaused,
+			isFreeze: this.isFreeze,
 			connectedPlayers: [
 				...this.players.filter(p => p.ws).map(p => p.playerId),
 				...this.spectators.map((_, idx) => 100 + idx)

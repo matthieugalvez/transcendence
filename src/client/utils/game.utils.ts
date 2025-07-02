@@ -1,9 +1,9 @@
 import { GameState } from '../types/game.types';
-import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
-import { router } from '../configs/simplerouter';
-// import { setCookie, getCookie, deleteCookie } from './cookies.utils';
-let g_game_state: GameState
+import { safeNavigate } from '../utils/navigation.utils.js';
+import { router } from '../configs/simplerouter.js';
+
+let	g_game_state: GameState
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -49,8 +49,6 @@ function createGameWebSocket(
 	});
 
 	let playerId = null;
-	let wasRunning = false;
-	let wasPaused = false;
 
 	socket.addEventListener('message', (event) => {
 		try {
@@ -70,45 +68,45 @@ function createGameWebSocket(
 						`❌ ${data.message || 'You are already in this game'}`,
 						'error'
 					);
-					setTimeout(() => {
-						window.dispatchEvent(new Event('app:close-sockets'));
-						router.navigate('/home');
-					}, 2000);
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
 					return;
 				}
 
 				if (data.error === 'game_not_found') {
 					CommonComponent.showMessage('❌ Game not found', 'error');
-					setTimeout(() => {
-						window.dispatchEvent(new Event('app:close-sockets'));
-						router.navigate('/home');
-					}, 2000);
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
 					return;
 				}
 
 				if (data.error === 'invalid_token') {
 					CommonComponent.showMessage('❌ Invalid game session', 'error');
-					setTimeout(() => {
-						window.dispatchEvent(new Event('app:close-sockets'));
-						router.navigate('/home');
-					}, 2000);
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
 					return;
 				}
 
 				// Generic error handling
 				CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
-				return;
-			}
-			if (data.type === 'error' && data.error === 'invite_expired') {
-				CommonComponent.showMessage('❌ Your invite expired. Redirecting...', 'error');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
+				if (shouldReloadOnClose) {
+					setTimeout(() => {
+						window.dispatchEvent(new Event('app:close-sockets'));
+						safeNavigate('/home');
+					}, 2000);
+				}
 				return;
 			}
 
@@ -128,12 +126,25 @@ function createGameWebSocket(
 				return;
 			}
 
+			if (data.type === 'countdown') {
+				showCountdown(data.seconds.toString());
+    			if (data.seconds === 0) hideCountdown();
+				return;
+			}
+
 			if (data.type === 'end') {
 				CommonComponent.showMessage(`Game ended: ${data.message}`, 'warning');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
+				if (shouldReloadOnClose) {
+					setTimeout(() => {
+						window.dispatchEvent(new Event('app:close-sockets'));
+						safeNavigate('/home');
+					}, 2000);
+				}
+				return;
+			}
+
+			if (data.type === 'matchEnd') {
+				setTimeout(() => onFinish(data.winner, data.score1, data.score2), 150);
 				return;
 			}
 
@@ -144,21 +155,23 @@ function createGameWebSocket(
 
 	// Handle WebSocket connection errors
 	socket.addEventListener('error', (error) => {
+		if (!shouldReloadOnClose) return;
 		console.error('WebSocket error:', error);
 		CommonComponent.showMessage('❌ Connection error occurred', 'error');
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
-			router.navigate('/home');
+			safeNavigate('/home');
 		}, 2000);
 	});
 
 	socket.addEventListener('close', (event) => {
-		console.log('WebSocket closed:', event.code, event.reason);
+		if (!shouldReloadOnClose) return; 
+		// console.log('WebSocket closed:', event.code, event.reason);
 		if (event.code !== 1000) { // Not a normal closure
 			CommonComponent.showMessage('❌ Connection lost', 'error');
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
-				router.navigate('/home');
+				safeNavigate('/home');
 			}, 2000);
 		}
 	});
@@ -201,28 +214,57 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 	function frame() {
+		const state = g_game_state;
+		if (!state) {
+			requestAnimationFrame(frame);
+			return;
+		}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isPaused) {
-			if (mode === 'duo-local') {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !state.isFreeze) {
+				if (mode === 'duo-online') {
+				if (pId === 1) {
+					if (keysPressed['KeyW']) {
+						socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+					} else if (keysPressed['KeyS']) {
+						socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+					}
+				}
+				else if (pId === 2) {
+					if (keysPressed['ArrowUp']) {
+						socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+					} else if (keysPressed['ArrowDown']) {
+						socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+					}
+				}
+			} else if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
 				} else if (keysPressed['KeyS']) {
+					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
 					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
 				}
 				if (keysPressed['ArrowUp']) {
 					socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
+					socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
 				} else if (keysPressed['ArrowDown']) {
 					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
+					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 				}
+			} else if (mode === 'solo') {
+				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
+				  socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
+				  socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+				}
+				makeAIInput(AI, socket);
 			} else {
 				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
 					socket.send(JSON.stringify({ playerId: pId, action: 'up' }));
 				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
 					socket.send(JSON.stringify({ playerId: pId, action: 'down' }));
 				}
-			} if (mode === 'solo') {
-				makeAIInput(AI, socket);
 			}
 		}
 		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
@@ -318,73 +360,33 @@ export function startPongInContainer(
 	let keysPressed: Record<string, boolean> = {};
 	let inputLoopStarted = false;
 
-	function setupInputHandlers() {
-		if (inputLoopStarted) return; // Prevent multiple setups
+    function setupInputHandlers() {
+        if (inputLoopStarted) return; // Prevent multiple setups
+        // console.log('[GAME UTILS] Setting up input handlers');
+        // Clear any existing handlers
+        keysPressed = {};
+        setupKeyboardHandlers(socket, keysPressed);
+        startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+        inputLoopStarted = true;
+    }
 
-		console.log('[GAME UTILS] Setting up input handlers');
+    socket.addEventListener('message', (event) => {
+        try {
+            if (typeof event.data !== 'string') {
+                console.warn('WS non-string message ignored:', event.data);
+                return;
+            }
+            const data = JSON.parse(event.data);
+            // console.log('[GAME UTILS] WebSocket message:', data.type, data);
 
-		// Clear any existing handlers
-		keysPressed = {};
-
-		setupKeyboardHandlers(socket, keysPressed);
-		startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-		inputLoopStarted = true;
-	}
-
-	socket.addEventListener('message', (event) => {
-		try {
-			if (typeof event.data !== 'string') {
-				console.warn('WS non-string message ignored:', event.data);
-				return;
-			}
-			const data = JSON.parse(event.data);
-			console.log('[GAME UTILS] WebSocket message:', data.type, data);
-
-			// Handle specific errors
-			if (data.type === 'error') {
-				console.error('Server error:', data.error);
-				// Don't handle errors here if we're in JoinPage context
-				if (!window.location.pathname.includes('/game/online/')) {
-					CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
-					setTimeout(() => {
-						window.dispatchEvent(new Event('app:close-sockets'));
-						router.navigate('/home');
-					}, 2000);
-				}
-				return;
-			}
-
-			// Handle other message types...
-			if (data.type === 'playerToken') {
-				console.log('[GAME UTILS] Player token received:', data.playerId);
-				// Set up input handlers when we get our player token
-				if (!inputLoopStarted) {
-					setupInputHandlers();
-				}
-				return;
-			}
-
-			if (data.type === 'pause') {
-				console.log('[GAME UTILS] Game paused:', data.message);
-				showOverlay(data.message);
-				return;
-			}
-
-			if (data.type === 'resume') {
-				console.log('[GAME UTILS] Game resumed');
-				hideOverlay();
-				return;
-			}
-
-			if (data.type === 'end') {
-				console.log('[GAME UTILS] Game ended:', data.message);
-				CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
-				return;
-			}
+            if (data.type === 'playerToken') {
+                // console.log('[GAME UTILS] Player token received:', data.playerId);
+                // Set up input handlers when we get our player token
+                if (!inputLoopStarted) {
+                    setupInputHandlers();
+                }
+                return;
+            }
 
 			// ADDED: Game state detection and rendering
 			const isGameState = data.type === 'gameState' ||
@@ -395,38 +397,24 @@ export function startPongInContainer(
 					data.hasOwnProperty('score1') &&
 					data.hasOwnProperty('score2'));
 
-			if (isGameState) {
-				console.log('[GAME UTILS] Rendering game state:', {
-					isRunning: data.isRunning,
-					score1: data.score1,
-					score2: data.score2,
-					ball: data.ball,
-					paddle1: data.paddle1,
-					paddle2: data.paddle2
-				});
-
-				// Import and use renderGame
-				import('../renders/game.render.js').then(({ renderGame }) => {
+            if (isGameState) {
+                import('../renders/game.render.js').then(({ renderGame }) => {
 					g_game_state = data;
 					renderGame(ctx, data);
 				});
 
-				// Check for match end
-				if (data.score1 >= 5 || data.score2 >= 5) {
-					const winnerId = data.score1 >= 5 ? 1 : 2;
-					console.log('[GAME UTILS] Match ended, winner:', winnerId);
-					onFinish(winnerId, data.score1, data.score2);
-				}
-				return;
-			}
-
-			// Log unhandled messages for debugging
-			console.log('[GAME UTILS] Unhandled message type:', data.type, data);
-
-		} catch (err) {
-			console.error('WS message parse error:', err);
-		}
-	});
+                // Check for match end
+                if (data.score1 >= 5 || data.score2 >= 5) {
+                    const winnerId = data.score1 >= 5 ? 1 : 2;
+                    // console.log('[GAME UTILS] Match ended, winner:', winnerId);
+                    onFinish(winnerId, data.score1, data.score2);
+                }
+                return;
+            }
+        } catch (err) {
+            console.error('WS message parse error:', err);
+        }
+    });
 
 	// Set up input handlers immediately for local modes
 	if (mode === 'duo-local' || mode === 'solo') {
@@ -483,7 +471,7 @@ export function showGameOverOverlay(
 	panel.appendChild(msg);
 
 	if (mode === "local") {
-		const replay = CommonComponent.createStylizedButton('Back to home', 'blue');
+		const replay = CommonComponent.createStylizedButton('Play again', 'blue');
 		replay.onclick = () => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/game');
@@ -505,8 +493,8 @@ export function showGameOverOverlay(
 		panel.appendChild(info);
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
-			router.navigate('/statistics');
-		}, 2000);
+			safeNavigate('/statistics');
+		}, 2300);
 	}
 }
 
@@ -557,5 +545,59 @@ export function hideOverlay() {
 	const overlay = document.getElementById('game-overlay') as HTMLDivElement | null;
 	if (overlay) {
 		overlay.style.display = 'none';
+	}
+}
+
+function showCountdown(message: string) {
+	/** container plein écran (transparent) */
+    let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'game-countdown';
+        Object.assign(overlay.style, {
+            position        : 'absolute',
+            top             : '0',
+            left            : '0',
+            width           : '100%',
+            height          : '100%',
+            display         : 'flex',
+            alignItems      : 'center',
+            justifyContent  : 'center',
+			marginLeft		: '43px',
+			marginTop		: '15px',
+            pointerEvents   : 'none',
+            zIndex          : '150'
+        });
+
+        /** bandeau noir semi‑transparent */
+        const panel = document.createElement('div');
+        panel.id = 'game-countdown-panel';
+        Object.assign(panel.style, {
+            background      : 'rgba(0,0,0,0.75)',
+            padding         : '0.4em 2em',
+            borderRadius    : '8px',
+            fontFamily      : 'Canada-big',
+            fontSize        : '90px',
+            color           : '#fff',
+            display         : 'flex',
+            alignItems      : 'center',
+            justifyContent  : 'center',
+            minWidth        : '240px',
+			width			: '25%',
+        });
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+    }
+
+    // maj texte
+    (overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
+    overlay.style.display = 'flex';
+}
+
+export function hideCountdown() {
+	const overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+	if (overlay) {
+		overlay.style.display = 'none';
+		overlay.remove();
 	}
 }

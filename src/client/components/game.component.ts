@@ -80,7 +80,7 @@ export class GameSettingsComponent {
             settingsBar.appendChild(startBtn);
 
             // Difficulté
-            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+            // settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
         // 1.5 SOLO SANS START
@@ -89,7 +89,7 @@ export class GameSettingsComponent {
             settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
 
             // Difficulté
-            settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+            // settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
         }
 
         // 2. DUO
