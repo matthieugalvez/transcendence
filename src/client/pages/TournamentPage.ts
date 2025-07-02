@@ -7,6 +7,7 @@ import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+import { match } from 'assert';
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -91,6 +92,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 
   // Fonction récursive pour enchaîner les matchs
   async function playMatch(i: number) {
+    let matchFinished = false;
     if (i === 2) {
       matchups[2][0] = winners[0];
       matchups[2][1] = winners[1];
@@ -118,6 +120,8 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
     const pongHandle = startPongInContainer(
       gameContainer, matchTitle, leftAlias, rightAlias,
       async (winnerId, score1, score2) => {
+        if (matchFinished) return;
+        matchFinished = true;
         const p1 = await UserService.getUserProfileByDisplayName(leftAlias);
         const p2 = await UserService.getUserProfileByDisplayName(rightAlias);
         const winnerAliasId = winnerId === 1 ? p1.id : p2.id;
@@ -144,7 +148,14 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
             console.error('Error creating tournament: ', error);
           }
         }
-        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, async () => {playMatch(i + 1)});
+        TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, async () => {
+          if (currentMatchSocket && currentMatchSocket.readyState === WebSocket.OPEN) {
+            currentMatchSocket.onmessage = null;
+            currentMatchSocket.close(1000, 'next match');
+          }
+          currentMatchSocket = null;
+          playMatch(i + 1)
+        });
       },
       gameId,
       'duo-local'

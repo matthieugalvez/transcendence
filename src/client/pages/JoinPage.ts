@@ -14,7 +14,7 @@ import {
 	getShareableLink
 } from '../utils/game.utils';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-
+import { safeNavigate } from "../utils/navigation.utils";
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -50,7 +50,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		if (!localStorage.getItem('postAuthRedirect')) {
 			localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
 		}
-		router.navigate('/auth');
+		safeNavigate('/auth');
 		return;
 	}
 
@@ -67,7 +67,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			}
 		} catch (error) {
 			console.error('Display name setup failed:', error);
-			router.navigate('/auth');
+			safeNavigate('/auth');
 			return;
 		}
 	}
@@ -233,7 +233,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						console.log('Redirecting to home...');
 						window.dispatchEvent(new Event('app:close-sockets'));
 						pongHandle?.socket.close();
-						router.navigate('/home');
+						safeNavigate('/home');
 					}, 2000);
 					return;
 				}
@@ -245,7 +245,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					pongHandle?.socket.close();
-					router.navigate('/home');
+					safeNavigate('/home');
 				}, 2000);
 				return;
 			}
@@ -375,8 +375,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
-							router.navigate('/statistics');
-						}, 2000);
+							safeNavigate('/statistics');
+						}, 2300);
 
 						transition.appendChild(info);
 						wrapper.appendChild(transition);
@@ -434,6 +434,13 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						}
 					}
 
+					// remove blur while countdown
+					if (data.isFreeze) {
+						if (canvas) canvas.classList.remove('blur-xs');
+						if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
+						if (waiting.parentNode) waiting.remove();
+					}
+
 					// Start the game when running
 					if (data.isRunning && !gameStarted) {
 						console.log('Starting game...');
@@ -486,8 +493,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
     window.addEventListener('popstate', cleanupGameOnLeave);
 
     // Add cleanup when navigating away
-    const originalNavigate = router.navigate;
-    router.navigate = (path: string) => {
+    const originalNavigate = safeNavigate;
+    safeNavigate = (path: string) => {
         if (window.location.pathname.includes('/game/online/')) {
             cleanupGameOnLeave();
         }

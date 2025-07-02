@@ -27,6 +27,7 @@ type PlayerInfo = {
 export class GameInstance {
 	private gameId: string;
 	private isRunning: boolean = false;
+	private hasReallyStarted: boolean = false;
 	// pour pause/resume
 	private isPaused: boolean = false;
 	private isFreeze: boolean = false;
@@ -140,6 +141,9 @@ export class GameInstance {
 	}
 	// start game
 	public start() {
+		if (this.hasReallyStarted) return;
+		this.isFreeze = true;
+  		this.hasReallyStarted = true;
 		this.broadcastToAll(JSON.stringify({ type:'countdown', seconds:3 }));
 		this.isRunning = false;
 		this.resetBall();
@@ -154,6 +158,7 @@ export class GameInstance {
 			if (s >= 0) this.broadcastToAll(JSON.stringify({type:'countdown', seconds:s}));
 			else {
 				clearInterval(id);
+				this.isFreeze = false;
 				this.ballVel = this.randomBallVel();
 				this.isRunning = true;
 			}
@@ -374,7 +379,7 @@ export class GameInstance {
 		setTimeout(() => {
 			this.ballVel = this.randomBallVel();
 			this.isFreeze = false;
-		}, 1300);
+		}, 1000);
 	}
 
 	private checkEndOfGame(): boolean {

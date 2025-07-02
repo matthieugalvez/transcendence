@@ -151,14 +151,24 @@ export class TournamentComponent {
 
     // Bouton play again si dernier match
     if (i === matchups.length - 1) {
-      const replayBtn = CommonComponent.createStylizedButton('Back to home', 'orange');
-      replayBtn.classList.add('mt-4');
-      // replayBtn.onclick = () => renderTournamentPage();
+      const info = document.createElement('p');
+      info.textContent = `Going to your stats…`;
+      info.className = `
+          text-lg text-gray-300
+          font-["Orbitron"]
+          border-2 border-black
+          py-2 px-12
+          mt-4
+          bg-blue-500
+          rounded-lg text-lg transition-colors
+          focus:outline-none focus:ring-2
+          shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+      `;
       setTimeout(() => {
         window.dispatchEvent(new Event('app:close-sockets'));
-        router.navigate('/game');
+        router.navigate('/statistics');
       }, 2000);
-      transition.appendChild(replayBtn);
+      transition.appendChild(info);
     }
 
     gameContainer.appendChild(transition);

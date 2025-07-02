@@ -1,8 +1,8 @@
 import { GameState } from '../types/game.types';
-import { renderGame } from '../renders/game.render';
 import { CommonComponent } from '../components/common.component';
-import { router } from '../configs/simplerouter';
-// import { setCookie, getCookie, deleteCookie } from './cookies.utils';
+import { safeNavigate } from '../utils/navigation.utils.js';
+import { router } from '../configs/simplerouter.js';
+
 let	g_game_state: GameState
 
 // type pour le callback de fin de match
@@ -49,8 +49,6 @@ function createGameWebSocket(
 	});
 
 	let playerId = null;
-	let wasRunning = false;
-	let wasPaused = false;
 
 	socket.addEventListener('message', (event) => {
 		try {
@@ -65,42 +63,50 @@ function createGameWebSocket(
 				console.error('Server error:', data.error);
 
 				// Handle specific error types
-				// if (data.error === 'already_joined') {
-				// 	CommonComponent.showMessage(
-				// 		`❌ ${data.message || 'You are already in this game'}`,
-				// 		'error'
-				// 	);
-				// 	setTimeout(() => {
-				// 		window.dispatchEvent(new Event('app:close-sockets'));
-				// 		router.navigate('/home');
-				// 	}, 2000);
-				// 	return;
-				// }
+				if (data.error === 'already_joined') {
+					CommonComponent.showMessage(
+						`❌ ${data.message || 'You are already in this game'}`,
+						'error'
+					);
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
+					return;
+				}
 
-				// if (data.error === 'game_not_found') {
-				// 	CommonComponent.showMessage('❌ Game not found', 'error');
-				// 	setTimeout(() => {
-				// 		window.dispatchEvent(new Event('app:close-sockets'));
-				// 		router.navigate('/home');
-				// 	}, 2000);
-				// 	return;
-				// }
+				if (data.error === 'game_not_found') {
+					CommonComponent.showMessage('❌ Game not found', 'error');
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
+					return;
+				}
 
-				// if (data.error === 'invalid_token') {
-				// 	CommonComponent.showMessage('❌ Invalid game session', 'error');
-				// 	setTimeout(() => {
-				// 		window.dispatchEvent(new Event('app:close-sockets'));
-				// 		router.navigate('/home');
-				// 	}, 2000);
-				// 	return;
-				// }
+				if (data.error === 'invalid_token') {
+					CommonComponent.showMessage('❌ Invalid game session', 'error');
+					if (shouldReloadOnClose) {
+						setTimeout(() => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							safeNavigate('/home');
+						}, 2000);
+					}
+					return;
+				}
 
 				// Generic error handling
 				CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
+				if (shouldReloadOnClose) {
+					setTimeout(() => {
+						window.dispatchEvent(new Event('app:close-sockets'));
+						safeNavigate('/home');
+					}, 2000);
+				}
 				return;
 			}
 
@@ -128,10 +134,17 @@ function createGameWebSocket(
 
 			if (data.type === 'end') {
 				CommonComponent.showMessage(`Game ended: ${data.message}`, 'warning');
-				setTimeout(() => {
-					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
+				if (shouldReloadOnClose) {
+					setTimeout(() => {
+						window.dispatchEvent(new Event('app:close-sockets'));
+						safeNavigate('/home');
+					}, 2000);
+				}
+				return;
+			}
+
+			if (data.type === 'matchEnd') {
+				setTimeout(() => onFinish(data.winner, data.score1, data.score2), 150);
 				return;
 			}
 
@@ -142,22 +155,24 @@ function createGameWebSocket(
 
 	// Handle WebSocket connection errors
 	socket.addEventListener('error', (error) => {
+		if (!shouldReloadOnClose) return;
 		console.error('WebSocket error:', error);
 		CommonComponent.showMessage('❌ Connection error occurred', 'error');
-		// setTimeout(() => {
-		// 	window.dispatchEvent(new Event('app:close-sockets'));
-		// 	router.navigate('/home');
-		// }, 2000);
+		setTimeout(() => {
+			window.dispatchEvent(new Event('app:close-sockets'));
+			safeNavigate('/home');
+		}, 2000);
 	});
 
 	socket.addEventListener('close', (event) => {
-		console.log('WebSocket closed:', event.code, event.reason);
+		if (!shouldReloadOnClose) return; 
+		// console.log('WebSocket closed:', event.code, event.reason);
 		if (event.code !== 1000) { // Not a normal closure
 			CommonComponent.showMessage('❌ Connection lost', 'error');
-			// setTimeout(() => {
-			// 	window.dispatchEvent(new Event('app:close-sockets'));
-			// 	router.navigate('/home');
-			// }, 2000);
+			setTimeout(() => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				safeNavigate('/home');
+			}, 2000);
 		}
 	});
 
@@ -204,7 +219,7 @@ function startClientInputLoop(
 			requestAnimationFrame(frame);
 			return;
 		}
-	// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !state.isFreeze) {
 				if (mode === 'duo-online') {
@@ -343,12 +358,9 @@ export function startPongInContainer(
 
     function setupInputHandlers() {
         if (inputLoopStarted) return; // Prevent multiple setups
-
         // console.log('[GAME UTILS] Setting up input handlers');
-
         // Clear any existing handlers
         keysPressed = {};
-
         setupKeyboardHandlers(socket, keysPressed);
         startClientInputLoop(socket, keysPressed, getPlayerId, mode);
         inputLoopStarted = true;
@@ -363,49 +375,12 @@ export function startPongInContainer(
             const data = JSON.parse(event.data);
             // console.log('[GAME UTILS] WebSocket message:', data.type, data);
 
-            // Handle specific errors
-            if (data.type === 'error') {
-                console.error('Server error:', data.error);
-                // Don't handle errors here if we're in JoinPage context
-                if (!window.location.pathname.includes('/game/online/')) {
-                    CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
-                    // setTimeout(() => {
-                    //     window.dispatchEvent(new Event('app:close-sockets'));
-                    //     router.navigate('/home');
-                    // }, 2000);
-                }
-                return;
-            }
-
-            // Handle other message types...
             if (data.type === 'playerToken') {
                 // console.log('[GAME UTILS] Player token received:', data.playerId);
                 // Set up input handlers when we get our player token
                 if (!inputLoopStarted) {
                     setupInputHandlers();
                 }
-                return;
-            }
-
-            if (data.type === 'pause') {
-                // console.log('[GAME UTILS] Game paused:', data.message);
-                showOverlay(data.message);
-                return;
-            }
-
-            if (data.type === 'resume') {
-                // console.log('[GAME UTILS] Game resumed');
-                hideOverlay();
-                return;
-            }
-
-            if (data.type === 'end') {
-                // console.log('[GAME UTILS] Game ended:', data.message);
-                CommonComponent.showMessage(`Game ended: ${data.message}`, 'info');
-                // setTimeout(() => {
-                //     window.dispatchEvent(new Event('app:close-sockets'));
-                //     router.navigate('/home');
-                // }, 2000);
                 return;
             }
 
@@ -419,16 +394,6 @@ export function startPongInContainer(
                                 data.hasOwnProperty('score2'));
 
             if (isGameState) {
-                // console.log('[GAME UTILS] Rendering game state:', {
-                //     isRunning: data.isRunning,
-                //     score1: data.score1,
-                //     score2: data.score2,
-                //     ball: data.ball,
-                //     paddle1: data.paddle1,
-                //     paddle2: data.paddle2
-                // });
-
-                // Import and use renderGame
                 import('../renders/game.render.js').then(({ renderGame }) => {
 					g_game_state = data;
                     renderGame(ctx, data);
@@ -442,10 +407,6 @@ export function startPongInContainer(
                 }
                 return;
             }
-
-            // Log unhandled messages for debugging
-            // console.log('[GAME UTILS] Unhandled message type:', data.type, data);
-
         } catch (err) {
             console.error('WS message parse error:', err);
         }
@@ -506,7 +467,7 @@ export function showGameOverOverlay(
 	panel.appendChild(msg);
 
 	if (mode === "local") {
-		const replay = CommonComponent.createStylizedButton('Back to home', 'blue');
+		const replay = CommonComponent.createStylizedButton('Play again', 'blue');
 		replay.onclick = () => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/game');
@@ -528,8 +489,8 @@ export function showGameOverOverlay(
 		panel.appendChild(info);
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
-			router.navigate('/statistics');
-		}, 2000);
+			safeNavigate('/statistics');
+		}, 2300);
 	}
 }
 
