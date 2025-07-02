@@ -38,7 +38,7 @@ export class WebSocketService {
       const port = location.port || (protocol === 'wss' ? '443' : '80');
       const socketUrl = `${protocol}://${location.hostname}:${port}/ws/status`;
 
-      console.log('Connecting to WebSocket:', socketUrl);
+    //   console.log('Connecting to WebSocket:', socketUrl);
       this.socket = new WebSocket(socketUrl);
 
     //   console.log('Connecting to WebSocket:', socketUrl);

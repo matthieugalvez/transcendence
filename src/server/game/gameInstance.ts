@@ -62,8 +62,11 @@ export class GameInstance {
 	private readonly canvasHeight = 600;
 	private paddleSpeed = 400; // px/sec
 	private basePaddleSpeed = 400;
+	private waitingTimeout?: NodeJS.Timeout;
+
 
 	public inviterId?: string;
+
 
 	constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM', inviterId?: string) {
 		this.gameId = gameId;
@@ -80,32 +83,53 @@ export class GameInstance {
 
 	/** ---------- PUBLIC METHODS ----------- */
 	// Add player (websocket) to this instance
-	public addClient(ws: WebSocket, username: string | undefined): number | 'spectator' | 'already_joined' {
-		// Check if user is already in the game by username
-		if (username) {
-			const existingPlayer = this.players.find(p => p.username === username && p.ws);
-			if (existingPlayer) {
-				console.log(`Player ${username} already in game ${this.gameId}`);
-				return 'already_joined'; // Return specific status
-			}
-		}
+		public addClient(ws: WebSocket, username: string | undefined): number | 'spectator' | 'already_joined' {
+        // Check if user is already in the game by username
+        if (username) {
+            const existingPlayer = this.players.find(p => p.username === username && p.ws);
+            if (existingPlayer) {
+                console.log(`Player ${username} already in game ${this.gameId}`);
+                return 'already_joined'; // Return specific status
+            }
+        }
 
-		// Find empty slot
-		for (let i = 0; i < this.players.length; i++) {
-			if (!this.players[i].ws) {
-				this.players[i].ws = ws;
-				this.players[i].username = username || `Player ${i + 1}`;
-				this.players[i].playerId = i + 1;
-				this.setupDisconnect(ws, i + 1);
-				this.broadcastState(this.isRunning);
-				return i + 1;
-			}
-		}
+        // Find empty slot
+        for (let i = 0; i < this.players.length; i++) {
+            if (!this.players[i].ws) {
+                this.players[i].ws = ws;
+                this.players[i].username = username || `Player ${i + 1}`;
+                this.players[i].playerId = i + 1;
+                this.setupDisconnect(ws, i + 1);
 
-		// If no slots available, add as spectator
-		this.addSpectator(ws);
-		return 'spectator';
-	}
+                // Handle waiting timeout logic here
+                const connectedCount = this.getConnectedPlayersCount();
+
+                // Start timeout when first player joins
+                if (connectedCount === 1 && !this.waitingTimeout) {
+                    this.waitingTimeout = setTimeout(() => {
+                        if (this.getConnectedPlayersCount() < 2 && !this.isRunning) {
+                            this.broadcastEnd("No other player joined within 2 minutes. Game cancelled.");
+                            this.destroy();
+                            removeGameRoom(this.gameId);
+                        }
+                    }, 2 * 60 * 1000);
+                }
+
+                // Clear timeout when second player joins
+                if (connectedCount === 2 && this.waitingTimeout) {
+                    clearTimeout(this.waitingTimeout);
+                    this.waitingTimeout = undefined;
+                }
+
+                this.broadcastState(this.isRunning);
+                return i + 1;
+            }
+        }
+
+        // If no slots available, add as spectator
+        this.addSpectator(ws);
+        return 'spectator';
+    }
 
 	public addSpectator(ws: WebSocket) {
 		this.spectators.push(ws);

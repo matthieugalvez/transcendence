@@ -69,7 +69,7 @@ export class UserService {
 
 			const data = await response.json();
 
-			console.log('🔍 Server response for display name check:', data);
+			// console.log('🔍 Server response for display name check:', data);
 
 			// Handle the server response structure
 			if (response.ok && data.success) {
@@ -364,7 +364,7 @@ export class UserService {
 			}
 
 			const responseData = await response.json();
-			console.log('getFriends response:', responseData); // Debug log
+			// console.log('getFriends response:', responseData); // Debug log
 
 			// Return just the data array, not the whole response object
 			return responseData.data || [];

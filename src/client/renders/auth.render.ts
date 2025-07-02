@@ -509,7 +509,7 @@ export class AuthRender {
 				try {
 					const availabilityResult = await UserService.checkDisplayNameAvailability(displayName);
 
-					console.log('🔍 Display name availability result:', availabilityResult);
+					// console.log('🔍 Display name availability result:', availabilityResult);
 
 					if (availabilityResult.available) {
 						// Display name is available, close modal

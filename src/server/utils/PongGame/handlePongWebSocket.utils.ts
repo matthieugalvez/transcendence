@@ -67,55 +67,55 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
 	const username = req.query.username as string | undefined;
 
 	const invites = await InviteService.getGameInvites(gameId);
-console.log('Invite expiresAt:', invites.map(i => i.expiresAt), 'Now:', new Date());
-console.log('All invites:', invites.map(i => ({
-    inviter: i.inviter?.displayName,
-    invitee: i.invitee?.displayName,
-    status: i.status,
-    expiresAt: i.expiresAt
-})));
+	console.log('Invite expiresAt:', invites.map(i => i.expiresAt), 'Now:', new Date());
+	console.log('All invites:', invites.map(i => ({
+		inviter: i.inviter?.displayName,
+		invitee: i.invitee?.displayName,
+		status: i.status,
+		expiresAt: i.expiresAt
+	})));
 
-// Check if this user was invited to this game
-const userWasInvited = invites.some(invite =>
-    invite.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
-);
+	// Check if this user was invited to this game
+	const userWasInvited = invites.some(invite =>
+		invite.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+	);
 
-console.log('userWasInvited:', userWasInvited, 'for username:', username);
+	console.log('userWasInvited:', userWasInvited, 'for username:', username);
 
-// Check if this user is the game creator (inviter)
-const userIsCreator = invites.some(invite =>
-    invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
-);
+	// Check if this user is the game creator (inviter)
+	const userIsCreator = invites.some(invite =>
+		invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+	);
 
-console.log('userIsCreator:', userIsCreator, 'for username:', username);
+	console.log('userIsCreator:', userIsCreator, 'for username:', username);
 
-// Only check invite validity for invited users (not creators)
-if (userWasInvited && !userIsCreator) {
-    const userInvite = invites.find(invite =>
-        invite.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase() &&
-        (invite.status === 'pending' || invite.status === 'accepted') &&
-        invite.expiresAt > new Date()
-    );
+	// Only check invite validity for invited users (not creators)
+	if (userWasInvited && !userIsCreator) {
+		const userInvite = invites.find(invite =>
+			invite.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase() &&
+			(invite.status === 'pending' || invite.status === 'accepted') &&
+			invite.expiresAt > new Date()
+		);
 
-    console.log('userInvite found:', userInvite);
+		console.log('userInvite found:', userInvite);
 
-    if (!userInvite) {
-        console.log('No valid invite found - checking why:');
-        const allUserInvites = invites.filter(i =>
-            i.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
-        );
-        console.log('All invites for this user:', allUserInvites.map(i => ({ status: i.status, expiresAt: i.expiresAt })));
+		if (!userInvite) {
+			console.log('No valid invite found - checking why:');
+			const allUserInvites = invites.filter(i =>
+				i.invitee?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+			);
+			console.log('All invites for this user:', allUserInvites.map(i => ({ status: i.status, expiresAt: i.expiresAt })));
 
-        ws.send(JSON.stringify({
-            type: 'error',
-            error: 'invite_expired',
-            message: 'Your invite has expired. You have been removed from the game.'
-        }));
-        ws.close();
-        console.log('Invite expired so this was called');
-        return;
-    }
-}
+			ws.send(JSON.stringify({
+				type: 'error',
+				error: 'invite_expired',
+				message: 'Your invite has expired. You have been removed from the game.'
+			}));
+			ws.close();
+			console.log('Invite expired so this was called');
+			return;
+		}
+	}
 
 
 	if (mode === 'tournament') {
@@ -156,35 +156,35 @@ if (userWasInvited && !userIsCreator) {
 		game = createGameRoom(gameId, 'MEDIUM', inviterId);
 	}
 
-ws.on('close', () => {
-    console.log(`WebSocket closed for user ${username} in game ${gameId}`);
+	ws.on('close', () => {
+		console.log(`WebSocket closed for user ${username} in game ${gameId}`);
 
-    // If this was the inviter and no game has started, trigger cleanup
-    if (game && username) {
-        // Check if this user is the inviter by comparing user IDs
-        const userIsInviter = invites.some(invite =>
-            invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
-        );
+		// If this was the inviter and no game has started, trigger cleanup
+		if (game && username) {
+			// Check if this user is the inviter by comparing user IDs
+			const userIsInviter = invites.some(invite =>
+				invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+			);
 
-        if (userIsInviter && !game.getCurrentState().isRunning) {
-            console.log(`Inviter ${username} left before game started, triggering cleanup`);
+			if (userIsInviter && !game.getCurrentState().isRunning) {
+				console.log(`Inviter ${username} left before game started, triggering cleanup`);
 
-            // Get the actual user ID for cleanup
-            const inviterInvite = invites.find(invite =>
-                invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
-            );
+				// Get the actual user ID for cleanup
+				const inviterInvite = invites.find(invite =>
+					invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+				);
 
-            if (inviterInvite) {
-                // Trigger cleanup asynchronously
-                import('../../services/gamecleanup.service.js').then(({ GameCleanupService }) => {
-                    GameCleanupService.cleanupGameAndInvites(gameId, inviterInvite.inviterId);
-                }).catch(error => {
-                    console.error('Error during cleanup:', error);
-                });
-            }
-        }
-    }
-});
+				if (inviterInvite) {
+					// Trigger cleanup asynchronously
+					import('../../services/gamecleanup.service.js').then(({ GameCleanupService }) => {
+						GameCleanupService.cleanupGameAndInvites(gameId, inviterInvite.inviterId);
+					}).catch(error => {
+						console.error('Error during cleanup:', error);
+					});
+				}
+			}
+		}
+	});
 
 	// // 1.2 En cas de deco, essayer de reconnecter le joueur
 	if (playerToken && game) {
