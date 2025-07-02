@@ -133,7 +133,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 
         if (i === matchups.length - 1) {
           try {
-			console.log('typeof GameService.createTournament:', typeof GameService.createTournament);
+			      console.log('typeof GameService.createTournament:', typeof GameService.createTournament);
             await GameService.createTournament({
               tournamentId: gameId,
               participants: participantsIds,
@@ -142,10 +142,8 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
             })
           } catch (error) {
             console.error('Error creating tournament: ', error);
-            // throw error;
           }
         }
-
         TournamentComponent.showTransitionPanel(gameContainer, i, matchups, winnerName, winners, async () => {playMatch(i + 1)});
       },
       gameId,

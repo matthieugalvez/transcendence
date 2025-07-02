@@ -28,4 +28,5 @@ export interface GameState {
   /** Si le jeu est en cours ou en pause */
   isRunning: boolean;
   isPaused: boolean;
+  isFreeze: boolean;
 }

@@ -1,6 +1,6 @@
-import { renderTournamentPage } from '../pages/TournamentPage';
 import { CommonComponent } from './common.component';
 import { UserSearchComponent } from './usersearch.component';
+import { router } from '../configs/simplerouter';
 
 export class TournamentComponent {
   /**
@@ -151,9 +151,13 @@ export class TournamentComponent {
 
     // Bouton play again si dernier match
     if (i === matchups.length - 1) {
-      const replayBtn = CommonComponent.createStylizedButton('Play again', 'orange');
+      const replayBtn = CommonComponent.createStylizedButton('Back to home', 'orange');
       replayBtn.classList.add('mt-4');
-      replayBtn.onclick = () => renderTournamentPage();
+      // replayBtn.onclick = () => renderTournamentPage();
+      setTimeout(() => {
+        window.dispatchEvent(new Event('app:close-sockets'));
+        router.navigate('/game');
+      }, 2000);
       transition.appendChild(replayBtn);
     }
 
