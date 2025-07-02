@@ -12,7 +12,7 @@ export class UserSearchComponent {
 		searchInput.type = 'text';
 		searchInput.placeholder = 'Search users...';
 		searchInput.className = `
-            font-['Orbitron'] text-white w-full p-3 border-2 border-black rounded-lg
+            font-['Orbitron'] text-gray w-full p-3 border-2 border-black rounded-lg
             focus:outline-none focus:border-purple-500
         `;
 

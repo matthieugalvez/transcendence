@@ -29,11 +29,11 @@ export class FriendsRender {
 				const incomingList = document.createElement('div');
 				incomingList.className = 'space-y-3';
 
-				pendingIncoming.forEach(friendship => {
+				for (const friendship of pendingIncoming) {
 					const friend = friendship.sender;
-					const friendCard = this.createFriendCard(friend, friendship, 'pending-received');
+					const friendCard = await this.createFriendCard(friend, friendship, 'pending-received');
 					incomingList.appendChild(friendCard);
-				});
+				}
 
 				incomingSection.appendChild(incomingTitle);
 				incomingSection.appendChild(incomingList);
@@ -79,11 +79,11 @@ export class FriendsRender {
 				const outgoingList = document.createElement('div');
 				outgoingList.className = 'space-y-3';
 
-				pendingOutgoing.forEach(friendship => {
+				for (const friendship of pendingOutgoing) {
 					const friend = friendship.receiver;
-					const friendCard = this.createFriendCard(friend, friendship, 'pending-sent');
+					const friendCard = await this.createFriendCard(friend, friendship, 'pending-sent');
 					outgoingList.appendChild(friendCard);
-				});
+				}
 
 				outgoingSection.appendChild(outgoingTitle);
 				outgoingSection.appendChild(outgoingList);
