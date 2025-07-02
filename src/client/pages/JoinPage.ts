@@ -147,15 +147,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			// deleteCookie(`pongPlayerToken-${gameId}`);
 			// deleteCookie(`pongPlayerId-${gameId}`);
 
-			// await GameService.createMatch(gameId, {
-			// 	playerOneId: p1.id,
-			// 	playerTwoId: p2.id,
-			// 	winnerId: winnerId === 1 ? p1.id : p2.id,
-			// 	matchType: 'ONE_V_ONE',
-			// 	playerOneScore: score1,
-			// 	playerTwoScore: score2
-			// }
-			// ).catch(err => console.error('Erreur stats:', err));
+			await GameService.createMatch(gameId, {
+				playerOneId: p1.id,
+				playerTwoId: p2.id,
+				winnerId: winnerId === 1 ? p1.id : p2.id,
+				matchType: 'ONE_V_ONE',
+				playerOneScore: score1,
+				playerTwoScore: score2
+			}
+			).catch(err => console.error('Erreur stats:', err));
 		}
 		: () => { };
 	const wsHandler = startPongInContainer(
