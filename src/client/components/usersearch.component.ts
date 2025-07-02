@@ -12,7 +12,7 @@ export class UserSearchComponent {
 		searchInput.type = 'text';
 		searchInput.placeholder = 'Search users...';
 		searchInput.className = `
-            font-['Orbitron'] text-black w-full p-3 border-2 border-black rounded-lg
+            font-['Orbitron'] text-gray w-full p-3 border-2 border-black rounded-lg
             focus:outline-none focus:border-purple-500
         `;
 
@@ -45,7 +45,8 @@ export class UserSearchComponent {
             const users = await UserService.searchUsers(query);
             // Filter out current user from search results
             const filteredUsers = users.filter(user => user.id !== currentUser.id);
-            const limited3Users = filteredUsers.slice(0, 3); // limite a 3 user max
+            const limited3Users = users.slice(0, 3); // limite a 3 user max
+            // const limited3Users = filteredUsers.slice(0, 3); // limite a 3 user max
 
             container.innerHTML = '';
 

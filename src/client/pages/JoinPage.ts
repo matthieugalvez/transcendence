@@ -4,6 +4,7 @@ import { GameSettingsComponent } from '../components/game.component';
 import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
 import { GameService } from "../services/game.service";
 import {
@@ -13,7 +14,7 @@ import {
 	getShareableLink
 } from '../utils/game.utils';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-
+import { safeNavigate } from "../utils/navigation.utils";
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -49,7 +50,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		if (!localStorage.getItem('postAuthRedirect')) {
 			localStorage.setItem('postAuthRedirect', window.location.pathname + window.location.search);
 		}
-		router.navigate('/auth');
+		safeNavigate('/auth');
 		return;
 	}
 
@@ -66,7 +67,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			}
 		} catch (error) {
 			console.error('Display name setup failed:', error);
-			router.navigate('/auth');
+			safeNavigate('/auth');
 			return;
 		}
 	}
@@ -170,24 +171,24 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 	const canvas = gameContainer.querySelector('canvas') as HTMLCanvasElement | null;
 	if (canvas) {
-    canvas.classList.add('blur-xs');
+		canvas.classList.add('blur-xs');
 
-    // Add debug info
-    console.log('Canvas debug info:', {
-        width: canvas.width,
-        height: canvas.height,
-        style: canvas.style.cssText,
-        classes: canvas.className,
-        display: getComputedStyle(canvas).display,
-        visibility: getComputedStyle(canvas).visibility,
-        opacity: getComputedStyle(canvas).opacity
-    });
+		// Add debug info
+		console.log('Canvas debug info:', {
+			width: canvas.width,
+			height: canvas.height,
+			style: canvas.style.cssText,
+			classes: canvas.className,
+			display: getComputedStyle(canvas).display,
+			visibility: getComputedStyle(canvas).visibility,
+			opacity: getComputedStyle(canvas).opacity
+		});
 
-    // Force canvas to be visible
-    canvas.style.display = 'block';
-    canvas.style.visibility = 'visible';
-    canvas.style.opacity = '1';
-}
+		// Force canvas to be visible
+		canvas.style.display = 'block';
+		canvas.style.visibility = 'visible';
+		canvas.style.opacity = '1';
+	}
 
 	// Message d’attente
 	const waiting = document.createElement('div');
@@ -232,7 +233,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						console.log('Redirecting to home...');
 						window.dispatchEvent(new Event('app:close-sockets'));
 						pongHandle?.socket.close();
-						router.navigate('/home');
+						safeNavigate('/home');
 					}, 2000);
 					return;
 				}
@@ -244,6 +245,14 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					pongHandle?.socket.close();
+					router.navigate('/home');
+				}, 2000);
+				return;
+			}
+			if (data.type === 'error' && data.error === 'invite_expired') {
+				CommonComponent.showMessage('❌ Your invite expired. Redirecting...', 'error');
+				setTimeout(() => {
+					window.dispatchEvent(new Event('app:close-sockets'));
 					router.navigate('/home');
 				}, 2000);
 				return;
@@ -374,8 +383,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
-							router.navigate('/statistics');
-						}, 2000);
+							safeNavigate('/statistics');
+						}, 2300);
 
 						transition.appendChild(info);
 						wrapper.appendChild(transition);
@@ -433,6 +442,13 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						}
 					}
 
+					// remove blur while countdown
+					if (data.isFreeze) {
+						if (canvas) canvas.classList.remove('blur-xs');
+						if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
+						if (waiting.parentNode) waiting.remove();
+					}
+
 					// Start the game when running
 					if (data.isRunning && !gameStarted) {
 						console.log('Starting game...');
@@ -452,46 +468,46 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	});
 
 	// Move event listeners OUTSIDE the message handler
-    const cleanupGameOnLeave = async () => {
-        console.log('User leaving game, triggering cleanup...');
+	const cleanupGameOnLeave = async () => {
+		console.log('User leaving game, triggering cleanup...');
 
-        try {
-            // Notify server that user is leaving
-            const response = await fetch('/api/game/cleanup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameId, mode })
-            });
+		try {
+			// Notify server that user is leaving
+			const response = await fetch('/api/game/cleanup', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ gameId, mode })
+			});
 
-            if (!response.ok) {
-                console.warn('Failed to notify server of game leave');
-            }
-        } catch (error) {
-            console.error('Error during game cleanup:', error);
-        }
+			if (!response.ok) {
+				console.warn('Failed to notify server of game leave');
+			}
+		} catch (error) {
+			console.error('Error during game cleanup:', error);
+		}
 
-        // Close WebSocket
-        if (pongHandle?.socket) {
-            pongHandle.socket.close();
-        }
+		// Close WebSocket
+		if (pongHandle?.socket) {
+			pongHandle.socket.close();
+		}
 
-        // Dispatch close event
-        window.dispatchEvent(new Event('app:close-sockets'));
-    };
+		// Dispatch close event
+		window.dispatchEvent(new Event('app:close-sockets'));
+	};
 
-    // Move event listeners OUTSIDE the message handler
-    window.addEventListener('beforeunload', cleanupGameOnLeave);
+	// Move event listeners OUTSIDE the message handler
+	window.addEventListener('beforeunload', cleanupGameOnLeave);
 
-    window.addEventListener('popstate', cleanupGameOnLeave);
+	window.addEventListener('popstate', cleanupGameOnLeave);
 
-    // Add cleanup when navigating away
-    const originalNavigate = router.navigate;
-    router.navigate = (path: string) => {
-        if (window.location.pathname.includes('/game/online/')) {
-            cleanupGameOnLeave();
-        }
-        return originalNavigate.call(router, path);
-    };
+	// Add cleanup when navigating away
+	const originalNavigate = router.navigate;
+	router.navigate = (path: string) => {
+		if (window.location.pathname.includes('/game/online/')) {
+			cleanupGameOnLeave();
+		}
+		return originalNavigate.call(router, path);
+	};
 
 	function renderSettingsBar() {
 		console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
