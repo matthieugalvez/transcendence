@@ -69,7 +69,7 @@ export class UserService {
 
 			const data = await response.json();
 
-			console.log('🔍 Server response for display name check:', data);
+			// console.log('🔍 Server response for display name check:', data);
 
 			// Handle the server response structure
 			if (response.ok && data.success) {

@@ -30,7 +30,7 @@ export class SidebarComponent {
 			space-y-4 z-11
     	`.trim();
 
-		console.log('🔍 Sidebar Avatar URL Debug:', {
+		// console.log('🔍 Sidebar Avatar URL Debug:', {
     avatarUrl,
     type: typeof avatarUrl,
     isNull: avatarUrl === null,

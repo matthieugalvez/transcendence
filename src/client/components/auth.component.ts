@@ -179,7 +179,7 @@ export class AuthComponent {
 				return { success: true, userData };
 			}
 
-			console.log('User needs display name setup');
+			// console.log('User needs display name setup');
 
 			// Show display name modal
 			const displayName = await AuthRender.showDisplayNameModal(true);

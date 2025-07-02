@@ -153,7 +153,7 @@ export class HomeRender {
 
 				const avatar = document.createElement('img');
 				avatar.src = player.avatar
-				console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
+				// console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
 				avatar.alt = player.displayName;
 				avatar.className = 'w-6 h-6 rounded-full flex-shrink-0';
 
