@@ -12,16 +12,16 @@ export interface PongHandle {
 	start: () => void;
 }
 
-function isGameState(data: any): data is GameState {
-	return data
-		&& typeof data === "object"
-		&& data.paddle1 && data.paddle2 && data.ball
-		&& typeof data.paddle1.x === "number"
-		&& typeof data.paddle2.x === "number"
-		&& typeof data.ball.x === "number"
-		&& typeof data.score1 === "number"
-		&& typeof data.score2 === "number";
-}
+//function isGameState(data: any): data is GameState {
+//	return data
+//		&& typeof data === "object"
+//		&& data.paddle1 && data.paddle2 && data.ball
+//		&& typeof data.paddle1.x === "number"
+//		&& typeof data.paddle2.x === "number"
+//		&& typeof data.ball.x === "number"
+//		&& typeof data.score1 === "number"
+//		&& typeof data.score2 === "number";
+//}
 
 // --- WebSocket handler ---
 function createGameWebSocket(
@@ -220,7 +220,7 @@ function startClientInputLoop(
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state &&  !g_game_state.isFreeze) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
 			if (mode === 'duo-online') {
 				if (pId === 1) {
 					if (keysPressed['KeyW']) {
