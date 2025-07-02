@@ -364,7 +364,7 @@ export class UserService {
 			}
 
 			const responseData = await response.json();
-			console.log('getFriends response:', responseData); // Debug log
+			// console.log('getFriends response:', responseData); // Debug log
 
 			// Return just the data array, not the whole response object
 			return responseData.data || [];
