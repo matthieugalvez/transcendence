@@ -213,14 +213,13 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 	function frame() {
-		const state = g_game_state;
-		if (!state) {
-			requestAnimationFrame(frame);
-			return;
-		}
+//		if (!state) {
+//			requestAnimationFrame(frame);
+//			return;
+//		}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !state.isFreeze) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isFreeze) {
 				if (mode === 'duo-online') {
 				if (pId === 1) {
 					if (keysPressed['KeyW']) {
