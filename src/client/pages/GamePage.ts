@@ -137,10 +137,10 @@ export async function renderPongGamePage() {
 	gameContainer.className = 'relative z-0';
 	wrapper.appendChild(gameContainer);
 
-	const messageDisplay = document.createElement('div');
-	messageDisplay.id = 'signup-msg-display';
-	messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
-	document.body.appendChild(messageDisplay);
+	// const messageDisplay = document.createElement('div');
+	// messageDisplay.id = 'signup-msg-display';
+	// messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
+	// document.body.appendChild(messageDisplay);
 
 	// Titre initial avant le canvas / preview
 	const initialTitle = document.createElement('h2');

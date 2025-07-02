@@ -109,7 +109,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	const myUsername = await getUsername();
 
 	// --- Etats de la partie ---
-	let playerId: number | null = null;
+	let playerId: number | 'spectator' | null = null;
 	let hostUsername = 'Player 1';
 	let guestUsername = 'Player 2';
 
@@ -200,10 +200,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	waiting.textContent = "Connecting...";
 	wrapper.appendChild(waiting);
 
-	const messageDisplay = document.createElement('div');
-	messageDisplay.id = 'signup-msg-display';
-	messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
-	document.body.appendChild(messageDisplay);
+	// const messageDisplay = document.createElement('div');
+	// messageDisplay.id = 'signup-msg-display';
+	// messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
+	// document.body.appendChild(messageDisplay);
 
 	// Pour savoir si la partie est lancée (venant du host)
 	let gameStarted = false;
@@ -214,6 +214,30 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		try {
 			const data = JSON.parse(event.data);
 			//console.log('WebSocket message received:', data);
+
+			if (data.type === 'end') {
+				console.log('Game ended:', data);
+
+				// Show appropriate message based on the reason
+				if (data.reason === 'timeout') {
+					CommonComponent.showMessage(`⏰ ${data.message}`, 'warning');
+				} else {
+					CommonComponent.showMessage(`Game ended: ${data.message}`, 'warning');
+				}
+
+				// Always redirect to home when game ends, regardless of reason
+				// Always reload on close (previously checked shouldReloadOnClose)
+				setTimeout(() => {
+					window.dispatchEvent(new Event('app:close-sockets'));
+					// Use the router to navigate properly
+					if (typeof safeNavigate === 'function') {
+						safeNavigate('/home');
+					} else {
+						window.location.href = '/home';
+					}
+				}, 2000);
+				return;
+			}
 
 			if (data.type === 'error') {
 				console.log('Error message received:', data);
@@ -410,7 +434,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// Handle reconnection scenario
 					if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
 						if (playerId === 1 && !resumeAlertShown) {
-							alert("Both players are back. Click Start Game to continue.");
+							CommonComponent.showMessage("Both player are back. Click Start Game to continue.", 'info');
+							// alert("Both players are back. Click Start Game to continue.");
 							renderSettingsBar();
 							resumeAlertShown = true;
 							hideOverlay();
@@ -472,21 +497,38 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		console.log('User leaving game, triggering cleanup...');
 
 		try {
-			// Notify server that user is leaving
+			// Use ApiClient for authenticated requests with better error handling
 			const response = await fetch('/api/game/cleanup', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ gameId, mode })
+				credentials: 'include', // Important for authentication
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				},
+				body: JSON.stringify({ gameId, mode }),
+				// Add timeout to prevent hanging requests
+				signal: AbortSignal.timeout(5000) // 5 second timeout
 			});
 
 			if (!response.ok) {
-				console.warn('Failed to notify server of game leave');
+				console.warn(`Game cleanup failed with status: ${response.status}`);
+				// Don't throw error, just log it since cleanup is not critical for user experience
+			} else {
+				console.log('Game cleanup successful');
 			}
 		} catch (error) {
-			console.error('Error during game cleanup:', error);
+			// Improve error handling - don't let cleanup errors affect user experience
+			if (error.name === 'AbortError') {
+				console.warn('Game cleanup request timed out');
+			} else if (error.name === 'TypeError' && error.message.includes('NetworkError')) {
+				console.warn('Network error during game cleanup - server may be unreachable');
+			} else {
+				console.warn('Game cleanup failed:', error.message);
+			}
+			// Continue with cleanup even if server request fails
 		}
 
-		// Close WebSocket
+		// Close WebSocket regardless of cleanup API success
 		if (pongHandle?.socket) {
 			pongHandle.socket.close();
 		}
