@@ -52,12 +52,12 @@ export class FriendsRender {
 				const acceptedList = document.createElement('div');
 				acceptedList.className = 'space-y-3';
 
-				acceptedFriends.forEach(friendship => {
+				for (const friendship of acceptedFriends) {
 					// Determine which user is the friend (not current user)
 					const friend = friendship.senderId === currentUser.id ? friendship.receiver : friendship.sender;
-					const friendCard = this.createFriendCard(friend, friendship, 'accepted');
+					const friendCard = await this.createFriendCard(friend, friendship, 'accepted');
 					acceptedList.appendChild(friendCard);
-				});
+				}
 
 				acceptedSection.appendChild(acceptedTitle);
 				acceptedSection.appendChild(acceptedList);
@@ -115,7 +115,7 @@ export class FriendsRender {
 		}
 	}
 
-	private static createFriendCard(friend: any, friendship: any, type: 'accepted' | 'pending-sent' | 'pending-received'): HTMLElement {
+	private static async createFriendCard(friend: any, friendship: any, type: 'accepted' | 'pending-sent' | 'pending-received'): HTMLElement {
 		const card = document.createElement('div');
 		card.className = 'bg-gray-50 p-4 rounded-lg flex items-center justify-between hover:bg-gray-100 transition-colors';
 
@@ -234,12 +234,32 @@ export class FriendsRender {
 			};
 			actions.appendChild(removeBtn);
 
-			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'blue');
-			inviteBtn.onclick = async () => {
-				// Show game type selection modal
-				this.showGameTypeModal(friend);
-			};
-			actions.appendChild(inviteBtn);
+			let hasPendingGameInvite = false;
+			try {
+				const invitesResponse = await fetch('/api/invites/sent');
+				if (invitesResponse.ok) {
+					const invitesData = await invitesResponse.json();
+					if (invitesData.success) {
+						hasPendingGameInvite = invitesData.invites.some((invite: any) =>
+							invite.inviteeId === friend.id && invite.status === 'pending'
+						);
+					}
+				}
+			} catch (error) {
+				console.error('Error checking pending invites:', error);
+			}
+
+			if (!hasPendingGameInvite) {
+				const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'blue');
+				inviteBtn.onclick = async () => {
+					this.showGameTypeModal(friend);
+				};
+				actions.appendChild(inviteBtn);
+			} else {
+				const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+				pendingInviteBtn.disabled = true;
+				actions.appendChild(pendingInviteBtn);
+			}
 		}
 
 		card.appendChild(userInfo);
