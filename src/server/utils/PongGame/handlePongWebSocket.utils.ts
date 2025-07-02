@@ -179,7 +179,7 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
 					import('../../services/gamecleanup.service.js').then(({ GameCleanupService }) => {
 						GameCleanupService.cleanupGameAndInvites(gameId, inviterInvite.inviterId);
 					}).catch(error => {
-						console.error('Error during cleanup:', error);
+						// console.error('Error during cleanup:', error);
 					});
 				}
 			}
