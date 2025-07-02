@@ -9,7 +9,7 @@ export class FriendsRender {
 
 			// Extract the actual friendships array from the response
 			const friendsList = friendsResponse?.data || friendsResponse || [];
-			console.log('🔍 Friends list:', friendsList); // Debug log
+			// //console.log('🔍 Friends list:', friendsList); // Debug log
 
 			const friendsSection = document.createElement('div');
 			friendsSection.className = 'space-y-8';
@@ -310,10 +310,10 @@ export class FriendsRender {
 const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
 tournamentBtn.className += ' w-full';
 tournamentBtn.onclick = async () => {
-    console.log('Tournament button clicked!');
+    // //console.log('Tournament button clicked!');
     modalOverlay.remove();
     try {
-        console.log('Calling showTournamentPlayerSelection with friend:', friend);
+        //console.log('Calling showTournamentPlayerSelection with friend:', friend);
         await FriendsRender.showTournamentPlayerSelection(friend);
     } catch (error) {
         console.error('Error in showTournamentPlayerSelection:', error);
@@ -335,18 +335,18 @@ buttonContainer.appendChild(tournamentBtn);
 
 	// New method for tournament player selection
 	private static async showTournamentPlayerSelection(initialFriend: any): Promise<void> {
-    console.log('showTournamentPlayerSelection called with:', initialFriend);
+    //console.log('showTournamentPlayerSelection called with:', initialFriend);
     try {
         // Get current user's friends list
-        console.log('Fetching friends list...');
+        //console.log('Fetching friends list...');
         const friendsResponse = await UserService.getFriends();
-        console.log('Friends response:', friendsResponse);
+        //console.log('Friends response:', friendsResponse);
 
         const friendsList = friendsResponse?.data || friendsResponse || [];
-        console.log('Processed friends list:', friendsList);
+        //console.log('Processed friends list:', friendsList);
 
         const currentUser = await UserService.getCurrentUser();
-        console.log('Current user:', currentUser);
+        //console.log('Current user:', currentUser);
 
         // Filter to accepted friends only, excluding the initial friend
         const availableFriends = friendsList
@@ -354,15 +354,15 @@ buttonContainer.appendChild(tournamentBtn);
             .map(f => f.senderId === currentUser.id ? f.receiver : f.sender)
             .filter(friend => friend.id !== initialFriend.id);
 
-        console.log('Available friends for tournament:', availableFriends);
+        //console.log('Available friends for tournament:', availableFriends);
 
         if (availableFriends.length < 2) {
-            console.log('Not enough friends for tournament');
+            //console.log('Not enough friends for tournament');
             CommonComponent.showMessage('❌ You need at least 3 friends to create a tournament', 'error');
             return;
         }
 
-        console.log('Creating tournament modal...');
+        //console.log('Creating tournament modal...');
         // Create modal overlay
         const modalOverlay = document.createElement('div');
         modalOverlay.className = `
@@ -497,9 +497,9 @@ buttonContainer.appendChild(tournamentBtn);
         modal.appendChild(buttonContainer);
 
         modalOverlay.appendChild(modal);
-        console.log('Appending modal to document body...');
+        //console.log('Appending modal to document body...');
         document.body.appendChild(modalOverlay);
-        console.log('Tournament modal should now be visible');
+        //console.log('Tournament modal should now be visible');
 
     } catch (error) {
         console.error('Failed to load friends for tournament:', error);
