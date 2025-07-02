@@ -410,7 +410,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// Handle reconnection scenario
 					if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
 						if (playerId === 1 && !resumeAlertShown) {
-							alert("Both players are back. Click Start Game to continue.");
+							CommonComponent.showMessage("Both player are back. Click Start Game to continue.", 'info');
+							// alert("Both players are back. Click Start Game to continue.");
 							renderSettingsBar();
 							resumeAlertShown = true;
 							hideOverlay();

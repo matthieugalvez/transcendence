@@ -42,7 +42,8 @@ export class TournamentComponent {
           // verif si deja selectionner
           const already = slots.some((s, idx) => idx !== i && s.user === user.displayName);
           if (already) {
-            alert("User already selected!");
+			CommonComponent.showMessage("User alreadly selected!", 'error');
+            // alert("User already selected!");
             return;
           }
           // on sélectionne
@@ -136,7 +137,7 @@ export class TournamentComponent {
     // Sous message / prochain match ou résultat final
     let nextMatchMsg = '';
     if (i < matchups.length - 1) {
-      const [nextLeft, nextRight] = 
+      const [nextLeft, nextRight] =
         i + 1 === 2
           ? [winners[0], winners[1]]
           : matchups[i + 1];
