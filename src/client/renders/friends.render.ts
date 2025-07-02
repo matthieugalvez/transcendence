@@ -123,10 +123,15 @@ export class FriendsRender {
 		userInfo.className = 'flex items-center space-x-4 flex-grow';
 
 		const avatar = document.createElement('img');
-		avatar.src = `/avatars/${friend.avatar}` || '/avatars/default.svg';
+		if (friend.avatar && friend.avatar !== 'null' && friend.avatar !== 'undefined') {
+			// If avatar starts with /avatars/, use as-is, otherwise prepend /avatars/
+			avatar.src = friend.avatar.startsWith('/avatars/') ? friend.avatar : `/avatars/${friend.avatar}`;
+		} else {
+			avatar.src = '/avatars/default.svg';
+		}
+
 		avatar.alt = `${friend.displayName}'s avatar`;
 		avatar.className = 'w-12 h-12 rounded-full object-cover';
-
 		const details = document.createElement('div');
 
 		const name = document.createElement('div');
