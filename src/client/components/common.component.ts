@@ -5,7 +5,7 @@ export class CommonComponent {
 	/**
 	 * Display a message to the user
 	 */
-	static showMessage(text: string, type: 'success' | 'error' | 'warning' = 'error', isHtml: boolean = false): void {
+	static showMessage(text: string, type: 'success' | 'error' | 'warning' | 'info' = 'error', isHtml: boolean = false): void {
 		const signupMsgDisplay = document.getElementById('signup-msg-display');
 		if (!signupMsgDisplay) return;
 
