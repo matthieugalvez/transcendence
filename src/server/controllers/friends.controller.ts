@@ -6,17 +6,17 @@ export class FriendsController {
     static async getFriends(request: FastifyRequest, reply: FastifyReply) {
         try {
             const userId = (request as any).userId;
-            console.log('🔍 Fetching ALL friendships for user:', userId);
+            // console.log('🔍 Fetching ALL friendships for user:', userId);
 
             // Use the new method that returns ALL friendship objects
             const friendships = await FriendService.getAllUserFriendships(userId);
 
-            console.log(`📊 Found ${friendships.length} total friendships:`, friendships.map(f => ({
-                id: f.id,
-                sender: f.sender.displayName,
-                receiver: f.receiver.displayName,
-                status: f.status
-            })));
+            // console.log(`📊 Found ${friendships.length} total friendships:`, friendships.map(f => ({
+            //     id: f.id,
+            //     sender: f.sender.displayName,
+            //     receiver: f.receiver.displayName,
+            //     status: f.status
+            // })));
 
             return {
                 success: true,
