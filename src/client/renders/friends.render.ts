@@ -273,66 +273,80 @@ export class FriendsRender {
 		return card;
 	}
 
-private static showGameTypeModal(friend: any): void {
-    // Create modal overlay
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = `
+	private static showGameTypeModal(friend: any): void {
+		// Create modal overlay
+		const modalOverlay = document.createElement('div');
+		modalOverlay.className = `
         fixed inset-0 bg-black/50 flex items-center justify-center z-50
     `;
 
-    // Create modal content
-    const modal = document.createElement('div');
-    modal.className = `
+		// Create modal content
+		const modal = document.createElement('div');
+		modal.className = `
         bg-white rounded-lg p-6 max-w-md w-full mx-4
         border-2 border-black shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
     `;
 
-    // Modal title
-    const title = document.createElement('h3');
-    title.textContent = `Invite ${friend.displayName} to:`;
-    title.className = `font-['Orbitron'] text-xl font-bold mb-6 text-center`;
-    modal.appendChild(title);
+		// Modal title
+		const title = document.createElement('h3');
+		title.textContent = `Invite ${friend.displayName} to:`;
+		title.className = `font-['Orbitron'] text-xl font-bold mb-6 text-center`;
+		modal.appendChild(title);
 
-    // Game type buttons
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'flex flex-col space-y-4';
+		// Game type buttons
+		const buttonContainer = document.createElement('div');
+		buttonContainer.className = 'flex flex-col space-y-4';
 
-    // Duo game button
-    const duoBtn = CommonComponent.createStylizedButton('Duo Game (1v1)', 'purple');
-    duoBtn.className += ' w-full';
-    duoBtn.onclick = async () => {
-        modalOverlay.remove();
-        await this.sendGameInvite(friend, 'duo');
-    };
-    buttonContainer.appendChild(duoBtn);
+		// Duo game button
+		const duoBtn = CommonComponent.createStylizedButton('Duo Game (1v1)', 'purple');
+		duoBtn.className += ' w-full';
+		duoBtn.onclick = async () => {
+			modalOverlay.remove();
+			await FriendsRender.sendGameInvite(friend, 'duo'); // Use class name explicitly
+		};
+		buttonContainer.appendChild(duoBtn);
 
-    // Tournament button - modified to show player selection
-    const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
-    tournamentBtn.className += ' w-full';
-    tournamentBtn.onclick = async () => {
-        modalOverlay.remove();
-        await this.showTournamentPlayerSelection(friend);
-    };
-    buttonContainer.appendChild(tournamentBtn);
+		// Tournament button - fix the context issue
+const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
+tournamentBtn.className += ' w-full';
+tournamentBtn.onclick = async () => {
+    console.log('Tournament button clicked!');
+    modalOverlay.remove();
+    try {
+        console.log('Calling showTournamentPlayerSelection with friend:', friend);
+        await FriendsRender.showTournamentPlayerSelection(friend);
+    } catch (error) {
+        console.error('Error in showTournamentPlayerSelection:', error);
+        CommonComponent.showMessage('❌ Failed to load tournament selection', 'error');
+    }
+};
+buttonContainer.appendChild(tournamentBtn);
 
-    // Cancel button
-    const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
-    cancelBtn.className += ' w-full';
-    cancelBtn.onclick = () => modalOverlay.remove();
-    buttonContainer.appendChild(cancelBtn);
+		// Cancel button
+		const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
+		cancelBtn.className += ' w-full';
+		cancelBtn.onclick = () => modalOverlay.remove();
+		buttonContainer.appendChild(cancelBtn);
 
-    modal.appendChild(buttonContainer);
-    modalOverlay.appendChild(modal);
-    document.body.appendChild(modalOverlay);
-}
+		modal.appendChild(buttonContainer);
+		modalOverlay.appendChild(modal);
+		document.body.appendChild(modalOverlay);
+	}
 
-// New method for tournament player selection
-private static async showTournamentPlayerSelection(initialFriend: any): Promise<void> {
+	// New method for tournament player selection
+	private static async showTournamentPlayerSelection(initialFriend: any): Promise<void> {
+    console.log('showTournamentPlayerSelection called with:', initialFriend);
     try {
         // Get current user's friends list
+        console.log('Fetching friends list...');
         const friendsResponse = await UserService.getFriends();
+        console.log('Friends response:', friendsResponse);
+
         const friendsList = friendsResponse?.data || friendsResponse || [];
+        console.log('Processed friends list:', friendsList);
+
         const currentUser = await UserService.getCurrentUser();
+        console.log('Current user:', currentUser);
 
         // Filter to accepted friends only, excluding the initial friend
         const availableFriends = friendsList
@@ -340,11 +354,15 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
             .map(f => f.senderId === currentUser.id ? f.receiver : f.sender)
             .filter(friend => friend.id !== initialFriend.id);
 
+        console.log('Available friends for tournament:', availableFriends);
+
         if (availableFriends.length < 2) {
+            console.log('Not enough friends for tournament');
             CommonComponent.showMessage('❌ You need at least 3 friends to create a tournament', 'error');
             return;
         }
 
+        console.log('Creating tournament modal...');
         // Create modal overlay
         const modalOverlay = document.createElement('div');
         modalOverlay.className = `
@@ -377,8 +395,8 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
         selectedList.className = 'flex flex-wrap gap-2 mb-4';
 
         // Add current user and initial friend
-        const currentUserPill = this.createPlayerPill(currentUser.displayName, false);
-        const initialFriendPill = this.createPlayerPill(initialFriend.displayName, false);
+        const currentUserPill = FriendsRender.createPlayerPill(currentUser.displayName, false);
+        const initialFriendPill = FriendsRender.createPlayerPill(initialFriend.displayName, false);
         selectedList.appendChild(currentUserPill);
         selectedList.appendChild(initialFriendPill);
 
@@ -432,12 +450,12 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
                         return;
                     }
                     selectedFriends.push(friend);
-                    const pill = this.createPlayerPill(friend.displayName, true, () => {
+                    const pill = FriendsRender.createPlayerPill(friend.displayName, true, () => {
                         selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
                         checkbox.checked = false;
                         pill.remove();
                         updateStartButton();
-                    });
+                    }, friend.id); // Pass the friend.id as playerId parameter
                     selectedList.appendChild(pill);
                 } else {
                     selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
@@ -464,7 +482,7 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
         startBtn.onclick = async () => {
             modalOverlay.remove();
             const allPlayers = [initialFriend, ...selectedFriends];
-            await this.sendTournamentInvites(allPlayers);
+            await FriendsRender.sendTournamentInvites(allPlayers);
         };
 
         const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
@@ -479,7 +497,9 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
         modal.appendChild(buttonContainer);
 
         modalOverlay.appendChild(modal);
+        console.log('Appending modal to document body...');
         document.body.appendChild(modalOverlay);
+        console.log('Tournament modal should now be visible');
 
     } catch (error) {
         console.error('Failed to load friends for tournament:', error);
@@ -487,74 +507,75 @@ private static async showTournamentPlayerSelection(initialFriend: any): Promise<
     }
 }
 
-// Helper method to create player pills
-private static createPlayerPill(displayName: string, removable: boolean, onRemove?: () => void): HTMLElement {
-    const pill = document.createElement('div');
-    pill.className = `
+	// Helper method to create player pills
+	private static createPlayerPill(displayName: string, removable: boolean, onRemove?: () => void, playerId?: string): HTMLElement {
+		const pill = document.createElement('div');
+		pill.className = `
         inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800
         rounded-full text-sm font-medium
     `;
-    pill.setAttribute('data-player-id', displayName);
+		// Use playerId if provided, otherwise use displayName as fallback
+		pill.setAttribute('data-player-id', playerId || displayName);
 
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = displayName;
-    pill.appendChild(nameSpan);
+		const nameSpan = document.createElement('span');
+		nameSpan.textContent = displayName;
+		pill.appendChild(nameSpan);
 
-    if (removable && onRemove) {
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '×';
-        removeBtn.className = 'ml-2 text-purple-600 hover:text-purple-800 font-bold';
-        removeBtn.onclick = onRemove;
-        pill.appendChild(removeBtn);
-    }
+		if (removable && onRemove) {
+			const removeBtn = document.createElement('button');
+			removeBtn.textContent = '×';
+			removeBtn.className = 'ml-2 text-purple-600 hover:text-purple-800 font-bold';
+			removeBtn.onclick = onRemove;
+			pill.appendChild(removeBtn);
+		}
 
-    return pill;
-}
+		return pill;
+	}
 
-// New method to send tournament invites to multiple players
-private static async sendTournamentInvites(players: any[]): Promise<void> {
-    try {
-        // Create tournament game
-        const res = await fetch('/api/game/tournament/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ difficulty: 'MEDIUM' })
-        });
+	// New method to send tournament invites to multiple players
+	private static async sendTournamentInvites(players: any[]): Promise<void> {
+		try {
+			// Create tournament game
+			const res = await fetch('/api/game/tournament/start', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ difficulty: 'MEDIUM' })
+			});
 
-        if (!res.ok) throw new Error('Failed to create tournament game');
+			if (!res.ok) throw new Error('Failed to create tournament game');
 
-        const { gameId } = await res.json();
+			const { gameId } = await res.json();
 
-        // Send invites to all selected players
-        const invitePromises = players.map(player =>
-            fetch('/api/invite', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    gameId,
-                    inviteeId: player.id,
-                    gameType: 'tournament'
-                })
-            })
-        );
+			// Send invites to all selected players
+			const invitePromises = players.map(player =>
+				fetch('/api/invite', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						gameId,
+						inviteeId: player.id,
+						gameType: 'tournament'
+					})
+				})
+			);
 
-        const results = await Promise.all(invitePromises);
-        const failedInvites = results.filter(r => !r.ok);
+			const results = await Promise.all(invitePromises);
+			const failedInvites = results.filter(r => !r.ok);
 
-        if (failedInvites.length > 0) {
-            CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
-        } else {
-            CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
-        }
+			if (failedInvites.length > 0) {
+				CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
+			} else {
+				CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
+			}
 
-        // Navigate to tournament page
-        window.location.href = `/game/online/tournament/${gameId}`;
+			// Navigate to tournament page
+			window.location.href = `/game/online/tournament/${gameId}`;
 
-    } catch (error) {
-        console.error('Failed to create tournament:', error);
-        CommonComponent.showMessage('❌ Failed to create tournament', 'error');
-    }
-}
+		} catch (error) {
+			console.error('Failed to create tournament:', error);
+			CommonComponent.showMessage('❌ Failed to create tournament', 'error');
+		}
+	}
 
 	private static async sendGameInvite(friend: any, gameType: 'duo' | 'tournament'): Promise<void> {
 		try {
