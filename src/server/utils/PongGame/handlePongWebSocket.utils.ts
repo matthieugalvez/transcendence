@@ -21,13 +21,13 @@ function attachMessageHandler(ws: WebSocket, game: GameInstance) {
 			// Handle player input with playerId from message
 			if (msg.action === 'up' || msg.action === 'down') {
 				if (msg.playerId) {
-					console.log(`Player ${msg.playerId} action: ${msg.action}`); // Debug log
+					//console.log(`Player ${msg.playerId} action: ${msg.action}`); // Debug log
 					return game.onClientAction(msg.playerId, msg.action);
 				} else {
 					// Fallback: determine playerId from WebSocket
 					const playerId = game.getPlayerIdByWebSocket(ws);
 					if (playerId) {
-						console.log(`Player ${playerId} action: ${msg.action} (from WS)`); // Debug log
+						// console.log(`Player ${playerId} action: ${msg.action} (from WS)`); // Debug log
 						return game.onClientAction(playerId, msg.action);
 					}
 				}
