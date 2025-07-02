@@ -220,7 +220,7 @@ function startClientInputLoop(
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state &&  !g_game_state.isFreeze) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isFreeze) {
 			if (mode === 'duo-online') {
 				if (pId === 1) {
 					if (keysPressed['KeyW']) {
@@ -283,8 +283,8 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
 
-		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-		const	ball_speed = g_game_state.ballVelocity;
+		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+		const ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx <= 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -377,14 +377,25 @@ export function startPongInContainer(
 			const data = JSON.parse(event.data);
 
 			if (data.type === 'playerToken') {
-				// Set up input handlers when we get our player token
-				if (!inputLoopStarted) {
+				if (mode !== 'tournament-online' && !inputLoopStarted) {
 					setupInputHandlers();
 				}
 				return;
 			}
 
-			// ADDED: Game state detection and rendering
+			if (mode === 'tournament-online') {
+				// Set up input handlers only when the actual match starts
+				if (data.type === 'matchStart' && !inputLoopStarted) {
+					console.log('Tournament match starting, setting up input handlers');
+					setupInputHandlers();
+					return;
+				}
+
+				if (!inputLoopStarted) {
+					return;
+				}
+			}
+
 			const isGameState = data.type === 'gameState' ||
 				(typeof data === 'object' &&
 					data.hasOwnProperty('paddle1') &&
