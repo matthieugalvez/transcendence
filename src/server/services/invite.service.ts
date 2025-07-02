@@ -1,7 +1,7 @@
 import { prisma } from '../db.js';
 
 export class InviteService {
-	static async createInvite(gameId: string, inviterId: string, inviteeId: string, gameType: string = 'duo', ttlMs = 2 * 60 * 1000) {
+	static async createInvite(gameId: string, inviterId: string, inviteeId: string, gameType: string = 'duo', ttlMs = 15 * 1000) {
 		// Check if user is trying to invite themselves
 		if (inviterId === inviteeId) {
 			throw new Error('Cannot invite yourself');
