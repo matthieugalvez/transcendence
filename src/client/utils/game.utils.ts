@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { safeNavigate } from '../utils/navigation.utils.js';
 import { router } from '../configs/simplerouter.js';
 
-let	g_game_state: GameState
+let g_game_state: GameState
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -88,8 +88,8 @@ function createGameWebSocket(
 					return;
 				}
 
-				if (data.error === 'invalid_token') {
-					CommonComponent.showMessage('❌ Invalid game session', 'error');
+				if (data.error === 'invalid_token' || data.error === 'invite_expired') {
+					CommonComponent.showMessage('❌ Session expired. Redirecting...', 'error');
 					if (shouldReloadOnClose) {
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
@@ -128,7 +128,7 @@ function createGameWebSocket(
 
 			if (data.type === 'countdown') {
 				showCountdown(data.seconds.toString());
-    			if (data.seconds === 0) hideCountdown();
+				if (data.seconds === 0) hideCountdown();
 				return;
 			}
 
@@ -213,14 +213,14 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 	function frame() {
-//		if (!state) {
-//			requestAnimationFrame(frame);
-//			return;
-//		}
+		//		if (!state) {
+		//			requestAnimationFrame(frame);
+		//			return;
+		//		}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isFreeze) {
-				if (mode === 'duo-online') {
+			if (mode === 'duo-online') {
 				if (pId === 1) {
 					if (keysPressed['KeyW']) {
 						socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
@@ -252,9 +252,9 @@ function startClientInputLoop(
 				}
 			} else if (mode === 'solo') {
 				if (keysPressed['KeyW'] || keysPressed['ArrowUp']) {
-				  socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
+					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
 				} else if (keysPressed['KeyS'] || keysPressed['ArrowDown']) {
-				  socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
+					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
 				}
 				makeAIInput(AI, socket);
 			} else {
@@ -281,8 +281,8 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
-		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-		const	ball_speed = g_game_state.ballVelocity;
+		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+		const ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx < 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -357,30 +357,30 @@ export function startPongInContainer(
 	let keysPressed: Record<string, boolean> = {};
 	let inputLoopStarted = false;
 
-    function setupInputHandlers() {
-        if (inputLoopStarted) return; // Prevent multiple setups
-        // Clear any existing handlers
-        keysPressed = {};
-        setupKeyboardHandlers(socket, keysPressed);
-        startClientInputLoop(socket, keysPressed, getPlayerId, mode);
-        inputLoopStarted = true;
-    }
+	function setupInputHandlers() {
+		if (inputLoopStarted) return; // Prevent multiple setups
+		// Clear any existing handlers
+		keysPressed = {};
+		setupKeyboardHandlers(socket, keysPressed);
+		startClientInputLoop(socket, keysPressed, getPlayerId, mode);
+		inputLoopStarted = true;
+	}
 
-    socket.addEventListener('message', (event) => {
-        try {
-            if (typeof event.data !== 'string') {
-                console.warn('WS non-string message ignored:', event.data);
-                return;
-            }
-            const data = JSON.parse(event.data);
+	socket.addEventListener('message', (event) => {
+		try {
+			if (typeof event.data !== 'string') {
+				console.warn('WS non-string message ignored:', event.data);
+				return;
+			}
+			const data = JSON.parse(event.data);
 
-            if (data.type === 'playerToken') {
-                // Set up input handlers when we get our player token
-                if (!inputLoopStarted) {
-                    setupInputHandlers();
-                }
-                return;
-            }
+			if (data.type === 'playerToken') {
+				// Set up input handlers when we get our player token
+				if (!inputLoopStarted) {
+					setupInputHandlers();
+				}
+				return;
+			}
 
 			// ADDED: Game state detection and rendering
 			const isGameState = data.type === 'gameState' ||
@@ -391,24 +391,24 @@ export function startPongInContainer(
 					data.hasOwnProperty('score1') &&
 					data.hasOwnProperty('score2'));
 
-            if (isGameState) {
+			if (isGameState) {
 				g_game_state = data;
-                import('../renders/game.render.js').then(({ renderGame }) => {
+				import('../renders/game.render.js').then(({ renderGame }) => {
 					renderGame(ctx, data);
 				});
 
-                // Check for match end
-                if (data.score1 >= 5 || data.score2 >= 5) {
-                    const winnerId = data.score1 >= 5 ? 1 : 2;
-                    // console.log('[GAME UTILS] Match ended, winner:', winnerId);
-                    onFinish(winnerId, data.score1, data.score2);
-                }
-                return;
-            }
-        } catch (err) {
-            console.error('WS message parse error:', err);
-        }
-    });
+				// Check for match end
+				if (data.score1 >= 5 || data.score2 >= 5) {
+					const winnerId = data.score1 >= 5 ? 1 : 2;
+					// console.log('[GAME UTILS] Match ended, winner:', winnerId);
+					onFinish(winnerId, data.score1, data.score2);
+				}
+				return;
+			}
+		} catch (err) {
+			console.error('WS message parse error:', err);
+		}
+	});
 
 	// Set up input handlers immediately for local modes
 	if (mode === 'duo-local' || mode === 'solo') {
@@ -544,48 +544,48 @@ export function hideOverlay() {
 
 function showCountdown(message: string) {
 	/** container plein écran (transparent) */
-    let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'game-countdown';
-        Object.assign(overlay.style, {
-            position        : 'absolute',
-            top             : '0',
-            left            : '0',
-            width           : '100%',
-            height          : '100%',
-            display         : 'flex',
-            alignItems      : 'center',
-            justifyContent  : 'center',
-			marginLeft		: '43px',
-			marginTop		: '15px',
-            pointerEvents   : 'none',
-            zIndex          : '150'
-        });
+	let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+	if (!overlay) {
+		overlay = document.createElement('div');
+		overlay.id = 'game-countdown';
+		Object.assign(overlay.style, {
+			position: 'absolute',
+			top: '0',
+			left: '0',
+			width: '100%',
+			height: '100%',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginLeft: '43px',
+			marginTop: '15px',
+			pointerEvents: 'none',
+			zIndex: '150'
+		});
 
-        /** bandeau noir semi‑transparent */
-        const panel = document.createElement('div');
-        panel.id = 'game-countdown-panel';
-        Object.assign(panel.style, {
-            background      : 'rgba(0,0,0,0.75)',
-            padding         : '0.4em 2em',
-            borderRadius    : '8px',
-            fontFamily      : 'Canada-big',
-            fontSize        : '90px',
-            color           : '#fff',
-            display         : 'flex',
-            alignItems      : 'center',
-            justifyContent  : 'center',
-            minWidth        : '240px',
-			width			: '25%',
-        });
-        overlay.appendChild(panel);
-        document.body.appendChild(overlay);
-    }
+		/** bandeau noir semi‑transparent */
+		const panel = document.createElement('div');
+		panel.id = 'game-countdown-panel';
+		Object.assign(panel.style, {
+			background: 'rgba(0,0,0,0.75)',
+			padding: '0.4em 2em',
+			borderRadius: '8px',
+			fontFamily: 'Canada-big',
+			fontSize: '90px',
+			color: '#fff',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			minWidth: '240px',
+			width: '25%',
+		});
+		overlay.appendChild(panel);
+		document.body.appendChild(overlay);
+	}
 
-    // maj texte
-    (overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
-    overlay.style.display = 'flex';
+	// maj texte
+	(overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
+	overlay.style.display = 'flex';
 }
 
 export function hideCountdown() {
