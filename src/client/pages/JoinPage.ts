@@ -200,10 +200,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	waiting.textContent = "Connecting...";
 	wrapper.appendChild(waiting);
 
-	const messageDisplay = document.createElement('div');
-	messageDisplay.id = 'signup-msg-display';
-	messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
-	document.body.appendChild(messageDisplay);
+	// const messageDisplay = document.createElement('div');
+	// messageDisplay.id = 'signup-msg-display';
+	// messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
+	// document.body.appendChild(messageDisplay);
 
 	// Pour savoir si la partie est lancée (venant du host)
 	let gameStarted = false;
