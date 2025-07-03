@@ -436,7 +436,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// console.log('Game state received:', { isRunning: data.isRunning, gameStarted, connectedPlayers: data.connectedPlayers });
 
 					if (mode === 'duo') {
+						const wasConnected = bothPlayersConnected;
 						bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
+						if (wasConnected !== bothPlayersConnected) {
+							renderSettingsBar();
+						}
 					} else if (mode === 'tournament') {
 						bothPlayersConnected = joinedPlayers.length === 4;
 					}
