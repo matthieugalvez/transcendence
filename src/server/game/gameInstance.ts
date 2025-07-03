@@ -116,14 +116,14 @@ export class GameInstance {
 							const payload = JSON.stringify({
 								type: 'end',
 								reason: 'timeout',
-								message: "No other player joined within 2 minutes. Game cancelled.",
+								message: "No other player joined within 1 minutes. Game cancelled.",
 								shouldRedirect: true
 							});
 							this.broadcastToAll(payload);
 							this.destroy();
 							removeGameRoom(this.gameId);
 						}
-					}, 2 * 60 * 1000);
+					}, 60 * 1000);
 				}
 
 				// Clear timeout when second player joins
@@ -492,7 +492,7 @@ export class GameInstance {
 
 		this.pauseTimeoutHandle = setTimeout(() => {
 			this.endGameDueToDisconnect();
-		}, 20000);  // 20 sec
+		}, 10000);  // 10 sec
 	}
 
 	private cancelPauseOnReconnect() {

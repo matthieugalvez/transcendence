@@ -1,7 +1,7 @@
 import type { WebSocket } from 'ws';
 import { addPlayerToRoom, getGameRoom, createGameRoom } from '../../game/gameRooms.js'; // Add createGameRoom import
 import { GameInstance } from '../../game/gameInstance.js'; // Add .js extension
-import { getTournamentRoom, createTournamentRoom } from '../../game/tournamentRooms.js';
+import { getTournamentRoom, createTournamentRoom, removeTournamentRoom } from '../../game/tournamentRooms.js';
 import { prisma } from '../../db.js'
 import { InviteService } from '../../services/invite.service.js';
 
@@ -160,29 +160,34 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
 	ws.on('close', () => {
 		console.log(`WebSocket closed for user ${username} in game ${gameId}`);
 
-		// If this was the inviter and no game has started, trigger cleanup
+		// --- Existing logic for classic games (duo) ---
 		if (game && username) {
-			// Check if this user is the inviter by comparing user IDs
 			const userIsInviter = invites.some(invite =>
 				invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
 			);
 
 			if (userIsInviter && !game.getCurrentState().isRunning) {
 				console.log(`Inviter ${username} left before game started, triggering cleanup`);
-
-				// Get the actual user ID for cleanup
 				const inviterInvite = invites.find(invite =>
 					invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
 				);
-
 				if (inviterInvite) {
-					// Trigger cleanup asynchronously
 					import('../../services/gamecleanup.service.js').then(({ GameCleanupService }) => {
 						GameCleanupService.cleanupGameAndInvites(gameId, inviterInvite.inviterId);
-					}).catch(error => {
-						// console.error('Error during cleanup:', error);
-					});
+					}).catch(error => { });
 				}
+			}
+		}
+
+		// --- Add this block for tournaments ---
+		if (mode === 'tournament') {
+			const tour = getTournamentRoom(gameId);
+			const userIsInviter = invites.some(invite =>
+				invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
+			);
+			if (tour && userIsInviter) {
+				tour.endTournamentAndKickAll("Host left, tournament cancelled");
+				removeTournamentRoom(gameId);
 			}
 		}
 	});
