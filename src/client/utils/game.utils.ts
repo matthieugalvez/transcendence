@@ -236,7 +236,7 @@ function startClientInputLoop(
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && !g_game_state.isFreeze) {
 			if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
