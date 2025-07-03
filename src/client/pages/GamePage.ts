@@ -103,7 +103,7 @@ export async function GamePageCheck() {
 		});
 
 		const main = document.createElement("div");
-		main.className = "min-h-screen min-w-screen flex items-start justify-center";
+		main.className = 'ml-80 w-[calc(100%-20rem)] min-h-screen flex items-center justify-center p-8 relative';
 		document.body.appendChild(main);
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);
