@@ -348,9 +348,14 @@ export function startPongInContainer(
 
 			if (data.type === 'playerToken') {
 				// Set up input handlers when we get our player token
-				if (!inputLoopStarted) {
+				if (mode != 'tournament-online' && !inputLoopStarted) {
 					setupInputHandlers();
 				}
+				return;
+			}
+
+			if (data.type === 'matchStart' && !inputLoopStarted) {
+				setupInputHandlers();
 				return;
 			}
 
