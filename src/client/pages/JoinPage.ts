@@ -365,11 +365,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						gameStarted = false;
 						isrendered = true;
 
-						setTimeout(() => {
-							if (canvas) canvas.classList.remove('blur-xs');
-							transition.remove();
-							pongHandle?.start();
-						}, 4000);
+						// setTimeout(() => {
+						// 	if (canvas) canvas.classList.remove('blur-xs');
+						// 	transition.remove();
+						// 	pongHandle?.start();
+						// }, 4000);
 						renderSettingsBar();
 						return;
 					}
