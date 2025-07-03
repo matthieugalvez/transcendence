@@ -128,7 +128,7 @@ export async function renderPongGamePage() {
 	// layout de base
 	SidebarComponent.render({ userName: user.displayName, avatarUrl: user.avatar, showStats: true, showBackHome: true, showUserSearch: false });
 	BackgroundComponent.applyNormalGradientLayout();
-	// GameSettingsComponent.render('initial');
+	//GameSettingsComponent.render('initial');
 
 	const wrapper = createMainWrapper();
 
