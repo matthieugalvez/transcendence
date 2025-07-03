@@ -10,51 +10,41 @@ import { UserSearchComponent } from '../components/usersearch.component';
 
 
 export async function RenderHomePage(): Promise<void> {
-	document.title = "Home";
-	document.body.innerHTML = "";
-	BackgroundComponent.applyAnimatedGradient();
+    document.title = "Home";
+    document.body.innerHTML = "";
+    BackgroundComponent.applyAnimatedGradient();
 
-	try {
-		// Fetch user data first - if this fails, we handle it in catch block
-		let user = await UserService.getCurrentUser();
+    try {
+        let user = await UserService.getCurrentUser();
 
-		if (!user.displayName || user.displayName == '') {
-			const result = await AuthComponent.checkAndHandleDisplayName();
-			if (result.success && result.userData) {
-				// Use the updated user data
-				user = result.userData;
-			} else {
-				// If checkAndHandleDisplayName failed, it already handled redirect
-				return;
-			}
-		}
+        if (!user.displayName || user.displayName == '') {
+            const result = await AuthComponent.checkAndHandleDisplayName();
+            if (result.success && result.userData) {
+                user = result.userData;
+            } else {
+                return;
+            }
+        }
 
-		// Only render sidebar and main content if authentication succeeds
-		await SidebarComponent.render({
-			userName: user.displayName,
-			showStats: true,
-			showSettings: true,
-			avatarUrl: user.avatar,
-			showBackHome: false,
-			showUserSearch: false,
-			showFriendsBtn: true
-		});
+        // Content-aware sidebar (hides back to home button when on home page)
+        await SidebarComponent.render({
+            userName: user.displayName,
+            showStats: true,
+            showSettings: true,
+            avatarUrl: user.avatar,
+            showBackHome: false, // Hide back to home button since we're on home page
+            showUserSearch: false,
+            showFriendsBtn: true
+        });
 
+        const main = document.createElement("div");
+        main.className = "main-content-home flex items-start justify-center"; // Use special home class
+        document.body.appendChild(main);
 
+        await HomeRender.renderInto(main);
 
-		const main = document.createElement("div");
-		main.className = "min-h-screen min-w-screen flex items-start justify-center";
-		document.body.appendChild(main);
-
-
-
-		await HomeRender.renderInto(main);
-
-
-	} catch (error) {
-		console.error('Failed to fetch user data:', error);
-
-		// Show error and redirect to auth - same as SettingsRender
-		CommonComponent.handleAuthError();
-	}
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        CommonComponent.handleAuthError();
+    }
 }

@@ -75,8 +75,8 @@ export class StatsRender {
 		return header;
 	}
 	static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
-		const container = document.createElement('div');
-		container.className = 'w-[calc(100%-10rem)] min-h-screen flex items-center justify-center p-8';
+		 const container = document.createElement('div');
+        container.className = 'main-content flex items-center justify-center p-8'; // Add main-content class
 
 		// 	      bg-white/90 backdrop-blur-md
 		//   border-2 border-black

@@ -24,14 +24,14 @@ export class HomeRender {
 
 	private static renderMainContent(container: HTMLDivElement, userName: string): void {
 		// sidebar simulée pour flex
-		const sidebarSim = document.createElement('div');
-		sidebarSim.className = "w-[20%] p-6 z-0";
-		container.appendChild(sidebarSim);
+		// const sidebarSim = document.createElement('div');
+		// sidebarSim.className = "w-[20%] p-6 z-0";
+		// container.appendChild(sidebarSim);
 
 		// zone de contenu
 		const content = document.createElement('div');
 		content.className = `
-      w-[100%]
+
       flex flex-col items-center
     `;
 

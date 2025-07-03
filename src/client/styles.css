@@ -21,19 +21,48 @@
     font-style: normal;
 }
 
+/* Responsive content margins to prevent overlap with sidebar */
 .main-content {
-    margin-left: calc(var(--sidebar-width) + var(--sidebar-margin, 1.5rem));
-    transition: margin-left 0.3s ease;
+    margin-left: calc(20rem + 1.5rem); /* sidebar width + margin */
+    width: calc(100% - 20rem - 1.5rem);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 @media (max-width: 1024px) {
     .main-content {
-        margin-left: calc(var(--sidebar-width-md) + var(--sidebar-margin, 1.5rem));
+        margin-left: calc(18rem + 1.5rem); /* md:w-72 + margin */
+        width: calc(100% - 18rem - 1.5rem);
     }
 }
 
 @media (max-width: 768px) {
     .main-content {
-        margin-left: calc(var(--sidebar-width) + var(--sidebar-margin, 1.5rem));
+        margin-left: calc(20rem + 1.5rem); /* w-80 + margin */
+        width: calc(100% - 20rem - 1.5rem);
+    }
+}
+
+/* Special class for homepage to handle fullscreen better */
+.main-content-home {
+    margin-left: calc(20rem + 1.5rem);
+    width: calc(100vw - 20rem - 1.5rem);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+    .main-content-home {
+        margin-left: calc(18rem + 1.5rem);
+        width: calc(100vw - 18rem - 1.5rem);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content-home {
+        margin-left: calc(20rem + 1.5rem);
+        width: calc(100vw - 20rem - 1.5rem);
     }
 }
