@@ -38,7 +38,7 @@ export async function RenderHomePage(): Promise<void> {
         });
 
         const main = document.createElement("div");
-        main.className = "main-content-home flex items-start justify-center"; // Use special home class
+        main.className = "main-content-home flex items-start justify-center responsive-container"; // Add responsive-container
         document.body.appendChild(main);
 
         await HomeRender.renderInto(main);

@@ -17,10 +17,7 @@ let pauseState = { value: false };
 // Sous-fonction pour le wrapper principal
 function createMainWrapper(): HTMLDivElement {
     const wrapper = document.createElement('div');
-    wrapper.className = `
-        main-content
-        min-h-screen flex items-center justify-center p-8 relative
-    `.replace(/\s+/g, ' ').trim();
+    wrapper.className = 'main-content responsive-container flex items-center justify-center relative';
     document.body.appendChild(wrapper);
     return wrapper;
 }
@@ -103,9 +100,9 @@ export async function GamePageCheck() {
 			showFriendsBtn: true
 		});
 
-		const main = document.createElement("div");
-		main.className = 'ml-80 w-[calc(100%-20rem)] min-h-screen flex items-center justify-center p-8 relative';
-		document.body.appendChild(main);
+		// const main = document.createElement("div");
+		// main.className = 'ml-80 w-[calc(100%-20rem)] min-h-screen flex items-center justify-center p-8 relative';
+		// document.body.appendChild(main);
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);
 		// Show error and redirect to auth - same as SettingsRender
@@ -134,9 +131,9 @@ export async function renderPongGamePage() {
 	const wrapper = createMainWrapper();
 
 	// Game container
-	const gameContainer = document.createElement('div');
-	gameContainer.className = 'relative z-0';
-	wrapper.appendChild(gameContainer);
+    const gameContainer = document.createElement('div');
+    gameContainer.className = 'relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center';
+    wrapper.appendChild(gameContainer);
 
 	// const messageDisplay = document.createElement('div');
 	// messageDisplay.id = 'signup-msg-display';
@@ -144,17 +141,22 @@ export async function renderPongGamePage() {
 	// document.body.appendChild(messageDisplay);
 
 	// Titre initial avant le canvas / preview
-	const initialTitle = document.createElement('h2');
-	initialTitle.textContent = 'Ready to pong?';
-	initialTitle.className = 'text-2xl font-["Orbitron"] text-white text-center mb-4';
-	gameContainer.appendChild(initialTitle);
+    const initialTitle = document.createElement('h2');
+    initialTitle.textContent = 'Ready to pong?';
+    initialTitle.className = 'text-2xl font-["Orbitron"] text-white text-center mb-4';
+    gameContainer.appendChild(initialTitle);
 
 	// screen du jeu avant toute partie
-	const previewImgElement = document.createElement('img');
-	previewImgElement.src = previewImg;
-	previewImgElement.alt = 'Pong preview';
-	previewImgElement.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-	gameContainer.appendChild(previewImgElement);
+    const previewImgElement = document.createElement('img');
+    previewImgElement.src = previewImg;
+    previewImgElement.alt = 'Pong preview';
+    previewImgElement.className = `
+        w-full max-w-[800px] h-auto
+        opacity-70 border-2 border-black rounded-md
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all
+        aspect-[800/610]
+    `.replace(/\s+/g, ' ').trim();
+    gameContainer.appendChild(previewImgElement);
 
 	createGameControls(
 		wrapper,

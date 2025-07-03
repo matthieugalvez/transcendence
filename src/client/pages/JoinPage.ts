@@ -93,7 +93,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 	// Wrapper principal
 	const wrapper = document.createElement('div');
-	wrapper.className = 'flex min-h-screen w-full items-center justify-center relative';
+	wrapper.className = 'main-content responsive-container flex min-h-screen w-full items-center justify-center relative';
 	document.body.appendChild(wrapper);
 
 	const gameContainer = document.createElement('div');
