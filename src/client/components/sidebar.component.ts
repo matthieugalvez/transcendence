@@ -18,12 +18,16 @@ export class SidebarComponent {
 	static async render(opts: SidebarOptions) {
 		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true } = opts;
 
+		const currentPath = window.location.pathname;
+		const isProfilePage = currentPath.includes('/profile');
+		const isFriendsPage = currentPath.includes('/friendlist');
+		const isSettingsPage = currentPath.includes('/settings');
+		const isHomePage = currentPath === '/home';
+		const existingSidebar = document.querySelector('.app-sidebar');
+		if (existingSidebar) existingSidebar.remove();
 
-        const existingSidebar = document.querySelector('.app-sidebar');
-        if (existingSidebar) existingSidebar.remove();
-
-        const sidebar = document.createElement("div");
-    sidebar.className = `
+		const sidebar = document.createElement("div");
+		sidebar.className = `
         app-sidebar
         fixed left-2 top-2 h-[96%]
         w-80 md:w-72 lg:w-80
@@ -39,14 +43,18 @@ export class SidebarComponent {
         overflow-y-auto
     `.trim();
 
-// console.log('🔍 Sidebar Avatar URL Debug:', {
-//   avatarUrl,
-//   type: typeof avatarUrl,
-//   isNull: avatarUrl === null,
-//   isUndefined: avatarUrl === undefined,
-//   isEmpty: avatarUrl === '',
-//   isNullString: avatarUrl === 'null'
-// });
+		document.documentElement.style.setProperty('--sidebar-width', '20rem'); // w-80
+		document.documentElement.style.setProperty('--sidebar-width-md', '18rem'); // w-72
+		document.documentElement.style.setProperty('--sidebar-margin', '1.5rem'); // left-2 + right margin
+
+		// console.log('🔍 Sidebar Avatar URL Debug:', {
+		//   avatarUrl,
+		//   type: typeof avatarUrl,
+		//   isNull: avatarUrl === null,
+		//   isUndefined: avatarUrl === undefined,
+		//   isEmpty: avatarUrl === '',
+		//   isNullString: avatarUrl === 'null'
+		// });
 
 
 		// Profil picture of user (with default one if none)
@@ -158,8 +166,8 @@ export class SidebarComponent {
 			const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
 			backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
 			backButton.onclick = () => {
-  				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
-   				router.navigate('/home');
+				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
+				router.navigate('/home');
 			}
 			bottomContainer.appendChild(backButton);
 		}

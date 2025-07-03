@@ -16,12 +16,13 @@ let pauseState = { value: false };
 
 // Sous-fonction pour le wrapper principal
 function createMainWrapper(): HTMLDivElement {
-	const wrapper = document.createElement('div');
-	wrapper.className = `
-    ml-40 w-[calc(100%-15rem)] min-h-screen flex items-center justify-center p-8 relative
-  `.replace(/\s+/g, ' ').trim();
-	document.body.appendChild(wrapper);
-	return wrapper;
+    const wrapper = document.createElement('div');
+    wrapper.className = `
+        main-content
+        min-h-screen flex items-center justify-center p-8 relative
+    `.replace(/\s+/g, ' ').trim();
+    document.body.appendChild(wrapper);
+    return wrapper;
 }
 
 // Sous-fonction pour la barre de contrôles
