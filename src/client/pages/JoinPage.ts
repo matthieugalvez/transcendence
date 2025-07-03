@@ -305,6 +305,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 					if (playerId === 1) {
 						hostUsername = myUsername;
+						renderSettingsBar();
+
 					} else if (playerId === 2) {
 						guestUsername = myUsername;
 					}
