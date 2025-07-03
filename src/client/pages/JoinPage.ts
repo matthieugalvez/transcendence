@@ -23,6 +23,8 @@ let isrendered = true;
 let hasHadDisconnection = false;
 let resumeAlertShown = false;
 let joinedPlayers: number[] = [];
+let gameEnded = false;
+
 
 // Récupérer le username connecté
 async function getUsername() {
@@ -146,6 +148,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			// pongHandle?.socket.close();
 			// deleteCookie(`pongPlayerToken-${gameId}`);
 			// deleteCookie(`pongPlayerId-${gameId}`);
+			setTimeout(() => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				safeNavigate('/statistics');
+			}, 3000);
 
 			await GameService.createMatch(gameId, {
 				playerOneId: p1.id,
@@ -302,7 +308,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					} else if (playerId === 2) {
 						guestUsername = myUsername;
 					}
-					renderSettingsBar();
+					// renderSettingsBar();
 					return;
 				}
 
@@ -369,6 +375,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					}
 
 					if (data.type === 'matchEnd') {
+						gameEnded = true;
 						lastWinner = data.winner;
 						winners.push(data.winner);
 						return;
@@ -417,7 +424,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				}
 
 				if (data.type === 'pause' && data.reason === 'disconnect') {
-					hasHadDisconnection = true;
+					if (!gameEnded) {
+						hasHadDisconnection = true;
+						// Show disconnect message
+					}
 					return;
 				}
 
@@ -426,7 +436,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// console.log('Game state received:', { isRunning: data.isRunning, gameStarted, connectedPlayers: data.connectedPlayers });
 
 					if (mode === 'duo') {
+						const wasConnected = bothPlayersConnected;
+
 						bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
+						if (wasConnected !== bothPlayersConnected) {
+							renderSettingsBar();
+						}
 					} else if (mode === 'tournament') {
 						bothPlayersConnected = joinedPlayers.length === 4;
 					}
@@ -448,7 +463,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					}
 
 					// Initial game setup when both players connect (for duo mode)
-					if (mode === 'duo' && data.connectedPlayers && data.connectedPlayers.length === 2 && isrendered && !hasHadDisconnection) {
+					if (mode === 'duo' && bothPlayersConnected && isrendered && !hasHadDisconnection) {
 						console.log('Both players connected for duo game');
 						if (previewImg.parentNode) previewImg.remove();
 						renderSettingsBar();
