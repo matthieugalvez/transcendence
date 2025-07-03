@@ -9,7 +9,7 @@ export class StatsRender {
 
 		const title = document.createElement('h1');
 		title.textContent = isOwnStats ? 'Your Stats' : `${user.displayName}'s Stats`;
-		title.className = `font-['Orbitron'] text-3xl font-bold text-gray-900`;
+		title.className = `font-['Orbitron'] text-2xl font-bold text-gray-900`;
 
 		// Avatar container with status dot
 		const avatarContainer = document.createElement('div');
@@ -75,61 +75,57 @@ export class StatsRender {
 		return header;
 	}
 	static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
-		 const container = document.createElement('div');
-        container.className = 'main-content flex items-center justify-center p-8'; // Add main-content class
+    const container = document.createElement('div');
+    container.className = 'main-content-centered';
 
-		// 	      bg-white/90 backdrop-blur-md
-		//   border-2 border-black
-		//   rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-		//   max-w-lg w-full mx-4 text-center
+    // Create main container with flex layout and proper height constraint
+    const mainContainer = document.createElement('div');
+    mainContainer.className = 'flex w-full max-w-7xl gap-4 justify-center h-full';
 
-		// Create main container with flex layout
-		const mainContainer = document.createElement('div');
-		mainContainer.className = 'flex w-full max-w-7xl gap-6 justify-center';
-
-		const statsCard = document.createElement('div');
-		statsCard.className = `
+    const statsCard = document.createElement('div');
+    statsCard.className = `
         bg-white/90 backdrop-blur-md
         border-2 border-black
-        rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+        rounded-xl p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
         flex-1 max-w-5xl transition-all duration-300
+        overflow-y-auto compact-container
     `;
 
-		// Header
-		const header = this.createStatsHeader(user, isOwnStats);
-		statsCard.appendChild(header);
+    // Header - make more compact
+    const header = this.createStatsHeader(user, isOwnStats);
+    statsCard.appendChild(header);
 
-		// Fetch detailed stats
-		const statsData = await this.fetchDetailedStats(user.id);
+    // Fetch detailed stats
+    const statsData = await this.fetchDetailedStats(user.id);
 
-		// Overview Cards
-		const overviewSection = this.createOverviewSection(statsData);
-		statsCard.appendChild(overviewSection);
+    // Overview Cards - make more compact
+    const overviewSection = this.createOverviewSection(statsData);
+    statsCard.appendChild(overviewSection);
 
-		// Charts Section
-		const chartsSection = this.createChartsSection(statsData);
-		statsCard.appendChild(chartsSection);
+    // Charts Section - make more compact
+    const chartsSection = this.createChartsSection(statsData);
+    statsCard.appendChild(chartsSection);
 
-		// Recent Matches (using profile page logic)
-		const matchesSection = await this.createDetailedMatchesSection(user.id, user);
-		statsCard.appendChild(matchesSection);
+    // Recent Matches - limit the height
+    const matchesSection = await this.createDetailedMatchesSection(user.id, user);
+    statsCard.appendChild(matchesSection);
 
-		// Recent Tournament
-		const tournamentsSection = await this.createTournamentsSection(user.id, user);
-		statsCard.appendChild(tournamentsSection);
+    // Recent Tournament - limit the height
+    const tournamentsSection = await this.createTournamentsSection(user.id, user);
+    statsCard.appendChild(tournamentsSection);
 
-		// Create match details panel (initially hidden)
-		const matchDetailsPanel = this.createMatchDetailsPanel();
+    // Create match details panel (initially hidden)
+    const matchDetailsPanel = this.createMatchDetailsPanel();
 
-		mainContainer.appendChild(statsCard);
-		mainContainer.appendChild(matchDetailsPanel);
-		container.appendChild(mainContainer);
-		document.body.appendChild(container);
+    mainContainer.appendChild(statsCard);
+    mainContainer.appendChild(matchDetailsPanel);
+    container.appendChild(mainContainer);
+    document.body.appendChild(container);
 
-		// Store references for match detail functionality
-		(window as any).matchDetailsPanel = matchDetailsPanel;
-		(window as any).currentUser = user;
-	}
+    // Store references for match detail functionality
+    (window as any).matchDetailsPanel = matchDetailsPanel;
+    (window as any).currentUser = user;
+}
 
 	private static createMatchDetailsPanel(): HTMLElement {
 		const panel = document.createElement('div');
@@ -507,7 +503,7 @@ export class StatsRender {
 
 		// Show panel with animation
 		panel.style.opacity = '1';
-    	panel.style.transform = 'translateX(-50%) translateY(60%)'; // For fixed positioning
+		panel.style.transform = 'translateX(-50%) translateY(60%)'; // For fixed positioning
 
 		const isWinner = match.winnerId === currentUserId;
 		const opponent = match.playerOneId === currentUserId ? match.playerTwo : match.playerOne;
