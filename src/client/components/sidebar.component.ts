@@ -17,27 +17,44 @@ export interface SidebarOptions {
 export class SidebarComponent {
 	static async render(opts: SidebarOptions) {
 		const { userName, avatarUrl, showStats = false, showBackHome = false, showSettings = false, showUserSearch = true, showFriendsBtn = true } = opts;
+
+		const currentPath = window.location.pathname;
+		const isProfilePage = currentPath.includes('/profile');
+		const isFriendsPage = currentPath.includes('/friendlist');
+		const isSettingsPage = currentPath.includes('/settings');
+		const isHomePage = currentPath === '/home';
+		const existingSidebar = document.querySelector('.app-sidebar');
+		if (existingSidebar) existingSidebar.remove();
+
 		const sidebar = document.createElement("div");
 		sidebar.className = `
-			fixed left-10 top-10 h-[90%] w-80
-			bg-blue-950/70 backdrop-blur-2xl
-			rounded-lg text-lg transition-colors
-			focus:outline-none focus:ring-2
-			shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-			disabled:opacity-50 disabled:cursor-not-allowed
-			border-2 border-black
-			flex flex-col items-start p-6
-			space-y-4 z-11
-    	`.trim();
+        app-sidebar
+        fixed left-2 top-2 h-[96%]
+        w-80 md:w-72 lg:w-80
+        max-w-[calc(100vw-1rem)]
+        bg-blue-950/70 backdrop-blur-2xl
+        rounded-lg text-lg transition-colors
+        focus:outline-none focus:ring-2
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+        disabled:opacity-50 disabled:cursor-not-allowed
+        border-2 border-black
+        flex flex-col items-start p-4 md:p-6
+        space-y-4 z-50
+        overflow-y-auto
+    `.trim();
 
-// console.log('🔍 Sidebar Avatar URL Debug:', {
-//   avatarUrl,
-//   type: typeof avatarUrl,
-//   isNull: avatarUrl === null,
-//   isUndefined: avatarUrl === undefined,
-//   isEmpty: avatarUrl === '',
-//   isNullString: avatarUrl === 'null'
-// });
+		document.documentElement.style.setProperty('--sidebar-width', '20rem'); // w-80
+		document.documentElement.style.setProperty('--sidebar-width-md', '18rem'); // w-72
+		document.documentElement.style.setProperty('--sidebar-margin', '1.5rem'); // left-2 + right margin
+
+		// console.log('🔍 Sidebar Avatar URL Debug:', {
+		//   avatarUrl,
+		//   type: typeof avatarUrl,
+		//   isNull: avatarUrl === null,
+		//   isUndefined: avatarUrl === undefined,
+		//   isEmpty: avatarUrl === '',
+		//   isNullString: avatarUrl === 'null'
+		// });
 
 
 		// Profil picture of user (with default one if none)
@@ -149,8 +166,8 @@ export class SidebarComponent {
 			const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
 			backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
 			backButton.onclick = () => {
-  				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
-   				router.navigate('/home');
+				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
+				router.navigate('/home');
 			}
 			bottomContainer.appendChild(backButton);
 		}

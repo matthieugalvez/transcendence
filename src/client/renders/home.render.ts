@@ -23,25 +23,25 @@ export class HomeRender {
 	}
 
 	private static renderMainContent(container: HTMLDivElement, userName: string): void {
-		// sidebar simulée pour flex
-		const sidebarSim = document.createElement('div');
-		sidebarSim.className = "w-[20%] p-6 z-0";
-		container.appendChild(sidebarSim);
-
 		// zone de contenu
 		const content = document.createElement('div');
 		content.className = `
-      w-[100%]
-      flex flex-col items-center
+        w-full h-full
+        flex flex-col items-center justify-center
+        py-4
     `;
 
-		// Grid de cartes
+		// Grid de cartes with responsive sizing
 		const grid = document.createElement('div')
 		grid.className = `
-      grid grid-cols-1 gap-20
-      relative z-10 mx-auto mt-15
-      font-['Orbitron']
-      place-items-center
+        grid grid-cols-1 gap-8 lg:gap-12
+        relative z-10 mx-auto
+        font-['Orbitron']
+        place-items-center
+        w-full
+        max-h-full
+        overflow-y-auto
+        py-4
     `.trim();
 
 		const games = [
@@ -51,16 +51,17 @@ export class HomeRender {
 		games.forEach(({ title, route, img }) => {
 			const card = document.createElement('div')
 			card.className = `
-        flex flex-col items-center p-8 cursor-pointer
-        hover:scale-105 transition-transform
-      `.trim()
+            flex flex-col items-center p-6 lg:p-8 cursor-pointer
+            hover:scale-105 transition-transform
+            max-w-md w-full
+        `.trim()
 			card.onclick = () => router.navigate(route)
 
-			// Canvas
+			// Canvas with responsive sizing
 			const canvas = document.createElement('canvas')
 			canvas.width = 400
 			canvas.height = 250
-			canvas.className = 'border-2 border-gray-300 rounded-lg'
+			canvas.className = 'border-2 border-gray-300 rounded-lg max-w-full h-auto'
 			const ctx = canvas.getContext('2d')!
 			const image = new Image()
 			image.src = img
@@ -78,7 +79,7 @@ export class HomeRender {
 			grid.appendChild(card)
 		})
 
-		// Add leaderboard card
+		// Add leaderboard card with responsive sizing
 		const leaderboardCard = this.createLeaderboardCard();
 		grid.appendChild(leaderboardCard);
 
@@ -90,23 +91,22 @@ export class HomeRender {
 	private static createLeaderboardCard(): HTMLElement {
 		const card = document.createElement('div');
 		card.className = `
-      flex flex-col items-center p-8 cursor-pointer
-      hover:scale-105 transition-transform
-      bg-white/10 backdrop-blur-md
-      border-2 border-white/30 rounded-lg
-      min-w-[400px]
+        flex flex-col items-center p-6 lg:p-8 cursor-pointer
+        hover:scale-105 transition-transform
+        bg-white/10 backdrop-blur-md
+        border-2 border-white/30 rounded-lg
+        min-w-[300px] max-w-md w-full
+        max-h-[300px]
     `.trim();
 
-		//card.onclick = () => router.navigate('/leaderboard');
-
-		// Leaderboard container
+		// Leaderboard container with responsive height
 		const leaderboardContainer = document.createElement('div');
-		leaderboardContainer.className = 'w-full h-[200px] overflow-hidden';
+		leaderboardContainer.className = 'w-full h-full overflow-hidden flex flex-col';
 
 		// Title
 		const title = document.createElement('h3');
 		title.textContent = 'Leaderboard';
-		title.className = 'text-white font-bold text-lg mb-3 text-center';
+		title.className = 'text-white font-bold text-lg mb-3 text-center flex-shrink-0';
 		leaderboardContainer.appendChild(title);
 
 		// Loading placeholder

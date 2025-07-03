@@ -63,10 +63,10 @@ function createGameWebSocket(
 
 				// Handle specific error types
 				if (data.error === 'already_joined') {
-					CommonComponent.showMessage(
-						`❌ ${data.message || 'You are already in this game'}`,
-						'error'
-					);
+					// CommonComponent.showMessage(
+					// 	`❌ ${data.message || 'You are already in this game'}`,
+					// 	'error'
+					// );
 					if (shouldReloadOnClose) {
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
@@ -166,7 +166,7 @@ function createGameWebSocket(
 	socket.addEventListener('close', (event) => {
 		if (!shouldReloadOnClose) return;
 		if (event.code !== 1000) { // Not a normal closure
-			CommonComponent.showMessage('❌ Connection lost', 'error');
+			// CommonComponent.showMessage('❌ Connection lost', 'error');
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
 				safeNavigate('/home');
