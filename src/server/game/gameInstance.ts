@@ -99,6 +99,10 @@ export class GameInstance {
 				this.players[i].ws = ws;
 				this.players[i].username = username || `Player ${i + 1}`;
 				this.players[i].playerId = i + 1;
+
+				const token = this.assignTokenToPlayer(i + 1);
+				ws.send(JSON.stringify({ type: 'playerToken', playerId: i + 1, playerToken: token }));
+
 				this.setupDisconnect(ws, i + 1);
 
 				// Handle waiting timeout logic here

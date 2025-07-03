@@ -201,15 +201,42 @@ function startClientInputLoop(
 	if (mode === 'solo') {
 		AI = new AI_class
 	}
+
+	let lastFrameTime = performance.now();
+	let frameTimes: number[] = [];
+	let frameCount = 0;
+	requestAnimationFrame(frame);
+
 	function frame() {
-//			if (!g_game_state) {
-//				requestAnimationFrame(frame);
-//				return;
-//			}
+		//			if (!g_game_state) {
+		//				requestAnimationFrame(frame);
+		//				return;
+
+		const now = performance.now();
+		const frameTime = now - lastFrameTime;
+		lastFrameTime = now;
+
+		// Store frame time for analysis
+		frameTimes.push(frameTime);
+		frameCount++;
+
+		// Log performance metrics every 60 frames
+		if (frameCount >= 60) {
+			const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+			const maxFrameTime = Math.max(...frameTimes);
+			const fps = 1000 / avgFrameTime;
+
+			console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
+
+			// Reset metrics
+			frameTimes = [];
+			frameCount = 0;
+		}
+		//			}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null) {
 			if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
@@ -234,7 +261,6 @@ function startClientInputLoop(
 		}
 		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
 	}
-	requestAnimationFrame(frame);
 }
 
 function makeAIInput(AI: AI_class, socket: WebSocket) {
@@ -342,9 +368,15 @@ export function startPongInContainer(
 			}
 			const data = JSON.parse(event.data);
 
+			if (mode === 'duo-local' || mode === 'solo' || mode === 'tournament-online') {
+				setupInputHandlers();
+			}
+
 			if (data.type === 'playerToken') {
 				// Set up input handlers when we get our player token
-				if (mode != 'tournament-online' && !inputLoopStarted) {
+				  console.log(`[TOURNAMENT] Received player token: ${data.playerId} for round`);
+
+				if (!inputLoopStarted) {
 					setupInputHandlers();
 				}
 				return;
