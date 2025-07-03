@@ -3,7 +3,17 @@ import { CommonComponent } from '../components/common.component';
 import { safeNavigate } from '../utils/navigation.utils.js';
 import { router } from '../configs/simplerouter.js';
 
-let g_game_state: GameState
+let g_game_state: GameState = {
+	paddle1: { x: 20, y: 250, width: 10, height: 100 },
+	paddle2: { x: 770, y: 250, width: 10, height: 100 },
+	ball: { x: 400, y: 300, radius: 8 },
+	score1: 0,
+	score2: 0,
+	ballVelocity: { vx: 0, vy: 0 },
+	isRunning: false,
+	isPaused: false,
+	isFreeze: false
+};
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -201,28 +211,52 @@ function startClientInputLoop(
 	if (mode === 'solo') {
 		AI = new AI_class
 	}
+
+	let lastFrameTime = performance.now();
+	let frameTimes: number[] = [];
+	let frameCount = 0;
+	let logInterval = 0;
+	requestAnimationFrame(frame);
+
 	function frame() {
-//			if (!g_game_state) {
-//				requestAnimationFrame(frame);
-//				return;
-//			}
+		//			if (!g_game_state) {
+		//				requestAnimationFrame(frame);
+		//				return;
+
+		const now = performance.now();
+		const frameTime = now - lastFrameTime;
+		lastFrameTime = now;
+
+		// Store frame time for analysis
+		frameTimes.push(frameTime);
+		frameCount++;
+
+		// Log performance metrics every 60 frames
+		if (frameCount >= 60) {
+			const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+			const maxFrameTime = Math.max(...frameTimes);
+			const fps = 1000 / avgFrameTime;
+
+			console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
+
+			// Reset metrics
+			frameTimes = [];
+			frameCount = 0;
+		}
+		//			}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state?.isRunning) {
 			if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
-					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
 				} else if (keysPressed['KeyS']) {
-					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
 					socket.send(JSON.stringify({ playerId: 1, action: 'down' }));
 				}
 				if (keysPressed['ArrowUp']) {
 					socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
-					socket.send(JSON.stringify({ playerId: 2, action: 'up' }));
 				} else if (keysPressed['ArrowDown']) {
-					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 					socket.send(JSON.stringify({ playerId: 2, action: 'down' }));
 				}
 			} else {
@@ -238,7 +272,6 @@ function startClientInputLoop(
 		}
 		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
 	}
-	requestAnimationFrame(frame);
 }
 
 function makeAIInput(AI: AI_class, socket: WebSocket) {
@@ -253,8 +286,8 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
 
-		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-		const	ball_speed = g_game_state.ballVelocity;
+		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+		const ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx <= 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -359,7 +392,7 @@ export function startPongInContainer(
 				return;
 			}
 
-			// ADDED: Game state detection and rendering
+
 			const isGameState = data.type === 'gameState' ||
 				(typeof data === 'object' &&
 					data.hasOwnProperty('paddle1') &&
@@ -370,6 +403,10 @@ export function startPongInContainer(
 
 			if (isGameState) {
 				g_game_state = data;
+
+				if (!inputLoopStarted) {
+					setupInputHandlers();
+				}
 				import('../renders/game.render.js').then(({ renderGame }) => {
 					renderGame(ctx, data);
 				});
