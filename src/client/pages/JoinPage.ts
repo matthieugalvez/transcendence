@@ -458,7 +458,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					}
 
 					// Initial game setup when both players connect (for duo mode)
-					if (mode === 'duo' && data.connectedPlayers && data.connectedPlayers.length === 2 && isrendered && !hasHadDisconnection) {
+					if (mode === 'duo' && bothPlayersConnected && isrendered && !hasHadDisconnection) {
 						console.log('Both players connected for duo game');
 						if (previewImg.parentNode) previewImg.remove();
 						renderSettingsBar();
