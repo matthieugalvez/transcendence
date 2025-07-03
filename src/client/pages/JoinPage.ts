@@ -308,7 +308,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					} else if (playerId === 2) {
 						guestUsername = myUsername;
 					}
-					renderSettingsBar();
+					// renderSettingsBar();
 					return;
 				}
 
@@ -437,6 +437,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 					if (mode === 'duo') {
 						const wasConnected = bothPlayersConnected;
+
 						bothPlayersConnected = !!data.connectedPlayers && data.connectedPlayers.length === 2;
 						if (wasConnected !== bothPlayersConnected) {
 							renderSettingsBar();
