@@ -60,16 +60,16 @@ app.get('/avatars/:filename', async (request, reply) => {
             console.log('❌ Avatar not found, trying default');
 
             // Try default from the same directory first
-            const defaultPath = path.join(avatarDir, 'lol234');
+            const defaultPath = path.join(avatarDir, 'default.svg');
             if (fs.existsSync(defaultPath)) {
                 console.log('✅ Serving default avatar from:', defaultPath);
-                return reply.sendFile('lol234', avatarDir);
+                return reply.sendFile('default.svg', avatarDir);
             } else {
                 // Fallback to development path for default avatar
-                const devDefaultPath = path.join(process.cwd(), 'src/server/db/users', 'lol234');
+                const devDefaultPath = path.join(process.cwd(), 'src/server/db/users', 'default.svg');
                 if (fs.existsSync(devDefaultPath)) {
                     console.log('✅ Serving default avatar from dev path:', devDefaultPath);
-                    return reply.sendFile('lol234', path.join(process.cwd(), 'src/server/db/users'));
+                    return reply.sendFile('default.svg', path.join(process.cwd(), 'src/server/db/users'));
                 } else {
                     console.log('❌ Default avatar not found anywhere');
                     return reply.code(404).send({ error: 'Avatar not found' });

@@ -200,7 +200,7 @@ private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
         currentAvatar.src = currentAvatarUrl;
     } else {
         console.log('⚠️ No valid avatar URL, using default');
-        currentAvatar.src = '/avatars/lol234';
+        currentAvatar.src = '/avatars/default.svg';
     }
 
     currentAvatar.alt = 'Current avatar';
@@ -215,12 +215,12 @@ private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
         console.error('❌ Avatar load failed for:', currentAvatar.src);
         console.error('Error event:', e);
 
-        if (currentAvatar.src.includes('lol234')) {
+        if (currentAvatar.src.includes('default.svg')) {
             console.error('❌ Even default avatar failed to load!');
             // Don't set onerror to null here, let it fail visibly
         } else {
             console.log('🔄 Falling back to default avatar');
-            currentAvatar.src = '/avatars/lol234';
+            currentAvatar.src = '/avatars/default.svg';
         }
     };
 
