@@ -144,15 +144,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			const p1 = await UserService.getUserProfileByDisplayName(hostName);
 			const p2 = await UserService.getUserProfileByDisplayName(guestName);
 
-			showGameOverOverlay(wrapper, `${winnerName}`, "online");
-			// pongHandle?.socket.close();
-			// deleteCookie(`pongPlayerToken-${gameId}`);
-			// deleteCookie(`pongPlayerId-${gameId}`);
-			setTimeout(() => {
-				window.dispatchEvent(new Event('app:close-sockets'));
-				safeNavigate('/statistics');
-			}, 3000);
-
 			await GameService.createMatch(gameId, {
 				playerOneId: p1.id,
 				playerTwoId: p2.id,
@@ -162,6 +153,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				playerTwoScore: score2
 			}
 			).catch(err => console.error('Erreur stats:', err));
+
+			showGameOverOverlay(wrapper, `${winnerName}`, "online");
+			// pongHandle?.socket.close();
+			// deleteCookie(`pongPlayerToken-${gameId}`);
+			// deleteCookie(`pongPlayerId-${gameId}`);
+			setTimeout(() => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				safeNavigate('/statistics');
+			}, 3000);
 		}
 		: () => { };
 	const wsHandler = startPongInContainer(
