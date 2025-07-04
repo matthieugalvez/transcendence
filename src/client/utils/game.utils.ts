@@ -292,7 +292,6 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
-	// Titre
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
@@ -311,8 +310,6 @@ export function startPongInContainer(
 
 	drawBackground(bg_ctx);
 	
-	var rect = bg_canvas.getBoundingClientRect();
-
 	const game_canvas = document.createElement('canvas');
 	game_canvas.className = 'border-2 border-black rounded-md';
 	game_canvas.width = 800;
@@ -336,10 +333,12 @@ export function startPongInContainer(
 
 	const UI_ctx = UI_canvas.getContext('2d')!;
 	if (!UI_ctx) throw new Error('Impossible de récupérer le context 2D');
+	UI_ctx.font = '80px Canada-big';
+	UI_ctx.fillStyle = '#fff';
+	UI_ctx.shadowBlur = 18;
 
 	drawScores(UI_ctx, 0, 0);
 
-	// WebSocket
 	const wsHandler = createGameWebSocket(gameId, leftPlayer, rightPlayer, onFinish, mode);
 	const { socket, getPlayerId } = wsHandler;
 
@@ -408,7 +407,6 @@ export function startPongInContainer(
 				// Check for match end
 				if (data.score1 >= 5 || data.score2 >= 5) {
 					const winnerId = data.score1 >= 5 ? 1 : 2;
-					// console.log('[GAME UTILS] Match ended, winner:', winnerId);
 					onFinish(winnerId, data.score1, data.score2);
 				}
 				return;

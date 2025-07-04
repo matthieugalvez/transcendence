@@ -24,13 +24,10 @@ function drawRoundedRect(
 	ctx.closePath();
 	ctx.fill();
 	if (borderColor) {
-		const	border_ctx = ctx.canvas.getContext("2d");
-		if (border_ctx) {
-			border_ctx.strokeStyle = borderColor;
-			border_ctx.lineWidth = borderWidth;
-			border_ctx.shadowBlur = 0;
-			border_ctx.stroke();
-		}
+		ctx.strokeStyle = borderColor;
+		ctx.lineWidth = borderWidth;
+		ctx.shadowBlur = 0;
+		ctx.stroke();
 	}
 }
 
@@ -57,23 +54,19 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): voi
 
   // Affichage de "Paused" si jeu en pause
 	if (state.isPaused) {
-		const	pause_ctx = ctx.canvas.getContext("2d");
-		if (pause_ctx) {
-			pause_ctx.globalAlpha = 0.7;
-			pause_ctx.fillStyle = "#000";
-			pause_ctx.fillRect(0, pause_ctx.canvas.height / 2 - 60, pause_ctx.canvas.width, 120);
-			pause_ctx.globalAlpha = 1;
-			pause_ctx.fillStyle = "#FFF";
-			pause_ctx.font = "70px Orbitron, sans-serif";
-			pause_ctx.textAlign = "center";
-			pause_ctx.fillText("PAUSED", pause_ctx.canvas.width / 2, pause_ctx.canvas.height / 2 + 20);
-		}
+		ctx.globalAlpha = 0.7;
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, ctx.canvas.height / 2 - 60, ctx.canvas.width, 120);
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = "#FFF";
+		ctx.font = "70px Orbitron, sans-serif";
+		ctx.textAlign = "center";
+		ctx.fillText("PAUSED", ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
 	}
 }
 
 export function drawScores(ctx: CanvasRenderingContext2D, score1: number, score2: number) {
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	ctx.font = '80px Canada-big';
 
 	const xCenter = ctx.canvas.width / 2;
 	const score1Text = score1.toString();
@@ -83,18 +76,14 @@ export function drawScores(ctx: CanvasRenderingContext2D, score1: number, score2
 	const y = 90;
 
 	// Score gauche
-	ctx.fillStyle = '#fff';
 	ctx.shadowColor = '#8024ab';
-	ctx.shadowBlur = 18;
 	ctx.strokeStyle = 'purple';
 	ctx.lineWidth = 3;
 	ctx.strokeText(score1Text, xCenter - gap - score1Width, y);
 	ctx.fillText(score1Text, xCenter - gap - score1Width, y);
 
 	// Score droit
-	ctx.fillStyle = '#fff';
 	ctx.shadowColor = '#FFA940';
-	ctx.shadowBlur = 18;
 	ctx.strokeStyle = '#db8e30';
 	ctx.lineWidth = 2;
 	ctx.strokeText(score2Text, xCenter + gap, y);
