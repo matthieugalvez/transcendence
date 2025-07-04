@@ -15,13 +15,12 @@ import { statsRoutes } from './stats.routes.js';
 import { inviteRoutes } from './invite.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
-	// Health check routes (no prefix - accessible at root)
 
 	// API routes with /api prefix
 	await app.register(async function (fastify) {
 		await app.register(healthRoutes)
 		await fastify.register(authRoutes, { prefix: '/auth' })
-		await fastify.register(userRoutes) // Remove /users prefix since it's already in the routes
+		await fastify.register(userRoutes)
 		await fastify.register(registerPongWebSocket, { prefix: '/game' });
 		await fastify.register(chatRoutes, { prefix: '/chat' });
 		await fastify.register(friendsRoutes)
