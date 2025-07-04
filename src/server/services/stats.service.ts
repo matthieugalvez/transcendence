@@ -12,33 +12,12 @@ export class StatsService {
 		playerTwoScore: number
 	) {
 		try {
-			console.log(`Creating match: ${gameId}, Winner: ${winnerId}, Type: ${matchType}`);
-
-			// Check if match already exists to prevent duplicates
-			const existingMatch = await prisma.match.findFirst({
-				where: {
-					playerOneId,
-					playerTwoId,
-					playerOneScore,
-					playerTwoScore,
-					matchType,
-					createdAt: {
-						gte: new Date(Date.now() - 10000) // Within last 10 seconds
-					}
-				}
-			});
-
-			if (existingMatch) {
-				console.log('Match already exists, skipping creation and stats increment');
-				return existingMatch;
-			}
-
-			// Generate a unique match ID to prevent duplicates
+			// Generate a unique match ID
 			const matchId = `${gameId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 			const match = await prisma.match.create({
 				data: {
-					id: matchId,
+					id: matchId, // Use unique match ID
 					playerOneId,
 					playerTwoId,
 					winnerId,
@@ -65,52 +44,68 @@ export class StatsService {
 				}
 			});
 
-			// Only increment stats if we have a winner and the match was actually created
-			if (winnerId && match) {
-				console.log(`Incrementing stats: Winner ${winnerId}, Loser ${winnerId === playerOneId ? playerTwoId : playerOneId}`);
+			// Update user statistics for both players
+			if (winnerId) {
+				// Increment win for winner
+				//await this.incrementWin(winnerId, matchType);
 
-				// Use a transaction to ensure atomicity
-				await prisma.$transaction(async (tx) => {
-					// Increment win for winner
-					const winField = matchType === 'ONE_V_ONE' ? 'oneVOneWins' : 'tournamentWins';
-					await tx.userStats.upsert({
-						where: { userId: winnerId },
-						update: {
-							[winField]: { increment: 1 }
-						},
-						create: {
-							userId: winnerId,
-							oneVOneWins: matchType === 'ONE_V_ONE' ? 1 : 0,
-							oneVOneLosses: 0,
-							tournamentWins: matchType === 'TOURNAMENT' ? 1 : 0,
-							tournamentLosses: 0,
-						}
-					});
-
-					// Increment loss for loser
-					const loserId = winnerId === playerOneId ? playerTwoId : playerOneId;
-					const lossField = matchType === 'ONE_V_ONE' ? 'oneVOneLosses' : 'tournamentLosses';
-					await tx.userStats.upsert({
-						where: { userId: loserId },
-						update: {
-							[lossField]: { increment: 1 }
-						},
-						create: {
-							userId: loserId,
-							oneVOneWins: 0,
-							oneVOneLosses: matchType === 'ONE_V_ONE' ? 1 : 0,
-							tournamentWins: 0,
-							tournamentLosses: matchType === 'TOURNAMENT' ? 1 : 0,
-						}
-					});
-				});
-
-				console.log('Stats incremented successfully');
+				// Increment loss for loser
+				const loserId = winnerId === playerOneId ? playerTwoId : playerOneId;
+				//await this.incrementLoss(loserId, matchType);
 			}
 
 			return match;
 		} catch (error) {
 			console.error('Error creating match:', error);
+			throw error;
+		}
+	}
+	static async getUserStats(userId: string) {
+		try {
+			const userStats = await prisma.userStats.findUnique({
+				where: { userId }
+			});
+
+			if (!userStats) {
+				// Create default stats if they don't exist
+				return await prisma.userStats.create({
+					data: {
+						userId,
+						oneVOneWins: 0,
+						oneVOneLosses: 0,
+						tournamentWins: 0,
+						tournamentLosses: 0,
+					}
+				});
+			}
+
+			return userStats;
+		} catch (error) {
+			console.error('Error fetching user stats:', error);
+			throw error;
+		}
+	}
+
+	static async updateUserStats(userId: string, stats: {
+		oneVOneWins?: number;
+		oneVOneLosses?: number;
+		tournamentWins?: number;
+		tournamentLosses?: number;
+	}) {
+		try {
+			return await prisma.userStats.upsert({
+				where: { userId },
+				update: stats,
+				create: {
+					userId,
+					oneVOneWins: stats.oneVOneWins || 0,
+					oneVOneLosses: stats.oneVOneLosses || 0,
+					tournamentWins: stats.tournamentWins || 0,
+					tournamentLosses: stats.tournamentLosses || 0,
+				}
+			});
+		} catch (error) {
+			console.error('Error updating user stats:', error);
 			throw error;
 		}
 	}
