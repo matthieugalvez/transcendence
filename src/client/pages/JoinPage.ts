@@ -136,8 +136,19 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	// --- Attente de la websocket ---
 	const matchTitle = `${hostUsername} vs ${guestUsername}`;
 	// duo finish
+	let matchCreated = false;
+
 	const onFinish = mode === 'duo'
 		? async (winnerId: number, score1: number, score2: number) => {
+			// Prevent multiple calls
+			if (matchCreated) {
+				console.log('Match already created, skipping');
+				return;
+			}
+			matchCreated = true;
+
+			console.log(`Creating match: Winner ${winnerId}, Scores ${score1}-${score2}`);
+
 			const titleText = gameContainer.querySelector('h2')!.textContent!;
 			const [hostName, guestName] = titleText.split(' vs ');
 			const winnerName = winnerId === 1 ? hostName : guestName;
@@ -146,23 +157,28 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 			showGameOverOverlay(wrapper, `${winnerName}`, "online");
 			pongHandle?.socket.close();
-			// deleteCookie(`pongPlayerToken-${gameId}`);
-			// deleteCookie(`pongPlayerId-${gameId}`);
+
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
 				safeNavigate('/statistics');
 			}, 3000);
 
-			await GameService.createMatch(gameId, {
-				playerOneId: p1.id,
-				playerTwoId: p2.id,
-				winnerId: winnerId === 1 ? p1.id : p2.id,
-				matchType: 'ONE_V_ONE',
-				playerOneScore: score1,
-				playerTwoScore: score2
+			if(playerId == 1) {
+			try {
+				const match = await GameService.createMatch(gameId, {
+					playerOneId: p1.id,
+					playerTwoId: p2.id,
+					winnerId: winnerId === 1 ? p1.id : p2.id,
+					matchType: 'ONE_V_ONE',
+					playerOneScore: score1,
+					playerTwoScore: score2
+				});
+				console.log('Match created successfully:', match);
+			} catch (err) {
+				console.error('Error creating match:', err);
 			}
-			).catch(err => console.error('Erreur stats:', err));
 		}
+	}
 		: () => { };
 	const wsHandler = startPongInContainer(
 		gameContainer,
@@ -371,7 +387,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 							if (canvas) canvas.classList.remove('blur-xs');
 							transition.remove();
 							pongHandle?.start();
-						}, 4000);
+						}, 3000);
 						renderSettingsBar();
 						return;
 					}
