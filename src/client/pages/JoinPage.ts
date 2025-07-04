@@ -96,15 +96,28 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	wrapper.className = 'main-content responsive-container flex min-h-screen w-full items-center justify-center relative';
 	document.body.appendChild(wrapper);
 
+	// Create flex container for game and settings
+	const gameAndSettingsContainer = document.createElement('div');
+	gameAndSettingsContainer.className = 'flex items-start justify-center gap-6 w-full max-w-7xl mx-auto';
+	wrapper.appendChild(gameAndSettingsContainer);
+
+	// Game container (left side)
 	const gameContainer = document.createElement('div');
-	gameContainer.className = 'relative z-10';
-	wrapper.appendChild(gameContainer);
+	gameContainer.className = 'relative z-10 flex flex-col items-center';
+	gameAndSettingsContainer.appendChild(gameContainer);
+
+	// Settings container (right side)
+	const settingsContainer = document.createElement('div');
+	settingsContainer.id = 'settings-container';
+	settingsContainer.className = 'flex-shrink-0';
+	gameAndSettingsContainer.appendChild(settingsContainer);
 
 	// screen du jeu avant toute partie
 	const previewImg = document.createElement('img');
 	previewImg.src = pongPreviewImg;
 	previewImg.alt = 'Pong preview';
-	previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
+	previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all mb-4';
+	previewImg.id = 'pong-preview-image';
 	gameContainer.appendChild(previewImg);
 
 	// --- Récupère le username du joueur connecté (GUEST ou HOST) ---
@@ -163,22 +176,22 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				safeNavigate('/statistics');
 			}, 3000);
 
-			if(playerId == 1) {
-			try {
-				const match = await GameService.createMatch(gameId, {
-					playerOneId: p1.id,
-					playerTwoId: p2.id,
-					winnerId: winnerId === 1 ? p1.id : p2.id,
-					matchType: 'ONE_V_ONE',
-					playerOneScore: score1,
-					playerTwoScore: score2
-				});
-				console.log('Match created successfully:', match);
-			} catch (err) {
-				console.error('Error creating match:', err);
+			if (playerId == 1) {
+				try {
+					const match = await GameService.createMatch(gameId, {
+						playerOneId: p1.id,
+						playerTwoId: p2.id,
+						winnerId: winnerId === 1 ? p1.id : p2.id,
+						matchType: 'ONE_V_ONE',
+						playerOneScore: score1,
+						playerTwoScore: score2
+					});
+					console.log('Match created successfully:', match);
+				} catch (err) {
+					console.error('Error creating match:', err);
+				}
 			}
 		}
-	}
 		: () => { };
 	const wsHandler = startPongInContainer(
 		gameContainer,
@@ -215,12 +228,14 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	// Message d’attente
 	const waiting = document.createElement('div');
 	waiting.className = `
-    text-white text-2xl p-10 z-20 absolute top-[14,5%] left-1/2 -translate-x-1/2
-    capitalize
-    font-[Orbitron]
-  `;
+    text-white text-2xl p-10 z-20 absolute
+    top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+    capitalize font-[Orbitron] text-center
+    bg-black/50 rounded-lg backdrop-blur-sm
+    border-2 border-white/20
+`;
 	waiting.textContent = "Connecting...";
-	wrapper.appendChild(waiting);
+	gameContainer.appendChild(waiting);
 
 	// const messageDisplay = document.createElement('div');
 	// messageDisplay.id = 'signup-msg-display';
@@ -510,9 +525,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// Start the game when running
 					if (data.isRunning && !gameStarted) {
 						console.log('Starting game...');
+
+						// Remove preview image
+						const preview = document.getElementById('pong-preview-image');
+						if (preview && preview.parentNode) {
+							preview.parentNode.removeChild(preview);
+						}
+
 						pongHandle?.start();
 						if (canvas) canvas.classList.remove('blur-xs');
-						if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
 						if (waiting.parentNode) waiting.remove();
 						gameStarted = true;
 						resumeAlertShown = false;
@@ -587,10 +608,19 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	function renderSettingsBar() {
 		console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
 
+		// Clear existing settings
+		settingsContainer.innerHTML = '';
+
 		if (mode === 'duo') {
 			// Host : copy link, start game
 			if (playerId === 1) {
-				GameSettingsComponent.render('duo-online', {
+				// Remove preview image when host gets the settings bar (means they've selected online mode)
+				const preview = document.getElementById('pong-preview-image');
+				if (preview && preview.parentNode) {
+					preview.parentNode.removeChild(preview);
+				}
+
+				const settingsBar = GameSettingsComponent.render('duo-online', {
 					getOnlineLink: () => getShareableLink(gameId, 'duo'),
 					onCopyLink: async (link) => {
 						navigator.clipboard.writeText(link);
@@ -604,13 +634,17 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					onStartGame: async () => {
 						console.log('Host starting game...');
 						pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-						GameSettingsComponent.render('solo-start', {
+
+						// Update settings bar to show game controls
+						const newSettingsBar = GameSettingsComponent.render('solo-start', {
 							onPauseGame: () => {
 								pauseState.value = !pauseState.value;
 								pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
 							},
 							onRestartGame: () => window.location.reload(),
 						});
+						settingsContainer.innerHTML = '';
+						settingsContainer.appendChild(newSettingsBar);
 					},
 					onPauseGame: () => {
 						pauseState.value = !pauseState.value;
@@ -623,22 +657,36 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						}
 					}
 				});
+				settingsContainer.appendChild(settingsBar);
 			}
 			// Guest : pas de bouton start/copy, juste pause
 			else if (playerId === 2) {
-				GameSettingsComponent.render('duo-guest', {
+				// Remove preview image when guest joins (means they've selected online mode by joining)
+				const preview = document.getElementById('pong-preview-image');
+				if (preview && preview.parentNode) {
+					preview.parentNode.removeChild(preview);
+				}
+
+				const settingsBar = GameSettingsComponent.render('duo-guest', {
 					onPauseGame: () => {
 						pauseState.value = !pauseState.value;
 						pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
 					},
 				});
+				settingsContainer.appendChild(settingsBar);
 			}
 			else {
-				GameSettingsComponent.render('initial', {});
+				const settingsBar = GameSettingsComponent.render('initial', {});
+				settingsContainer.appendChild(settingsBar);
 			}
 		} else {
-			// Tournament mode
-			GameSettingsComponent.render('tournament-online', {
+			// Tournament mode - remove preview when tournament mode is active
+			const preview = document.getElementById('pong-preview-image');
+			if (preview && preview.parentNode) {
+				preview.parentNode.removeChild(preview);
+			}
+
+			const settingsBar = GameSettingsComponent.render('tournament-online', {
 				getOnlineLink: () => getShareableLink(gameId, 'tournament'),
 				onCopyLink: async (link) => {
 					// navigator.clipboard.writeText(link);
@@ -652,13 +700,16 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				onStartGame: async () => {
 					console.log('Host starting tournament...');
 					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
-					GameSettingsComponent.render('solo', {
+
+					const newSettingsBar = GameSettingsComponent.render('solo', {
 						onPauseGame: () => {
 							pauseState.value = !pauseState.value;
 							pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
 						},
 						onRestartGame: () => window.location.reload(),
 					});
+					settingsContainer.innerHTML = '';
+					settingsContainer.appendChild(newSettingsBar);
 				},
 				onPauseGame: () => {
 					pauseState.value = !pauseState.value;
@@ -671,6 +722,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					}
 				}
 			});
+			settingsContainer.appendChild(settingsBar);
 		}
 	}
 }
