@@ -68,7 +68,7 @@ export class UserController {
 				avatarUrl = `/avatars/${avatarUrl}`;
 			} else if (!avatarUrl) {
 				// No avatar set, use default
-				avatarUrl = `/avatars/default.svg`;
+				avatarUrl = `/avatars/lol234`;
 			}
 
 			const userData = {
@@ -320,7 +320,7 @@ export class UserController {
 				displayName: user.displayName,
 				avatar: user.avatar
 					? (user.avatar.startsWith('/avatars/') ? user.avatar : `/avatars/${user.avatar}`)
-					: '/avatars/default.svg'
+					: '/avatars/lol234'
 			}));
 
 			return Send.success(reply, userData, 'Users search completed');
@@ -355,7 +355,7 @@ export class UserController {
 				const filename = avatarUrl.replace(/^\.\/db\/users\//, '');
 				avatarUrl = `/avatars/${filename}`;
 			} else if (!avatarUrl) {
-				avatarUrl = '/avatars/default.svg';
+				avatarUrl = '/avatars/lol234';
 			}
 			const userData = {
 				id: user.id,

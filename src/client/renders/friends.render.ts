@@ -127,7 +127,7 @@ export class FriendsRender {
 			// If avatar starts with /avatars/, use as-is, otherwise prepend /avatars/
 			avatar.src = friend.avatar.startsWith('/avatars/') ? friend.avatar : `/avatars/${friend.avatar}`;
 		} else {
-			avatar.src = '/avatars/default.svg';
+			avatar.src = '/avatars/lol234';
 		}
 
 		avatar.alt = `${friend.displayName}'s avatar`;

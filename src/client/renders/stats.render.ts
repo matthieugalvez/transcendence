@@ -428,7 +428,7 @@ export class StatsRender {
 
 			// Current user avatar
 			const userAvatar = document.createElement('img');
-			userAvatar.src = user.avatar || '/avatars/default.svg';
+			userAvatar.src = user.avatar || '/avatars/lol234';
 			userAvatar.alt = user.displayName;
 			userAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -439,7 +439,7 @@ export class StatsRender {
 
 			// Opponent avatar
 			const opponentAvatar = document.createElement('img');
-			opponentAvatar.src = opponent?.avatar || '/avatars/default.svg';
+			opponentAvatar.src = opponent?.avatar || '/avatars/lol234';
 			opponentAvatar.alt = opponent?.displayName || 'Unknown';
 			opponentAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -532,7 +532,7 @@ export class StatsRender {
 
                 <!-- Opponent Info -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg flex items-center space-x-3">
-                    <img src="${opponent?.avatar || '/avatars/default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
+                    <img src="${opponent?.avatar || '/avatars/lol234'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="font-medium text-lg">${opponent?.displayName || 'Unknown Player'}</div>
                         <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : 'Tournament'}</div>
