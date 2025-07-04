@@ -18,7 +18,6 @@ export class StatsService {
 			const match = await prisma.match.create({
 				data: {
 					id: matchId, // Use unique match ID
-					gameId: gameId, // Store gameId separately if needed
 					playerOneId,
 					playerTwoId,
 					winnerId,
