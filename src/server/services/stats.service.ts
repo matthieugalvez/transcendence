@@ -18,6 +18,7 @@ export class StatsService {
 			const match = await prisma.match.create({
 				data: {
 					id: matchId, // Use unique match ID
+					gameId: gameId, // Store gameId separately if needed
 					playerOneId,
 					playerTwoId,
 					winnerId,
@@ -47,11 +48,11 @@ export class StatsService {
 			// Update user statistics for both players
 			if (winnerId) {
 				// Increment win for winner
-				//await this.incrementWin(winnerId, matchType);
+				await this.incrementWin(winnerId, matchType);
 
 				// Increment loss for loser
 				const loserId = winnerId === playerOneId ? playerTwoId : playerOneId;
-				//await this.incrementLoss(loserId, matchType);
+				await this.incrementLoss(loserId, matchType);
 			}
 
 			return match;
