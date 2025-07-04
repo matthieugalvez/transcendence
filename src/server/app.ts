@@ -45,27 +45,7 @@ async function setupServer() {
 		await registerRoutes(app);
 		await registerPongWebSocket(app);
 		await registerUserStatusWebSocket(app);
-
-		console.log('🔍 Checking avatar directory on startup...');
-		const avatarDir = process.env.NODE_ENV === 'production'
-			? '/app/src/server/db/users'
-			: path.join(process.cwd(), 'src/server/db/users');
-
-		console.log('Avatar directory:', avatarDir);
-		console.log('Directory exists:', fs.existsSync(avatarDir));
-
-		if (fs.existsSync(avatarDir)) {
-			const files = fs.readdirSync(avatarDir);
-			console.log('Files in avatar directory:', files);
-			console.log('default.svg exists:', files.includes('default.svg'));
-
-			if (files.includes('default.svg')) {
-				const defaultPath = path.join(avatarDir, 'default.svg');
-				const stats = fs.statSync(defaultPath);
-				console.log('default.svg size:', stats.size, 'bytes');
-				console.log('default.svg permissions:', stats.mode.toString(8));
-			}
-		}
+		
 
 		console.log('✅ Server setup completed');
 	} catch (error) {
