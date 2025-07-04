@@ -33,6 +33,8 @@ app.get('/avatars/:filename', async (request, reply) => {
 
     // Use different paths for development vs production
     let avatarDir: string;
+	    let fallbackDir: string;
+
 
     if (process.env.NODE_ENV === 'production') {
         // In Docker container, use the uploaded avatars directory
