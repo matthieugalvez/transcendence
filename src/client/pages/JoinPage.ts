@@ -146,7 +146,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 			showGameOverOverlay(wrapper, `${winnerName}`, "online");
 			pongHandle?.socket.close();
-
+			// deleteCookie(`pongPlayerToken-${gameId}`);
+			// deleteCookie(`pongPlayerId-${gameId}`);
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
 				safeNavigate('/statistics');
@@ -366,11 +367,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						gameStarted = false;
 						isrendered = true;
 
-						// setTimeout(() => {
-						// 	if (canvas) canvas.classList.remove('blur-xs');
-						// 	transition.remove();
-						// 	pongHandle?.start();
-						// }, 4000);
+						setTimeout(() => {
+							if (canvas) canvas.classList.remove('blur-xs');
+							transition.remove();
+							pongHandle?.start();
+						}, 4000);
 						renderSettingsBar();
 						return;
 					}

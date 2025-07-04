@@ -465,7 +465,7 @@ export function startPongInContainer(
 				});
 
 				// Check for match end
-				if (data.score1 >= 5 || data.score2 >= 5) {
+				if (mode != 'tournament-online' && (data.score1 >= 5 || data.score2 >= 5)) {
 					const winnerId = data.score1 >= 5 ? 1 : 2;
 					onFinish(winnerId, data.score1, data.score2);
 				}

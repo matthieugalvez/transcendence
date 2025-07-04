@@ -97,14 +97,24 @@ export class TournamentRoom {
 			p2 = this.winners[1];
 			spectators = this.players.filter(p => p !== p1 && p !== p2);
 		}
+
 		this.currentPlayers = [p1, p2];
 		this.currentGame = new GameInstance(this.gameId, this.difficulty);
 		this.currentGame.onEnd(async (winnerId) => await this.handleMatchEnd(winnerId));
+
 		if (p1.ws) this.currentGame.addClient(p1.ws, p1.username);
 		if (p2.ws) this.currentGame.addClient(p2.ws, p2.username);
 
 		spectators.forEach(s => { if (s.ws) this.currentGame!.addSpectator(s.ws); });
-		this.broadcastAll(JSON.stringify({ type: 'matchStart', players: [p1.username, p2.username] }));
+
+		// Send match start notification
+		this.broadcastAll(JSON.stringify({
+			type: 'matchStart',
+			players: [p1.username, p2.username],
+			currentMatch: this.currentMatch + 1,
+			totalMatches: 3
+		}));
+
 		this.broadcastPlayerList();
 	}
 
