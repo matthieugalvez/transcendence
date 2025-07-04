@@ -6,6 +6,7 @@ export class GameService {
             throw new Error('Impossible de démarrer la partie');
         return data.gameId;
     }
+	
     static async createMatch(gameId, matchData) {
         try {
             const response = await fetch(`/api/match/create/${gameId}`, {
