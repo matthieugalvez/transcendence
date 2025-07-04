@@ -575,22 +575,6 @@ export class StatsRender {
 		});
 	}
 
-	private static calculateMatchDuration(match: any): string {
-		// If match has duration data, use it
-		if (match.duration) {
-			const minutes = Math.floor(match.duration / 60);
-			const seconds = match.duration % 60;
-			return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-		}
-
-		// Otherwise estimate based on scores (rough estimate: ~30 seconds per point)
-		const totalPoints = (match.playerOneScore || 0) + (match.playerTwoScore || 0);
-		const estimatedSeconds = totalPoints * 30;
-		const minutes = Math.floor(estimatedSeconds / 60);
-		const seconds = estimatedSeconds % 60;
-		return `~${minutes}:${seconds.toString().padStart(2, '0')}`;
-	}
-
 	private static async fetchDetailedStats(userId: string): Promise<any> {
 		try {
 			const response = await fetch(`/api/users/${userId}/stats`, {
