@@ -73,11 +73,11 @@ export class SidebarComponent {
 		sidebar.appendChild(profilPic);
 
 		// Add emoji decorations
-		const gameEmoji = document.createElement('div');
-		gameEmoji.textContent = '🏓';
-		gameEmoji.className = 'text-4xl mb-4 -mt-8 z-10';
-		gameEmoji.classList.add("w-full", "text-center");
-		sidebar.appendChild(gameEmoji);
+		// const gameEmoji = document.createElement('div');
+		// gameEmoji.textContent = '🏓';
+		// gameEmoji.className = 'text-4xl mb-4 -mt-8 z-10';
+		// gameEmoji.classList.add("w-full", "text-center");
+		// sidebar.appendChild(gameEmoji);
 
 		// Welcome title with user's name
 		const pageTitle = document.createElement('h1');
