@@ -248,7 +248,7 @@ export class GameSettingsComponent {
 				startBtn.disabled = false;
 				startBtn.classList.remove('opacity-40', 'cursor-not-allowed');
 			}
-			startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
+			startBtn.onclick = () => callbacks.onStartGame?.('tournament-online', GameSettingsComponent.currentDifficulty); // test ecole
 			settingsBar.appendChild(startBtn);
 			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
 			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));

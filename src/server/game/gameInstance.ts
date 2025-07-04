@@ -97,6 +97,10 @@ export class GameInstance {
 				this.players[i].ws = ws;
 				this.players[i].username = username || `Player ${i + 1}`;
 				this.players[i].playerId = i + 1;
+
+				const token = this.assignTokenToPlayer(i + 1);
+				ws.send(JSON.stringify({ type: 'playerToken', playerId: i + 1, playerToken: token }));
+
 				this.setupDisconnect(ws, i + 1);
 
 				// Handle waiting timeout logic here
@@ -110,14 +114,14 @@ export class GameInstance {
 							const payload = JSON.stringify({
 								type: 'end',
 								reason: 'timeout',
-								message: "No other player joined within 2 minutes. Game cancelled.",
+								message: "No other player joined within 1 minutes. Game cancelled.",
 								shouldRedirect: true
 							});
 							this.broadcastToAll(payload);
 							this.destroy();
 							removeGameRoom(this.gameId);
 						}
-					}, 2 * 60 * 1000);
+					}, 60 * 1000);
 				}
 
 				// Clear timeout when second player joins
@@ -477,12 +481,16 @@ export class GameInstance {
 	}
 
 	private startPauseOnDisconnect() {
+
+		if (this.score1 >= this.maxScore || this.score2 >= this.maxScore) {
+			return;
+		}
 		this.isPaused = true;
 		this.broadcastPause("Waiting for the other player to reconnect...");
 
 		this.pauseTimeoutHandle = setTimeout(() => {
 			this.endGameDueToDisconnect();
-		}, 20000);  // 20 sec
+		}, 10000);  // 10 sec
 	}
 
 	private cancelPauseOnReconnect() {
@@ -498,7 +506,19 @@ export class GameInstance {
 	}
 
 	private endGameDueToDisconnect() {
-		this.broadcastEnd("The other player did not reconnect. The game is over.", "disconnect");
+		// Mark as ended first
+		this.isRunning = false;
+
+		// Send a clear end message that will trigger redirection
+		const payload = JSON.stringify({
+			type: 'end',
+			reason: 'disconnect_timeout',
+			message: "The other player did not reconnect. Game cancelled.",
+			shouldRedirect: true,
+			forceRedirect: true // Add this flag
+		});
+		this.broadcastToAll(payload);
+
 		this.destroy();
 		removeGameRoom(this.gameId);
 	}

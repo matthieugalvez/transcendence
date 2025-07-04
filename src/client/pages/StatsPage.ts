@@ -39,11 +39,11 @@ export async function StatsPage(params?: { userId?: string; displayName?: string
             isOwnStats = true;
         }
 
-        // Render sidebar
+        // Render content-aware sidebar (hides stats button when on stats page)
         await SidebarComponent.render({
             userName: currentUser.displayName,
             avatarUrl: currentUser.avatar,
-            showStats: true,
+            showStats: false, // Hide stats button since we're on stats page
             showSettings: true,
             showBackHome: true,
             showUserSearch: false,

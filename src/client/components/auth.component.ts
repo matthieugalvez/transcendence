@@ -195,7 +195,7 @@ export class AuthComponent {
 			const updateResult = await UserService.changeUsername(displayName);
 
 			if (updateResult.success) {
-				CommonComponent.showMessage('✅ Display name set successfully!', 'success');
+				// CommonComponent.showMessage('✅ Display name set successfully!', 'success');
 				const updatedUserData = await UserService.getCurrentUser();
 				return { success: true, userData: updatedUserData };
 			} else {

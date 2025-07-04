@@ -5,7 +5,17 @@ import { router } from '../configs/simplerouter.js';
 import { drawBackground } from '../renders/game.render.js';
 import { drawScores } from '../renders/game.render.js';
 
-let g_game_state: GameState
+let g_game_state: GameState = {
+	paddle1: { x: 20, y: 250, width: 10, height: 100 },
+	paddle2: { x: 770, y: 250, width: 10, height: 100 },
+	ball: { x: 400, y: 300, radius: 8 },
+	score1: 0,
+	score2: 0,
+	ballVelocity: { vx: 0, vy: 0 },
+	isRunning: false,
+	isPaused: false,
+	isFreeze: false
+};
 
 // type pour le callback de fin de match
 type FinishCallback = (winnerAlias: 1 | 2, score1: number, score2: number) => void;
@@ -54,10 +64,10 @@ function createGameWebSocket(
 
 				// Handle specific error types
 				if (data.error === 'already_joined') {
-					CommonComponent.showMessage(
-						`❌ ${data.message || 'You are already in this game'}`,
-						'error'
-					);
+					// CommonComponent.showMessage(
+					// 	`❌ ${data.message || 'You are already in this game'}`,
+					// 	'error'
+					// );
 					if (shouldReloadOnClose) {
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
@@ -157,7 +167,7 @@ function createGameWebSocket(
 	socket.addEventListener('close', (event) => {
 		if (!shouldReloadOnClose) return;
 		if (event.code !== 1000) { // Not a normal closure
-			CommonComponent.showMessage('❌ Connection lost', 'error');
+			// CommonComponent.showMessage('❌ Connection lost', 'error');
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
 				safeNavigate('/home');
@@ -202,16 +212,43 @@ function startClientInputLoop(
 	if (mode === 'solo') {
 		AI = new AI_class
 	}
+
+	let lastFrameTime = performance.now();
+	let frameTimes: number[] = [];
+	let frameCount = 0;
+	let logInterval = 0;
 	requestAnimationFrame(frame);
+
 	function frame() {
-//			if (!g_game_state) {
-//				requestAnimationFrame(frame);
-//				return;
-//			}
+		//			if (!g_game_state) {
+		//				requestAnimationFrame(frame);
+		//				return;
+
+		const now = performance.now();
+		const frameTime = now - lastFrameTime;
+		lastFrameTime = now;
+
+		// Store frame time for analysis
+		frameTimes.push(frameTime);
+		frameCount++;
+
+		// Log performance metrics every 60 frames
+		if (frameCount >= 60) {
+			const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+			const maxFrameTime = Math.max(...frameTimes);
+			const fps = 1000 / avgFrameTime;
+
+			console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
+
+			// Reset metrics
+			frameTimes = [];
+			frameCount = 0;
+		}
+		//			}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
 		const pId = getPlayerId();
 
-		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state.isRunning) {
+		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state?.isRunning) {
 			if (mode === 'duo-local') {
 				if (keysPressed['KeyW']) {
 					socket.send(JSON.stringify({ playerId: 1, action: 'up' }));
@@ -249,9 +286,8 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
-
-		const	ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
-		const	ball_speed = g_game_state.ballVelocity;
+		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
+		const ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx <= 0) {
 			AI.expectedHitpoint = 300;
 		} else {
@@ -386,7 +422,7 @@ export function startPongInContainer(
 				return;
 			}
 
-			// ADDED: Game state detection and rendering
+
 			const isGameState = data.type === 'gameState' ||
 				(typeof data === 'object' &&
 					data.hasOwnProperty('paddle1') &&
@@ -400,6 +436,10 @@ export function startPongInContainer(
 					drawScores(UI_ctx, data.score1, data.score2);
 				}
 				g_game_state = data;
+
+				if (!inputLoopStarted) {
+					setupInputHandlers();
+				}
 				import('../renders/game.render.js').then(({ renderGame }) => {
 					renderGame(game_ctx, data);
 				});
