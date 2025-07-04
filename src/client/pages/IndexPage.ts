@@ -29,7 +29,7 @@ export function renderIndexPage(): void {
   hero.style.backgroundBlendMode = 'multiply';
 
   const h1 = document.createElement('h1');
-  h1.textContent = 'Transcendence.';
+  h1.textContent = 'PONG42';
   h1.className = `
     font-['Canada-big']
     uppercase font-bold pt-10 mx-auto text-[clamp(1.8rem,9.7vw,16rem)] leading-[1] w-[90%]
