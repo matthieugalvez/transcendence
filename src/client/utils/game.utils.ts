@@ -2,6 +2,8 @@ import { GameState } from '../types/game.types';
 import { CommonComponent } from '../components/common.component';
 import { safeNavigate } from '../utils/navigation.utils.js';
 import { router } from '../configs/simplerouter.js';
+import { drawBackground } from '../renders/game.render.js';
+import { drawScores } from '../renders/game.render.js';
 
 let g_game_state: GameState = {
 	paddle1: { x: 20, y: 250, width: 10, height: 100 },
@@ -25,7 +27,6 @@ export interface PongHandle {
 // --- WebSocket handler ---
 function createGameWebSocket(
 	gameId: string,
-	ctx: CanvasRenderingContext2D,
 	leftPlayer: string,
 	rightPlayer: string,
 	onFinish: FinishCallback,
@@ -285,7 +286,6 @@ function makeAIInput(AI: AI_class, socket: WebSocket) {
 
 	if (date.getTime() - AI.lastCheck.getTime() >= 1000) {
 		AI.lastCheck = date;
-
 		const ball_position = { x: g_game_state.ball.x, y: g_game_state.ball.y };
 		const ball_speed = g_game_state.ballVelocity;
 		if (ball_speed.vx <= 0) {
@@ -328,24 +328,54 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
-	// Titre
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
 	container.appendChild(title);
 
-	// Canvas
-	const canvas = document.createElement('canvas');
-	canvas.width = 800;
-	canvas.height = 600;
-	canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
-	container.appendChild(canvas);
+	const bg_canvas = document.createElement('canvas');
+	bg_canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
+	bg_canvas.style.position = 'relative';
+	bg_canvas.width = 800;
+	bg_canvas.height = 600;
+	bg_canvas.style.zIndex = '1';
+	container.appendChild(bg_canvas);
 
-	const ctx = canvas.getContext('2d')!;
-	if (!ctx) throw new Error('Impossible de récupérer le context 2D');
+	const bg_ctx = bg_canvas.getContext('2d')!;
+	if (!bg_ctx) throw new Error('Impossible de récupérer le context 2D');
 
-	// WebSocket
-	const wsHandler = createGameWebSocket(gameId, ctx, leftPlayer, rightPlayer, onFinish, mode);
+	drawBackground(bg_ctx);
+	
+	const game_canvas = document.createElement('canvas');
+	game_canvas.className = 'border-2 border-black rounded-md';
+	game_canvas.width = 800;
+	game_canvas.height = 600;
+	game_canvas.style.position = 'absolute';
+	game_canvas.style.bottom = '0';
+	game_canvas.style.zIndex = '2';
+	container.appendChild(game_canvas);
+
+	const game_ctx = game_canvas.getContext('2d')!;
+	if (!game_ctx) throw new Error('Impossible de récupérer le context 2D');
+
+	const UI_canvas = document.createElement('canvas');
+	UI_canvas.className = 'border-2 border-black rounded-md';
+	UI_canvas.width = 800;
+	UI_canvas.height = 600;
+	UI_canvas.style.position = 'absolute';
+	UI_canvas.style.bottom = '0';
+	UI_canvas.style.zIndex = '3';
+	container.appendChild(UI_canvas);
+
+	const UI_ctx = UI_canvas.getContext('2d')!;
+	if (!UI_ctx) throw new Error('Impossible de récupérer le context 2D');
+	UI_ctx.font = '80px Canada-big';
+	UI_ctx.fillStyle = '#fff';
+	UI_ctx.shadowBlur = 18;
+
+	drawScores(UI_ctx, 0, 0);
+
+	const wsHandler = createGameWebSocket(gameId, leftPlayer, rightPlayer, onFinish, mode);
 	const { socket, getPlayerId } = wsHandler;
 
 	// A chaque état reçu, on met à jour le titre
@@ -402,19 +432,21 @@ export function startPongInContainer(
 					data.hasOwnProperty('score2'));
 
 			if (isGameState) {
+				if (g_game_state && (data.score1 != g_game_state.score1 || data.score2 != g_game_state.score2)) {
+					drawScores(UI_ctx, data.score1, data.score2);
+				}
 				g_game_state = data;
 
 				if (!inputLoopStarted) {
 					setupInputHandlers();
 				}
 				import('../renders/game.render.js').then(({ renderGame }) => {
-					renderGame(ctx, data);
+					renderGame(game_ctx, data);
 				});
 
 				// Check for match end
 				if (data.score1 >= 5 || data.score2 >= 5) {
 					const winnerId = data.score1 >= 5 ? 1 : 2;
-					// console.log('[GAME UTILS] Match ended, winner:', winnerId);
 					onFinish(winnerId, data.score1, data.score2);
 				}
 				return;

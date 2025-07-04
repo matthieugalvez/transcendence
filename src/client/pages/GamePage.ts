@@ -78,7 +78,7 @@ export async function GamePageCheck() {
 		let user = await UserService.getCurrentUser();
 
 		// Handle display name setup BEFORE rendering any UI
-		if (!user.displayName || user.displayName === '' || user.displayName === user.email) {
+		if (!user.displayName || user.displayName === '' || user.displayName === user.name) {
 			const result = await AuthComponent.checkAndHandleDisplayName();
 			if (result.success && result.userData) {
 				// Use the updated user data
