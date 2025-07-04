@@ -60,7 +60,7 @@ export class UserSearchComponent {
 
             userItem.innerHTML = `
                 <div class="flex items-center space-x-3">
-                    <img src="${user.avatar || '/avatars/default.svg'}"
+                    <img src="${user.avatar || '/avatars/default.png'}"
                         alt="${user.displayName}"
                         class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
                     <div>

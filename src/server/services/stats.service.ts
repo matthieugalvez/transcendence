@@ -213,7 +213,7 @@ export class StatsService {
 				...stats.user,
 				avatar: stats.user.avatar
 					? (stats.user.avatar.startsWith('/avatars/') ? stats.user.avatar : `/avatars/${stats.user.avatar}`)
-					: '/avatars/default.svg',
+					: '/avatars/default.png',
 				oneVOneWins: stats.oneVOneWins,
 				oneVOneLosses: stats.oneVOneLosses,
 				tournamentWins: stats.tournamentWins,

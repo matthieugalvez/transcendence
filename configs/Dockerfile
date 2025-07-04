@@ -49,10 +49,10 @@ RUN mkdir -p /app/data && \
     chmod -R 777 /app/src/server/db/users
 
 # Copy the default avatar from the builder stage
-COPY --from=builder /app/src/server/db/users/default.svg /app/src/server/db/users/default.svg
+COPY --from=builder /app/src/server/db/users/default.png /app/src/server/db/users/default.png
 
 # Set proper permissions for the default avatar
-RUN chmod 644 /app/src/server/db/users/default.svg && chown node:node /app/src/server/db/users/default.svg
+RUN chmod 644 /app/src/server/db/users/default.png && chown node:node /app/src/server/db/users/default.png
 
 # Switch to non-root user
 USER node
