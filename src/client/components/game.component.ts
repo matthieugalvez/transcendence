@@ -99,21 +99,24 @@ export class GameSettingsComponent {
 		}
 
 		// 2. DUO
-		if (state === 'duo') {
-			// Choix local/online
-			const chooseMode = document.createElement('div');
-			chooseMode.className = 'flex flex-col w-full space-y-4';
+if (state === 'duo') {
+    // Choix local/online
+    const chooseMode = document.createElement('div');
+    chooseMode.className = 'flex flex-col w-full space-y-4';
 
-			const localBtn = CommonComponent.createStylizedButton('Local', 'red');
-			localBtn.onclick = () => GameSettingsComponent.render('duo-local', callbacks);
+    const localBtn = CommonComponent.createStylizedButton('Local', 'red');
+    localBtn.onclick = () => {
+        // Instead of just calling render, we need to trigger the callback
+        callbacks.onStartGame?.('duo-local');
+    };
 
-			const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
-			onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
+    const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+    onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
 
-			chooseMode.appendChild(localBtn);
-			chooseMode.appendChild(onlineBtn);
-			settingsBar.appendChild(chooseMode);
-		}
+    chooseMode.appendChild(localBtn);
+    chooseMode.appendChild(onlineBtn);
+    settingsBar.appendChild(chooseMode);
+}
 
 		if (state === 'duo-start') {
 			// Play/Pause/Restart
