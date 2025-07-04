@@ -37,10 +37,13 @@ app.get('/avatars/:filename', async (request, reply) => {
     if (process.env.NODE_ENV === 'production') {
         // In Docker container, use the uploaded avatars directory
         avatarDir = process.env.AVATAR_UPLOAD_DIR || '/app/uploads/avatars';
+        fallbackDir = '/app/src/server/db/users'; // Fallback to old location
     } else {
         // In development, use the source directory
         avatarDir = path.join(process.cwd(), 'src/server/db/users');
+        fallbackDir = avatarDir; // Same directory in dev
     }
+
 
     const avatarPath = path.join(avatarDir, filename);
 
