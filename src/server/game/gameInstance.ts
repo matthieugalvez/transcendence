@@ -60,13 +60,11 @@ export class GameInstance {
 	// Parameters that won't change
 	private readonly canvasWidth = 800;
 	private readonly canvasHeight = 600;
-	private paddleSpeed = 400; // px/sec
-	private basePaddleSpeed = 400;
+	private paddleSpeed = 800; // px/sec
+	private basePaddleSpeed = 800;
 	private waitingTimeout?: NodeJS.Timeout;
 
-
 	public inviterId?: string;
-
 
 	constructor(gameId: string, difficulty: 'EASY' | 'MEDIUM' | 'HARD' = 'MEDIUM', inviterId?: string) {
 		this.gameId = gameId;
