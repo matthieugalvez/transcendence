@@ -132,7 +132,7 @@ export class FriendService {
 			where: {
 				senderId: userId,
 				receiverId: otherUserId,
-				status: FriendshipStatus.BLOCKED
+//				status: FriendshipStatus.BLOCKED
 			}
 		});
 
@@ -173,10 +173,10 @@ export class FriendService {
 	static async getFriendshipStatus(userId: string, otherUserId: string) {
 		const friendship = await prisma.friendship.findFirst({
 			where: {
-				OR: [
-					{ senderId: userId, receiverId: otherUserId },
-					{ senderId: otherUserId, receiverId: userId }
-				]
+//				OR: [
+					 senderId: userId, receiverId: otherUserId,
+//					{ senderId: otherUserId, receiverId: userId }
+//				]
 			}
 		});
 
