@@ -80,14 +80,14 @@ export class StatsRender {
 
     // Create main container with flex layout and proper height constraint
     const mainContainer = document.createElement('div');
-    mainContainer.className = 'flex w-full max-w-7xl gap-4 justify-center h-full';
+    mainContainer.className = 'flex w-full max-w-4xl gap-4 justify-center h-full';
 
     const statsCard = document.createElement('div');
     statsCard.className = `
         bg-white/90 backdrop-blur-md
         border-2 border-black
         rounded-xl p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-        flex-1 max-w-5xl transition-all duration-300
+        flex-1 max-w-1xl transition-all duration-300
         overflow-y-auto compact-container
     `;
 
