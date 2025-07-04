@@ -137,7 +137,7 @@ function createGameWebSocket(
 				if (shouldReloadOnClose) {
 					setTimeout(() => {
 						window.dispatchEvent(new Event('app:close-sockets'));
-						safeNavigate('/home');
+						safeNavigate('/profile');
 					}, 2000);
 				}
 				return;
@@ -216,7 +216,6 @@ function startClientInputLoop(
 	let lastFrameTime = performance.now();
 	let frameTimes: number[] = [];
 	let frameCount = 0;
-	let logInterval = 0;
 	requestAnimationFrame(frame);
 
 	function frame() {
@@ -243,6 +242,9 @@ function startClientInputLoop(
 			// Reset metrics
 			frameTimes = [];
 			frameCount = 0;
+			if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
+				return;
+			}
 		}
 		//			}
 		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
@@ -345,7 +347,7 @@ export function startPongInContainer(
 	if (!bg_ctx) throw new Error('Impossible de récupérer le context 2D');
 
 	drawBackground(bg_ctx);
-	
+
 	const game_canvas = document.createElement('canvas');
 	game_canvas.className = 'border-2 border-black rounded-md';
 	game_canvas.width = 800;
