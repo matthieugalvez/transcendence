@@ -49,7 +49,7 @@ export class ProfileRender {
 
 		// Avatar
 		const avatar = document.createElement('img');
-		avatar.src = user.avatar || '/avatars/default';
+		avatar.src = user.avatar || 'default.svg';
 		avatar.alt = `${user.displayName}'s avatar`;
 		avatar.className = `
             w-32 h-32 rounded-full border-4 border-purple-500

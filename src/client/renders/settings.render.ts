@@ -200,7 +200,7 @@ private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
         currentAvatar.src = currentAvatarUrl;
     } else {
         console.log('⚠️ No valid avatar URL, using default');
-        currentAvatar.src = '/avatars/default';
+        currentAvatar.src = 'default.svg';
     }
 
     currentAvatar.alt = 'Current avatar';
@@ -220,7 +220,7 @@ private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
             // Don't set onerror to null here, let it fail visibly
         } else {
             console.log('🔄 Falling back to default avatar');
-            currentAvatar.src = '/avatars/default';
+            currentAvatar.src = 'default.svg';
         }
     };
 
