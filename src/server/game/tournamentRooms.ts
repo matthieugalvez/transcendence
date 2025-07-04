@@ -128,9 +128,7 @@ export class TournamentRoom {
 			score2: state.score2,
 			matchType: 'TOURNAMENT',
 		}));
-		// if (this.currentMatch < 2) {
-		//   this.winners.push(winner);
-		// }
+
 		if (this.currentMatch < 2) {
 			this.winners.push(winner);
 			this.currentMatch++;

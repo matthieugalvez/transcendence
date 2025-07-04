@@ -146,8 +146,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 			showGameOverOverlay(wrapper, `${winnerName}`, "online");
 			pongHandle?.socket.close();
-			// deleteCookie(`pongPlayerToken-${gameId}`);
-			// deleteCookie(`pongPlayerId-${gameId}`);
+
 			setTimeout(() => {
 				window.dispatchEvent(new Event('app:close-sockets'));
 				safeNavigate('/statistics');
