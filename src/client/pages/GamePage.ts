@@ -112,190 +112,206 @@ export async function GamePageCheck() {
 
 // Fonction principale
 export async function renderPongGamePage() {
-	await GamePageCheck();
-	// clean page
-	document.body.innerHTML = '';
-	document.title = 'Pong';
+    await GamePageCheck();
+    document.body.innerHTML = '';
+    document.title = 'Pong';
 
-	// get user
-	const user = await UserService.getCurrentUser();
-	const leftPlayer = user.displayName || "Player 1";
-	const rightPlayer = "Player 2";
-	const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
+    const user = await UserService.getCurrentUser();
+    const leftPlayer = user.displayName || "Player 1";
+    const rightPlayer = "Player 2";
+    const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
-	// layout de base
-	SidebarComponent.render({ userName: user.displayName, avatarUrl: user.avatar, showStats: true, showBackHome: true, showUserSearch: false });
-	BackgroundComponent.applyNormalGradientLayout();
-	//GameSettingsComponent.render('initial');
+    // Layout de base
+    SidebarComponent.render({
+        userName: user.displayName,
+        avatarUrl: user.avatar,
+        showStats: true,
+        showBackHome: true,
+        showUserSearch: false
+    });
+    BackgroundComponent.applyNormalGradientLayout();
 
-	const wrapper = createMainWrapper();
+    const wrapper = createMainWrapper();
 
-	// Game container
+    // Create flex container for game and settings
+    const gameAndSettingsContainer = document.createElement('div');
+    gameAndSettingsContainer.className = 'flex items-start justify-center gap-6 w-full max-w-7xl mx-auto';
+    wrapper.appendChild(gameAndSettingsContainer);
+
+    // Game container
     const gameContainer = document.createElement('div');
-    gameContainer.className = 'relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center';
-    wrapper.appendChild(gameContainer);
+    gameContainer.className = 'relative z-10 flex flex-col items-center';
+    gameAndSettingsContainer.appendChild(gameContainer);
 
-	// const messageDisplay = document.createElement('div');
-	// messageDisplay.id = 'signup-msg-display';
-	// messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
-	// document.body.appendChild(messageDisplay);
+    // Settings container
+    const settingsContainer = document.createElement('div');
+    settingsContainer.id = 'settings-container';
+    settingsContainer.className = 'flex-shrink-0';
+    gameAndSettingsContainer.appendChild(settingsContainer);
 
-	// Titre initial avant le canvas / preview
+    // Titre initial avant le canvas / preview
     const initialTitle = document.createElement('h2');
     initialTitle.textContent = 'Ready to pong?';
     initialTitle.className = 'text-2xl font-["Orbitron"] text-white text-center mb-4';
     gameContainer.appendChild(initialTitle);
 
-	// screen du jeu avant toute partie
+    // Screen du jeu avant toute partie
     const previewImgElement = document.createElement('img');
     previewImgElement.src = previewImg;
     previewImgElement.alt = 'Pong preview';
     previewImgElement.className = `
-        w-full max-w-[800px] h-auto
+        w-[800px] h-[610px]
         opacity-70 border-2 border-black rounded-md
         shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all
-        aspect-[800/610]
     `.replace(/\s+/g, ' ').trim();
     gameContainer.appendChild(previewImgElement);
 
-	createGameControls(
-		wrapper,
-		// --- Callback SOLO ---
-		async () => {
-			GameSettingsComponent.render('solo', {
-				onStartGame: async () => {
-					gameContainer.removeChild(initialTitle);
-					if (previewImgElement.parentNode) previewImgElement.remove();
-					const res = await fetch('/api/game/start', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
-					});
-					const { gameId } = await res.json();
-					const matchTitle = `${leftPlayer} vs Bot`;
-					pongHandle = startPongInContainer(
-						gameContainer,
-						matchTitle,
-						leftPlayer,
-						"Bot",
-						(winnerId) => {
-							const titleText = gameContainer.querySelector('h2')!.textContent!;
-							const [name1, name2] = titleText.split(' vs ');
-							const winnerName = winnerId === 1 ? name1 : name2;
-							showGameOverOverlay(wrapper, `${winnerName}`, "local")
-						},
-						gameId,
-						"solo"
-					);
-					const { socket } = pongHandle;
-					pongHandle?.start();
-					GameSettingsComponent.render('solo-start', { // masquer le bouton "start"
-						onPauseGame: () => {
-							pauseState.value = !pauseState.value;
-							if (socket && socket.readyState === socket.OPEN) {
-								socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-							}
-						},
-						onRestartGame: () => {
-							renderPongGamePage();
-						},
-					});
-				},
-				onRestartGame: () => {
-					renderPongGamePage();
-				},
-				onDifficultyChange: (difficulty) => {
-					if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-						pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-					}
-				}
-			});
-		},
-		// --- Callback DUO ---
-		async () => {
-			GameSettingsComponent.render('duo', {
-				onStartGame: async (mode) => {
-					// --- LOCAL ---
-					if (mode === 'duo-local') {
-						gameContainer.removeChild(initialTitle);
-						if (previewImgElement.parentNode) previewImgElement.remove();
-						// A CHANGER: APICLIENT.AUTHENTICATEDFETCH !!!!!!! PAS SAFE
-						const res = await fetch('/api/game/start', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
-						});
-						const { gameId } = await res.json();
-						pongHandle = startPongInContainer(
-							gameContainer, matchTitle, leftPlayer, rightPlayer,
-							(winnerId) => {
-								const titleText = gameContainer.querySelector('h2')!.textContent!;
-								const [name1, name2] = titleText.split(' vs ');
-								const winnerName = winnerId === 1 ? name1 : name2;
-								showGameOverOverlay(wrapper, `${winnerName}`, "local")
-							},
-							gameId, "duo-local"
-						);
-						pongHandle?.start();
-						GameSettingsComponent.render('duo-start', {
-							onPauseGame: () => {
-								pauseState.value = !pauseState.value;
-								const socket = pongHandle?.socket;
-								if (socket && socket.readyState === socket.OPEN) {
-									socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
-								}
-							},
-							onDifficultyChange: (difficulty) => {
-								if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-									pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-								}
-							},
-							onRestartGame: () => renderPongGamePage()
-						});
-					}
-					// --- ONLINE ---
-					else if (mode === 'duo-online') {
-						const res = await fetch('/api/game/start', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
-						});
-						const { gameId } = await res.json();
-						// deleteCookie(`pongPlayerToken-${gameId}`);
-						// deleteCookie(`pongPlayerId-${gameId}`);
-						router.navigate(`/game/online/duo/${gameId}`);
-					}
-				}
-			});
-		},
-		// --- TOURNOI ---
-		() => {
-			GameSettingsComponent.render('tournament', {
-				onStartGame: async (mode) => {
-					// --- LOCAL ---
-					if (mode === 'tournament-local') {
-						router.navigate('/tournament');
-					}
-					// --- ONLINE ---
-					else if (mode === 'tournament-online') {
-						const res = await fetch('/api/game/tournament/start', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
-						});
-						const { gameId } = await res.json();
-						// deleteCookie(`pongPlayerToken-${gameId}`);
-						// deleteCookie(`pongPlayerId-${gameId}`);
-						router.navigate(`/game/online/tournament/${gameId}`);
-					}
-				}
-			});
-		}
-	);
-	window.addEventListener('beforeunload', () => {
-		pongHandle?.socket.close();
-	});
-	window.addEventListener('popstate', () => {
-		pongHandle?.socket.close();
-	});
+    createGameControls(
+        wrapper,
+        // --- Callback SOLO ---
+        async () => {
+            const settingsBar = GameSettingsComponent.render('solo', {
+                onStartGame: async () => {
+                    gameContainer.removeChild(initialTitle);
+                    if (previewImgElement.parentNode) previewImgElement.remove();
+
+                    const res = await fetch('/api/game/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+                    });
+                    const { gameId } = await res.json();
+                    const matchTitle = `${leftPlayer} vs Bot`;
+
+                    pongHandle = startPongInContainer(
+                        gameContainer,
+                        matchTitle,
+                        leftPlayer,
+                        "Bot",
+                        (winnerId) => {
+                            const titleText = gameContainer.querySelector('h2')!.textContent!;
+                            const [name1, name2] = titleText.split(' vs ');
+                            const winnerName = winnerId === 1 ? name1 : name2;
+                            showGameOverOverlay(wrapper, `${winnerName}`, "local")
+                        },
+                        gameId,
+                        "solo"
+                    );
+
+                    const { socket } = pongHandle;
+                    pongHandle?.start();
+
+                    // Update settings bar
+                    const newSettingsBar = GameSettingsComponent.render('solo-start', {
+                        onPauseGame: () => {
+                            pauseState.value = !pauseState.value;
+                            if (socket && socket.readyState === socket.OPEN) {
+                                socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+                            }
+                        },
+                        onRestartGame: () => {
+                            renderPongGamePage();
+                        },
+                    });
+                    settingsContainer.innerHTML = '';
+                    settingsContainer.appendChild(newSettingsBar);
+                },
+                onRestartGame: () => {
+                    renderPongGamePage();
+                },
+                onDifficultyChange: (difficulty) => {
+                    if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+                        pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+                    }
+                }
+            });
+            settingsContainer.appendChild(settingsBar);
+        },
+        // --- Callback DUO ---
+        async () => {
+            const settingsBar = GameSettingsComponent.render('duo', {
+                onStartGame: async (mode) => {
+                    if (mode === 'duo-local') {
+                        gameContainer.removeChild(initialTitle);
+                        if (previewImgElement.parentNode) previewImgElement.remove();
+
+                        const res = await fetch('/api/game/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+                        });
+                        const { gameId } = await res.json();
+
+                        pongHandle = startPongInContainer(
+                            gameContainer, matchTitle, leftPlayer, rightPlayer,
+                            (winnerId) => {
+                                const titleText = gameContainer.querySelector('h2')!.textContent!;
+                                const [name1, name2] = titleText.split(' vs ');
+                                const winnerName = winnerId === 1 ? name1 : name2;
+                                showGameOverOverlay(wrapper, `${winnerName}`, "local")
+                            },
+                            gameId, "duo-local"
+                        );
+                        pongHandle?.start();
+
+                        // Update settings bar
+                        const newSettingsBar = GameSettingsComponent.render('duo-start', {
+                            onPauseGame: () => {
+                                pauseState.value = !pauseState.value;
+                                const socket = pongHandle?.socket;
+                                if (socket && socket.readyState === socket.OPEN) {
+                                    socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+                                }
+                            },
+                            onDifficultyChange: (difficulty) => {
+                                if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+                                    pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+                                }
+                            },
+                            onRestartGame: () => renderPongGamePage()
+                        });
+                        settingsContainer.innerHTML = '';
+                        settingsContainer.appendChild(newSettingsBar);
+                    }
+                    else if (mode === 'duo-online') {
+                        const res = await fetch('/api/game/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+                        });
+                        const { gameId } = await res.json();
+                        router.navigate(`/game/online/duo/${gameId}`);
+                    }
+                }
+            });
+            settingsContainer.appendChild(settingsBar);
+        },
+        // --- TOURNOI ---
+        () => {
+            const settingsBar = GameSettingsComponent.render('tournament', {
+                onStartGame: async (mode) => {
+                    if (mode === 'tournament-local') {
+                        router.navigate('/tournament');
+                    }
+                    else if (mode === 'tournament-online') {
+                        const res = await fetch('/api/game/tournament/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ difficulty: GameSettingsComponent.currentDifficulty })
+                        });
+                        const { gameId } = await res.json();
+                        router.navigate(`/game/online/tournament/${gameId}`);
+                    }
+                }
+            });
+            settingsContainer.appendChild(settingsBar);
+        }
+    );
+
+    window.addEventListener('beforeunload', () => {
+        pongHandle?.socket.close();
+    });
+    window.addEventListener('popstate', () => {
+        pongHandle?.socket.close();
+    });
 }
