@@ -348,6 +348,7 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
+	
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';

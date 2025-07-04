@@ -97,14 +97,14 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	document.body.appendChild(wrapper);
 
 	const gameContainer = document.createElement('div');
-gameContainer.className = 'relative z-10 w-full max-w-4xl flex flex-col ml-8'; // Changed from items-center to items-start and added ml-8
+	gameContainer.className = 'relative z-10';
 	wrapper.appendChild(gameContainer);
 
 	// screen du jeu avant toute partie
 	const previewImg = document.createElement('img');
 	previewImg.src = pongPreviewImg;
 	previewImg.alt = 'Pong preview';
-	previewImg.className = 'absolute top-[12%] left-[-25%] z-50 opacity-70 rounded-md transition-all';
+	previewImg.className = 'absolute top-[12%] left-[0.5%] z-50 opacity-70 rounded-md transition-all';
 	gameContainer.appendChild(previewImg);
 
 	// --- Récupère le username du joueur connecté (GUEST ou HOST) ---
