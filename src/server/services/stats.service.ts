@@ -12,10 +12,12 @@ export class StatsService {
 		playerTwoScore: number
 	) {
 		try {
-			// Create the match record
+			// Generate a unique match ID
+			const matchId = `${gameId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
 			const match = await prisma.match.create({
 				data: {
-					id: gameId, // Use gameId as the match ID
+					id: matchId, // Use unique match ID
 					playerOneId,
 					playerTwoId,
 					winnerId,
@@ -211,7 +213,7 @@ export class StatsService {
 				...stats.user,
 				avatar: stats.user.avatar
 					? (stats.user.avatar.startsWith('/avatars/') ? stats.user.avatar : `/avatars/${stats.user.avatar}`)
-					: '/avatars/default.svg',
+					: 'default.svg',
 				oneVOneWins: stats.oneVOneWins,
 				oneVOneLosses: stats.oneVOneLosses,
 				tournamentWins: stats.tournamentWins,
@@ -266,13 +268,13 @@ export class StatsService {
 			}
 		});
 		// stats gagnant/perdants
-			await Promise.all(
-				payload.participants.map(uid =>
-					uid === payload.winnerId
-						? this.incrementWin(uid, 'TOURNAMENT')
-						: this.incrementLoss(uid, 'TOURNAMENT')
-				)
-			);
+		await Promise.all(
+			payload.participants.map(uid =>
+				uid === payload.winnerId
+					? this.incrementWin(uid, 'TOURNAMENT')
+					: this.incrementLoss(uid, 'TOURNAMENT')
+			)
+		);
 	}
 
 	static async getUserTournament(userId: string, limit = 5) {

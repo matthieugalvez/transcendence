@@ -44,23 +44,24 @@ export class GameSettingsComponent {
 	/**
 	 *  dynamic render of settings panel
 	 */
-	static render(state: SettingState = 'initial', callbacks: GameSettingsCallbacks = {}) {
+	static render(state: SettingState = 'initial', callbacks: GameSettingsCallbacks = {}): HTMLElement {
 		const existing = document.getElementById(GameSettingsComponent.panelId);
 		if (existing) existing.remove();
 
 		GameSettingsComponent.currentMode = state;
 
 		// create panel
-		const settingsBar = document.createElement("nav");
-		settingsBar.id = GameSettingsComponent.panelId;
-		settingsBar.className = `
-            fixed right-30 top-[20%] h-[69%] w-80
-            bg-blue-950/70 backdrop-blur-2xl
-            rounded-lg text-lg transition-colors
-            shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-            border-2 border-black
-            flex flex-col items-center p-6 space-y-4 z-15
-        `.trim();
+    const settingsBar = document.createElement("nav");
+    settingsBar.id = GameSettingsComponent.panelId;
+    settingsBar.className = `
+        w-80 h-[768px] max-h-[768-px]
+        bg-blue-950/70 backdrop-blur-2xl
+        rounded-lg text-lg transition-colors
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+        border-2 border-black
+        flex flex-col items-center p-6 space-y-4 z-15
+        ml-6 overflow-y-auto
+    `.trim();
 
 		// title
 		const title = document.createElement('h2');
@@ -98,21 +99,24 @@ export class GameSettingsComponent {
 		}
 
 		// 2. DUO
-		if (state === 'duo') {
-			// Choix local/online
-			const chooseMode = document.createElement('div');
-			chooseMode.className = 'flex flex-col w-full space-y-4';
+if (state === 'duo') {
+    // Choix local/online
+    const chooseMode = document.createElement('div');
+    chooseMode.className = 'flex flex-col w-full space-y-4';
 
-			const localBtn = CommonComponent.createStylizedButton('Local', 'red');
-			localBtn.onclick = () => GameSettingsComponent.render('duo-local', callbacks);
+    const localBtn = CommonComponent.createStylizedButton('Local', 'red');
+    localBtn.onclick = () => {
+        // Instead of just calling render, we need to trigger the callback
+        callbacks.onStartGame?.('duo-local');
+    };
 
-			const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
-			onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
+    const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+    onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
 
-			chooseMode.appendChild(localBtn);
-			chooseMode.appendChild(onlineBtn);
-			settingsBar.appendChild(chooseMode);
-		}
+    chooseMode.appendChild(localBtn);
+    chooseMode.appendChild(onlineBtn);
+    settingsBar.appendChild(chooseMode);
+}
 
 		if (state === 'duo-start') {
 			// Play/Pause/Restart
@@ -340,7 +344,7 @@ export class GameSettingsComponent {
 			// Difficulté
 			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
 		}
-		document.body.appendChild(settingsBar);
+		return settingsBar;
 	}
 
 	static fallbackCopyTextToClipboard(text: string, button: HTMLButtonElement, callbacks: any) {

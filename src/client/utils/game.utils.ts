@@ -137,7 +137,7 @@ function createGameWebSocket(
 				if (shouldReloadOnClose) {
 					setTimeout(() => {
 						window.dispatchEvent(new Event('app:close-sockets'));
-						safeNavigate('/home');
+						safeNavigate('/profile');
 					}, 2000);
 				}
 				return;
@@ -216,19 +216,28 @@ function startClientInputLoop(
 	let lastFrameTime = performance.now();
 	let frameTimes: number[] = [];
 	let frameCount = 0;
-	let logInterval = 0;
-	requestAnimationFrame(frame);
+	let animationId: number;
+	let isRunning = true;
+
+	// Cleanup function
+	const cleanup = () => {
+		isRunning = false;
+		if (animationId) {
+			cancelAnimationFrame(animationId);
+		}
+	};
+
+	// Listen for cleanup events
+	window.addEventListener('app:close-sockets', cleanup);
+	socket.addEventListener('close', cleanup);
 
 	function frame() {
-		//			if (!g_game_state) {
-		//				requestAnimationFrame(frame);
-		//				return;
+		if (!isRunning) return;
 
 		const now = performance.now();
 		const frameTime = now - lastFrameTime;
 		lastFrameTime = now;
 
-		// Store frame time for analysis
 		frameTimes.push(frameTime);
 		frameCount++;
 
@@ -243,9 +252,14 @@ function startClientInputLoop(
 			// Reset metrics
 			frameTimes = [];
 			frameCount = 0;
+
+			// REMOVE THIS PROBLEMATIC CONDITION:
+			// if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
+			//     return; // This was breaking tournaments!
+			// }
 		}
-		//			}
-		// On check à chaque frame si on n’est PAS spectateur (et playerId est bien set)
+
+		// Input handling logic
 		const pId = getPlayerId();
 
 		if (socket.readyState === WebSocket.OPEN && pId !== 'spectator' && pId !== null && g_game_state?.isRunning) {
@@ -271,8 +285,14 @@ function startClientInputLoop(
 				makeAIInput(AI, socket);
 			}
 		}
-		requestAnimationFrame(frame); // Toujours continuer la boucle, même en spectateur
+
+		if (isRunning) {
+			animationId = requestAnimationFrame(frame);
+		}
 	}
+
+	// Start the loop
+	animationId = requestAnimationFrame(frame);
 }
 
 function makeAIInput(AI: AI_class, socket: WebSocket) {
@@ -328,6 +348,7 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
+
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
@@ -345,7 +366,7 @@ export function startPongInContainer(
 	if (!bg_ctx) throw new Error('Impossible de récupérer le context 2D');
 
 	drawBackground(bg_ctx);
-	
+
 	const game_canvas = document.createElement('canvas');
 	game_canvas.className = 'border-2 border-black rounded-md';
 	game_canvas.width = 800;
@@ -445,7 +466,7 @@ export function startPongInContainer(
 				});
 
 				// Check for match end
-				if (data.score1 >= 5 || data.score2 >= 5) {
+				if (mode != 'tournament-online' && (data.score1 >= 5 || data.score2 >= 5)) {
 					const winnerId = data.score1 >= 5 ? 1 : 2;
 					onFinish(winnerId, data.score1, data.score2);
 				}
@@ -589,49 +610,48 @@ export function hideOverlay() {
 }
 
 function showCountdown(message: string) {
-	/** container plein écran (transparent) */
-	let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
-	if (!overlay) {
-		overlay = document.createElement('div');
-		overlay.id = 'game-countdown';
-		Object.assign(overlay.style, {
-			position: 'absolute',
-			top: '0',
-			left: '0',
-			width: '100%',
-			height: '100%',
-			display: 'flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			marginLeft: '43px',
-			marginTop: '15px',
-			pointerEvents: 'none',
-			zIndex: '150'
-		});
+    // Find the game container instead of using document.body
+    const gameContainer = document.querySelector('.relative.z-10.flex.flex-col.items-center') as HTMLElement;
+    const targetContainer = gameContainer || document.body;
 
-		/** bandeau noir semi‑transparent */
-		const panel = document.createElement('div');
-		panel.id = 'game-countdown-panel';
-		Object.assign(panel.style, {
-			background: 'rgba(0,0,0,0.75)',
-			padding: '0.4em 2em',
-			borderRadius: '8px',
-			fontFamily: 'Canada-big',
-			fontSize: '90px',
-			color: '#fff',
-			display: 'flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			minWidth: '240px',
-			width: '25%',
-		});
-		overlay.appendChild(panel);
-		document.body.appendChild(overlay);
-	}
+    let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'game-countdown';
+        Object.assign(overlay.style, {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: '150'
+        });
 
-	// maj texte
-	(overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
-	overlay.style.display = 'flex';
+        const panel = document.createElement('div');
+        panel.id = 'game-countdown-panel';
+        Object.assign(panel.style, {
+            background: 'rgba(0,0,0,0.75)',
+            padding: '0.4em 2em',
+            borderRadius: '8px',
+            fontFamily: 'Canada-big',
+            fontSize: '90px',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '240px',
+            border: '2px solid rgba(255,255,255,0.3)'
+        });
+        overlay.appendChild(panel);
+        targetContainer.appendChild(overlay); // Use target container instead of document.body
+    }
+
+    (overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
+    overlay.style.display = 'flex';
 }
 
 export function hideCountdown() {

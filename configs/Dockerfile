@@ -49,6 +49,7 @@ RUN mkdir -p /app/data && \
     chmod -R 777 /app/src/server/db/users
 
 # Copy the default avatar from the builder stage
+COPY --from=builder /app/src/server/db/users/default.svg /app/uploads/avatars/default.svg
 COPY --from=builder /app/src/server/db/users/default.svg /app/src/server/db/users/default.svg
 
 # Set proper permissions for the default avatar

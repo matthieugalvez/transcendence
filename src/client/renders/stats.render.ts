@@ -80,14 +80,14 @@ export class StatsRender {
 
     // Create main container with flex layout and proper height constraint
     const mainContainer = document.createElement('div');
-    mainContainer.className = 'flex w-full max-w-7xl gap-4 justify-center h-full';
+    mainContainer.className = 'flex w-full max-w-4xl gap-4 justify-center h-full';
 
     const statsCard = document.createElement('div');
     statsCard.className = `
         bg-white/90 backdrop-blur-md
         border-2 border-black
         rounded-xl p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-        flex-1 max-w-5xl transition-all duration-300
+        flex-1 max-w-1xl transition-all duration-300
         overflow-y-auto compact-container
     `;
 
@@ -428,7 +428,7 @@ export class StatsRender {
 
 			// Current user avatar
 			const userAvatar = document.createElement('img');
-			userAvatar.src = user.avatar || '/avatars/default.svg';
+			userAvatar.src = user.avatar || 'default.svg';
 			userAvatar.alt = user.displayName;
 			userAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -439,7 +439,7 @@ export class StatsRender {
 
 			// Opponent avatar
 			const opponentAvatar = document.createElement('img');
-			opponentAvatar.src = opponent?.avatar || '/avatars/default.svg';
+			opponentAvatar.src = opponent?.avatar || 'default.svg';
 			opponentAvatar.alt = opponent?.displayName || 'Unknown';
 			opponentAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -532,7 +532,7 @@ export class StatsRender {
 
                 <!-- Opponent Info -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg flex items-center space-x-3">
-                    <img src="${opponent?.avatar || '/avatars/default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
+                    <img src="${opponent?.avatar || 'default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="font-medium text-lg">${opponent?.displayName || 'Unknown Player'}</div>
                         <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : 'Tournament'}</div>
@@ -573,22 +573,6 @@ export class StatsRender {
 				router.navigate(`/profile/${opponent.displayName}`);
 			}
 		});
-	}
-
-	private static calculateMatchDuration(match: any): string {
-		// If match has duration data, use it
-		if (match.duration) {
-			const minutes = Math.floor(match.duration / 60);
-			const seconds = match.duration % 60;
-			return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-		}
-
-		// Otherwise estimate based on scores (rough estimate: ~30 seconds per point)
-		const totalPoints = (match.playerOneScore || 0) + (match.playerTwoScore || 0);
-		const estimatedSeconds = totalPoints * 30;
-		const minutes = Math.floor(estimatedSeconds / 60);
-		const seconds = estimatedSeconds % 60;
-		return `~${minutes}:${seconds.toString().padStart(2, '0')}`;
 	}
 
 	private static async fetchDetailedStats(userId: string): Promise<any> {

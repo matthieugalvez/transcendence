@@ -45,6 +45,7 @@ async function setupServer() {
 		await registerRoutes(app);
 		await registerPongWebSocket(app);
 		await registerUserStatusWebSocket(app);
+		
 
 		console.log('✅ Server setup completed');
 	} catch (error) {

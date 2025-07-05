@@ -91,7 +91,7 @@ export async function FriendsPage(): Promise<void> {
 			} else {
 				for (const invite of invites) {
 					const inviteCard = document.createElement('div');
-					inviteCard.className = 'bg-yellow-50 p-6 rounded-lg flex items-center justify-between';
+					inviteCard.className = 'bg-yellow-50 p-4 rounded-lg flex items-center justify-between';
 
 					const info = document.createElement('span');
 					info.textContent = `Game invite from ${invite.inviter.displayName} for a game of ${invite.gameType}`;
@@ -100,12 +100,14 @@ export async function FriendsPage(): Promise<void> {
 					actions.className = 'flex space-x-2';
 
 					const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
+					acceptBtn.className = acceptBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Make buttons smaller
 					acceptBtn.onclick = async () => {
 						await fetch(`/api/invite/${invite.id}/accept`, { method: 'POST' });
 						window.location.href = `/game/online/duo/${invite.gameId}`;
 					};
 
 					const declineBtn = CommonComponent.createStylizedButton('Decline', 'red');
+					declineBtn.className = declineBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Make buttons smaller
 					declineBtn.onclick = async () => {
 						await fetch(`/api/invite/${invite.id}/decline`, { method: 'POST' });
 						inviteCard.remove();
