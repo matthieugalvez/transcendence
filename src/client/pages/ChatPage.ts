@@ -34,34 +34,34 @@ export async function renderChatPage() {
 	}
 //	await UserService.blockUser(receiver.id);
 
-	BackgroundComponent.applyCenteredGradientLayout();
+//	BackgroundComponent.applyCenteredGradientLayout();
 
-	const	title_box = document.createElement('div');
-	title_box.title = 'title_box';
-	title_box.className = `
-		font-['Orbitron']
-		text-white font-semibold
-		border-2 border-black
-        fixed left-[5%] top-2 h-[5%] w-[90%]
-        bg-amber-300/50
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        border-2 border-black
-        flex flex-col items-center justify-center p-6
-        space-y-4 z-11
-	`.trim();
-	title_box.textContent = `Chat room between ${user.displayName} & ${receiver.displayName}`
-
-	document.body.appendChild(title_box);
+//	const	title_box = document.createElement('div');
+//	title_box.title = 'title_box';
+//	title_box.className = `
+//		font-['Orbitron']
+//		text-white font-semibold
+//		border-2 border-black
+//        fixed left-[5%] top-2 h-[5%] w-[90%]
+//        bg-amber-300/50
+//        rounded-lg text-lg transition-colors
+//        focus:outline-none focus:ring-2
+//        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+//        disabled:opacity-50 disabled:cursor-not-allowed
+//        border-2 border-black
+//        flex flex-col items-center justify-center p-6
+//        space-y-4 z-11
+//	`.trim();
+//	title_box.textContent = `Chat room between ${user.displayName} & ${receiver.displayName}`
+//
+//	document.body.appendChild(title_box);
 
 	const	messages_box = document.createElement('div');
 	messages_box.title = 'messages_box';
 	messages_box.className = `
 		font-['Orbitron']
 		text-white font-semibold
-        fixed top-[7%] h-[65%] w-[95%]
+        fixed top-[0%] h-[77%] w-[99%]
         bg-amber-300/50
         rounded-lg text-lg transition-colors
         focus:outline-none focus:ring-2
@@ -76,29 +76,29 @@ export async function renderChatPage() {
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
 
-	// ___________ TEST BLOCK ___________
-	
-	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
-	block_button.title = 'block_button',
-	block_button.onclick = async () => {
-		await FriendService.blockUser(receiver.id);
-		location.reload();
-	}
-
-	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
-	unblock_button.title = 'unblock_button',
-	unblock_button.onclick = async () => {
-		await FriendService.unblockUser(receiver.id);
-		location.reload();
-	}
-
-	if (friendship_status.status === 'blocked') {
-		title_box.appendChild(unblock_button);
-	} else {
-		title_box.appendChild(block_button);
-	}
-
-	// ___________ /TEST BLOCK ___________
+//	// ___________ TEST BLOCK ___________
+//	
+//	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
+//	block_button.title = 'block_button',
+//	block_button.onclick = async () => {
+//		await FriendService.blockUser(receiver.id);
+//		location.reload();
+//	}
+//
+//	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
+//	unblock_button.title = 'unblock_button',
+//	unblock_button.onclick = async () => {
+//		await FriendService.unblockUser(receiver.id);
+//		location.reload();
+//	}
+//
+//	if (friendship_status.status === 'blocked') {
+//		title_box.appendChild(unblock_button);
+//	} else {
+//		title_box.appendChild(block_button);
+//	}
+//
+//	// ___________ /TEST BLOCK ___________
 
 
 	if (friendship_status.status === 'blocked') {
@@ -112,7 +112,7 @@ export async function renderChatPage() {
 		const	prompt_box = document.createElement('div');
 		prompt_box.title = 'prompt_box';
 		prompt_box.className = `
-			fixed bottom-5 h-[25%] w-[99%]
+			fixed bottom-4 h-[20%] w-[99%]
 			bg-amber-300/50
 			rounded-lg text-lg transition-colors
 			focus:outline-none focus:ring-2
@@ -123,20 +123,20 @@ export async function renderChatPage() {
 			space-y-4 z-11
 		`.trim()
 
-		const	prompt_title = document.createElement('label');
-		prompt_title.title = 'prompt_title';
-		prompt_title.className = `
-		font-['Orbitron']
-		text-white font-semibold
-	  `.trim();
-		prompt_title.textContent = 'New message:';
+//		const	prompt_title = document.createElement('label');
+//		prompt_title.title = 'prompt_title';
+//		prompt_title.className = `
+//		font-['Orbitron']
+//		text-white font-semibold
+//	  `.trim();
+//		prompt_title.textContent = 'New message:';
 
 		const	prompt_area = document.createElement('textarea');
 		prompt_area.title = 'prompt_area';
 		prompt_area.className = `
 		font-['Orbitron']
 		bg-purple-900/100 backdrop-blur-2xl
-		h-[65%] w-[100%]
+		h-[100%] w-[100%]
 		text-white font-semibold p-1
 		border-2 border-black
 		rounded-lg text-lg transition-colors
@@ -154,21 +154,21 @@ export async function renderChatPage() {
 			}
 		};
 
-		const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
-		send_button.title = 'send_button';
-		send_button.style.position = 'inherit';
-		send_button.style.right = '35px';
-		send_button.style.bottom = '35px';
-		send_button.onclick = async () => {
-			if (prompt_area.value) {
-				await ChatService.postMessage(receiver.id, prompt_area.value);
-				prompt_area.value = '';
-			}
-		};
+//		const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
+//		send_button.title = 'send_button';
+//		send_button.style.position = 'inherit';
+//		send_button.style.right = '35px';
+//		send_button.style.bottom = '35px';
+//		send_button.onclick = async () => {
+//			if (prompt_area.value) {
+//				await ChatService.postMessage(receiver.id, prompt_area.value);
+//				prompt_area.value = '';
+//			}
+//		};
 
-		prompt_box.appendChild(prompt_title);
+//		prompt_box.appendChild(prompt_title);
 		prompt_box.appendChild(prompt_area);
-		prompt_box.appendChild(send_button);
+//		prompt_box.appendChild(send_button);
 		document.body.appendChild(prompt_box);
 
 		while (true) {
