@@ -86,10 +86,11 @@ export class StatsRender {
 		mainContainer.style.marginLeft = '350px';
 
 		const statsCard = document.createElement('div');
+		statsCard.title = 'statsCard';
 		statsCard.className = `
 			bg-white/90 backdrop-blur-md
 			border-2 border-black
-			rounded-xl p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+			rounded-xl mb-5 p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
 			flex-1 max-w-[30%] min-w-[300px] transition-all duration-300
 			overflow-y-auto compact-container
 		`;
@@ -117,19 +118,18 @@ export class StatsRender {
 		const tournamentsSection = await this.createTournamentsSection(user.id, user);
 		statsCard.appendChild(tournamentsSection);
 
-		// Create match details panel (initially hidden)
-//		const matchDetailsPanel = this.createMatchDetailsPanel();
-
 		mainContainer.appendChild(statsCard);
-//		mainContainer.appendChild(matchDetailsPanel);
-	//    container.appendChild(mainContainer);
-		this.embedChat(user, mainContainer);
+
+		if (isOwnStats) {
+			const matchDetailsPanel = this.createMatchDetailsPanel();
+			mainContainer.appendChild(matchDetailsPanel);
+			(window as any).matchDetailsPanel = matchDetailsPanel;
+			(window as any).currentUser = user;
+		} else {
+			this.embedChat(user, mainContainer);
+		}
 
 		document.body.appendChild(mainContainer);
-		
-		// Store references for match detail functionality
-//		(window as any).matchDetailsPanel = matchDetailsPanel;
-		(window as any).currentUser = user;
 	}
 
 	private static createMatchDetailsPanel(): HTMLElement {
@@ -783,6 +783,7 @@ export class StatsRender {
 		chat_page.style.width = "100%";
 		chat_page.style.zIndex = '50';
 		chat_page.style.marginLeft = '20px';
+		chat_page.style.marginRight = '10px';
 
 		mainContainer.appendChild(chat_page);
 	}

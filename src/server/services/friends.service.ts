@@ -132,7 +132,7 @@ export class FriendService {
 			where: {
 				senderId: userId,
 				receiverId: otherUserId,
-//				status: FriendshipStatus.BLOCKED
+				status: FriendshipStatus.BLOCKED
 			}
 		});
 
@@ -152,31 +152,30 @@ export class FriendService {
 			},
 		});
 
-		if (!friendship) {
-			return await prisma.friendship.create({
-				data: {
-					senderId: userId,
-					receiverId: otherUserId,
-					status: FriendshipStatus.BLOCKED,
-				},
-			});
-		} else {
-			return await prisma.friendship.update({
+		if (friendship) {
+			await prisma.friendship.delete({
 				where: {
 					id: friendship.id,
-				},
-				data: { status: FriendshipStatus.BLOCKED },
-			});
-		};
+				}
+			})
+		}
+
+		return await prisma.friendship.create({
+			data: {
+				senderId: userId,
+				receiverId: otherUserId,
+				status: FriendshipStatus.BLOCKED,
+			},
+		});
 	}
 
 	static async getFriendshipStatus(userId: string, otherUserId: string) {
 		const friendship = await prisma.friendship.findFirst({
 			where: {
-//				OR: [
-					 senderId: userId, receiverId: otherUserId,
-//					{ senderId: otherUserId, receiverId: userId }
-//				]
+				OR: [
+					{ senderId: userId, receiverId: otherUserId },
+					{ senderId: otherUserId, receiverId: userId }
+				]
 			}
 		});
 
@@ -198,7 +197,6 @@ export class FriendService {
 				}
 			}
 		}
-
 		return { status, requestId };
 	}
 }

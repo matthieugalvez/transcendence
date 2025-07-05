@@ -32,36 +32,29 @@ export async function renderChatPage() {
 		renderNotFoundPage();
 		return;
 	}
-//	await UserService.blockUser(receiver.id);
 
 //	BackgroundComponent.applyCenteredGradientLayout();
 
-//	const	title_box = document.createElement('div');
-//	title_box.title = 'title_box';
-//	title_box.className = `
-//		font-['Orbitron']
-//		text-white font-semibold
-//		border-2 border-black
-//        fixed left-[5%] top-2 h-[5%] w-[90%]
-//        bg-amber-300/50
-//        rounded-lg text-lg transition-colors
-//        focus:outline-none focus:ring-2
-//        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-//        disabled:opacity-50 disabled:cursor-not-allowed
-//        border-2 border-black
-//        flex flex-col items-center justify-center p-6
-//        space-y-4 z-11
-//	`.trim();
-//	title_box.textContent = `Chat room between ${user.displayName} & ${receiver.displayName}`
-//
-//	document.body.appendChild(title_box);
+	const	mainContainer = document.createElement('div');
+	mainContainer.className = `
+        flex flex-col items-center justify-center p-7
+	`;
+
+	const	title_box = document.createElement('div');
+	title_box.title = 'title_box';
+	title_box.className = `
+        fixed p-0 h-[5%] w-[50%]
+        flex items-center justify-center
+	`.trim();
+
+	mainContainer.appendChild(title_box);
 
 	const	messages_box = document.createElement('div');
 	messages_box.title = 'messages_box';
 	messages_box.className = `
 		font-['Orbitron']
 		text-white font-semibold
-        fixed top-[0%] h-[77%] w-[99%]
+        fixed top-[7%] h-[70%] w-[99%]
         bg-amber-300/50
         rounded-lg text-lg transition-colors
         focus:outline-none focus:ring-2
@@ -72,39 +65,76 @@ export async function renderChatPage() {
         space-y-4 z-11
     `.trim();
 	messages_box.style.overflow = 'auto';
-	document.body.appendChild(messages_box);
+	mainContainer.appendChild(messages_box);
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
+	
+	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
+	block_button.title = 'block_button',
+	block_button.style.marginRight = '5px';
+	block_button.onclick = async () => {
+		await FriendService.blockUser(receiver.id);
+		location.reload();
+	}
 
-//	// ___________ TEST BLOCK ___________
-//	
-//	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
-//	block_button.title = 'block_button',
-//	block_button.onclick = async () => {
-//		await FriendService.blockUser(receiver.id);
-//		location.reload();
-//	}
-//
-//	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
-//	unblock_button.title = 'unblock_button',
-//	unblock_button.onclick = async () => {
-//		await FriendService.unblockUser(receiver.id);
-//		location.reload();
-//	}
-//
-//	if (friendship_status.status === 'blocked') {
-//		title_box.appendChild(unblock_button);
-//	} else {
-//		title_box.appendChild(block_button);
-//	}
-//
-//	// ___________ /TEST BLOCK ___________
+	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
+	unblock_button.title = 'unblock_button',
+	unblock_button.style.marginRight = '5px';
+	unblock_button.onclick = async () => {
+		await FriendService.unblockUser(receiver.id);
+		location.reload();
+	}
 
+	if (friendship_status.status === 'blocked') {
+		title_box.appendChild(unblock_button);
+	} else {
+		title_box.appendChild(block_button);
+		const	friend_button = CommonComponent.createStylizedButton('', 'blue');
+		if (friendship_status.status === 'none') {
+			friend_button.textContent = 'Add Friend';
+			friend_button.onclick = async () => {
+				await FriendService.sendFriendRequest(receiver.id);
+				location.reload();
+			};
+		} else if (friendship_status.status === 'pending') {
+			friend_button.textContent = 'Cancel Request';
+			friend_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.rejectFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+		} else if (friendship_status.status === 'incoming') {
+			friend_button.textContent = 'Accept Request';
+			friend_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.acceptFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+			const	reject_button = CommonComponent.createStylizedButton('Reject Request', 'gray');
+			reject_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.rejectFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+			title_box.appendChild(reject_button);
+		} else if (friendship_status.status === 'friends') {
+			friend_button.textContent = 'Remove Friend';
+			friend_button.onclick = async () => {
+				await UserService.removeFriend(receiver.id);
+				location.reload();
+			};
+		}
+		title_box.appendChild(friend_button);
+	}
 
 	if (friendship_status.status === 'blocked') {
 		messages_box.textContent = `User ${ receiver.displayName } is blocked`;
 		messages_box.style.justifyContent = 'center';
 		messages_box.style.alignItems = 'center';
+		document.body.appendChild(mainContainer);
 	} else {
 		await getAllMessages(user.id, receiver.id, messages_box);
 		messages_box.scrollTop = messages_box.scrollHeight;
@@ -122,14 +152,6 @@ export async function renderChatPage() {
 			flex flex-col items-start p-6
 			space-y-4 z-11
 		`.trim()
-
-//		const	prompt_title = document.createElement('label');
-//		prompt_title.title = 'prompt_title';
-//		prompt_title.className = `
-//		font-['Orbitron']
-//		text-white font-semibold
-//	  `.trim();
-//		prompt_title.textContent = 'New message:';
 
 		const	prompt_area = document.createElement('textarea');
 		prompt_area.title = 'prompt_area';
@@ -154,22 +176,9 @@ export async function renderChatPage() {
 			}
 		};
 
-//		const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
-//		send_button.title = 'send_button';
-//		send_button.style.position = 'inherit';
-//		send_button.style.right = '35px';
-//		send_button.style.bottom = '35px';
-//		send_button.onclick = async () => {
-//			if (prompt_area.value) {
-//				await ChatService.postMessage(receiver.id, prompt_area.value);
-//				prompt_area.value = '';
-//			}
-//		};
-
-//		prompt_box.appendChild(prompt_title);
 		prompt_box.appendChild(prompt_area);
-//		prompt_box.appendChild(send_button);
-		document.body.appendChild(prompt_box);
+		mainContainer.appendChild(prompt_box);
+		document.body.appendChild(mainContainer);
 
 		while (true) {
 			await getAllMessages(user.id, receiver.id, messages_box);
