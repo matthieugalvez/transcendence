@@ -55,9 +55,12 @@ export async function renderTournamentPage() {
 	GameSettingsComponent.tournamentStarted = false;
 
 	TournamentComponent.showPlayerSelection(gameContainer, (players) => {
-		const settingsBar = GameSettingsComponent.render('tournament-settings', {
+		const settingsBar = GameSettingsComponent.render('duo-local', {
 			onStartGame: () => {
 				GameSettingsComponent.tournamentStarted = true;
+				// const newBar = GameSettingsComponent.render('tournament-settings');
+                // settingsContainer.innerHTML = '';
+                // settingsContainer.appendChild(newBar);
 				launchTournament(players, gameContainer);
 			},
 			onPauseGame: () => {
@@ -116,7 +119,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 		const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
 		wrapper.innerHTML = '';
 		const gameContainer = document.createElement('div');
-		gameContainer.className = 'flex flex-col items-center justify-center p-4';
+		gameContainer.className = 'relative flex flex-col items-center justify-center';
 		wrapper.appendChild(gameContainer);
 
 		let gameId: string;

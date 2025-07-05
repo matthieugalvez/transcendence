@@ -636,7 +636,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
 						// Update settings bar to show game controls
-						const newSettingsBar = GameSettingsComponent.render('solo-start', {
+						const newSettingsBar = GameSettingsComponent.render('duo-start', {
 							onPauseGame: () => {
 								pauseState.value = !pauseState.value;
 								pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
@@ -701,7 +701,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					console.log('Host starting tournament...');
 					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
-					const newSettingsBar = GameSettingsComponent.render('solo', {
+					const newSettingsBar = GameSettingsComponent.render('duo-start', {
 						onPauseGame: () => {
 							pauseState.value = !pauseState.value;
 							pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
