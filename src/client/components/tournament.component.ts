@@ -15,8 +15,8 @@ export class TournamentComponent {
     container.innerHTML = '';
     const overlay = document.createElement('div');
     overlay.className = `
-      absolute inset flex flex-col items-center justify-center
-      bg-black/70 p-6 space-y-4 z-20 w-[60%] h-full
+      fixed inset-0 flex flex-col items-center justify-center
+      bg-black/70 p-6 space-y-4 z-20 w-[53%] h-full ml-[25.5%]
     `;
     container.appendChild(overlay);
 
