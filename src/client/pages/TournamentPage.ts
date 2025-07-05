@@ -38,14 +38,27 @@ export async function renderTournamentPage() {
 	`.replace(/\s+/g, ' ').trim();
 	document.body.appendChild(wrapper);
 
+	const layout = document.createElement('div');
+	layout.className = 'flex items-start justify-center gap-6 w-full max-w-7xl mx-auto';
+	wrapper.appendChild(layout);
+
+	const gameContainer = document.createElement('div');
+	gameContainer.className = 'relative z-10 flex flex-col items-center';
+	layout.appendChild(gameContainer);
+
+	const settingsContainer = document.createElement('div');
+	settingsContainer.id = 'settings-container';
+	settingsContainer.className = 'flex-shrink-0';
+	layout.appendChild(settingsContainer);
+
 	// settings bar initiale (demande alias)
 	GameSettingsComponent.tournamentStarted = false;
 
-	TournamentComponent.showPlayerSelection(wrapper, (players) => {
-		GameSettingsComponent.render('tournament-settings', {
+	TournamentComponent.showPlayerSelection(gameContainer, (players) => {
+		const settingsBar = GameSettingsComponent.render('tournament-settings', {
 			onStartGame: () => {
 				GameSettingsComponent.tournamentStarted = true;
-				launchTournament(players, wrapper);
+				launchTournament(players, gameContainer);
 			},
 			onPauseGame: () => {
 				pauseState.value = !pauseState.value;
@@ -60,13 +73,15 @@ export async function renderTournamentPage() {
 				}
 			},
 		});
+		settingsContainer.innerHTML = '';
+    	settingsContainer.appendChild(settingsBar);
 	});
 
 	const previewImg = document.createElement('img');
 	previewImg.src = pongPreviewImg;
 	previewImg.alt = 'Pong preview';
 	previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-	wrapper.appendChild(previewImg);
+	gameContainer.appendChild(previewImg);
 }
 
 export async function launchTournament(aliases: string[], wrapper: HTMLElement) {
