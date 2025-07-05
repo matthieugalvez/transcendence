@@ -1,6 +1,7 @@
 import { CommonComponent } from './common.component';
 import { UserSearchComponent } from './usersearch.component';
 import { router } from '../configs/simplerouter';
+import { UserService } from '../services/user.service';
 
 export class TournamentComponent {
   /**
@@ -20,11 +21,29 @@ export class TournamentComponent {
     container.appendChild(overlay);
 
     const title = document.createElement('h2');
-    title.textContent = '⬇️ Choose 4 registered players ⬇️';
+    title.textContent = '⬇️ Choose 3 registered players ⬇️';
     title.className = `
       text-white text-2xl mb-4 font-['Orbitron']
     `;
     overlay.appendChild(title);
+
+    const startBtn = document.createElement('button');
+    startBtn.textContent = 'Launch tournament';
+    startBtn.disabled = true;
+    startBtn.className = `
+      bg-purple-600 text-white
+      font-['Orbitron']
+      font-semibold
+      border-2 border-black
+      py-2 px-12
+      rounded-lg text-lg transition-colors
+      focus:outline-none focus:ring-2
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+      disabled:opacity-50 disabled:cursor-not-allowed
+    `;
+
+    // recupere utilisateur connecte
+    const currentUser = await UserService.getCurrentUser();
 
     const slots: { user?: string; elem: HTMLElement }[] = [];
     for (let i = 0; i < 4; i++) {
@@ -42,15 +61,14 @@ export class TournamentComponent {
           // verif si deja selectionner
           const already = slots.some((s, idx) => idx !== i && s.user === user.displayName);
           if (already) {
-			CommonComponent.showMessage("User alreadly selected!", 'error');
-            // alert("User already selected!");
+			      CommonComponent.showMessage("User alreadly selected!", 'error');
             return;
           }
           // on sélectionne
           slots[i].user = user.displayName;
           checkReady();
           renderSelectedUI(user);
-        });
+        }, { theme: 'dark' });
       }
       // UI une fois qu’on a sélectionné
       function renderSelectedUI(user: { displayName: string; avatar: string; id: string }) {
@@ -71,28 +89,18 @@ export class TournamentComponent {
         pill.appendChild(deselectBtn);
         slot.appendChild(pill);
       }
-      // // pour chaque slot, on rend un UserSearchComponent et on récupère la sélection
-      // UserSearchComponent.render(slot, async (user) => {
-      //   slots[i].user = user.displayName;
-      //   checkReady();
-      // });
       renderSearchUI();
     }
 
-    const startBtn = document.createElement('button');
-    startBtn.textContent = 'Launch tournament';
-    startBtn.disabled = true;
-    startBtn.className = `
-      bg-purple-600 text-white
-      font-['Orbitron']
-      font-semibold
-      border-2 border-black
-      py-2 px-12
-      rounded-lg text-lg transition-colors
-      focus:outline-none focus:ring-2
-      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-      disabled:opacity-50 disabled:cursor-not-allowed
+    slots[0].user = currentUser.displayName;
+    const first = slots[0].elem;
+    first.innerHTML = `
+      <div class="flex items-center justify-between p-2 bg-purple-900/60 text-white rounded">
+        <span>${currentUser.displayName}</span>
+      </div>
     `;
+    checkReady();
+
     overlay.appendChild(startBtn);
 
     function checkReady() {

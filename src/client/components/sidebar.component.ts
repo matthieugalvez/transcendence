@@ -95,7 +95,7 @@ export class SidebarComponent {
 
 		// Stat button
 		if (showStats) {
-			const profileBtn = CommonComponent.createStylizedButton('👤 My profile', 'blue');
+			const profileBtn = CommonComponent.createStylizedButton('👤 My statistics', 'blue');
 			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			profileBtn.onclick = () => router.navigate('/profile');
 			sidebar.appendChild(profileBtn);

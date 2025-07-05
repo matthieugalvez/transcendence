@@ -7,7 +7,6 @@ import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-import { match } from 'assert';
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -33,10 +32,10 @@ export async function renderTournamentPage() {
 	// Main layout
 	const wrapper = document.createElement('div');
 	wrapper.className = `
-    ml-40 w-[calc(100%-15rem)] min-h-screen
-    flex items-center justify-center
-    p-8 relative
-  `.replace(/\s+/g, ' ').trim();
+		ml-40 w-[calc(100%-15rem)] min-h-screen
+		flex items-center justify-center
+		p-8 relative
+	`.replace(/\s+/g, ' ').trim();
 	document.body.appendChild(wrapper);
 
 	// settings bar initiale (demande alias)
@@ -121,7 +120,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 			currentMatchSocket.close(1000, 'cleanup before new match');
 		}
 		currentMatchSocket = null;
-		  await new Promise(resolve => setTimeout(resolve, 500));
+		// await new Promise(resolve => setTimeout(resolve, 500));
 
 
 		// Lancement du match
@@ -166,7 +165,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 				});
 			},
 			gameId,
-			'tournament-online'
+			'duo-local'
 		);
 		pongHandle.start();
 		currentMatchSocket = pongHandle.socket;
