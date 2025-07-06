@@ -179,12 +179,16 @@ export class FriendService {
 			}
 		});
 
-		let status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none' = 'none';
+		let status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'blocked_by' | 'none' = 'none';
 		let requestId: string | undefined = undefined;
 
 		if (friendship) {
 			if (friendship.status === 'BLOCKED') {
-				status = 'blocked';
+				if (friendship.senderId === userId) {
+					status = 'blocked';
+				} else {
+					status = 'blocked_by';
+				}
 			} else if (friendship.status === 'ACCEPTED') {
 				status = 'friends';
 			} else if (friendship.status === 'PENDING') {

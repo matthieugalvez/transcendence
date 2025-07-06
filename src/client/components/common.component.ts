@@ -123,8 +123,6 @@ static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'i
     }, 4000);
 }
 
-
-
 	/**
 	 * Create a styled label element
 	 */
@@ -191,7 +189,7 @@ static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'i
 		font-['Orbitron']
 		${colorClasses[color]} text-white font-semibold
 		border-2 border-black
-		py-2 px-12
+		py-2 px-12 whitespace-nowrap
 		rounded-lg text-lg transition-colors
 		focus:outline-none focus:ring-2
 		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
@@ -338,5 +336,39 @@ static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'i
 				router.navigate(redirectPath);
 			}
 		}, 1000);
+	}
+
+	static guardEmbedding() {
+		const topLocation = window.top?.location;
+		if (topLocation === undefined) {
+			window.location.href = "/";
+			return;
+		}
+
+		// Same-origin policy
+		try {
+		topLocation.hostname;
+		} catch (e) {
+			if (e instanceof DOMException) {
+				console.error("Access to this app from an unknown host is prohibited.");
+				window.location.href = "/";
+				return;
+			}
+		}
+
+		// Verify top window domain name
+		if (
+			topLocation.hostname !== "pong42.click" &&
+			topLocation.hostname !== "localhost" // For local debugging
+		) {
+			window.location.href = "/";
+			return;
+		}
+
+		// Prevent visitors from directly visiting
+		if (topLocation.pathname.startsWith("/chat")) {
+			window.location.href = "/";
+			return;
+		}
 	}
 }

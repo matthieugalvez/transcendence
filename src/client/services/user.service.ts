@@ -375,7 +375,7 @@ export class UserService {
 	}
 
 	static async getFriendshipStatus(otherUserId: string): Promise<{
-		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'none', requestId?: string }> {
+		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'blocked_by' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);
 		const data = await response.json();
 		if (!data.success)

@@ -1,10 +1,10 @@
 import '../styles.css';
-import { BackgroundComponent } from '../components/background.component';
 import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
 import { UserService } from '../services/user.service';
 import { renderNotFoundPage } from './NotFoundPage';
 import { FriendService } from '../services/friend.service';
+import { FriendsRender } from '../renders/friends.render';
 let		g_edit_box: boolean = false;
 let		g_last_fetch_date: Date;
 
@@ -15,9 +15,10 @@ async function	delay(ms: number, state = null) {
 }
 
 export async function renderChatPage() {
+	CommonComponent.guardEmbedding();
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
-	let	user;
+	let	user: any;
 	try {
 		user = await UserService.getCurrentUser();
 	} catch (error) {
@@ -25,15 +26,13 @@ export async function renderChatPage() {
 		CommonComponent.handleAuthError();
 	}
 	const	receiver_name = document.URL.substring(document.URL.lastIndexOf('/') + 1);
-	let	receiver;
+	let	receiver: any;
 	try {
 		receiver = await UserService.getUserProfileByDisplayName(receiver_name);
 	} catch {
 		renderNotFoundPage();
 		return;
 	}
-
-//	BackgroundComponent.applyCenteredGradientLayout();
 
 	const	mainContainer = document.createElement('div');
 	mainContainer.className = `
@@ -87,9 +86,10 @@ export async function renderChatPage() {
 
 	if (friendship_status.status === 'blocked') {
 		title_box.appendChild(unblock_button);
-	} else {
+	} else if (friendship_status.status != 'blocked_by') {
 		title_box.appendChild(block_button);
 		const	friend_button = CommonComponent.createStylizedButton('', 'blue');
+		friend_button.style.marginRight = '5px';
 		if (friendship_status.status === 'none') {
 			friend_button.textContent = 'Add Friend';
 			friend_button.onclick = async () => {
@@ -113,6 +113,7 @@ export async function renderChatPage() {
 				}
 			};
 			const	reject_button = CommonComponent.createStylizedButton('Reject Request', 'gray');
+			reject_button.style.marginRight = '5px';
 			reject_button.onclick = async () => {
 				if (friendship_status.requestId) {
 					await FriendService.rejectFriendRequest(friendship_status.requestId);
@@ -128,6 +129,33 @@ export async function renderChatPage() {
 			};
 		}
 		title_box.appendChild(friend_button);
+
+		let hasPendingGameInvite = false;
+		try {
+			const invitesResponse = await fetch('/api/invites/sent');
+			if (invitesResponse.ok) {
+				const invitesData = await invitesResponse.json();
+				if (invitesData.success) {
+					hasPendingGameInvite = invitesData.invites.some((invite: any) =>
+						invite.inviteeId === receiver.id && invite.status === 'pending'
+					);
+				}
+			}
+		} catch (error) {
+			console.error('Error checking pending invites:', error);
+		}
+
+		if (!hasPendingGameInvite) {
+			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'purple');
+			inviteBtn.onclick = async () => {
+				FriendsRender.showGameTypeModal(receiver);
+			};
+			title_box.appendChild(inviteBtn);
+		} else {
+			const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+			pendingInviteBtn.disabled = true;
+			title_box.appendChild(pendingInviteBtn);
+		}
 	}
 
 	if (friendship_status.status === 'blocked') {
@@ -135,8 +163,13 @@ export async function renderChatPage() {
 		messages_box.style.justifyContent = 'center';
 		messages_box.style.alignItems = 'center';
 		document.body.appendChild(mainContainer);
+	} else if (friendship_status.status === 'blocked_by') {
+		messages_box.textContent = `User ${ receiver.displayName } blocked you`;
+		messages_box.style.justifyContent = 'center';
+		messages_box.style.alignItems = 'center';
+		document.body.appendChild(mainContainer);
 	} else {
-		await getAllMessages(user.id, receiver.id, messages_box);
+		await getAllMessages(receiver.id, messages_box);
 		messages_box.scrollTop = messages_box.scrollHeight;
 
 		const	prompt_box = document.createElement('div');
@@ -181,16 +214,16 @@ export async function renderChatPage() {
 		document.body.appendChild(mainContainer);
 
 		while (true) {
-			await getAllMessages(user.id, receiver.id, messages_box);
+			await getAllMessages(receiver.id, messages_box);
 			await delay(500);
 		}
 	}
 }
 
-async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
+async function getAllMessages(receiver_id: string, messages_box: any) {
 	const	previous_fetch = g_last_fetch_date;
 	const	messages_list = messages_box.childNodes;
-	let		messages;
+	let		messages: any;
 	try {
 		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
 	}
@@ -216,12 +249,8 @@ async function getAllMessages(user_id: string, receiver_id: string, messages_box
 				}
 			}
 		} else {
-			let	message_box;
+			const	message_box = makeMsgBox(messages_box, message, message.sender_id === receiver_id)
 
-			if (message.sender_id === user_id)
-				message_box = makeMsgBox(messages_box, message, false);
-			if (message.receiver_id === user_id)
-				message_box = makeMsgBox(messages_box, message, true);
 			if (previous_fetch && message === messages[0]) {
 				message_box.scrollIntoView({behavior: 'smooth', block: 'center'});
 			}
@@ -229,7 +258,7 @@ async function getAllMessages(user_id: string, receiver_id: string, messages_box
 	}
 }
 
-function makeMsgBox(content_box: Element, message, received: boolean) {
+function makeMsgBox(content_box: Element, message: any, received: boolean) {
 	const	box = document.createElement('div');
 	box.title = `${message.id}`;
 	box.className = `
@@ -334,7 +363,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	return (box);
 }
 
-function	makeMsgButtons(message, buttons_box: Element, box_text: Element, box: Element) {
+function	makeMsgButtons(message: any, buttons_box: Element, box_text: Element, box: Element) {
 	if (!message.deleted) {
 		const	edit_button = document.createElement('div');
 
@@ -423,7 +452,7 @@ function	makeMsgButtons(message, buttons_box: Element, box_text: Element, box: E
 	}
 }
 
-function	makeEditPromptArea(message, box_text: Element) {
+function	makeEditPromptArea(message: any, box_text: Element) {
 	g_edit_box = true;
 
 	const	prompt_box = document.createElement('div');

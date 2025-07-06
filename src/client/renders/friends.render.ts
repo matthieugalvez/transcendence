@@ -273,19 +273,19 @@ export class FriendsRender {
 		return card;
 	}
 
-	private static showGameTypeModal(friend: any): void {
+	static showGameTypeModal(friend: any): void {
 		// Create modal overlay
 		const modalOverlay = document.createElement('div');
 		modalOverlay.className = `
         fixed inset-0 bg-black/50 flex items-center justify-center z-50
-    `;
+    	`;
 
 		// Create modal content
 		const modal = document.createElement('div');
 		modal.className = `
         bg-white rounded-lg p-6 max-w-md w-full mx-4
         border-2 border-black shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    `;
+    	`;
 
 		// Modal title
 		const title = document.createElement('h3');
@@ -307,20 +307,20 @@ export class FriendsRender {
 		buttonContainer.appendChild(duoBtn);
 
 		// Tournament button - fix the context issue
-const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
-tournamentBtn.className += ' w-full';
-tournamentBtn.onclick = async () => {
-    // //console.log('Tournament button clicked!');
-    modalOverlay.remove();
-    try {
-        //console.log('Calling showTournamentPlayerSelection with friend:', friend);
-        await FriendsRender.showTournamentPlayerSelection(friend);
-    } catch (error) {
-        console.error('Error in showTournamentPlayerSelection:', error);
-        CommonComponent.showMessage('❌ Failed to load tournament selection', 'error');
-    }
-};
-buttonContainer.appendChild(tournamentBtn);
+		const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
+		tournamentBtn.className += ' w-full';
+		tournamentBtn.onclick = async () => {
+			// //console.log('Tournament button clicked!');
+			modalOverlay.remove();
+			try {
+				//console.log('Calling showTournamentPlayerSelection with friend:', friend);
+				await FriendsRender.showTournamentPlayerSelection(friend);
+			} catch (error) {
+				console.error('Error in showTournamentPlayerSelection:', error);
+				CommonComponent.showMessage('❌ Failed to load tournament selection', 'error');
+			}
+		};
+		buttonContainer.appendChild(tournamentBtn);
 
 		// Cancel button
 		const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
@@ -627,6 +627,4 @@ buttonContainer.appendChild(tournamentBtn);
 			CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
 		}
 	}
-
-
 }
