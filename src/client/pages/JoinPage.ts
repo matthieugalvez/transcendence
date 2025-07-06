@@ -39,6 +39,8 @@ async function getUsername() {
 export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'tournament' }) {
 	const { gameId, mode } = params;
 
+	GameSettingsComponent.tournamentStarted = false;
+
 	document.body.innerHTML = '';
 	document.title = mode === 'duo' ? 'Pong - Online Duo' : 'Pong - Tournoi Online';
 	BackgroundComponent.applyNormalGradientLayout();
@@ -364,6 +366,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 					if (data.type === 'matchStart') {
 						console.log('Tournament match starting');
+						GameSettingsComponent.tournamentStarted = true;
 						previewImg.remove();
 
 						const transition = document.createElement('div');
@@ -509,9 +512,10 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						if (data.isRunning) {
 							waiting.textContent = '';
 						} else {
-							waiting.textContent = bothPlayersConnected
-								? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
-								: "Waiting for another player to join...";
+							waiting.textContent = "Starting";
+							// waiting.textContent = bothPlayersConnected
+							// 	? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
+							// 	: "Waiting for another player to join...";
 						}
 					}
 

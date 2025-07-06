@@ -58,9 +58,22 @@ export async function renderTournamentPage() {
 		const settingsBar = GameSettingsComponent.render('duo-local', {
 			onStartGame: () => {
 				GameSettingsComponent.tournamentStarted = true;
-				// const newBar = GameSettingsComponent.render('tournament-settings');
-                // settingsContainer.innerHTML = '';
-                // settingsContainer.appendChild(newBar);
+				const newBar = GameSettingsComponent.render('duo-start', {
+						onPauseGame: () => {
+								pauseState.value = !pauseState.value;
+								if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+										currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+								}
+						},
+						onRestartGame: () => renderTournamentPage(),
+						onDifficultyChange: (difficulty) => {
+								if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+										currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+								}
+						},
+				});
+                settingsContainer.innerHTML = '';
+                settingsContainer.appendChild(newBar);
 				launchTournament(players, gameContainer);
 			},
 			onPauseGame: () => {

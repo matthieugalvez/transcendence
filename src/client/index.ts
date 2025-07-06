@@ -17,7 +17,7 @@ let isShowingViewportWarning = false;
 
 function checkMinimumViewport(): boolean {
     const minWidth = 1024;
-    const minHeight = 768;
+    const minHeight = 700;
     const currentWidth = window.innerWidth;
     const currentHeight = window.innerHeight;
 
