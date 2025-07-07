@@ -542,6 +542,7 @@ export class FriendsRender {
 	}
 
 	// New method to send tournament invites to multiple players
+	// New method to send tournament invites to multiple players
 	private static async sendTournamentInvites(players: any[]): Promise<void> {
 		try {
 			// Create tournament game
@@ -554,6 +555,9 @@ export class FriendsRender {
 			if (!res.ok) throw new Error('Failed to create tournament game');
 
 			const { gameId } = await res.json();
+
+			// Get current user for the tournament message
+			const currentUser = await UserService.getCurrentUser();
 
 			// Send invites to all selected players
 			const invitePromises = players.map(player =>
@@ -573,36 +577,51 @@ export class FriendsRender {
 
 			if (failedInvites.length > 0) {
 				CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
-			 } else {
-            CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
+			} else {
+				CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
 
-            // Send chat messages to notify players about the tournament
-            const tournamentMessage = `🏆 Tournament Alert! You've been invited to join a 4-player tournament. The tournament is starting now with players: ${[currentUser.displayName, ...players.map(p => p.displayName)].join(', ')}. Join the game to participate! 🎮`;
+				// Create simple tournament notification message
+				const allPlayerNames = [currentUser.displayName, ...players.map(p => p.displayName)];
+				const tournamentLink = `${window.location.origin}/game/online/tournament/${gameId}`;
 
-            // Send tournament notification message to each invited player
-            const chatPromises = players.map(player =>
-                fetch('/api/chat/post', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        receiver_id: player.id,
-                        content: tournamentMessage
-                    })
-                }).catch(error => {
-                    console.error(`Failed to send tournament message to ${player.displayName}:`, error);
-                })
-            );
+				const tournamentMessage = `🏆 ${currentUser.displayName} started a tournament with ${allPlayerNames.join(', ')}! Join now: ${tournamentLink}`;
 
-            // Send chat messages (don't wait for them to complete)
-            Promise.all(chatPromises).then(() => {
-                console.log('Tournament notification messages sent to all players');
-            }).catch(error => {
-                console.error('Some tournament messages failed to send:', error);
-            });
-        }
+				// Send tournament notification message to each invited player
+				// Fix: Use correct field names for chat API
+				const chatPromises = players.map(player =>
+					fetch('/api/chat/post', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							receiver_id: player.id,
+							content: tournamentMessage
+						})
+					}).then(response => {
+						if (!response.ok) {
+							throw new Error(`Failed to send message to ${player.displayName}: ${response.status} ${response.statusText}`);
+						}
+						return response.json();
+					}).then(data => {
+						if (!data.success) {
+							throw new Error(`API error for ${player.displayName}: ${data.error}`);
+						}
+						console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
+						return data;
+					}).catch(error => {
+						console.error(`❌ Failed to send tournament message to ${player.displayName}:`, error);
+						throw error;
+					})
+				);
 
-        // Navigate to tournament page
-        window.location.href = `/game/online/tournament/${gameId}`;
+				try {
+					await Promise.all(chatPromises);
+					console.log('✅ All tournament notification messages sent successfully');
+				} catch (error) {
+					console.error('❌ Some tournament messages failed to send:', error);
+				}
+			}
+
+			window.location.href = `/game/online/tournament/${gameId}`;
 
 		} catch (error) {
 			console.error('Failed to create tournament:', error);
