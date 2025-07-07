@@ -230,12 +230,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	// Message d’attente
 	const waiting = document.createElement('div');
 	waiting.className = `
-    text-white text-2xl p-10 z-20 absolute
-    top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-    capitalize font-[Orbitron] text-center
-    bg-black/50 rounded-lg backdrop-blur-sm
-    border-2 border-white/20
-`;
+		text-white text-2xl p-10 z-20 absolute
+		top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+		capitalize font-[Orbitron] text-center
+		bg-black/50 rounded-lg backdrop-blur-sm
+		border-2 border-white/20
+	`;
 	waiting.textContent = "Connecting...";
 	gameContainer.appendChild(waiting);
 
@@ -362,7 +362,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						}
 						renderSettingsBar();
 						return;
-					}
+					}				
 
 					if (data.type === 'matchStart') {
 						console.log('Tournament match starting');
@@ -372,14 +372,13 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						const transition = document.createElement('div');
 						transition.style.backgroundColor = "#530196";
 						transition.className = `
-                        fixed top-[40%]
-                        flex flex-col items-center justify-center p-8
-                        backdrop-blur-2xl z-100 w-[28%] h-[22%]
-                        border-2 border-black
-                        whitespace-nowrap
-                        rounded-lg
-                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-                    `;
+							fixed left-[36%] flex flex-col items-center justify-center p-8
+							backdrop-blur-2xl z-50 w-[60%] h-[30%]
+							border-2 border-black
+							whitespace-nowrap
+							rounded-lg
+							shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+						`;
 
 						if (lastWinner) {
 							const nextMsg = document.createElement('p');
@@ -445,9 +444,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
                         bg-blue-500
                         rounded-lg text-lg transition-colors
                         focus:outline-none focus:ring-2
-                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
                     `;
-
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
 							safeNavigate('/statistics');
@@ -508,14 +505,29 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					}
 
 					// Update waiting message based on game state
-					if (playerId === 1 || playerId === 2) {
+					if (mode === 'duo' && (playerId === 1 || playerId === 2)) {
 						if (data.isRunning) {
 							waiting.textContent = '';
 						} else {
-							waiting.textContent = "Starting";
-							// waiting.textContent = bothPlayersConnected
-							// 	? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
-							// 	: "Waiting for another player to join...";
+							waiting.textContent = bothPlayersConnected
+								? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
+								: "Waiting for another player to join...";
+						}
+					}
+					if (mode === 'tournament') {
+						if (data.isRunning) {
+							waiting.textContent = '';
+						} else {
+							waiting.textContent = "Starting...";
+							const newSettingsBar = GameSettingsComponent.render('duo-start', {
+								onPauseGame: () => {
+									pauseState.value = !pauseState.value;
+									pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+								},
+								onRestartGame: () => window.location.reload(),
+							});
+							settingsContainer.innerHTML = '';
+							settingsContainer.appendChild(newSettingsBar);
 						}
 					}
 

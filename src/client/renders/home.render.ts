@@ -26,23 +26,23 @@ export class HomeRender {
 		// zone de contenu
 		const content = document.createElement('div');
 		content.className = `
-        w-full h-full
-        flex flex-col items-center justify-center
-        py-4
-    `;
+			w-full h-full
+			flex flex-col items-center justify-center
+			py-4
+		`;
 
 		// Grid de cartes with responsive sizing
 		const grid = document.createElement('div')
 		grid.className = `
-        grid grid-cols-1 gap-8 lg:gap-12
-        relative z-10 mx-auto
-        font-['Orbitron']
-        place-items-center
-        w-full
-        max-h-full
-        overflow-y-auto
-        py-4
-    `.trim();
+			grid grid-cols-1 gap-8 lg:gap-12
+			relative z-10 mx-auto
+			font-['Orbitron']
+			place-items-center
+			w-full
+			max-h-full
+			overflow-y-auto
+			py-4
+		`.trim();
 
 		const games = [
 			{ title: 'Pong', route: '/game', img: pongImg }
@@ -51,17 +51,17 @@ export class HomeRender {
 		games.forEach(({ title, route, img }) => {
 			const card = document.createElement('div')
 			card.className = `
-            flex flex-col items-center p-6 lg:p-8 cursor-pointer
-            hover:scale-105 transition-transform
-            max-w-md w-full
-        `.trim()
+				flex flex-col items-center p-6 lg:p-8 cursor-pointer
+				hover:scale-105 transition-transform
+				w-[50%] max-w-[80vh]
+			`.trim()
 			card.onclick = () => router.navigate(route)
 
 			// Canvas with responsive sizing
 			const canvas = document.createElement('canvas')
 			canvas.width = 400
 			canvas.height = 250
-			canvas.className = 'border-2 border-gray-300 rounded-lg max-w-full h-auto'
+			canvas.className = 'border-2 border-gray-300 rounded-lg max-w-full h-auto w-[80%]'
 			const ctx = canvas.getContext('2d')!
 			const image = new Image()
 			image.src = img

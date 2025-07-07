@@ -28,37 +28,26 @@ export class SidebarComponent {
 
 		const sidebar = document.createElement("div");
 		sidebar.className = `
-        app-sidebar
-        fixed left-2 top-2 h-[96%]
-        w-80 md:w-72 lg:w-80
-        max-w-[calc(100vw-1rem)]
-        bg-blue-950/70 backdrop-blur-2xl
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        border-2 border-black
-        flex flex-col items-start p-4 md:p-6
-        space-y-4 z-50
-        overflow-y-auto
-    `.trim();
+			app-sidebar
+			fixed left-5 top-5 h-[96%]
+			w-80 md:w-72 lg:w-80
+			max-w-[calc(100vw-1rem)]
+			bg-blue-950/70 backdrop-blur-2xl
+			rounded-lg text-lg transition-colors
+			focus:outline-none focus:ring-2
+			shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+			disabled:opacity-50 disabled:cursor-not-allowed
+			border-2 border-black
+			flex flex-col items-start p-4 md:p-6
+			space-y-4 z-50
+			overflow-y-auto
+		`.trim();
 
 		document.documentElement.style.setProperty('--sidebar-width', '20rem'); // w-80
 		document.documentElement.style.setProperty('--sidebar-width-md', '18rem'); // w-72
 		document.documentElement.style.setProperty('--sidebar-margin', '1.5rem'); // left-2 + right margin
 
-		// console.log('🔍 Sidebar Avatar URL Debug:', {
-		//   avatarUrl,
-		//   type: typeof avatarUrl,
-		//   isNull: avatarUrl === null,
-		//   isUndefined: avatarUrl === undefined,
-		//   isEmpty: avatarUrl === '',
-		//   isNullString: avatarUrl === 'null'
-		// });
-
-
 		// Profil picture of user (with default one if none)
-		// console.log(`Avatar URL: ${avatarUrl}`);
 		const profilPic = document.createElement('img');
 		profilPic.src = avatarUrl;
 		profilPic.alt = `${userName}'s profile`;
@@ -84,7 +73,7 @@ export class SidebarComponent {
 		pageTitle.textContent = `Welcome ${userName}`;
 		pageTitle.className = `
 			font-['Canada-big'] uppercase font-bold
-			text-4xl text-center mb-2
+			text-4xl text-center mb-6 mt-2
 			bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
 			bg-clip-text text-transparent
 			select-none
@@ -95,7 +84,7 @@ export class SidebarComponent {
 
 		// Stat button
 		if (showStats) {
-			const profileBtn = CommonComponent.createStylizedButton('👤 My statistics', 'blue');
+			const profileBtn = CommonComponent.createStylizedButton('👤 My statistics', 'orange');
 			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			profileBtn.onclick = () => router.navigate('/profile');
 			sidebar.appendChild(profileBtn);
@@ -163,8 +152,8 @@ export class SidebarComponent {
 		bottomContainer.className = 'mt-auto w-full space-y-2';
 		// Back to home button
 		if (showBackHome) {
-			const backButton = CommonComponent.createStylizedButton('Back to Home', 'orange');
-			backButton.classList.add("w-full", "text-center", "whitespace-nowrap", "cursor-pointer");
+			const backButton = CommonComponent.createStylizedButton('🔙 Back to Home', 'purple');
+			backButton.classList.add("w-full", "text-center", "cursor-pointer");
 			backButton.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
 				router.navigate('/home');
@@ -173,14 +162,14 @@ export class SidebarComponent {
 		}
 		// Settings button
 		if (showSettings) {
-			const settingBtn = CommonComponent.createStylizedButton("Settings", "blue");
+			const settingBtn = CommonComponent.createStylizedButton("⚙️ Settings", "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
 			settingBtn.onclick = () => router.navigate("/settings");
 			bottomContainer.appendChild(settingBtn);
 
 		}
 		// Logout button
-		const logoutBtn = CommonComponent.createStylizedButton("Logout", "red");
+		const logoutBtn = CommonComponent.createStylizedButton("🚪 Logout", "red");
 		logoutBtn.classList.add("w-full", "text-center", "cursor-pointer");
 		logoutBtn.addEventListener("click", async () => {
 			const success = await AuthComponent.logoutUser();

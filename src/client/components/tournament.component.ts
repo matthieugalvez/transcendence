@@ -127,7 +127,7 @@ export class TournamentComponent {
     transition.style.backgroundColor = "#530196";
     transition.className = `
       absolute flex flex-col items-center justify-center p-8
-      backdrop-blur-2xl z-50 w-[55%] h-[30%]
+      backdrop-blur-2xl z-50 w-[60%] h-[30%]
       border-2 border-black
       whitespace-nowrap
       rounded-lg
@@ -171,7 +171,6 @@ export class TournamentComponent {
           bg-blue-500
           rounded-lg text-lg transition-colors
           focus:outline-none focus:ring-2
-          shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
       `;
       setTimeout(() => {
         window.dispatchEvent(new Event('app:close-sockets'));
