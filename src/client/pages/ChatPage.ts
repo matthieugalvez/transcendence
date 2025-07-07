@@ -15,11 +15,7 @@ async function	delay(ms: number, state = null) {
 }
 
 export async function renderChatPage() {
-    const isEmbedded = window.self !== window.top;
-
-    if (!isEmbedded) {
-        CommonComponent.guardEmbedding();
-    }
+	CommonComponent.guardEmbedding();
 
     document.title = "Transcendence - Chat";
     document.body.innerHTML = '';
