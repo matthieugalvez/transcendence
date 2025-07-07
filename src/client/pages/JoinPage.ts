@@ -294,7 +294,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					pongHandle?.socket.close();
-					router.navigate('/home');
+					router.navigate('/statistics');
 				}, 4000);
 				return;
 			}
@@ -302,7 +302,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				CommonComponent.showMessage('❌ Your invite expired. Redirecting...', 'error');
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
+					router.navigate('/statistics');
 				}, 4000);
 				return;
 			}
