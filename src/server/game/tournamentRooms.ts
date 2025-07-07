@@ -2,6 +2,7 @@ import type { WebSocket } from 'ws';
 import { GameInstance } from './gameInstance.js';
 import { UserService } from '../services/users.service.js';
 import { StatsService } from '../services/stats.service.js';
+import { ChatService } from '../services/chat.service.js'
 
 export type TournamentDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -46,12 +47,11 @@ export class TournamentRoom {
 	}
 
 	async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator' | 'already_joined'> {
-		// Check if user is already in the tournament by username
 		if (username) {
 			const existingPlayer = this.players.find(p => p.username === username && p.ws);
 			if (existingPlayer) {
 				console.log(`Player ${username} already in tournament ${this.gameId}`);
-				return 'already_joined'; // Return specific status
+				return 'already_joined';
 			}
 		}
 
@@ -142,6 +142,8 @@ export class TournamentRoom {
 		if (this.currentMatch < 2) {
 			this.winners.push(winner);
 			this.currentMatch++;
+
+			await this.sendRoundNotification();
 			this.startMatch();
 		} else {
 			try {
@@ -200,6 +202,41 @@ export class TournamentRoom {
 		// if (this.currentGame) {
 		// 	this.currentGame.destroy();
 		// }
+	}
+
+	private async sendRoundNotification(): Promise<void> {
+		try {
+			let roundMessage = '';
+			let nextPlayers: [string, string];
+
+			if (this.currentMatch === 1) {
+				nextPlayers = [this.players[2].username, this.players[3].username];
+				roundMessage = `🎯 Semi-Final 2: ${nextPlayers[0]} vs ${nextPlayers[1]} - Get ready for the next match!`;
+			} else if (this.currentMatch === 2) {
+				nextPlayers = [this.winners[0].username, this.winners[1].username];
+				roundMessage = `🏆 FINAL ROUND: ${nextPlayers[0]} vs ${nextPlayers[1]} - The championship match begins now!`;
+			} else {
+				return;
+			}
+
+			const senderUserId = this.players[0].userId;
+
+			const messagePromises = this.players
+				.filter(player => player.userId && player.userId !== senderUserId)
+				.map(async (player) => {
+					try {
+						await ChatService.createMessage(senderUserId, player.userId, roundMessage);
+						console.log(`✅ Round notification sent from ${this.players[0].username} to ${player.username}`);
+					} catch (error) {
+						console.error(`❌ Failed to send round notification to ${player.username}:`, error);
+					}
+				});
+
+			await Promise.all(messagePromises);
+			console.log(`🎯 Round ${this.currentMatch} notifications sent to all players`);
+		} catch (error) {
+			console.error('❌ Failed to send round notifications:', error);
+		}
 	}
 }
 
