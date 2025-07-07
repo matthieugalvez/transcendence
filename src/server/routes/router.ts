@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { registerPongWebSocket } from './game.routes.js'
-import fastifyStatic from '@fastify/static';
-import fastifyHelmet from '@fastify/helmet';
+
 import path from 'path';
 import fs from 'fs';
 
@@ -17,22 +16,6 @@ import { inviteRoutes } from './invite.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
 	// Health check routes (no prefix - accessible at root)
-	await app.register(fastifyHelmet, {
-		contentSecurityPolicy: {
-			directives: {
-				defaultSrc: ["'self'"],
-				scriptSrc: ["'self'", "'unsafe-inline'"],
-				styleSrc: ["'self'", "'unsafe-inline'"],
-				fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
-				//imgSrc: ["'self'", "data:image", "data:", "blob:", "https:"], // This allows data: URLs
-				connectSrc: ["'self'", "wss:", "ws:"],
-				objectSrc: ["'none'"],
-				frameAncestors: ["'none'"],
-				baseUri: ["'self'"],
-				formAction: ["'self'"]
-			}
-		}
-	});
 
 	// API routes with /api prefix
 	await app.register(async function (fastify) {
