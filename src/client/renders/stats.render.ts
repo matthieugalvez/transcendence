@@ -2,6 +2,7 @@ import { router } from '../configs/simplerouter';
 import { CommonComponent } from '../components/common.component';
 import { WebSocketService } from '../services/websocket.service';
 import { renderChatPage } from '../pages/ChatPage';
+import { match } from 'assert';
 
 export class StatsRender {
 	private static createStatsHeader(user: any, isOwnStats: boolean): HTMLElement {
@@ -725,20 +726,47 @@ export class StatsRender {
 	private static showTournamentDetails(t: any, currentUserId: string) {
 		const panel = document.getElementById('match-details-panel');
 		if (!panel) return;
-		panel.style.opacity = '1'; panel.style.transform = 'translateX(0)';
+		panel.style.opacity = '1';
+		panel.style.transform = 'translateX(-50%) translateY(60%)';
 
 		/* construire un petit bracket “semi‑finales / finale” */
 		const semi1 = t.matches[0];
 		const semi2 = t.matches[1];
 		const final = t.matches[2];
 
-		const row = (m: any, label: string) => `
-            <div class="flex justify-between mb-1">
-            <span>${label}</span>
-            <span>${m.playerOneScore}‑${m.playerTwoScore}</span>
-            </div>
-        `;
+		const id2user = new Map<string, { displayName: string; avatar: string }>();
+		t.participants.forEach((p: any) => {
+			const uid = p.userId ?? p.user?.id;
+			if (uid) id2user.set(uid, p.user);
+		});
+		const name = (id: string) => id2user.get(id)?.displayName ?? 'Unknown';
+		// const avatar = (id: string) => id2user.get(id)?.avatar ?? 'default.svg';
+
+		const matchRow = (m: any) => `
+			<div class="flex justify-between items-center mb-1">
+			<span class="whitespace-nowrap">
+				${name(m.playerOneId)} <span class="opacity-60">vs</span> ${name(m.playerTwoId)}
+			</span>
+			<span class="font-bold">${m.playerOneScore}-${m.playerTwoScore}</span>
+			</div>
+		`;
+
+		const playersGrid = `
+			<div class="grid grid-cols-2 gap-y-3">
+			${t.participants.map((p: any) => `
+				<div class="flex items-center space-x-2">
+				<img src="${p.user.avatar}" alt="${p.user.displayName}"
+					class="w-8 h-8 rounded-full border">
+				<p class="text-sm">
+					${p.user.displayName}
+				</p>
+				</div>`).join('')}
+			</div>
+		`;
+			
 		const youWon = t.winnerId === currentUserId;
+		const winner = name(t.winnerId);
+
 		panel.innerHTML = `
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -755,17 +783,17 @@ export class StatsRender {
                 </div>
 
                 <h4 class="font-semibold mb-2">Bracket</h4>
-                <div class="bg-gray-50 p-4 rounded mb-4">
-                ${row(semi1, 'Semi-final 1')}
-                ${row(semi2, 'Semi-final 2')}
-                <hr class="my-2">
-                ${row(final, 'Final')}
+                <div class="bg-gray-50 p-4 rounded mb-2">
+					${matchRow(semi1)}
+					${matchRow(semi2)}
+					<hr class="my-2">
+					${matchRow(final)}
                 </div>
 
+				<div class="mb-4 text-center"> <span class="font-semibold">🏆 Winner:</span> ${winner}</div>
+
                 <h4 class="font-semibold mb-2">Players</h4>
-                <ul class="list-disc list-inside text-sm">
-                ${t.participants.map((p: any) => `<li>${p.user.displayName}</li>`).join('')}
-                </ul>
+                ${playersGrid}
             </div>
         `;
 

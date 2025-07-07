@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { registerPongWebSocket } from './game.routes.js'
 import fastifyStatic from '@fastify/static';
+import fastifyHelmet from '@fastify/helmet';
 import path from 'path';
 import fs from 'fs';
 
@@ -15,6 +16,21 @@ import { statsRoutes } from './stats.routes.js';
 import { inviteRoutes } from './invite.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
+	// Health check routes (no prefix - accessible at root)
+    await app.register(fastifyHelmet, {
+        contentSecurityPolicy: {
+            directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc:  ["'self'"],
+            styleSrc:   ["'self'", "'unsafe-inline'"],
+            fontSrc:    ["'self'", "https://fonts.gstatic.com"],
+            imgSrc:     ["'self'"],
+            connectSrc: ["'self'", "wss:"],
+            objectSrc:  ["'none'"],
+            frameAncestors: ["'none'"]
+            }
+        }
+    });
 
 	// API routes with /api prefix
 	await app.register(async function (fastify) {
@@ -28,7 +44,7 @@ export async function registerRoutes(app: FastifyInstance) {
         await fastify.register(tournamentRoutes);
 		await fastify.register(inviteRoutes);
 	}, { prefix: '/api' })
-app.get('/avatars/:filename', async (request, reply) => {
+    app.get('/avatars/:filename', async (request, reply) => {
     const { filename } = request.params as { filename: string };
 
     // Use different paths for development vs production
