@@ -505,9 +505,9 @@ export function showGameOverOverlay(
 ) {
 	const ov = document.createElement('div');
 	ov.className = `
-    absolute inset-0 flex flex-col items-center justify-center
-    space-y-4 z-20
-  `.replace(/\s+/g, ' ').trim();
+		absolute inset-0 flex flex-col items-center justify-center
+		space-y-4 z-20
+	`.replace(/\s+/g, ' ').trim();
 	parent.appendChild(ov);
 
 	const canvas = parent.querySelector('canvas');
@@ -516,19 +516,19 @@ export function showGameOverOverlay(
 	const panel = document.createElement('div');
 	panel.style.backgroundColor = "#362174";
 	panel.className = `
-    text-center backdrop-blur-2xl
-    rounded-lg p-6
-    border-2 border-black
-    shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-  `;
+		text-center backdrop-blur-2xl
+		rounded-lg p-6
+		border-2 border-black
+		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+	`;
 	ov.appendChild(panel);
 
 	const msg = document.createElement('p');
 	msg.textContent = `${winner} won! 🎉`;
 	msg.className = `
-    text-2xl text-white
-    font-["Canada-big"] mb-4
-  `;
+		text-2xl text-white
+		font-["Canada-big"] mb-4
+	`;
 	panel.appendChild(msg);
 
 	if (mode === "local") {
@@ -554,7 +554,7 @@ export function showGameOverOverlay(
 		panel.appendChild(info);
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
-			safeNavigate('/statistics');
+			router.navigate('/statistics');
 		}, 2300);
 	}
 }
