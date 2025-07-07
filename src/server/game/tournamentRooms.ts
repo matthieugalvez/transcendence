@@ -79,6 +79,7 @@ export class TournamentRoom {
 	startTournament() {
 		this.currentMatch = 0;
 		this.winners = [];
+		this.sendTournamentStartNotification();
 		this.startMatch();
 	}
 
@@ -236,6 +237,38 @@ export class TournamentRoom {
 			console.log(`🎯 Round ${this.currentMatch} notifications sent to all players`);
 		} catch (error) {
 			console.error('❌ Failed to send round notifications:', error);
+		}
+	}
+
+	private async sendTournamentStartNotification(): Promise<void> {
+		try {
+			const allPlayerNames = this.players.map(p => p.username).join(', ');
+			const tournamentStartMessage = `🏆 TOURNAMENT STARTING NOW! 🏆
+
+			Players: ${allPlayerNames}
+			Format: Best of 3 matches
+			First Match: ${this.players[0].username} vs ${this.players[1].username}
+
+			Good luck to all participants! 🎮`;
+
+			const senderUserId = this.players[0].userId;
+
+			// Send tournament start message to all other players
+			const messagePromises = this.players
+				.filter(player => player.userId && player.userId !== senderUserId)
+				.map(async (player) => {
+					try {
+						await ChatService.createMessage(senderUserId, player.userId, tournamentStartMessage);
+						console.log(`✅ Tournament start notification sent from ${this.players[0].username} to ${player.username}`);
+					} catch (error) {
+						console.error(`❌ Failed to send tournament start notification to ${player.username}:`, error);
+					}
+				});
+
+			await Promise.all(messagePromises);
+			console.log('🎯 Tournament start notifications sent to all players');
+		} catch (error) {
+			console.error('❌ Failed to send tournament start notifications:', error);
 		}
 	}
 }
