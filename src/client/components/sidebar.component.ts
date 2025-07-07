@@ -96,7 +96,7 @@ export class SidebarComponent {
 			const friendsBtnContainer = document.createElement('div');
 			friendsBtnContainer.className = 'relative w-full';
 
-			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'blue');
+			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'purple');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			friendsBtn.onclick = () => router.navigate('/friendlist');
 

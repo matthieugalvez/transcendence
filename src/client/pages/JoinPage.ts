@@ -139,15 +139,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	if (playerId === 1) hostUsername = user?.displayName;
 	if (playerId === 2) guestUsername = user?.displayName;
 
-	// S'assurer qu'on ne garde pas un vieux token si on entre dans une nouvelle room
-	//   const lastId = getCookie('lastGameId');
-	//   if (lastId && lastId !== gameId) {
-	//     deleteCookie(`pongPlayerToken-${getCookie('lastGameId')}`);
-	//     deleteCookie(`pongPlayerId-${getCookie('lastGameId')}`);
-	//   } else {
-	//     setCookie('lastGameId', gameId);
-	//   }
-
 	// --- Attente de la websocket ---
 	const matchTitle = `${hostUsername} vs ${guestUsername}`;
 	// duo finish
@@ -170,7 +161,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			const p1 = await UserService.getUserProfileByDisplayName(hostName);
 			const p2 = await UserService.getUserProfileByDisplayName(guestName);
 
-			showGameOverOverlay(wrapper, `${winnerName}`, "online");
+			showGameOverOverlay(gameContainer, `${winnerName}`, "online");
 			pongHandle?.socket.close();
 
 			setTimeout(() => {
@@ -238,11 +229,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	`;
 	waiting.textContent = "Connecting...";
 	gameContainer.appendChild(waiting);
-
-	// const messageDisplay = document.createElement('div');
-	// messageDisplay.id = 'signup-msg-display';
-	// messageDisplay.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50';
-	// document.body.appendChild(messageDisplay);
 
 	// Pour savoir si la partie est lancée (venant du host)
 	let gameStarted = false;
@@ -420,14 +406,14 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						const transition = document.createElement('div');
 						transition.style.backgroundColor = "#530196";
 						transition.className = `
-                        fixed top-[40%]
-                        flex flex-col items-center justify-center p-8
-                        backdrop-blur-2xl z-100 w-[28%] h-[22%]
-                        border-2 border-black
-                        whitespace-nowrap
-                        rounded-lg
-                        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-                    `;
+							fixed top-[40%]
+							flex flex-col items-center justify-center p-8
+							backdrop-blur-2xl z-100 w-[28%] h-[22%]
+							border-2 border-black
+							whitespace-nowrap
+							rounded-lg
+							shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+						`;
 
 						const winnerMsg = document.createElement('h2');
 						winnerMsg.textContent = `${data.winner} wins this tournament!`;
@@ -437,21 +423,21 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						const info = document.createElement('p');
 						info.textContent = `Going to your stats…`;
 						info.className = `
-                        text-lg text-gray-300
-                        font-["Orbitron"]
-                        border-2 border-black
-                        py-2 px-12
-                        bg-blue-500
-                        rounded-lg text-lg transition-colors
-                        focus:outline-none focus:ring-2
-                    `;
+							text-lg text-gray-300
+							font-["Orbitron"]
+							border-2 border-black
+							py-2 px-12
+							bg-orange-500
+							rounded-lg text-lg transition-colors
+							focus:outline-none focus:ring-2
+						`;
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
 							safeNavigate('/statistics');
 						}, 2300);
 
 						transition.appendChild(info);
-						wrapper.appendChild(transition);
+						gameContainer.appendChild(transition);
 						return;
 					}
 				}
