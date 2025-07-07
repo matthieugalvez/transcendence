@@ -539,8 +539,8 @@ export function showGameOverOverlay(
 		};
 		panel.appendChild(replay);
 	} else if (mode === "online") {
-		const info = document.createElement('p');
-		info.textContent = `Going to your stats…`;
+		const info = document.createElement('button');
+		info.textContent = `Go to your stats`;
 		info.className = `
 			text-lg text-gray-300
 			font-["Orbitron"]
@@ -551,6 +551,10 @@ export function showGameOverOverlay(
 			focus:outline-none focus:ring-2
 		`;
 		panel.appendChild(info);
+		panel.onclick = () => {
+			window.dispatchEvent(new Event('app:close-sockets'));
+			router.navigate('/statistics');
+		};
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/statistics');
@@ -609,48 +613,48 @@ export function hideOverlay() {
 }
 
 function showCountdown(message: string) {
-    // Find the game container instead of using document.body
-    const gameContainer = document.querySelector('.relative.z-10.flex.flex-col.items-center') as HTMLElement;
-    const targetContainer = gameContainer || document.body;
+	// Find the game container instead of using document.body
+	const gameContainer = document.querySelector('.relative.z-10.flex.flex-col.items-center') as HTMLElement;
+	const targetContainer = gameContainer || document.body;
 
-    let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'game-countdown';
-        Object.assign(overlay.style, {
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-            zIndex: '150'
-        });
+	let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+	if (!overlay) {
+		overlay = document.createElement('div');
+		overlay.id = 'game-countdown';
+		Object.assign(overlay.style, {
+			position: 'absolute',
+			top: '0',
+			left: '0',
+			width: '100%',
+			height: '100%',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			pointerEvents: 'none',
+			zIndex: '150'
+		});
 
-        const panel = document.createElement('div');
-        panel.id = 'game-countdown-panel';
-        Object.assign(panel.style, {
-            background: 'rgba(0,0,0,0.75)',
-            padding: '0.4em 2em',
-            borderRadius: '8px',
-            fontFamily: 'Canada-big',
-            fontSize: '90px',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '240px',
-            border: '2px solid rgba(255,255,255,0.3)'
-        });
-        overlay.appendChild(panel);
-        targetContainer.appendChild(overlay); // Use target container instead of document.body
-    }
+		const panel = document.createElement('div');
+		panel.id = 'game-countdown-panel';
+		Object.assign(panel.style, {
+			background: 'rgba(0,0,0,0.75)',
+			padding: '0.4em 2em',
+			borderRadius: '8px',
+			fontFamily: 'Canada-big',
+			fontSize: '90px',
+			color: '#fff',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			minWidth: '240px',
+			border: '2px solid rgba(255,255,255,0.3)'
+		});
+		overlay.appendChild(panel);
+		targetContainer.appendChild(overlay); // Use target container instead of document.body
+	}
 
-    (overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
-    overlay.style.display = 'flex';
+	(overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
+	overlay.style.display = 'flex';
 }
 
 export function hideCountdown() {
