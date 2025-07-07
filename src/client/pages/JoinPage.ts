@@ -4,7 +4,6 @@ import { GameSettingsComponent } from '../components/game.component';
 import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
 import { GameService } from "../services/game.service";
 import {
@@ -13,7 +12,6 @@ import {
 	showGameOverOverlay,
 	getShareableLink
 } from '../utils/game.utils';
-import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 import { safeNavigate } from "../utils/navigation.utils";
 
 let pongHandle: { start: () => void; socket: any } | null = null;

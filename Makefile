@@ -4,6 +4,7 @@ build-dev:
 	npm install @fastify/websocket
 	npm install @fastify/helmet
 	npm install uuid
+	npm install chart.js
 	npx prisma generate
 	npx prisma db push
 	npm run db:seed
