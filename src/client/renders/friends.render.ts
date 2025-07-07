@@ -573,12 +573,36 @@ export class FriendsRender {
 
 			if (failedInvites.length > 0) {
 				CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
-			} else {
-				CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
-			}
+			 } else {
+            CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
 
-			// Navigate to tournament page
-			window.location.href = `/game/online/tournament/${gameId}`;
+            // Send chat messages to notify players about the tournament
+            const tournamentMessage = `🏆 Tournament Alert! You've been invited to join a 4-player tournament. The tournament is starting now with players: ${[currentUser.displayName, ...players.map(p => p.displayName)].join(', ')}. Join the game to participate! 🎮`;
+
+            // Send tournament notification message to each invited player
+            const chatPromises = players.map(player =>
+                fetch('/api/chat/post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        receiver_id: player.id,
+                        content: tournamentMessage
+                    })
+                }).catch(error => {
+                    console.error(`Failed to send tournament message to ${player.displayName}:`, error);
+                })
+            );
+
+            // Send chat messages (don't wait for them to complete)
+            Promise.all(chatPromises).then(() => {
+                console.log('Tournament notification messages sent to all players');
+            }).catch(error => {
+                console.error('Some tournament messages failed to send:', error);
+            });
+        }
+
+        // Navigate to tournament page
+        window.location.href = `/game/online/tournament/${gameId}`;
 
 		} catch (error) {
 			console.error('Failed to create tournament:', error);
