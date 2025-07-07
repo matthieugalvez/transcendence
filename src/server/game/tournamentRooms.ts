@@ -47,12 +47,11 @@ export class TournamentRoom {
 	}
 
 	async addClient(ws: WebSocket, username?: string): Promise<number | 'spectator' | 'already_joined'> {
-		// Check if user is already in the tournament by username
 		if (username) {
 			const existingPlayer = this.players.find(p => p.username === username && p.ws);
 			if (existingPlayer) {
 				console.log(`Player ${username} already in tournament ${this.gameId}`);
-				return 'already_joined'; // Return specific status
+				return 'already_joined';
 			}
 		}
 
@@ -211,21 +210,17 @@ export class TournamentRoom {
 			let nextPlayers: [string, string];
 
 			if (this.currentMatch === 1) {
-				// Semi-final 2
 				nextPlayers = [this.players[2].username, this.players[3].username];
 				roundMessage = `🎯 Semi-Final 2: ${nextPlayers[0]} vs ${nextPlayers[1]} - Get ready for the next match!`;
 			} else if (this.currentMatch === 2) {
-				// Final
 				nextPlayers = [this.winners[0].username, this.winners[1].username];
 				roundMessage = `🏆 FINAL ROUND: ${nextPlayers[0]} vs ${nextPlayers[1]} - The championship match begins now!`;
 			} else {
 				return;
 			}
 
-			// Use first player as sender to notify all other players
 			const senderUserId = this.players[0].userId;
 
-			// Send notification to all other tournament participants
 			const messagePromises = this.players
 				.filter(player => player.userId && player.userId !== senderUserId)
 				.map(async (player) => {
