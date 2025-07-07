@@ -152,7 +152,7 @@ export class SidebarComponent {
 		bottomContainer.className = 'mt-auto w-full space-y-2';
 		// Back to home button
 		if (showBackHome) {
-			const backButton = CommonComponent.createStylizedButton('🔙 Back to Home', 'purple');
+			const backButton = CommonComponent.createStylizedButton('🔙 Home', 'purple');
 			backButton.classList.add("w-full", "text-center", "cursor-pointer");
 			backButton.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
