@@ -213,7 +213,7 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 
-	let lastFrameTime = performance.now();
+	// let lastFrameTime = performance.now();
 	let frameTimes: number[] = [];
 	let frameCount = 0;
 	let animationId: number;
@@ -234,30 +234,30 @@ function startClientInputLoop(
 	function frame() {
 		if (!isRunning) return;
 
-		const now = performance.now();
-		const frameTime = now - lastFrameTime;
-		lastFrameTime = now;
+		// const now = performance.now();
+		// const frameTime = now - lastFrameTime;
+		// lastFrameTime = now;
 
-		frameTimes.push(frameTime);
-		frameCount++;
+		// frameTimes.push(frameTime);
+		// frameCount++;
 
-		// Log performance metrics every 60 frames
-		if (frameCount >= 60) {
-			const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-			const maxFrameTime = Math.max(...frameTimes);
-			const fps = 1000 / avgFrameTime;
+		// // Log performance metrics every 60 frames
+		// if (frameCount >= 60) {
+		// 	const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+		// 	const maxFrameTime = Math.max(...frameTimes);
+		// 	const fps = 1000 / avgFrameTime;
 
-			console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
+		// 	console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
 
-			// Reset metrics
-			frameTimes = [];
-			frameCount = 0;
+		// 	// Reset metrics
+		// 	frameTimes = [];
+		// 	frameCount = 0;
 
-			// REMOVE THIS PROBLEMATIC CONDITION:
-			// if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
-			//     return; // This was breaking tournaments!
-			// }
-		}
+		// 	// REMOVE THIS PROBLEMATIC CONDITION:
+		// 	// if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
+		// 	//     return; // This was breaking tournaments!
+		// 	// }
+		// }
 
 		// Input handling logic
 		const pId = getPlayerId();
