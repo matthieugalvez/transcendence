@@ -78,8 +78,8 @@ export class StatsRender {
 	}
 
 	static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
-	//    const container = document.createElement('div');
-	//    container.className = 'main-content-centered';
+		//    const container = document.createElement('div');
+		//    container.className = 'main-content-centered';
 
 		// Create main container with flex layout and proper height constraint
 		const mainContainer = document.createElement('div');
@@ -436,7 +436,11 @@ export class StatsRender {
 
 			// Current user avatar
 			const userAvatar = document.createElement('img');
-			userAvatar.src = user.avatar || 'default.svg';
+			if (user.avatar && user.avatar !== 'null' && user.avatar !== 'undefined') {
+				userAvatar.src = user.avatar.startsWith('/avatars/') ? user.avatar : `/avatars/${user.avatar}`;
+			} else {
+				userAvatar.src = '/avatars/default.svg';
+			}
 			userAvatar.alt = user.displayName;
 			userAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -447,7 +451,11 @@ export class StatsRender {
 
 			// Opponent avatar
 			const opponentAvatar = document.createElement('img');
-			opponentAvatar.src = opponent?.avatar || 'default.svg';
+			if (opponent?.avatar && opponent.avatar !== 'null' && opponent.avatar !== 'undefined') {
+				opponentAvatar.src = opponent.avatar.startsWith('/avatars/') ? opponent.avatar : `/avatars/${opponent.avatar}`;
+			} else {
+				opponentAvatar.src = '/avatars/default.svg';
+			}
 			opponentAvatar.alt = opponent?.displayName || 'Unknown';
 			opponentAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -540,7 +548,7 @@ export class StatsRender {
 
                 <!-- Opponent Info -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg flex items-center space-x-3">
-                    <img src="${opponent?.avatar || 'default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
+            <img src="${opponent?.avatar ? (opponent.avatar.startsWith('/avatars/') ? opponent.avatar : `/avatars/${opponent.avatar}`) : '/avatars/default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="font-medium text-lg">${opponent?.displayName || 'Unknown Player'}</div>
                         <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : 'Tournament'}</div>
@@ -550,13 +558,13 @@ export class StatsRender {
                 <!-- Match Date -->
                 <div class="mb-6 text-center text-sm text-gray-600">
                     ${matchDate.toLocaleDateString('en-GB', {
-					weekday: 'short',
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit'
-				})}
+			weekday: 'short',
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		})}
                 </div>
 
                 <!-- Simple Actions -->
@@ -757,7 +765,7 @@ export class StatsRender {
 			<div class="grid grid-cols-2 gap-y-3">
 			${t.participants.map((p: any) => `
 				<div class="flex items-center space-x-2">
-				<img src="${p.user.avatar}" alt="${p.user.displayName}"
+        <img src="${p.user.avatar ? (p.user.avatar.startsWith('/avatars/') ? p.user.avatar : `/avatars/${p.user.avatar}`) : '/avatars/default.svg'}" alt="${p.user.displayName}"
 					class="w-8 h-8 rounded-full border">
 				<p class="text-sm">
 					${p.user.displayName}
@@ -765,7 +773,7 @@ export class StatsRender {
 				</div>`).join('')}
 			</div>
 		`;
-			
+
 		const youWon = t.winnerId === currentUserId;
 		const winner = name(t.winnerId);
 
@@ -806,8 +814,8 @@ export class StatsRender {
 			});
 	}
 
-	private static async	embedChat(user: any, mainContainer: HTMLElement) {
-		const	chat_page = document.createElement('iframe');
+	private static async embedChat(user: any, mainContainer: HTMLElement) {
+		const chat_page = document.createElement('iframe');
 		chat_page.title = 'chat';
 		chat_page.src = `/chat/${user.displayName}`;
 		chat_page.style.width = "100%";
