@@ -1,10 +1,10 @@
 import '../styles.css';
-import { BackgroundComponent } from '../components/background.component';
 import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
 import { UserService } from '../services/user.service';
 import { renderNotFoundPage } from './NotFoundPage';
 import { FriendService } from '../services/friend.service';
+import { FriendsRender } from '../renders/friends.render';
 let		g_edit_box: boolean = false;
 let		g_last_fetch_date: Date;
 
@@ -15,9 +15,10 @@ async function	delay(ms: number, state = null) {
 }
 
 export async function renderChatPage() {
+	CommonComponent.guardEmbedding();
 	document.title = "Transcendence - Chat";
 	document.body.innerHTML = '';
-	let	user;
+	let	user: any;
 	try {
 		user = await UserService.getCurrentUser();
 	} catch (error) {
@@ -25,43 +26,34 @@ export async function renderChatPage() {
 		CommonComponent.handleAuthError();
 	}
 	const	receiver_name = document.URL.substring(document.URL.lastIndexOf('/') + 1);
-	let	receiver;
+	let	receiver: any;
 	try {
 		receiver = await UserService.getUserProfileByDisplayName(receiver_name);
 	} catch {
 		renderNotFoundPage();
 		return;
 	}
-//	await UserService.blockUser(receiver.id);
 
-	BackgroundComponent.applyCenteredGradientLayout();
+	const	mainContainer = document.createElement('div');
+	mainContainer.className = `
+        flex flex-col items-center justify-center p-7
+	`;
 
 	const	title_box = document.createElement('div');
 	title_box.title = 'title_box';
 	title_box.className = `
-		font-['Orbitron']
-		text-white font-semibold
-		border-2 border-black
-        fixed left-[5%] top-2 h-[5%] w-[90%]
-        bg-amber-300/50
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        border-2 border-black
-        flex flex-col items-center justify-center p-6
-        space-y-4 z-11
+        fixed p-0 h-[5%] w-[50%]
+        flex items-center justify-center
 	`.trim();
-	title_box.textContent = `Chat room between ${user.displayName} & ${receiver.displayName}`
 
-	document.body.appendChild(title_box);
+	mainContainer.appendChild(title_box);
 
 	const	messages_box = document.createElement('div');
 	messages_box.title = 'messages_box';
 	messages_box.className = `
 		font-['Orbitron']
 		text-white font-semibold
-        fixed top-[7%] h-[65%] w-[95%]
+        fixed top-[7%] h-[70%] w-[99%]
         bg-amber-300/50
         rounded-lg text-lg transition-colors
         focus:outline-none focus:ring-2
@@ -72,14 +64,13 @@ export async function renderChatPage() {
         space-y-4 z-11
     `.trim();
 	messages_box.style.overflow = 'auto';
-	document.body.appendChild(messages_box);
+	mainContainer.appendChild(messages_box);
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
-
-	// ___________ TEST BLOCK ___________
 	
 	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
 	block_button.title = 'block_button',
+	block_button.style.marginRight = '5px';
 	block_button.onclick = async () => {
 		await FriendService.blockUser(receiver.id);
 		location.reload();
@@ -87,6 +78,7 @@ export async function renderChatPage() {
 
 	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
 	unblock_button.title = 'unblock_button',
+	unblock_button.style.marginRight = '5px';
 	unblock_button.onclick = async () => {
 		await FriendService.unblockUser(receiver.id);
 		location.reload();
@@ -94,25 +86,96 @@ export async function renderChatPage() {
 
 	if (friendship_status.status === 'blocked') {
 		title_box.appendChild(unblock_button);
-	} else {
+	} else if (friendship_status.status != 'blocked_by') {
 		title_box.appendChild(block_button);
+		const	friend_button = CommonComponent.createStylizedButton('', 'blue');
+		friend_button.style.marginRight = '5px';
+		if (friendship_status.status === 'none') {
+			friend_button.textContent = 'Add Friend';
+			friend_button.onclick = async () => {
+				await FriendService.sendFriendRequest(receiver.id);
+				location.reload();
+			};
+		} else if (friendship_status.status === 'pending') {
+			friend_button.textContent = 'Cancel Request';
+			friend_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.rejectFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+		} else if (friendship_status.status === 'incoming') {
+			friend_button.textContent = 'Accept Request';
+			friend_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.acceptFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+			const	reject_button = CommonComponent.createStylizedButton('Reject Request', 'gray');
+			reject_button.style.marginRight = '5px';
+			reject_button.onclick = async () => {
+				if (friendship_status.requestId) {
+					await FriendService.rejectFriendRequest(friendship_status.requestId);
+					location.reload();
+				}
+			};
+			title_box.appendChild(reject_button);
+		} else if (friendship_status.status === 'friends') {
+			friend_button.textContent = 'Remove Friend';
+			friend_button.onclick = async () => {
+				await UserService.removeFriend(receiver.id);
+				location.reload();
+			};
+		}
+		title_box.appendChild(friend_button);
+
+		let hasPendingGameInvite = false;
+		try {
+			const invitesResponse = await fetch('/api/invites/sent');
+			if (invitesResponse.ok) {
+				const invitesData = await invitesResponse.json();
+				if (invitesData.success) {
+					hasPendingGameInvite = invitesData.invites.some((invite: any) =>
+						invite.inviteeId === receiver.id && invite.status === 'pending'
+					);
+				}
+			}
+		} catch (error) {
+			console.error('Error checking pending invites:', error);
+		}
+
+		if (!hasPendingGameInvite) {
+			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'purple');
+			inviteBtn.onclick = async () => {
+				FriendsRender.showGameTypeModal(receiver);
+			};
+			title_box.appendChild(inviteBtn);
+		} else {
+			const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+			pendingInviteBtn.disabled = true;
+			title_box.appendChild(pendingInviteBtn);
+		}
 	}
-
-	// ___________ /TEST BLOCK ___________
-
 
 	if (friendship_status.status === 'blocked') {
 		messages_box.textContent = `User ${ receiver.displayName } is blocked`;
 		messages_box.style.justifyContent = 'center';
 		messages_box.style.alignItems = 'center';
+		document.body.appendChild(mainContainer);
+	} else if (friendship_status.status === 'blocked_by') {
+		messages_box.textContent = `User ${ receiver.displayName } blocked you`;
+		messages_box.style.justifyContent = 'center';
+		messages_box.style.alignItems = 'center';
+		document.body.appendChild(mainContainer);
 	} else {
-		await getAllMessages(user.id, receiver.id, messages_box);
+		await getAllMessages(receiver.id, messages_box);
 		messages_box.scrollTop = messages_box.scrollHeight;
 
 		const	prompt_box = document.createElement('div');
 		prompt_box.title = 'prompt_box';
 		prompt_box.className = `
-			fixed bottom-5 h-[25%] w-[99%]
+			fixed bottom-4 h-[20%] w-[99%]
 			bg-amber-300/50
 			rounded-lg text-lg transition-colors
 			focus:outline-none focus:ring-2
@@ -123,20 +186,12 @@ export async function renderChatPage() {
 			space-y-4 z-11
 		`.trim()
 
-		const	prompt_title = document.createElement('label');
-		prompt_title.title = 'prompt_title';
-		prompt_title.className = `
-		font-['Orbitron']
-		text-white font-semibold
-	  `.trim();
-		prompt_title.textContent = 'New message:';
-
 		const	prompt_area = document.createElement('textarea');
 		prompt_area.title = 'prompt_area';
 		prompt_area.className = `
 		font-['Orbitron']
 		bg-purple-900/100 backdrop-blur-2xl
-		h-[65%] w-[100%]
+		h-[100%] w-[100%]
 		text-white font-semibold p-1
 		border-2 border-black
 		rounded-lg text-lg transition-colors
@@ -154,34 +209,21 @@ export async function renderChatPage() {
 			}
 		};
 
-		const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
-		send_button.title = 'send_button';
-		send_button.style.position = 'inherit';
-		send_button.style.right = '35px';
-		send_button.style.bottom = '35px';
-		send_button.onclick = async () => {
-			if (prompt_area.value) {
-				await ChatService.postMessage(receiver.id, prompt_area.value);
-				prompt_area.value = '';
-			}
-		};
-
-		prompt_box.appendChild(prompt_title);
 		prompt_box.appendChild(prompt_area);
-		prompt_box.appendChild(send_button);
-		document.body.appendChild(prompt_box);
+		mainContainer.appendChild(prompt_box);
+		document.body.appendChild(mainContainer);
 
 		while (true) {
-			await getAllMessages(user.id, receiver.id, messages_box);
+			await getAllMessages(receiver.id, messages_box);
 			await delay(500);
 		}
 	}
 }
 
-async function getAllMessages(user_id: string, receiver_id: string, messages_box) {
+async function getAllMessages(receiver_id: string, messages_box: any) {
 	const	previous_fetch = g_last_fetch_date;
 	const	messages_list = messages_box.childNodes;
-	let		messages;
+	let		messages: any;
 	try {
 		messages = await ChatService.getMessages(receiver_id, g_last_fetch_date);
 	}
@@ -207,12 +249,8 @@ async function getAllMessages(user_id: string, receiver_id: string, messages_box
 				}
 			}
 		} else {
-			let	message_box;
+			const	message_box = makeMsgBox(messages_box, message, message.sender_id === receiver_id)
 
-			if (message.sender_id === user_id)
-				message_box = makeMsgBox(messages_box, message, false);
-			if (message.receiver_id === user_id)
-				message_box = makeMsgBox(messages_box, message, true);
 			if (previous_fetch && message === messages[0]) {
 				message_box.scrollIntoView({behavior: 'smooth', block: 'center'});
 			}
@@ -220,7 +258,7 @@ async function getAllMessages(user_id: string, receiver_id: string, messages_box
 	}
 }
 
-function makeMsgBox(content_box: Element, message, received: boolean) {
+function makeMsgBox(content_box: Element, message: any, received: boolean) {
 	const	box = document.createElement('div');
 	box.title = `${message.id}`;
 	box.className = `
@@ -325,7 +363,7 @@ function makeMsgBox(content_box: Element, message, received: boolean) {
 	return (box);
 }
 
-function	makeMsgButtons(message, buttons_box: Element, box_text: Element, box: Element) {
+function	makeMsgButtons(message: any, buttons_box: Element, box_text: Element, box: Element) {
 	if (!message.deleted) {
 		const	edit_button = document.createElement('div');
 
@@ -414,7 +452,7 @@ function	makeMsgButtons(message, buttons_box: Element, box_text: Element, box: E
 	}
 }
 
-function	makeEditPromptArea(message, box_text: Element) {
+function	makeEditPromptArea(message: any, box_text: Element) {
 	g_edit_box = true;
 
 	const	prompt_box = document.createElement('div');
