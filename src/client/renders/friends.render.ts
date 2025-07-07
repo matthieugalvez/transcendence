@@ -620,7 +620,11 @@ export class FriendsRender {
 			const route = gameType === 'duo'
 				? `/game/online/duo/${gameId}`
 				: `/game/online/tournament/${gameId}`;
-			window.location.href = route;
+			if (window.top) {
+				window.top.location.href = route;
+			} else {
+				window.location.href = route;
+			}
 
 		} catch (error) {
 			console.error('Failed to invite:', error);
