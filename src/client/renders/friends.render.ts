@@ -1,5 +1,6 @@
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { ChatService } from '../services/chat.service';
 
 export class FriendsRender {
 	static async renderFriendsList(container: HTMLElement): Promise<void> {
@@ -541,8 +542,6 @@ export class FriendsRender {
 		return pill;
 	}
 
-	// New method to send tournament invites to multiple players
-	// New method to send tournament invites to multiple players
 	private static async sendTournamentInvites(players: any[]): Promise<void> {
 		try {
 			// Create tournament game
@@ -586,39 +585,35 @@ export class FriendsRender {
 
 				const tournamentMessage = `🏆 ${currentUser.displayName} started a tournament with ${allPlayerNames.join(', ')}! Join now: ${tournamentLink}`;
 
-				// Send tournament notification message to each invited player
-				// Fix: Use correct field names for chat API
-				const chatPromises = players.map(player =>
-					fetch('/api/chat/post', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							receiver_id: player.id,
-							content: tournamentMessage
-						})
-					}).then(response => {
-						if (!response.ok) {
-							throw new Error(`Failed to send message to ${player.displayName}: ${response.status} ${response.statusText}`);
+				// Send tournament notification message to each invited player using ChatService
+				const chatPromises = players.map(async (player) => {
+					try {
+						const result = await ChatService.postMessage(player.id, tournamentMessage);
+						if (result.success) {
+							console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
+						} else {
+							console.error(`❌ Failed to send tournament message to ${player.displayName}:`, result.error);
 						}
-						return response.json();
-					}).then(data => {
-						if (!data.success) {
-							throw new Error(`API error for ${player.displayName}: ${data.error}`);
-						}
-						console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
-						return data;
-					}).catch(error => {
+						return result;
+					} catch (error) {
 						console.error(`❌ Failed to send tournament message to ${player.displayName}:`, error);
-						throw error;
-					})
-				);
+						return { success: false, error: error.message };
+					}
+				});
 
-				try {
-					await Promise.all(chatPromises);
-					console.log('✅ All tournament notification messages sent successfully');
-				} catch (error) {
-					console.error('❌ Some tournament messages failed to send:', error);
-				}
+				// try {
+				// 	const results = await Promise.all(chatPromises);
+				// 	const successfulMessages = results.filter(r => r.success).length;
+				// 	const failedMessages = results.filter(r => !r.success).length;
+
+				// 	if (failedMessages === 0) {
+				// 		console.log('✅ All tournament notification messages sent successfully');
+				// 	} else {
+				// 		console.log(`⚠️ ${successfulMessages} messages sent successfully, ${failedMessages} failed`);
+				// 	}
+				// } catch (error) {
+				// 	console.error('❌ Some tournament messages failed to send:', error);
+				// }
 			}
 
 			window.location.href = `/game/online/tournament/${gameId}`;
