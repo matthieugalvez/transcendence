@@ -192,7 +192,7 @@ export async function renderPongGamePage() {
 							const titleText = gameContainer.querySelector('h2')!.textContent!;
 							const [name1, name2] = titleText.split(' vs ');
 							const winnerName = winnerId === 1 ? name1 : name2;
-							showGameOverOverlay(wrapper, `${winnerName}`, "local")
+							showGameOverOverlay(gameContainer, `${winnerName}`, "local")
 						},
 						gameId,
 						"solo"
