@@ -15,9 +15,14 @@ async function	delay(ms: number, state = null) {
 }
 
 export async function renderChatPage() {
-	CommonComponent.guardEmbedding();
-	document.title = "Transcendence - Chat";
-	document.body.innerHTML = '';
+    const isEmbedded = window.self !== window.top;
+
+    if (!isEmbedded) {
+        CommonComponent.guardEmbedding();
+    }
+
+    document.title = "Transcendence - Chat";
+    document.body.innerHTML = '';
 	let	user: any;
 	try {
 		user = await UserService.getCurrentUser();
@@ -67,7 +72,7 @@ export async function renderChatPage() {
 	mainContainer.appendChild(messages_box);
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
-	
+
 	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
 	block_button.title = 'block_button',
 	block_button.style.marginRight = '5px';

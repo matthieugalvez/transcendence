@@ -339,6 +339,8 @@ export class CommonComponent {
 	}
 
 	static guardEmbedding() {
+
+		
 		const topLocation = window.top?.location;
 		if (topLocation === undefined) {
 			window.location.href = "/";

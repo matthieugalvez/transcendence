@@ -92,7 +92,7 @@ export class StatsRender {
 			bg-white/90 backdrop-blur-md
 			border-2 border-black
 			rounded-xl mb-5 p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-			flex-1 max-w-[30%] min-w-[300px] transition-all duration-300
+			flex-1 max-w-[60%] min-w-[600px] transition-all duration-300
 			overflow-y-auto compact-container
 		`;
 
