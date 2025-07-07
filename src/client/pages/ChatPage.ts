@@ -43,9 +43,10 @@ export async function renderChatPage() {
 	const	title_box = document.createElement('div');
 	title_box.title = 'title_box';
 	title_box.className = `
-        fixed p-0 h-[5%] w-[50%]
-        flex items-center justify-center
+        fixed p-0 h-[6%] w-[100%]
+        flex items-center justify-center-safe
 	`.trim();
+	title_box.style.overflowY = 'hidden';
 
 	mainContainer.appendChild(title_box);
 
@@ -72,6 +73,7 @@ export async function renderChatPage() {
 	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
 	block_button.title = 'block_button',
 	block_button.style.marginRight = '5px';
+	block_button.style.textWrap = 'nowrap';
 	block_button.onclick = async () => {
 		await FriendService.blockUser(receiver.id);
 		location.reload();
@@ -80,6 +82,7 @@ export async function renderChatPage() {
 	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
 	unblock_button.title = 'unblock_button',
 	unblock_button.style.marginRight = '5px';
+	unblock_button.style.textWrap = 'nowrap';
 	unblock_button.onclick = async () => {
 		await FriendService.unblockUser(receiver.id);
 		location.reload();
@@ -91,6 +94,7 @@ export async function renderChatPage() {
 		title_box.appendChild(block_button);
 		const	friend_button = CommonComponent.createStylizedButton('', 'blue');
 		friend_button.style.marginRight = '5px';
+		friend_button.style.textWrap = 'nowrap';
 		if (friendship_status.status === 'none') {
 			friend_button.textContent = 'Add Friend';
 			friend_button.onclick = async () => {
@@ -115,6 +119,7 @@ export async function renderChatPage() {
 			};
 			const	reject_button = CommonComponent.createStylizedButton('Reject Request', 'gray');
 			reject_button.style.marginRight = '5px';
+			reject_button.style.textWrap = 'nowrap';
 			reject_button.onclick = async () => {
 				if (friendship_status.requestId) {
 					await FriendService.rejectFriendRequest(friendship_status.requestId);
@@ -148,12 +153,16 @@ export async function renderChatPage() {
 
 		if (!hasPendingGameInvite) {
 			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'purple');
+			inviteBtn.style.marginRight = '5px';
+			inviteBtn.style.textWrap = 'nowrap';
 			inviteBtn.onclick = async () => {
 				FriendsRender.showGameTypeModal(receiver);
 			};
 			title_box.appendChild(inviteBtn);
 		} else {
 			const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+			pendingInviteBtn.style.marginRight = '5px';
+			pendingInviteBtn.style.textWrap = 'nowrap';
 			pendingInviteBtn.disabled = true;
 			title_box.appendChild(pendingInviteBtn);
 		}
