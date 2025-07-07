@@ -24,7 +24,7 @@ export async function registerRoutes(app: FastifyInstance) {
             scriptSrc:  ["'self'"],
             styleSrc:   ["'self'", "'unsafe-inline'"],
             fontSrc:    ["'self'", "https://fonts.gstatic.com"],
-            imgSrc:     ["'self'", "data:"],
+            imgSrc: ["'self'", "data:", "blob:", "https:"], 
             connectSrc: ["'self'", "wss:"],
             objectSrc:  ["'none'"],
             frameAncestors: ["'none'"]
