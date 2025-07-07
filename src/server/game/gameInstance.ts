@@ -212,6 +212,7 @@ export class GameInstance {
 	}
 	// set difficulty
 	public setDifficulty(difficulty: 'EASY' | 'MEDIUM' | 'HARD') {
+		if (this.hasReallyStarted) return;
 		if (difficulty === 'EASY') this.currentBallSpeed = 240;
 		else if (difficulty === 'MEDIUM') this.currentBallSpeed = 380;
 		else if (difficulty === 'HARD') this.currentBallSpeed = 480;
