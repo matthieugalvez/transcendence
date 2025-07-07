@@ -60,7 +60,7 @@ export class GameInstance {
 	// Parameters that won't change
 	private readonly canvasWidth = 800;
 	private readonly canvasHeight = 600;
-	private paddleSpeed = 800; // px/sec
+	private paddleSpeed = 600; // px/sec
 	private basePaddleSpeed = 800;
 	private waitingTimeout?: NodeJS.Timeout;
 

@@ -2,6 +2,7 @@
 build-dev:
 	npm install
 	npm install @fastify/websocket
+	npm install @fastify/helmet
 	npm install uuid
 	npx prisma generate
 	npx prisma db push

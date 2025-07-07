@@ -31,8 +31,8 @@ export function renderIndexPage(): void {
   const h1 = document.createElement('h1');
   h1.textContent = 'PONG42';
   h1.className = `
-    font-['Canada-big']
-    uppercase font-bold pt-10 mx-auto text-[clamp(1.8rem,9.7vw,16rem)] leading-[1] w-[90%]
+    font-['Canada-big'] tracking-[0.07em]
+    uppercase font-bold pt-7 mx-auto text-[clamp(2.4rem,12vw,20rem)] leading-[1] w-[90%]
     bg-gradient-to-r from-[#7101b2] to-[#ffae45f2] bg-clip-text text-transparent
     leading-[1.1]
     select-none
@@ -54,8 +54,8 @@ export function renderIndexPage(): void {
   paddle.alt = 'raquette ping pong';
   paddle.className = `
     absolute z-30 cursor-pointer
-    right-[22%] top-[-45%]
-    w-[1600px] max-w-[60vw]
+    right-[18%] top-[-50%]
+    w-[65%] max-w-[70vw]
     drop-shadow-[0_14px_24px_#63007399]
     transition-transform hover:scale-105
   `;

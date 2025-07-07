@@ -7,7 +7,6 @@ import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-import { match } from 'assert';
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -33,20 +32,49 @@ export async function renderTournamentPage() {
 	// Main layout
 	const wrapper = document.createElement('div');
 	wrapper.className = `
-    ml-40 w-[calc(100%-15rem)] min-h-screen
-    flex items-center justify-center
-    p-8 relative
-  `.replace(/\s+/g, ' ').trim();
+		ml-40 w-[calc(100%-15rem)] min-h-screen
+		flex items-center justify-center
+		p-8 relative
+	`.replace(/\s+/g, ' ').trim();
 	document.body.appendChild(wrapper);
+
+	const layout = document.createElement('div');
+	layout.className = 'flex items-start justify-center gap-6 w-full max-w-7xl mx-auto';
+	wrapper.appendChild(layout);
+
+	const gameContainer = document.createElement('div');
+	gameContainer.className = 'relative z-10 flex flex-col items-center';
+	layout.appendChild(gameContainer);
+
+	const settingsContainer = document.createElement('div');
+	settingsContainer.id = 'settings-container';
+	settingsContainer.className = 'flex-shrink-0';
+	layout.appendChild(settingsContainer);
 
 	// settings bar initiale (demande alias)
 	GameSettingsComponent.tournamentStarted = false;
 
-	TournamentComponent.showPlayerSelection(wrapper, (players) => {
-		GameSettingsComponent.render('tournament-settings', {
+	TournamentComponent.showPlayerSelection(gameContainer, (players) => {
+		const settingsBar = GameSettingsComponent.render('duo-local', {
 			onStartGame: () => {
 				GameSettingsComponent.tournamentStarted = true;
-				launchTournament(players, wrapper);
+				const newBar = GameSettingsComponent.render('duo-start', {
+						onPauseGame: () => {
+								pauseState.value = !pauseState.value;
+								if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+										currentMatchSocket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
+								}
+						},
+						onRestartGame: () => renderTournamentPage(),
+						onDifficultyChange: (difficulty) => {
+								if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+										currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+								}
+						},
+				});
+                settingsContainer.innerHTML = '';
+                settingsContainer.appendChild(newBar);
+				launchTournament(players, gameContainer);
 			},
 			onPauseGame: () => {
 				pauseState.value = !pauseState.value;
@@ -61,13 +89,15 @@ export async function renderTournamentPage() {
 				}
 			},
 		});
+		settingsContainer.innerHTML = '';
+    	settingsContainer.appendChild(settingsBar);
 	});
 
 	const previewImg = document.createElement('img');
 	previewImg.src = pongPreviewImg;
 	previewImg.alt = 'Pong preview';
 	previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all';
-	wrapper.appendChild(previewImg);
+	gameContainer.appendChild(previewImg);
 }
 
 export async function launchTournament(aliases: string[], wrapper: HTMLElement) {
@@ -102,7 +132,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 		const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
 		wrapper.innerHTML = '';
 		const gameContainer = document.createElement('div');
-		gameContainer.className = 'flex flex-col items-center justify-center p-4';
+		gameContainer.className = 'relative flex flex-col items-center justify-center';
 		wrapper.appendChild(gameContainer);
 
 		let gameId: string;
@@ -121,7 +151,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 			currentMatchSocket.close(1000, 'cleanup before new match');
 		}
 		currentMatchSocket = null;
-		  await new Promise(resolve => setTimeout(resolve, 500));
+		// await new Promise(resolve => setTimeout(resolve, 500));
 
 
 		// Lancement du match
@@ -166,7 +196,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 				});
 			},
 			gameId,
-			'tournament-online'
+			'duo-local'
 		);
 		pongHandle.start();
 		currentMatchSocket = pongHandle.socket;

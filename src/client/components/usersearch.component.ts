@@ -4,7 +4,7 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from './common.component';
 
 export class UserSearchComponent {
-	static render(container: HTMLElement, onSelect?: (user: { displayName: string, avatar: string, id: string }) => void) {
+	static render(container: HTMLElement, onSelect?: (user: { displayName: string, avatar: string, id: string }) => void, opts: { theme?: 'light' | 'dark' } = {}) {
 		const searchSection = document.createElement('div');
 		searchSection.className = 'mb-6';
 
@@ -12,7 +12,8 @@ export class UserSearchComponent {
 		searchInput.type = 'text';
 		searchInput.placeholder = 'Search users...';
 		searchInput.className = `
-            font-['Orbitron'] text-gray w-full p-3 border-2 border-black rounded-lg
+            font-['Orbitron'] ${opts.theme === 'dark' ? 'text-white placeholder-white' : 'text-gray-900'}
+            w-full p-3 border-2 border-black rounded-lg
             focus:outline-none focus:border-purple-500
         `;
 
@@ -45,8 +46,8 @@ export class UserSearchComponent {
             const users = await UserService.searchUsers(query);
             // Filter out current user from search results
             const filteredUsers = users.filter(user => user.id !== currentUser.id);
-            const limited3Users = users.slice(0, 3); // limite a 3 user max
-            // const limited3Users = filteredUsers.slice(0, 3); // limite a 3 user max
+            // const limited3Users = users.slice(0, 3); // limite a 3 user max
+            const limited3Users = filteredUsers.slice(0, 3); // limite a 3 user max
 
             container.innerHTML = '';
 
@@ -58,16 +59,16 @@ export class UserSearchComponent {
                     hover:bg-gray-50 transition-colors
                 `;
 
-            userItem.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <img src="${user.avatar}'}"
-                        alt="${user.displayName}"
-                        class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
-                    <div>
-                        <p class="font-bold text-gray-900">${user.displayName}</p>
+                userItem.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <img src="${user.avatar}"
+                            alt="${user.displayName}"
+                            class="w-8 h-8 rounded-full border-2 border-purple-500 object-cover">
+                        <div>
+                            <p class="font-bold text-gray-900">${user.displayName}</p>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
                 // Create button container
                 const buttonContainer = document.createElement('div');
