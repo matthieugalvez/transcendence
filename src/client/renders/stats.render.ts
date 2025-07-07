@@ -82,8 +82,9 @@ export class StatsRender {
 		//    container.className = 'main-content-centered';
 
 		// Create main container with flex layout and proper height constraint
+		document.body.style.overflow = 'hidden';
 		const mainContainer = document.createElement('div');
-		mainContainer.className = 'flex w-full h-full';
+		mainContainer.className = 'flex w-full h-full overflow-hidden';
 		mainContainer.style.marginLeft = '350px';
 
 		const statsCard = document.createElement('div');
@@ -92,7 +93,7 @@ export class StatsRender {
 			bg-white/90 backdrop-blur-md
 			border-2 border-black
 			rounded-xl mb-5 p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-			flex-1 max-w-[60%] min-w-[600px] transition-all duration-300
+			w-[45%] transition-all duration-300
 			overflow-y-auto compact-container
 		`;
 
@@ -137,12 +138,12 @@ export class StatsRender {
 		const panel = document.createElement('div');
 		panel.id = 'match-details-panel';
 		panel.className = `
-			absolute left-[25%]
+			absolute left-[45%]
             w-96 bg-white/95 backdrop-blur-md
             border-2 border-black rounded-xl
             shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-            opacity-0 translate-x-full transition-all duration-300 ease-in-out
-            overflow-hidden
+            translate-x-full transition-all duration-300 ease-in-out
+			opacity-0 overflow-hidden
         `;
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
@@ -579,8 +580,8 @@ export class StatsRender {
 		// Add event listeners
 		const closeBtn = panel.querySelector('#close-match-details');
 		closeBtn?.addEventListener('click', () => {
+			panel.style.transform = 'translateX(50%) translateY(-60%)';
 			panel.style.opacity = '0';
-			panel.style.transform = 'translateX(100%)';
 		});
 
 		const viewProfileBtn = panel.querySelector('#view-opponent-profile');
@@ -809,8 +810,8 @@ export class StatsRender {
 
 		panel.querySelector('#close-match-details')
 			?.addEventListener('click', () => {
+				panel.style.transform = 'translateX(50%) translateY(-60%)';
 				panel.style.opacity = '0';
-				panel.style.transform = 'translateX(100%)';
 			});
 	}
 
@@ -820,7 +821,7 @@ export class StatsRender {
 		chat_page.src = `/chat/${user.displayName}`;
 		chat_page.style.width = "100%";
 		chat_page.style.zIndex = '40';
-		chat_page.style.marginLeft = '20px';
+		chat_page.style.marginLeft = '10px';
 		chat_page.style.marginRight = '10px';
 
 		mainContainer.appendChild(chat_page);

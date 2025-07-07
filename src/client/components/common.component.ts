@@ -189,7 +189,7 @@ export class CommonComponent {
 		font-['Orbitron']
 		${colorClasses[color]} text-white font-semibold
 		border-2 border-black
-		py-2 px-12 whitespace-nowrap
+		py-2 px-12
 		rounded-lg text-lg transition-colors
 		focus:outline-none focus:ring-2
 		shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
@@ -339,8 +339,6 @@ export class CommonComponent {
 	}
 
 	static guardEmbedding() {
-
-		
 		const topLocation = window.top?.location;
 		if (topLocation === undefined) {
 			window.location.href = "/";
