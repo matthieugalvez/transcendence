@@ -46,14 +46,19 @@ export class GameSettingsComponent {
 	 */
 	static render(state: SettingState = 'initial', callbacks: GameSettingsCallbacks = {}): HTMLElement {
 		const existing = document.getElementById(GameSettingsComponent.panelId);
+		const parentContainer = existing?.parentElement; // Store the parent before removing
+
 		if (existing) existing.remove();
 
-		GameSettingsComponent.currentMode = state;
-
 		// create panel
-    const settingsBar = document.createElement("nav");
-    settingsBar.id = GameSettingsComponent.panelId;
-    settingsBar.className = `
+		const settingsBar = document.createElement("nav");
+		settingsBar.id = GameSettingsComponent.panelId;
+
+		GameSettingsComponent.currentMode = state;
+		if (parentContainer) {
+			parentContainer.appendChild(settingsBar);
+		}
+		settingsBar.className = `
         w-80 h-[768px] max-h-[768-px]
         bg-blue-950/70 backdrop-blur-2xl
         rounded-lg text-lg transition-colors
@@ -99,24 +104,24 @@ export class GameSettingsComponent {
 		}
 
 		// 2. DUO
-if (state === 'duo') {
-    // Choix local/online
-    const chooseMode = document.createElement('div');
-    chooseMode.className = 'flex flex-col w-full space-y-4';
+		if (state === 'duo') {
+			// Choix local/online
+			const chooseMode = document.createElement('div');
+			chooseMode.className = 'flex flex-col w-full space-y-4';
 
-    const localBtn = CommonComponent.createStylizedButton('Local', 'red');
-    localBtn.onclick = () => {
-        // Instead of just calling render, we need to trigger the callback
-        callbacks.onStartGame?.('duo-local');
-    };
+			const localBtn = CommonComponent.createStylizedButton('Local', 'red');
+			localBtn.onclick = () => {
+				// Instead of just calling render, we need to trigger the callback
+				callbacks.onStartGame?.('duo-local');
+			};
 
-    const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
-    onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
+			const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+			onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
 
-    chooseMode.appendChild(localBtn);
-    chooseMode.appendChild(onlineBtn);
-    settingsBar.appendChild(chooseMode);
-}
+			chooseMode.appendChild(localBtn);
+			chooseMode.appendChild(onlineBtn);
+			settingsBar.appendChild(chooseMode);
+		}
 
 		if (state === 'duo-start') {
 			// Play/Pause/Restart
