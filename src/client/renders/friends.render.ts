@@ -120,7 +120,7 @@ export class FriendsRender {
 		card.className = 'bg-gray-50 p-4 rounded-lg flex items-center justify-between hover:bg-gray-100 transition-colors';
 
 		const userInfo = document.createElement('div');
-		userInfo.className = 'flex items-center space-x-4 flex-grow min-w-0'; // Added min-w-0 for proper text truncation
+		userInfo.className = 'flex items-center space-x-4 mb-3'; // Added min-w-0 for proper text truncation
 
 		const avatar = document.createElement('img');
 		if (friend.avatar && friend.avatar !== 'null' && friend.avatar !== 'undefined') {
@@ -134,11 +134,11 @@ export class FriendsRender {
 		avatar.className = 'w-12 h-12 rounded-full object-cover flex-shrink-0'; // Added flex-shrink-0
 
 		const details = document.createElement('div');
-		details.className = 'min-w-0 flex-grow'; // Added min-w-0 and flex-grow for proper text handling
+		details.className = 'flex-grow'; // Added min-w-0 and flex-grow for proper text handling
 
 		const name = document.createElement('div');
 		name.textContent = friend.displayName;
-		name.className = `font-['Orbitron'] font-medium text-lg truncate`; // Added truncate class
+		name.className = `font-['Orbitron'] font-medium text-lg `; // Added truncate class
 
 		const status = document.createElement('div');
 		status.className = 'text-sm font-medium truncate'; // Added truncate class
@@ -165,7 +165,7 @@ export class FriendsRender {
 		userInfo.appendChild(details);
 
 		const actions = document.createElement('div');
-		actions.className = 'flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 flex-shrink-0'; // Made responsive and added flex-shrink-0
+		actions.className = 'flex flex-wrap gap-2 justify-end'; // flex-wrap and gap instead of space-x
 
 		// Profile button
 		const profileBtn = CommonComponent.createStylizedButton('Profile', 'purple');
