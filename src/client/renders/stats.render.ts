@@ -121,14 +121,14 @@ export class StatsRender {
 
 		mainContainer.appendChild(statsCard);
 
-		if (isOwnStats) {
-			const matchDetailsPanel = this.createMatchDetailsPanel();
-			mainContainer.appendChild(matchDetailsPanel);
-			(window as any).matchDetailsPanel = matchDetailsPanel;
-			(window as any).currentUser = user;
-		} else {
+		if (!isOwnStats) {
 			this.embedChat(user, mainContainer);
 		}
+
+		const matchDetailsPanel = this.createMatchDetailsPanel();
+		mainContainer.appendChild(matchDetailsPanel);
+		(window as any).matchDetailsPanel = matchDetailsPanel;
+		(window as any).currentUser = user;
 
 		document.body.appendChild(mainContainer);
 	}
@@ -137,6 +137,7 @@ export class StatsRender {
 		const panel = document.createElement('div');
 		panel.id = 'match-details-panel';
 		panel.className = `
+			absolute left-[25%]
             w-96 bg-white/95 backdrop-blur-md
             border-2 border-black rounded-xl
             shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
@@ -146,6 +147,7 @@ export class StatsRender {
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
 		panel.style.overflowY = 'auto';
+		panel.style.zIndex = '50';
 
 		const content = document.createElement('div');
 		content.className = 'p-6';
@@ -548,13 +550,13 @@ export class StatsRender {
                 <!-- Match Date -->
                 <div class="mb-6 text-center text-sm text-gray-600">
                     ${matchDate.toLocaleDateString('en-GB', {
-			weekday: 'short',
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		})}
+					weekday: 'short',
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric',
+					hour: '2-digit',
+					minute: '2-digit'
+				})}
                 </div>
 
                 <!-- Simple Actions -->
@@ -809,7 +811,7 @@ export class StatsRender {
 		chat_page.title = 'chat';
 		chat_page.src = `/chat/${user.displayName}`;
 		chat_page.style.width = "100%";
-		chat_page.style.zIndex = '50';
+		chat_page.style.zIndex = '40';
 		chat_page.style.marginLeft = '20px';
 		chat_page.style.marginRight = '10px';
 
