@@ -145,7 +145,7 @@ function startSPA() {
     router.register('/friendlist', wrapRouteHandler(async () => await FriendsPage()));
     router.register('/statistics', wrapRouteHandler(async () => await StatsPage()));
     router.register('/statistics/:displayName', wrapRouteHandler(async (params = {}) => await StatsPage({ displayName: params.displayName })));
-    router.register('/chat/:displayName', wrapRouteHandler(async() => await renderChatPage()));
+    router.register('/chat/:displayName', async() => await renderChatPage());
 
     router.start();
 }
