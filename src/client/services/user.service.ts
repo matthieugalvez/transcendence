@@ -128,7 +128,7 @@ export class UserService {
 
 			const data = await response.json();
 
-			console.log('Change username response:', data); // Debug log
+			// console.log('Change username response:', data); // Debug log
 
 			if (!data.success) {
 				return {
