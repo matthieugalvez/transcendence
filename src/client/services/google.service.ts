@@ -4,7 +4,7 @@ import { router } from '../configs/simplerouter';
 export class GoogleService {
 	static signin(): void {
 		try {
-			console.log('🔍 Initiating Google signin...');
+			// console.log('🔍 Initiating Google signin...');
 
 			// Determine the correct base URL based on environment
 			let baseUrl: string;
@@ -21,12 +21,12 @@ export class GoogleService {
 
 			const googleUrl = `${baseUrl}/api/auth/oauth2/google`;
 
-			console.log('🔗 Google signin URL:', {
-				currentOrigin: window.location.origin,
-				currentPort: window.location.port,
-				baseUrl,
-				googleUrl
-			});
+			// console.log('🔗 Google signin URL:', {
+			// 	currentOrigin: window.location.origin,
+			// 	currentPort: window.location.port,
+			// 	baseUrl,
+			// 	googleUrl
+			// });
 
 			window.location.href = googleUrl;
 		} catch (error) {

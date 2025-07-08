@@ -436,9 +436,9 @@ export class AuthController {
 
 	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			console.log('🔍 Initiating Google OAuth signin...');
-			console.log('Request URL:', request.url);
-			console.log('Request method:', request.method);
+			// console.log('🔍 Initiating Google OAuth signin...');
+			// console.log('Request URL:', request.url);
+			// console.log('Request method:', request.method);
 
 			// Access the OAuth2 plugin
 			const oauth2 = (request.server as any).GoogleOAuth2;

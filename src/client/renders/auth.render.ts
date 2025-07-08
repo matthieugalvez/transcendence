@@ -131,7 +131,7 @@ export class AuthRender {
 
 
 		googleButton.addEventListener('click', () => {
-			console.log('Clicked on google signin');
+			// console.log('Clicked on google signin');
 			GoogleService.signin(); // Remove the semicolon after signin
 		});
 		container.appendChild(inputContainer);
@@ -175,7 +175,7 @@ export class AuthRender {
 
 		// Add click event
 		googleButton.addEventListener('click', () => {
-			console.log('Clicked on Google signin');
+			// console.log('Clicked on Google signin');
 			GoogleService.signin();
 		});
 
