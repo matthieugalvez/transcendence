@@ -565,18 +565,18 @@ export function showGameOverOverlay(
 		const info = document.createElement('button');
 		info.textContent = `Go to your stats`;
 		info.className = `
-        text-lg text-white
-        font-["Orbitron"]
-        border-2 border-black
-        py-2 px-12
-        mt-4
-        bg-blue-500 hover:bg-blue-600
-        rounded-lg text-lg transition-colors
-        focus:outline-none focus:ring-2
-        cursor-pointer
-        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-        disabled:opacity-50 disabled:cursor-not-allowed
-    `;
+			text-lg text-white
+			font-["Orbitron"]
+			border-2 border-black
+			py-2 px-12
+			mt-4
+			bg-blue-500 hover:bg-blue-600
+			rounded-lg text-lg transition-colors
+			focus:outline-none focus:ring-2
+			cursor-pointer
+			shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+			disabled:opacity-50 disabled:cursor-not-allowed
+		`;
 		panel.appendChild(info);
 		panel.onclick = () => {
 			window.dispatchEvent(new Event('app:close-sockets'));
@@ -585,7 +585,7 @@ export function showGameOverOverlay(
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/statistics');
-		}, 2300);
+		}, 10000);
 	}
 }
 
