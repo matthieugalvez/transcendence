@@ -22,7 +22,7 @@ export async function authPage(): Promise<void> {
 		if (response.ok) {
 			const data = await response.json();
 			if (data.success) {
-				console.log('User already authenticated, redirecting to /home');
+				//console.log('User already authenticated, redirecting to /home');
 				router.navigate('/home');
 				return;
 			}
