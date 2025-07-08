@@ -5,6 +5,7 @@ services:
       dockerfile: configs/Dockerfile
     volumes:
       - /var/.env:/app/.env:ro
+	  - ./data:/app/data
     ports:
       - "3000"  # Only expose for internal communication
     env_file:
