@@ -11,7 +11,7 @@ import { renderChatPage } from './pages/ChatPage';
 import { FriendsPage } from './pages/FriendListPage'
 import { StatsPage } from './pages/StatsPage';
 import { UserService } from './services/user.service';
-export const language_obj = await UserService.GetLanguageFile();
+export const	language_obj = await UserService.GetLanguageFile();
 
 let isShowingViewportWarning = false;
 
@@ -92,7 +92,7 @@ function updateCurrentSizeDisplay(): void {
 	}
 }
 
-function startSPA() {webkitURL
+function startSPA() {
 	// Check viewport size on window resize
 	window.onresize = async () => {
 		if (!checkMinimumViewport()) {
