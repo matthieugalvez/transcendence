@@ -213,7 +213,7 @@ function startClientInputLoop(
 		AI = new AI_class
 	}
 
-	let lastFrameTime = performance.now();
+	// let lastFrameTime = performance.now();
 	let frameTimes: number[] = [];
 	let frameCount = 0;
 	let animationId: number;
@@ -234,30 +234,30 @@ function startClientInputLoop(
 	function frame() {
 		if (!isRunning) return;
 
-		const now = performance.now();
-		const frameTime = now - lastFrameTime;
-		lastFrameTime = now;
+		// const now = performance.now();
+		// const frameTime = now - lastFrameTime;
+		// lastFrameTime = now;
 
-		frameTimes.push(frameTime);
-		frameCount++;
+		// frameTimes.push(frameTime);
+		// frameCount++;
 
-		// Log performance metrics every 60 frames
-		if (frameCount >= 60) {
-			const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-			const maxFrameTime = Math.max(...frameTimes);
-			const fps = 1000 / avgFrameTime;
+		// // Log performance metrics every 60 frames
+		// if (frameCount >= 60) {
+		// 	const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+		// 	const maxFrameTime = Math.max(...frameTimes);
+		// 	const fps = 1000 / avgFrameTime;
 
-			console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
+		// 	console.log(`[PERFORMANCE] Avg: ${avgFrameTime.toFixed(2)}ms | Max: ${maxFrameTime.toFixed(2)}ms | FPS: ${fps.toFixed(1)}`);
 
-			// Reset metrics
-			frameTimes = [];
-			frameCount = 0;
+		// 	// Reset metrics
+		// 	frameTimes = [];
+		// 	frameCount = 0;
 
-			// REMOVE THIS PROBLEMATIC CONDITION:
-			// if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
-			//     return; // This was breaking tournaments!
-			// }
-		}
+		// 	// REMOVE THIS PROBLEMATIC CONDITION:
+		// 	// if (g_game_state && (g_game_state.score1 >= 5 || g_game_state.score2 >= 5)) {
+		// 	//     return; // This was breaking tournaments!
+		// 	// }
+		// }
 
 		// Input handling logic
 		const pId = getPlayerId();
@@ -348,11 +348,27 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
+	const player1Color = '#FFA940';
+    const player2Color = '#B946EF';
 
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
 	container.appendChild(title);
+
+	function updateTitle(name1: string, name2: string) {
+		let prefix = '';
+		const match = name1.match(/^(Match\s+\d+\s*:\s*)/);
+		if (match) {
+				prefix = match[1];
+				name1 = name1.slice(prefix.length);
+		}
+		title.innerHTML = `
+			<span style="color:${player1Color};-webkit-text-stroke:0.5px #fff;text-shadow:0 0 4px font-['Canada-big'] #fff">${name1}</span>` +
+			' vs ' +
+			`<span style="color:${player2Color};-webkit-text-stroke:0.5px #fff;text-shadow:0 0 4px #fff">${name2}</span>
+		`;
+	}
 
 	const bg_canvas = document.createElement('canvas');
 	bg_canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
@@ -404,7 +420,8 @@ export function startPongInContainer(
 		try {
 			const data = JSON.parse(event.data);
 			if ((mode === 'duo-online' || mode === 'tournament-online') && data.playerNames && data.playerNames[1] && data.playerNames[2]) {
-				title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+				// title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+				updateTitle(data.playerNames[1], data.playerNames[2]);
 			}
 		} catch { }
 	});
@@ -483,7 +500,13 @@ export function startPongInContainer(
 	}
 
 	function start() {
-		title.textContent = matchTitle;
+		// title.textContent = matchTitle;
+		if (matchTitle.includes(' vs ')) {
+			const [name1, name2] = matchTitle.split(' vs ');
+			updateTitle(name1, name2);
+		} else {
+			updateTitle(leftPlayer, rightPlayer);
+		}
 		if (socket.readyState === WebSocket.OPEN) {
 			socket.send(JSON.stringify({ action: 'start' }));
 		} else {
@@ -539,18 +562,26 @@ export function showGameOverOverlay(
 		};
 		panel.appendChild(replay);
 	} else if (mode === "online") {
-		const info = document.createElement('p');
-		info.textContent = `Going to your stats…`;
+		const info = document.createElement('button');
+		info.textContent = `Go to your stats`;
 		info.className = `
-			text-lg text-gray-300
-			font-["Orbitron"]
-			border-2 border-black
-			py-2 px-12
-			bg-blue-500
-			rounded-lg text-lg transition-colors
-			focus:outline-none focus:ring-2
-		`;
+        text-lg text-white
+        font-["Orbitron"]
+        border-2 border-black
+        py-2 px-12
+        mt-4
+        bg-blue-500 hover:bg-blue-600
+        rounded-lg text-lg transition-colors
+        focus:outline-none focus:ring-2
+        cursor-pointer
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+        disabled:opacity-50 disabled:cursor-not-allowed
+    `;
 		panel.appendChild(info);
+		panel.onclick = () => {
+			window.dispatchEvent(new Event('app:close-sockets'));
+			router.navigate('/statistics');
+		};
 		setTimeout(() => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/statistics');
@@ -609,48 +640,48 @@ export function hideOverlay() {
 }
 
 function showCountdown(message: string) {
-    // Find the game container instead of using document.body
-    const gameContainer = document.querySelector('.relative.z-10.flex.flex-col.items-center') as HTMLElement;
-    const targetContainer = gameContainer || document.body;
+	// Find the game container instead of using document.body
+	const gameContainer = document.querySelector('.relative.z-10.flex.flex-col.items-center') as HTMLElement;
+	const targetContainer = gameContainer || document.body;
 
-    let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'game-countdown';
-        Object.assign(overlay.style, {
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-            zIndex: '150'
-        });
+	let overlay = document.getElementById('game-countdown') as HTMLDivElement | null;
+	if (!overlay) {
+		overlay = document.createElement('div');
+		overlay.id = 'game-countdown';
+		Object.assign(overlay.style, {
+			position: 'absolute',
+			top: '0',
+			left: '0',
+			width: '100%',
+			height: '100%',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			pointerEvents: 'none',
+			zIndex: '150'
+		});
 
-        const panel = document.createElement('div');
-        panel.id = 'game-countdown-panel';
-        Object.assign(panel.style, {
-            background: 'rgba(0,0,0,0.75)',
-            padding: '0.4em 2em',
-            borderRadius: '8px',
-            fontFamily: 'Canada-big',
-            fontSize: '90px',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '240px',
-            border: '2px solid rgba(255,255,255,0.3)'
-        });
-        overlay.appendChild(panel);
-        targetContainer.appendChild(overlay); // Use target container instead of document.body
-    }
+		const panel = document.createElement('div');
+		panel.id = 'game-countdown-panel';
+		Object.assign(panel.style, {
+			background: 'rgba(0,0,0,0.75)',
+			padding: '0.4em 2em',
+			borderRadius: '8px',
+			fontFamily: 'Canada-big',
+			fontSize: '90px',
+			color: '#fff',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			minWidth: '240px',
+			border: '2px solid rgba(255,255,255,0.3)'
+		});
+		overlay.appendChild(panel);
+		targetContainer.appendChild(overlay); // Use target container instead of document.body
+	}
 
-    (overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
-    overlay.style.display = 'flex';
+	(overlay.querySelector('#game-countdown-panel') as HTMLDivElement).textContent = message;
+	overlay.style.display = 'flex';
 }
 
 export function hideCountdown() {

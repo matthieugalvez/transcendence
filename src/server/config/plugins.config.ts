@@ -3,6 +3,7 @@ import fastifyStatic from '@fastify/static';
 import fastifyCors from '@fastify/cors';
 import fastifyMultipart from '@fastify/multipart'; // Add this import
 import path from 'path';
+import fastifyHelmet from '@fastify/helmet';
 
 export async function registerPlugins(app: FastifyInstance, __dirname: string) {
 	console.log('🔌 Registering plugins...');
@@ -32,6 +33,23 @@ export async function registerPlugins(app: FastifyInstance, __dirname: string) {
 	await app.register(fastifyStatic, {
 		root: path.join(process.cwd(), 'public'),
 		prefix: '/public/',
+	});
+
+		await app.register(fastifyHelmet, {
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'", "'unsafe-inline'"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+				imgSrc: ["'self'", "data:image", "data:", "blob:", "https:"], // This allows data: URLs
+				connectSrc: ["'self'", "wss:", "ws:"],
+				objectSrc: ["'none'"],
+				frameAncestors: ["'none'"],
+				baseUri: ["'self'"],
+				formAction: ["'self'"]
+			}
+		}
 	});
 
 	console.log('✅ Plugins registered successfully');

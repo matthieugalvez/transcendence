@@ -90,32 +90,9 @@ function updateCurrentSizeDisplay(): void {
 	}
 }
 
-function wrapRouteHandler(
-	handler: (params?: Record<string, string>) => void | Promise<void>
-): (params?: Record<string, string>) => void | Promise<void> {
-	return async (params?: Record<string, string>) => {
-		// Skip viewport check for embedded chat pages
-		const isEmbedded = window.self !== window.top;
-		const isChatPage = window.location.pathname.includes('/chat/');
-
-		// Skip viewport warning if it's embedded OR if it's a chat page
-		if (isEmbedded || (isChatPage && isEmbedded)) {
-			return await handler(params);
-		}
-
-		// Only show viewport warning for non-embedded pages
-		if (!checkMinimumViewport()) {
-			showViewportWarning();
-			return;
-		}
-
-		return await handler(params);
-	};
-}
-
 function startSPA() {
 	// Check viewport size on window resize
-	window.addEventListener('resize', () => {
+	window.onresize = async () => {
 		if (!checkMinimumViewport()) {
 			showViewportWarning();
 			updateCurrentSizeDisplay(); // Update the size display in real-time
@@ -127,7 +104,7 @@ function startSPA() {
 			const currentPath = window.location.pathname + window.location.search;
 			router.navigate(currentPath);
 		}
-	});
+	};
 
 	// Initial viewport check
 	if (!checkMinimumViewport()) {
@@ -136,28 +113,28 @@ function startSPA() {
 	}
 
 	// Wrap all route handlers with viewport check
-	router.register('/', wrapRouteHandler(renderIndexPage));
-	router.register('/auth', wrapRouteHandler(async () => await authPage()));
-	router.register('/home', wrapRouteHandler(async () => await RenderHomePage()));
-	router.register('/settings', wrapRouteHandler(async () => await SettingsPage()));
-	router.register('/game', wrapRouteHandler(renderPongGamePage));
-	router.register('/tournament', wrapRouteHandler(renderTournamentPage));
-	router.register('/auth/oauth-2fa', wrapRouteHandler(async () => await oauth2FAPage()));
+	router.register('/', renderIndexPage);
+	router.register('/auth', async () => await authPage());
+	router.register('/home', (async () => await RenderHomePage()));
+	router.register('/settings', (async () => await SettingsPage()));
+	router.register('/game', (renderPongGamePage));
+	router.register('/tournament', (renderTournamentPage));
+	router.register('/auth/oauth-2fa', (async () => await oauth2FAPage()));
 	router.register(
 		'/game/online/duo/:gameId',
-		wrapRouteHandler((params = {}) => renderJoinPage({ gameId: params.gameId, mode: 'duo' }))
+		((params = {}) => renderJoinPage({ gameId: params.gameId, mode: 'duo' }))
 	);
 	router.register(
 		'/game/online/tournament/:gameId',
-		wrapRouteHandler((params = {}) => renderJoinPage({ gameId: params.gameId, mode: 'tournament' }))
+		((params = {}) => renderJoinPage({ gameId: params.gameId, mode: 'tournament' }))
 	);
-	router.register('/profile', wrapRouteHandler(async () => await StatsPage()));
-	router.register('/profile/:displayName', wrapRouteHandler(async (params = {}) => await StatsPage({ displayName: params.displayName })));
-	router.register('/users', wrapRouteHandler(async () => await UsersPage()));
-	router.register('/friendlist', wrapRouteHandler(async () => await FriendsPage()));
-	router.register('/statistics', wrapRouteHandler(async () => await StatsPage()));
-	router.register('/statistics/:displayName', wrapRouteHandler(async (params = {}) => await StatsPage({ displayName: params.displayName })));
-	router.register('/chat/:displayName', wrapRouteHandler(async () => await renderChatPage()));
+	router.register('/profile', (async () => await StatsPage()));
+	router.register('/profile/:displayName', (async (params = {}) => await StatsPage({ displayName: params.displayName })));
+	router.register('/users', (async () => await UsersPage()));
+	router.register('/friendlist', (async () => await FriendsPage()));
+	router.register('/statistics', (async () => await StatsPage()));
+	router.register('/statistics/:displayName', (async (params = {}) => await StatsPage({ displayName: params.displayName })));
+	router.register('/chat/:displayName', (async () => await renderChatPage()));
 
 	router.start();
 }

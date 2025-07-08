@@ -99,8 +99,6 @@ export class GameSettingsComponent {
 			settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
 
 			settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
-			// Difficulté
-			// settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
 		}
 
 		// 2. DUO
@@ -129,7 +127,7 @@ export class GameSettingsComponent {
 			// Guide touches
 			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
 			// Difficulté
-			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks, true));
 		}
 
 		// 2.5
@@ -137,9 +135,9 @@ export class GameSettingsComponent {
 			// Play/Pause
 			settingsBar.appendChild(GameSettingsComponent.renderPlayPause(callbacks));
 
-			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
+			settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
 			// Difficulté
-			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
+			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks, true));
 		}
 
 		// 3. DUO LOCAL
@@ -196,7 +194,7 @@ export class GameSettingsComponent {
 			}
 			startBtn.onclick = () => callbacks.onStartGame?.('duo-online', GameSettingsComponent.currentDifficulty);
 			settingsBar.appendChild(startBtn);
-			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
+			settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
 			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
 		}
 
@@ -259,7 +257,7 @@ export class GameSettingsComponent {
 			}
 			startBtn.onclick = () => callbacks.onStartGame?.('tournament-online', GameSettingsComponent.currentDifficulty); // test ecole
 			settingsBar.appendChild(startBtn);
-			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
+			settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
 			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
 		}
 
@@ -344,7 +342,7 @@ export class GameSettingsComponent {
 				};
 				settingsBar.appendChild(startBtn);
 			}
-			settingsBar.appendChild(GameSettingsComponent.renderGuide('duo'));
+			settingsBar.appendChild(GameSettingsComponent.renderGuide('solo'));
 
 			// Difficulté
 			settingsBar.appendChild(GameSettingsComponent.renderDifficultyBtns(callbacks));
@@ -384,7 +382,7 @@ export class GameSettingsComponent {
 	/**
 	 * buttons in settings bar
 	 */
-	static renderDifficultyBtns(callbacks: GameSettingsCallbacks) {
+	static renderDifficultyBtns(callbacks: GameSettingsCallbacks, readOnly = false) {
 		const diffBox = document.createElement('div');
 		diffBox.className = 'mt-auto flex flex-col w-full space-y-3 mb-2';
 
@@ -394,6 +392,7 @@ export class GameSettingsComponent {
 			{ label: 'HARD', color: 'gray' },
 		];
 		diffs.forEach(({ label, color }) => {
+			if (readOnly && label !== GameSettingsComponent.currentDifficulty) return;
 			const btn = CommonComponent.createStylizedButton(label, color);
 			if (label === GameSettingsComponent.currentDifficulty) {
 				btn.classList.add('opacity-100', 'ring-2', 'ring-yellow-400');
@@ -402,7 +401,10 @@ export class GameSettingsComponent {
 				GameSettingsComponent.currentDifficulty = label;
 				callbacks.onDifficultyChange?.(label);
 				// Refresh buttons pour mettre à jour l'état visuel
-				GameSettingsComponent.render(GameSettingsComponent.currentMode, callbacks);
+				// GameSettingsComponent.render(GameSettingsComponent.currentMode, callbacks);
+				diffBox.querySelectorAll('button').forEach(b => 
+					b.classList.remove('ring-2','ring-yellow-400','opacity-100'));
+				btn.classList.add('ring-2','ring-yellow-400','opacity-100');
 			};
 			diffBox.appendChild(btn);
 		});

@@ -1,8 +1,16 @@
 import { router } from '../configs/simplerouter';
-import { CommonComponent } from '../components/common.component';
 import { WebSocketService } from '../services/websocket.service';
 import { renderChatPage } from '../pages/ChatPage';
-import { match } from 'assert';
+import Chart from 'chart.js/auto';
+import { MatrixController, MatrixElement } from 'chartjs-chart-matrix';
+import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot';
+import 'chartjs-adapter-date-fns';
+import { DoughnutController, ArcElement, BarController, CategoryScale, LinearScale } from 'chart.js/auto';
+import { TimeScale, LineController, LineElement, PointElement } from 'chart.js/auto';
+
+Chart.register(TimeScale, LineController, LineElement, PointElement);
+Chart.register(DoughnutController, ArcElement, BarController, CategoryScale, LinearScale);
+Chart.register(MatrixController, MatrixElement, BoxPlotController, BoxAndWiskers);
 
 export class StatsRender {
 	private static createStatsHeader(user: any, isOwnStats: boolean): HTMLElement {
@@ -82,8 +90,9 @@ export class StatsRender {
 		//    container.className = 'main-content-centered';
 
 		// Create main container with flex layout and proper height constraint
+		document.body.style.overflow = 'auto';
 		const mainContainer = document.createElement('div');
-		mainContainer.className = 'flex w-full h-full';
+		mainContainer.className = 'flex w-full h-full overflow-hidden';
 		mainContainer.style.marginLeft = '350px';
 
 		const statsCard = document.createElement('div');
@@ -92,7 +101,7 @@ export class StatsRender {
 			bg-white/90 backdrop-blur-md
 			border-2 border-black
 			rounded-xl mb-5 p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-			flex-1 max-w-[60%] min-w-[600px] transition-all duration-300
+			w-[45%] max-w-xxl transition-all duration-300
 			overflow-y-auto compact-container
 		`;
 
@@ -123,10 +132,14 @@ export class StatsRender {
 
 		if (!isOwnStats) {
 			this.embedChat(user, mainContainer);
+		} else {
+			this.createCharts(statsData, user.id, mainContainer);
 		}
 
 		const matchDetailsPanel = this.createMatchDetailsPanel();
 		mainContainer.appendChild(matchDetailsPanel);
+
+
 		(window as any).matchDetailsPanel = matchDetailsPanel;
 		(window as any).currentUser = user;
 
@@ -137,12 +150,12 @@ export class StatsRender {
 		const panel = document.createElement('div');
 		panel.id = 'match-details-panel';
 		panel.className = `
-			absolute left-[25%]
+			absolute left-[45%]
             w-96 bg-white/95 backdrop-blur-md
             border-2 border-black rounded-xl
             shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-            opacity-0 translate-x-full transition-all duration-300 ease-in-out
-            overflow-hidden
+            translate-x-full transition-all duration-300 ease-in-out
+			opacity-0 overflow-hidden
         `;
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
@@ -371,6 +384,160 @@ export class StatsRender {
 		return container;
 	}
 
+	private static async createCharts(statsData: any, userId: string, mainContainer: HTMLElement) {
+		const section = document.createElement('div');
+		section.className = `
+			flex-1 m-10 w-[100%]
+			bg-white/80 backdrop-blur-md
+			border-2 border-black rounded-xl p-4
+			shadow-[8px_10px_0_rgba(0,0,0,0.8)]
+			overflow-y-auto h-[700px]
+		`;
+
+		const title = document.createElement('h2');
+		title.textContent = 'Visual Charts';
+		title.className = `font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
+
+		const chartsGrid = document.createElement('div');
+		chartsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+
+		// new charts
+		const scoreTime = await this.createWinRateTimeline(userId);
+        chartsGrid.appendChild(scoreTime);
+
+		const headChart = await this.createHeadToHeadChart(userId);
+		chartsGrid.appendChild(headChart);
+
+		const pieChart = this.createWinLossPieChart(statsData);
+		pieChart.classList.add('md:col-span-2', 'justify-self-center');
+		chartsGrid.appendChild(pieChart);
+
+		section.appendChild(title);
+		section.appendChild(chartsGrid);
+
+		mainContainer.appendChild(section);
+		// return section;
+	}
+
+	private static async createWinRateTimeline(userId:string):Promise<HTMLElement>{
+		const box=document.createElement('div');
+		box.className='bg-gray-50 p-4 rounded-lg';
+		box.style.height = '250px';
+		box.innerHTML=`<h3 class="font-medium mb-4 text-center">Win Rate Over Time</h3><canvas></canvas>`;
+		const ctx=box.querySelector('canvas')! as HTMLCanvasElement;
+
+		/* recuperer tous les matchs connus */
+		const matches=await this.fetchRecentMatches(userId,500);
+		matches.sort((a,b)=>new Date(a.playedAt).getTime()-new Date(b.playedAt).getTime());
+
+		let wins=0;
+		const points = matches.map((m,i)=>{
+			const isWin = m.winnerId===userId;
+			if (isWin) wins++;
+			const wr = Math.round(100*wins/(i+1));
+			return { x:new Date(m.playedAt), y:wr };
+		});
+
+		new Chart(ctx,{
+			type:'line',
+			data:{ datasets:[{
+				label:'Win %',
+				data:points,
+				borderWidth:2,
+				borderColor:'#6366f1',
+				tension:0.4,
+				fill:false,
+				pointRadius:0
+			}]},
+			options:{
+				plugins:{ legend:{display:false} },
+				scales:{
+					x:{ type:'time', time:{ unit:'week' }, grid:{display:false} },
+					y:{ beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>v+'%' } }
+				},
+				responsive:true,
+				maintainAspectRatio:true,
+				aspectRatio: 2, 
+			}
+		});
+		return box;
+	}
+
+	private static async createHeadToHeadChart(userId: string): Promise<HTMLElement> {
+		const box = document.createElement('div');
+		box.className = 'bg-gray-50 p-4 rounded-lg';
+
+		box.innerHTML = `<h3 class="font-medium mb-4 text-center">Head&nbsp;to&nbsp;Head (Top&nbsp;3)</h3>
+						<canvas></canvas>`;
+		const ctx = box.querySelector('canvas') as HTMLCanvasElement;
+
+		/* agrège les matchs */
+		const matches = await this.fetchRecentMatches(userId, 200);
+		const stats: Record<string,{wins:number,total:number}> = {};
+		matches.forEach(m => {
+			const opp = m.playerOneId === userId ? m.playerTwo : m.playerOne;
+			if (!opp) return;
+			const key = opp.displayName || opp.id;
+			if (!stats[key]) stats[key] = { wins:0, total:0 };
+			stats[key].total++;
+			if (m.winnerId === userId) stats[key].wins++;
+		});
+
+		/* top 3 par % de victoires (puis par volume) */
+		const top3 = Object.entries(stats)
+			.sort((a,b)=>{
+				const aw=a[1].wins/a[1].total, bw=b[1].wins/b[1].total;
+				return bw===aw ? b[1].total-a[1].total : bw-aw;
+			})
+			.slice(0,3);
+
+		const labels = top3.map(e=>e[0]);
+		const data   = top3.map(e=>Math.round((e[1].wins/e[1].total)*100));
+
+		new Chart(ctx,{
+			type:'bar',
+			data:{ labels,
+					datasets:[{ data,
+								backgroundColor:['#4ade80','#34d399','#10b981']}]},
+			options:{
+			plugins:{ legend:{display:false} },
+			scales:{
+				x:{ ticks:{ display:true }, grid:{display:false} },
+				y:{ display:false, suggestedMax:100 }
+			}
+			}
+		});
+		return box;
+	}
+
+	private static createWinLossPieChart(stats:any):HTMLElement{
+		const box = document.createElement('div');
+		box.className='bg-gray-50 p-4 rounded-lg';
+
+		box.style.height  = '310px';
+    	box.style.width   = '70%';
+
+		box.innerHTML=`<h3 class="font-medium mb-1 text-center">Win/Loss Breakdown</h3><canvas></canvas>`;
+		const ctx=box.querySelector('canvas') as HTMLCanvasElement;
+
+		const values=[ stats.oneVOneWins||0, stats.oneVOneLosses||0,
+						stats.tournamentWins||0, stats.tournamentLosses||0 ];
+		const labels=['1v1 Win','1v1 Loose','Tourn. Win','Tourn. Loose'];
+		const colors=['#22c55e','#ef4444','#3b82f6','#f97316'];
+
+		new Chart(ctx,{
+			type:'doughnut',
+			data:{ labels, datasets:[{ data:values, backgroundColor:colors }]},
+			options:{ 
+				plugins:{ legend:{ position:'bottom' } },
+				maintainAspectRatio: false,
+				cutout: '60%',
+				layout:{ padding:20 }
+			}
+		});
+		return box;
+	}
+
 	private static async createDetailedMatchesSection(userId: string, user: any): Promise<HTMLElement> {
 		const section = document.createElement('div');
 		section.className = 'mb-8';
@@ -579,8 +746,8 @@ export class StatsRender {
 		// Add event listeners
 		const closeBtn = panel.querySelector('#close-match-details');
 		closeBtn?.addEventListener('click', () => {
+			panel.style.transform = 'translateX(50%) translateY(-60%)';
 			panel.style.opacity = '0';
-			panel.style.transform = 'translateX(100%)';
 		});
 
 		const viewProfileBtn = panel.querySelector('#view-opponent-profile');
@@ -809,8 +976,8 @@ export class StatsRender {
 
 		panel.querySelector('#close-match-details')
 			?.addEventListener('click', () => {
+				panel.style.transform = 'translateX(50%) translateY(-60%)';
 				panel.style.opacity = '0';
-				panel.style.transform = 'translateX(100%)';
 			});
 	}
 
@@ -820,7 +987,7 @@ export class StatsRender {
 		chat_page.src = `/chat/${user.displayName}`;
 		chat_page.style.width = "100%";
 		chat_page.style.zIndex = '40';
-		chat_page.style.marginLeft = '20px';
+		chat_page.style.marginLeft = '10px';
 		chat_page.style.marginRight = '10px';
 
 		mainContainer.appendChild(chat_page);
