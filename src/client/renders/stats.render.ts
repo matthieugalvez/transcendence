@@ -145,6 +145,7 @@ export class StatsRender {
             translate-x-full transition-all duration-300 ease-in-out
 			opacity-0 overflow-hidden
         `;
+		panel.style.pointerEvents = 'none';
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
 		panel.style.overflowY = 'auto';
@@ -520,6 +521,7 @@ export class StatsRender {
 
 		// Show panel with animation
 		panel.style.opacity = '1';
+		panel.style.pointerEvents = 'auto';
 		panel.style.transform = 'translateX(-50%) translateY(60%)'; // For fixed positioning
 
 		const isWinner = match.winnerId === currentUserId;
@@ -582,6 +584,7 @@ export class StatsRender {
 		closeBtn?.addEventListener('click', () => {
 			panel.style.transform = 'translateX(50%) translateY(-60%)';
 			panel.style.opacity = '0';
+			panel.style.pointerEvents = 'none';
 		});
 
 		const viewProfileBtn = panel.querySelector('#view-opponent-profile');
@@ -738,6 +741,7 @@ export class StatsRender {
 		const panel = document.getElementById('match-details-panel');
 		if (!panel) return;
 		panel.style.opacity = '1';
+		panel.style.pointerEvents = 'auto';
 		panel.style.transform = 'translateX(-50%) translateY(60%)';
 
 		/* construire un petit bracket “semi‑finales / finale” */
@@ -812,6 +816,7 @@ export class StatsRender {
 			?.addEventListener('click', () => {
 				panel.style.transform = 'translateX(50%) translateY(-60%)';
 				panel.style.opacity = '0';
+				panel.style.pointerEvents = 'none';
 			});
 	}
 
