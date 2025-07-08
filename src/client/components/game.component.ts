@@ -1,6 +1,7 @@
 import { CommonComponent } from './common.component';
 import { validatePlayerNames } from '../utils/player.utils';
 import { router } from '../configs/simplerouter';
+import { language_obj } from '..';
 
 export interface GameSetOptions {
 	showUrl?: boolean;
@@ -71,7 +72,7 @@ export class GameSettingsComponent {
 		// title
 		const title = document.createElement('h2');
 		title.className
-		title.textContent = "Game Settings";
+		title.textContent = `${language_obj['Gamepage_settings']}`;
 		title.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 		settingsBar.appendChild(title);
 
@@ -81,7 +82,7 @@ export class GameSettingsComponent {
 			settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
 
 			// Bouton Start
-			const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
+			const startBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_start_button']}`, 'red');
 			startBtn.classList.add('w-full');
 			startBtn.onclick = () => callbacks.onStartGame?.('solo', GameSettingsComponent.currentDifficulty);
 			settingsBar.appendChild(startBtn);
@@ -143,7 +144,7 @@ export class GameSettingsComponent {
 		// 3. DUO LOCAL
 		if (state === 'duo-local') {
 			settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
-			const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
+			const startBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_start_button']}`, 'red');
 			startBtn.classList.add('w-full');
 			startBtn.onclick = () => callbacks.onStartGame?.('duo-local', GameSettingsComponent.currentDifficulty);
 			settingsBar.appendChild(startBtn);
@@ -158,7 +159,7 @@ export class GameSettingsComponent {
 			const link = callbacks.getOnlineLink?.() ?? '';
 			const linkBox = document.createElement('div');
 			linkBox.className = 'flex flex-col items-center w-full mt-4';
-			const copyBtn = CommonComponent.createStylizedButton('Copy Game Link', 'orange');
+			const copyBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_game_link']}`, 'orange');
 			copyBtn.onclick = () => {
 				const link = callbacks.getOnlineLink?.() ?? '';
 
@@ -167,8 +168,8 @@ export class GameSettingsComponent {
 					// Modern async clipboard API
 					navigator.clipboard.writeText(link).then(() => {
 						callbacks.onCopyLink?.(link);
-						copyBtn.textContent = 'Copied!';
-						setTimeout(() => (copyBtn.textContent = 'Copy Game Link'), 1200);
+						copyBtn.textContent = `${language_obj['Gamepage_copied_link']}`;
+						setTimeout(() => (copyBtn.textContent = `${language_obj['Gamepage_game_link']}`), 1200);
 					}).catch(err => {
 						console.error('Clipboard write failed:', err);
 						// Fallback to legacy method
@@ -182,7 +183,7 @@ export class GameSettingsComponent {
 			linkBox.appendChild(copyBtn);
 			settingsBar.appendChild(linkBox);
 
-			const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
+			const startBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_start_button']}`, 'red');
 			startBtn.classList.add('w-full');
 			let canStart = callbacks.canStart ? callbacks.canStart() : false;
 			if (!canStart) {
@@ -221,7 +222,7 @@ export class GameSettingsComponent {
 			const link = callbacks.getOnlineLink?.() ?? '';
 			const linkBox = document.createElement('div');
 			linkBox.className = 'flex flex-col items-center w-full mt-4';
-			const copyBtn = CommonComponent.createStylizedButton('Copy Game Link', 'orange');
+			const copyBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_game_link']}`, 'orange');
 			copyBtn.onclick = () => {
 				const link = callbacks.getOnlineLink?.() ?? '';
 
@@ -230,8 +231,8 @@ export class GameSettingsComponent {
 					// Modern async clipboard API
 					navigator.clipboard.writeText(link).then(() => {
 						callbacks.onCopyLink?.(link);
-						copyBtn.textContent = 'Copied!';
-						setTimeout(() => (copyBtn.textContent = 'Copy Game Link'), 1200);
+						copyBtn.textContent = `${language_obj['Gamepage_copied_link']}`;
+						setTimeout(() => (copyBtn.textContent = `${language_obj['Gamepage_game_link']}`), 1200);
 					}).catch(err => {
 						console.error('Clipboard write failed:', err);
 						// Fallback to legacy method
@@ -245,7 +246,7 @@ export class GameSettingsComponent {
 			linkBox.appendChild(copyBtn);
 			settingsBar.appendChild(linkBox);
 
-			const startBtn = CommonComponent.createStylizedButton('Start Game', 'red');
+			const startBtn = CommonComponent.createStylizedButton(`${language_obj['Gamepage_start_button']}`, 'red');
 			startBtn.classList.add('w-full');
 			let canStart = callbacks.canStart ? callbacks.canStart() : false;
 			if (!canStart) {
@@ -264,7 +265,7 @@ export class GameSettingsComponent {
 		if (state === 'tournament-alias') {
 			// Titre
 			const title = document.createElement('h2');
-			title.textContent = "⬇️ Enter player names for the tournament ⬇️";
+			title.textContent = `⬇️ ${language_obj['Tournamentpage_name_prompt']} ⬇️`;
 			title.className = 'font-["Canada-big"] capitalize mb-4 text-white text-2xl justify-center items-center';
 			settingsBar.appendChild(title);
 
@@ -273,7 +274,7 @@ export class GameSettingsComponent {
 			for (let i = 1; i <= 4; i++) {
 				const inp = document.createElement('input');
 				inp.type = 'text';
-				inp.placeholder = `Player ${i}`;
+				inp.placeholder = `${language_obj['Gamepage_player']} ${i}`;
 				inp.className = `
                     border border-purple-500 rounded-lg px-4 py-2
                     text-lg text-white font-['Orbitron']
@@ -285,7 +286,7 @@ export class GameSettingsComponent {
 			}
 
 			// Bouton Start
-			const startButton = CommonComponent.createStylizedButton('Start Tournament', 'blue');
+			const startButton = CommonComponent.createStylizedButton(`${language_obj['Tournamentpage_start']}`, 'blue');
 			startButton.classList.add('w-full');
 			startButton.disabled = true;
 			settingsBar.appendChild(startButton);
@@ -332,7 +333,7 @@ export class GameSettingsComponent {
 			settingsBar.appendChild(GameSettingsComponent.renderPlayPauseRestart(callbacks));
 			// Start game
 			if (!GameSettingsComponent.tournamentStarted) {
-				const startBtn = CommonComponent.createStylizedButton('Start Tournament', 'red');
+				const startBtn = CommonComponent.createStylizedButton(`${language_obj['Tournamentpage_start']}`, 'red');
 				startBtn.classList.add('w-full');
 				startBtn.onclick = () => {
 					GameSettingsComponent.tournamentStarted = true;
@@ -364,16 +365,16 @@ export class GameSettingsComponent {
 			const successful = document.execCommand('copy');
 			if (successful) {
 				callbacks.onCopyLink?.(text);
-				button.textContent = 'Copied!';
-				setTimeout(() => (button.textContent = 'Copy Game Link'), 1200);
+				button.textContent = `${language_obj['Gamepage_copied_link']}`;
+				setTimeout(() => (button.textContent = `${language_obj['Gamepage_game_link']}`), 1200);
 			} else {
-				button.textContent = 'Copy failed';
-				setTimeout(() => (button.textContent = 'Copy Game Link'), 1200);
+				button.textContent = `${language_obj['Gamepage_link_copy_failure']}`;
+				setTimeout(() => (button.textContent = `${language_obj['Gamepage_game_link']}`), 1200);
 			}
 		} catch (err) {
 			console.error('Fallback copy failed:', err);
-			button.textContent = 'Copy failed';
-			setTimeout(() => (button.textContent = 'Copy Game Link'), 1200);
+			button.textContent = `${language_obj['Gamepage_link_copy_failure']}`;
+			setTimeout(() => (button.textContent = `${language_obj['Gamepage_game_link']}`), 1200);
 		} finally {
 			document.body.removeChild(textArea);
 		}

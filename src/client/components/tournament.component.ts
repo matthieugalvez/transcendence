@@ -29,7 +29,7 @@ export class TournamentComponent {
 		overlay.appendChild(title);
 
 		const startBtn = document.createElement('button');
-		startBtn.textContent = 'Launch tournament';
+		startBtn.textContent = `${language_obj['Tournamentpage_launch']}`;
 		startBtn.disabled = true;
 		startBtn.className = `
       bg-purple-600 text-white
