@@ -435,13 +435,13 @@ export class AuthRender {
 			// Description
 			const description = document.createElement('p');
 			description.textContent = isGoogleUser
-				? 'Please choose a display name for your account'
-				: 'This will be shown to other players';
+				? `${language_obj['Please_choose_displayname']}`
+				: `${language_obj['This_will_be_shown']}`;
 			description.className = 'text-gray-600 mb-4';
 			modal.appendChild(description);
 
 			// Input
-			const input = CommonComponent.createInput('text', 'Enter your display name');
+			const input = CommonComponent.createInput('text', `${language_obj['Enter_display_name']}`);
 			input.id = 'displayname-input';
 			input.style.marginTop = '1rem';
 			modal.appendChild(input);
@@ -456,7 +456,7 @@ export class AuthRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-			const submitButton = CommonComponent.createStylizedButton('Continue', 'blue');
+			const submitButton = CommonComponent.createStylizedButton(`${language_obj['Continue']}`, 'blue');
 
 			buttonContainer.appendChild(submitButton);
 
@@ -481,21 +481,21 @@ export class AuthRender {
 
 				// Basic validation
 				if (!displayName) {
-					errorMsg.textContent = 'Please enter a display name';
+					errorMsg.textContent = `${language_obj['Please_enter_displayname']}`;
 					return;
 				}
 				if (displayName.length < 3) {
-					errorMsg.textContent = 'Display name must be at least 3 characters';
+					errorMsg.textContent = `${language_obj['Display_name_3char']}`;
 					return;
 				}
 				if (displayName.length > 12) {
-					errorMsg.textContent = 'Display name must be less than 12 characters';
+					errorMsg.textContent = `${language_obj['Display_name_12char']}`;
 					return;
 				}
 
 				// Disable button during check
 				submitButton.disabled = true;
-				submitButton.textContent = 'Checking...';
+				submitButton.textContent = `${language_obj['Checking']}`;
 
 				try {
 					const availabilityResult = await UserService.checkDisplayNameAvailability(displayName);
@@ -510,14 +510,14 @@ export class AuthRender {
 						// Display name is taken
 						errorMsg.textContent = availabilityResult.message || 'Display name is already taken';
 						submitButton.disabled = false;
-						submitButton.textContent = 'Continue';
+						submitButton.textContent = `${language_obj['Continue']}`;
 					}
 
 				} catch (error) {
 					console.error('Error checking display name:', error);
-					errorMsg.textContent = 'Failed to check availability. Please try again.';
+					errorMsg.textContent = `${language_obj['Availability_check_error']}`;
 					submitButton.disabled = false;
-					submitButton.textContent = 'Continue';
+					submitButton.textContent = `${language_obj['Continue']}`;
 				}
 			});
 		});

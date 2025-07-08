@@ -1,6 +1,7 @@
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { ChatService } from '../services/chat.service';
+import { language_obj } from '..';
 
 export class FriendsRender {
 	static async renderFriendsList(container: HTMLElement): Promise<void> {
@@ -24,7 +25,7 @@ export class FriendsRender {
 				const incomingSection = document.createElement('div');
 
 				const incomingTitle = document.createElement('h3');
-				incomingTitle.textContent = `Friend Requests (${pendingIncoming.length})`;
+				incomingTitle.textContent = `${language_obj['Friend_requests']} (${pendingIncoming.length})`;
 				incomingTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-blue-600`;
 
 				const incomingList = document.createElement('div');
@@ -47,7 +48,7 @@ export class FriendsRender {
 				const acceptedSection = document.createElement('div');
 
 				const acceptedTitle = document.createElement('h3');
-				acceptedTitle.textContent = `Friends (${acceptedFriends.length})`;
+				acceptedTitle.textContent = `${language_obj['Friends']} (${acceptedFriends.length})`;
 				acceptedTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-green-600`;
 
 				const acceptedList = document.createElement('div');
@@ -74,7 +75,7 @@ export class FriendsRender {
 				const outgoingSection = document.createElement('div');
 
 				const outgoingTitle = document.createElement('h3');
-				outgoingTitle.textContent = `Pending Requests (${pendingOutgoing.length})`;
+				outgoingTitle.textContent = `${language_obj['Pending_requests']} (${pendingOutgoing.length})`;
 				outgoingTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-orange-600`;
 
 				const outgoingList = document.createElement('div');
@@ -96,8 +97,8 @@ export class FriendsRender {
 				const noFriendsMsg = document.createElement('div');
 				noFriendsMsg.className = 'text-center py-12';
 				noFriendsMsg.innerHTML = `
-                <p class="text-gray-500 text-lg mb-4">No friends or requests yet</p>
-                <p class="text-gray-400">Use the user search in the sidebar to find and add friends!</p>
+                <p class="text-gray-500 text-lg mb-4">${language_obj['No_friends_or_requests']}</p>
+                <p class="text-gray-400">${language_obj['Use_user_search']}</p>
             `;
 				friendsSection.appendChild(noFriendsMsg);
 			}
@@ -146,15 +147,15 @@ export class FriendsRender {
 
 		switch (type) {
 			case 'accepted':
-				status.textContent = 'Friends';
+				status.textContent = `${language_obj['Friends']}`;
 				status.className += ' text-green-600';
 				break;
 			case 'pending-sent':
-				status.textContent = 'Request sent';
+				status.textContent = `${language_obj['Request_sent']}`;
 				status.className += ' text-orange-600';
 				break;
 			case 'pending-received':
-				status.textContent = 'Wants to be friends';
+				status.textContent = `${language_obj['Wants_to_be_friends']}`;
 				status.className += ' text-blue-600';
 				break;
 		}
@@ -169,7 +170,7 @@ export class FriendsRender {
 		actions.className = 'flex flex-wrap gap-2 justify-end'; // flex-wrap and gap instead of space-x
 
 		// Profile button
-		const profileBtn = CommonComponent.createStylizedButton('Profile', 'purple');
+		const profileBtn = CommonComponent.createStylizedButton(`${language_obj['Profile']}`, 'purple');
 		profileBtn.className = profileBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 		profileBtn.onclick = () => {
 			window.location.href = `/profile/${friend.displayName}`;
@@ -178,71 +179,71 @@ export class FriendsRender {
 
 		// Action buttons based on type
 		if (type === 'pending-received') {
-			const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
+			const acceptBtn = CommonComponent.createStylizedButton(`${language_obj['Accept']}`, 'blue');
 			acceptBtn.className = acceptBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			acceptBtn.onclick = async () => {
 				try {
 					acceptBtn.disabled = true;
-					acceptBtn.textContent = 'Accepting...';
+					acceptBtn.textContent = `${language_obj['Accepting']}`;
 					await UserService.acceptFriendRequest(friendship.id);
 					window.location.reload();
 				} catch (error) {
 					console.error('Failed to accept request:', error);
-					CommonComponent.showMessage('❌ Failed to accept friend request', 'error');
+					CommonComponent.showMessage(`❌ ${language_obj['Failed_to_accept_friend_request']}`, 'error');
 					acceptBtn.disabled = false;
-					acceptBtn.textContent = 'Accept';
+					acceptBtn.textContent = `${language_obj['Accept']}`;
 				}
 			};
 
-			const rejectBtn = CommonComponent.createStylizedButton('Reject', 'red');
+			const rejectBtn = CommonComponent.createStylizedButton(`${language_obj['Reject']}`, 'red');
 			rejectBtn.className = rejectBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			rejectBtn.onclick = async () => {
 				try {
 					rejectBtn.disabled = true;
-					rejectBtn.textContent = 'Rejecting...';
+					rejectBtn.textContent = `${language_obj['Rejecting']}`;
 					await UserService.rejectFriendRequest(friendship.id);
 					window.location.reload();
 				} catch (error) {
 					console.error('Failed to reject request:', error);
-					CommonComponent.showMessage('❌ Failed to reject friend request', 'error');
+					CommonComponent.showMessage(`❌ ${language_obj['Failed_to_reject_friend_request']}`, 'error');
 					rejectBtn.disabled = false;
-					rejectBtn.textContent = 'Reject';
+					rejectBtn.textContent = `${language_obj['Reject']}`;
 				}
 			};
 
 			actions.appendChild(acceptBtn);
 			actions.appendChild(rejectBtn);
 		} else if (type === 'pending-sent') {
-			const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'red');
+			const cancelBtn = CommonComponent.createStylizedButton(`${language_obj['Cancel']}`, 'red');
 			cancelBtn.className = cancelBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			cancelBtn.onclick = async () => {
 				try {
 					cancelBtn.disabled = true;
-					cancelBtn.textContent = 'Canceling...';
+					cancelBtn.textContent = `${language_obj['Canceling']}`;
 					await UserService.rejectFriendRequest(friendship.id);
 					window.location.reload();
 				} catch (error) {
 					console.error('Failed to cancel request:', error);
-					CommonComponent.showMessage('❌ Failed to cancel friend request', 'error');
+					CommonComponent.showMessage(`❌ ${language_obj['Failed_to_cancel_friend_request']}`, 'error');
 					cancelBtn.disabled = false;
-					cancelBtn.textContent = 'Cancel';
+					cancelBtn.textContent = `${language_obj['Cancel']}`;
 				}
 			};
 			actions.appendChild(cancelBtn);
 		} else if (type === 'accepted') {
-			const removeBtn = CommonComponent.createStylizedButton('Remove', 'red');
+			const removeBtn = CommonComponent.createStylizedButton(`${language_obj['Remove']}`, 'red');
 			removeBtn.className = removeBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			removeBtn.onclick = async () => {
 				try {
 					removeBtn.disabled = true;
-					removeBtn.textContent = 'Removing...';
+					removeBtn.textContent = `${language_obj['Removing']}`;
 					await UserService.removeFriend(friend.id);
 					window.location.reload();
 				} catch (error) {
 					console.error('Failed to remove friend:', error);
-					CommonComponent.showMessage('❌ Failed to remove friend', 'error');
+					CommonComponent.showMessage(`❌ ${language_obj['Failed_to_remove_friend_request']}`);
 					removeBtn.disabled = false;
-					removeBtn.textContent = 'Remove';
+					removeBtn.textContent = `${language_obj['Remove']}`;
 				}
 			};
 			actions.appendChild(removeBtn);
@@ -263,14 +264,14 @@ export class FriendsRender {
 			}
 
 			if (!hasPendingGameInvite) {
-				const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'blue');
+				const inviteBtn = CommonComponent.createStylizedButton(`${language_obj['Invite_to_game']}`, 'blue');
 				inviteBtn.className = inviteBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 				inviteBtn.onclick = async () => {
 					this.showGameTypeModal(friend);
 				};
 				actions.appendChild(inviteBtn);
 			} else {
-				const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+				const pendingInviteBtn = CommonComponent.createStylizedButton(`${language_obj['Invite_pending']}`, 'gray');
 				pendingInviteBtn.className = pendingInviteBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 				pendingInviteBtn.disabled = true;
 				actions.appendChild(pendingInviteBtn);
@@ -299,7 +300,7 @@ export class FriendsRender {
 
 		// Modal title
 		const title = document.createElement('h3');
-		title.textContent = `Invite ${friend.displayName} to:`;
+		title.textContent = `${language_obj['Invite']} ${friend.displayName} ${language_obj['To']}:`;
 		title.className = `font-['Orbitron'] text-xl font-bold mb-6 text-center`;
 		modal.appendChild(title);
 
@@ -308,7 +309,7 @@ export class FriendsRender {
 		buttonContainer.className = 'flex flex-col space-y-4';
 
 		// Duo game button
-		const duoBtn = CommonComponent.createStylizedButton('Duo Game (1v1)', 'purple');
+		const duoBtn = CommonComponent.createStylizedButton(`${language_obj['Duo_game']}`, 'purple');
 		duoBtn.className += ' w-full';
 		duoBtn.onclick = async () => {
 			modalOverlay.remove();
@@ -317,7 +318,7 @@ export class FriendsRender {
 		buttonContainer.appendChild(duoBtn);
 
 		// Tournament button - fix the context issue
-		const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
+		const tournamentBtn = CommonComponent.createStylizedButton(`${language_obj['Tournament_4p']}`, 'red');
 		tournamentBtn.className += ' w-full';
 		tournamentBtn.onclick = async () => {
 			// //console.log('Tournament button clicked!');
@@ -333,7 +334,7 @@ export class FriendsRender {
 		buttonContainer.appendChild(tournamentBtn);
 
 		// Cancel button
-		const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
+		const cancelBtn = CommonComponent.createStylizedButton(`${language_obj['Cancel']}`, 'gray');
 		cancelBtn.className += ' w-full';
 		cancelBtn.onclick = () => modalOverlay.remove();
 		buttonContainer.appendChild(cancelBtn);
@@ -368,7 +369,7 @@ export class FriendsRender {
 
 			if (availableFriends.length < 2) {
 				//console.log('Not enough friends for tournament');
-				CommonComponent.showMessage('❌ You need at least 3 friends to create a tournament', 'error');
+				CommonComponent.showMessage(`❌ ${language_obj['You_need_3_friends']}`, 'error');
 				return;
 			}
 
