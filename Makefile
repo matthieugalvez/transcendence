@@ -27,7 +27,6 @@ clean-db: clean-containers
 	-rm -rf ./prisma/dev.db*
 	-rm -rf ./prisma/transcendence.db*
 	-rm -rf ./prisma/migrations/
-	-sudo rm -rf ./data/ 2>/dev/null || true
 	-rm -rf ./src/server/db/users/*.png
 	@echo "✅ Database cleaned"
 

@@ -279,16 +279,16 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					pongHandle?.socket.close();
-					router.navigate('/home');
-				}, 2000);
+					router.navigate('/statistics');
+				}, 4000);
 				return;
 			}
 			if (data.type === 'error' && data.error === 'invite_expired') {
 				CommonComponent.showMessage('❌ Your invite expired. Redirecting...', 'error');
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
-					router.navigate('/home');
-				}, 2000);
+					router.navigate('/statistics');
+				}, 4000);
 				return;
 			}
 
@@ -333,7 +333,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						}
 						renderSettingsBar();
 						return;
-					}				
+					}
 
 					if (data.type === 'matchStart') {
 						console.log('Tournament match starting');

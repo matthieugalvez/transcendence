@@ -1,5 +1,6 @@
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
+import { ChatService } from '../services/chat.service';
 
 export class FriendsRender {
 	static async renderFriendsList(container: HTMLElement): Promise<void> {
@@ -120,26 +121,28 @@ export class FriendsRender {
 		card.className = 'bg-gray-50 p-4 rounded-lg flex items-center justify-between hover:bg-gray-100 transition-colors';
 
 		const userInfo = document.createElement('div');
-		userInfo.className = 'flex items-center space-x-4 flex-grow';
+		userInfo.className = 'flex items-center space-x-4 mb-3'; // Added min-w-0 for proper text truncation
 
 		const avatar = document.createElement('img');
 		if (friend.avatar && friend.avatar !== 'null' && friend.avatar !== 'undefined') {
 			// If avatar starts with /avatars/, use as-is, otherwise prepend /avatars/
 			avatar.src = friend.avatar.startsWith('/avatars/') ? friend.avatar : `/avatars/${friend.avatar}`;
 		} else {
-			avatar.src = 'default.svg';
+			avatar.src = '/avatars/default.svg';
 		}
 
 		avatar.alt = `${friend.displayName}'s avatar`;
-		avatar.className = 'w-12 h-12 rounded-full object-cover';
+		avatar.className = 'w-12 h-12 rounded-full object-cover flex-shrink-0'; // Added flex-shrink-0
+
 		const details = document.createElement('div');
+		details.className = 'flex-grow'; // Added min-w-0 and flex-grow for proper text handling
 
 		const name = document.createElement('div');
 		name.textContent = friend.displayName;
-		name.className = `font-['Orbitron'] font-medium text-lg`;
+		name.className = `font-['Orbitron'] font-medium text-lg `; // Added truncate class
 
 		const status = document.createElement('div');
-		status.className = 'text-sm font-medium';
+		status.className = 'text-sm font-medium truncate'; // Added truncate class
 
 		switch (type) {
 			case 'accepted':
@@ -163,10 +166,11 @@ export class FriendsRender {
 		userInfo.appendChild(details);
 
 		const actions = document.createElement('div');
-		actions.className = 'flex space-x-2 ml-8';
+		actions.className = 'flex flex-wrap gap-2 justify-end'; // flex-wrap and gap instead of space-x
 
 		// Profile button
 		const profileBtn = CommonComponent.createStylizedButton('Profile', 'purple');
+		profileBtn.className = profileBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 		profileBtn.onclick = () => {
 			window.location.href = `/profile/${friend.displayName}`;
 		};
@@ -175,6 +179,7 @@ export class FriendsRender {
 		// Action buttons based on type
 		if (type === 'pending-received') {
 			const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
+			acceptBtn.className = acceptBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			acceptBtn.onclick = async () => {
 				try {
 					acceptBtn.disabled = true;
@@ -190,6 +195,7 @@ export class FriendsRender {
 			};
 
 			const rejectBtn = CommonComponent.createStylizedButton('Reject', 'red');
+			rejectBtn.className = rejectBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			rejectBtn.onclick = async () => {
 				try {
 					rejectBtn.disabled = true;
@@ -208,6 +214,7 @@ export class FriendsRender {
 			actions.appendChild(rejectBtn);
 		} else if (type === 'pending-sent') {
 			const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'red');
+			cancelBtn.className = cancelBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			cancelBtn.onclick = async () => {
 				try {
 					cancelBtn.disabled = true;
@@ -224,6 +231,7 @@ export class FriendsRender {
 			actions.appendChild(cancelBtn);
 		} else if (type === 'accepted') {
 			const removeBtn = CommonComponent.createStylizedButton('Remove', 'red');
+			removeBtn.className = removeBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 			removeBtn.onclick = async () => {
 				try {
 					removeBtn.disabled = true;
@@ -256,12 +264,14 @@ export class FriendsRender {
 
 			if (!hasPendingGameInvite) {
 				const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'blue');
+				inviteBtn.className = inviteBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 				inviteBtn.onclick = async () => {
 					this.showGameTypeModal(friend);
 				};
 				actions.appendChild(inviteBtn);
 			} else {
 				const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+				pendingInviteBtn.className = pendingInviteBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Smaller button
 				pendingInviteBtn.disabled = true;
 				actions.appendChild(pendingInviteBtn);
 			}
@@ -273,19 +283,19 @@ export class FriendsRender {
 		return card;
 	}
 
-	private static showGameTypeModal(friend: any): void {
+	static showGameTypeModal(friend: any): void {
 		// Create modal overlay
 		const modalOverlay = document.createElement('div');
 		modalOverlay.className = `
         fixed inset-0 bg-black/50 flex items-center justify-center z-50
-    `;
+    	`;
 
 		// Create modal content
 		const modal = document.createElement('div');
 		modal.className = `
         bg-white rounded-lg p-6 max-w-md w-full mx-4
         border-2 border-black shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
-    `;
+    	`;
 
 		// Modal title
 		const title = document.createElement('h3');
@@ -307,20 +317,20 @@ export class FriendsRender {
 		buttonContainer.appendChild(duoBtn);
 
 		// Tournament button - fix the context issue
-const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
-tournamentBtn.className += ' w-full';
-tournamentBtn.onclick = async () => {
-    // //console.log('Tournament button clicked!');
-    modalOverlay.remove();
-    try {
-        //console.log('Calling showTournamentPlayerSelection with friend:', friend);
-        await FriendsRender.showTournamentPlayerSelection(friend);
-    } catch (error) {
-        console.error('Error in showTournamentPlayerSelection:', error);
-        CommonComponent.showMessage('❌ Failed to load tournament selection', 'error');
-    }
-};
-buttonContainer.appendChild(tournamentBtn);
+		const tournamentBtn = CommonComponent.createStylizedButton('Tournament (4 players)', 'red');
+		tournamentBtn.className += ' w-full';
+		tournamentBtn.onclick = async () => {
+			// //console.log('Tournament button clicked!');
+			modalOverlay.remove();
+			try {
+				//console.log('Calling showTournamentPlayerSelection with friend:', friend);
+				await FriendsRender.showTournamentPlayerSelection(friend);
+			} catch (error) {
+				console.error('Error in showTournamentPlayerSelection:', error);
+				CommonComponent.showMessage('❌ Failed to load tournament selection', 'error');
+			}
+		};
+		buttonContainer.appendChild(tournamentBtn);
 
 		// Cancel button
 		const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
@@ -335,177 +345,177 @@ buttonContainer.appendChild(tournamentBtn);
 
 	// New method for tournament player selection
 	private static async showTournamentPlayerSelection(initialFriend: any): Promise<void> {
-    //console.log('showTournamentPlayerSelection called with:', initialFriend);
-    try {
-        // Get current user's friends list
-        //console.log('Fetching friends list...');
-        const friendsResponse = await UserService.getFriends();
-        //console.log('Friends response:', friendsResponse);
+		//console.log('showTournamentPlayerSelection called with:', initialFriend);
+		try {
+			// Get current user's friends list
+			//console.log('Fetching friends list...');
+			const friendsResponse = await UserService.getFriends();
+			//console.log('Friends response:', friendsResponse);
 
-        const friendsList = friendsResponse?.data || friendsResponse || [];
-        //console.log('Processed friends list:', friendsList);
+			const friendsList = friendsResponse?.data || friendsResponse || [];
+			//console.log('Processed friends list:', friendsList);
 
-        const currentUser = await UserService.getCurrentUser();
-        //console.log('Current user:', currentUser);
+			const currentUser = await UserService.getCurrentUser();
+			//console.log('Current user:', currentUser);
 
-        // Filter to accepted friends only, excluding the initial friend
-        const availableFriends = friendsList
-            .filter(f => f.status === 'ACCEPTED')
-            .map(f => f.senderId === currentUser.id ? f.receiver : f.sender)
-            .filter(friend => friend.id !== initialFriend.id);
+			// Filter to accepted friends only, excluding the initial friend
+			const availableFriends = friendsList
+				.filter(f => f.status === 'ACCEPTED')
+				.map(f => f.senderId === currentUser.id ? f.receiver : f.sender)
+				.filter(friend => friend.id !== initialFriend.id);
 
-        //console.log('Available friends for tournament:', availableFriends);
+			//console.log('Available friends for tournament:', availableFriends);
 
-        if (availableFriends.length < 2) {
-            //console.log('Not enough friends for tournament');
-            CommonComponent.showMessage('❌ You need at least 3 friends to create a tournament', 'error');
-            return;
-        }
+			if (availableFriends.length < 2) {
+				//console.log('Not enough friends for tournament');
+				CommonComponent.showMessage('❌ You need at least 3 friends to create a tournament', 'error');
+				return;
+			}
 
-        //console.log('Creating tournament modal...');
-        // Create modal overlay
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = `
+			//console.log('Creating tournament modal...');
+			// Create modal overlay
+			const modalOverlay = document.createElement('div');
+			modalOverlay.className = `
             fixed inset-0 bg-black/50 flex items-center justify-center z-50
         `;
 
-        // Create modal content
-        const modal = document.createElement('div');
-        modal.className = `
+			// Create modal content
+			const modal = document.createElement('div');
+			modal.className = `
             bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto
             border-2 border-black shadow-[8.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
         `;
 
-        // Modal title
-        const title = document.createElement('h3');
-        title.textContent = 'Select 2 more players for tournament';
-        title.className = `font-['Orbitron'] text-xl font-bold mb-4 text-center`;
-        modal.appendChild(title);
+			// Modal title
+			const title = document.createElement('h3');
+			title.textContent = 'Select 2 more players for tournament';
+			title.className = `font-['Orbitron'] text-xl font-bold mb-4 text-center`;
+			modal.appendChild(title);
 
-        // Selected players display
-        const selectedSection = document.createElement('div');
-        selectedSection.className = 'mb-6';
+			// Selected players display
+			const selectedSection = document.createElement('div');
+			selectedSection.className = 'mb-6';
 
-        const selectedTitle = document.createElement('h4');
-        selectedTitle.textContent = 'Selected Players:';
-        selectedTitle.className = 'font-semibold mb-2';
-        selectedSection.appendChild(selectedTitle);
+			const selectedTitle = document.createElement('h4');
+			selectedTitle.textContent = 'Selected Players:';
+			selectedTitle.className = 'font-semibold mb-2';
+			selectedSection.appendChild(selectedTitle);
 
-        const selectedList = document.createElement('div');
-        selectedList.className = 'flex flex-wrap gap-2 mb-4';
+			const selectedList = document.createElement('div');
+			selectedList.className = 'flex flex-wrap gap-2 mb-4';
 
-        // Add current user and initial friend
-        const currentUserPill = FriendsRender.createPlayerPill(currentUser.displayName, false);
-        const initialFriendPill = FriendsRender.createPlayerPill(initialFriend.displayName, false);
-        selectedList.appendChild(currentUserPill);
-        selectedList.appendChild(initialFriendPill);
+			// Add current user and initial friend
+			const currentUserPill = FriendsRender.createPlayerPill(currentUser.displayName, false);
+			const initialFriendPill = FriendsRender.createPlayerPill(initialFriend.displayName, false);
+			selectedList.appendChild(currentUserPill);
+			selectedList.appendChild(initialFriendPill);
 
-        selectedSection.appendChild(selectedList);
-        modal.appendChild(selectedSection);
+			selectedSection.appendChild(selectedList);
+			modal.appendChild(selectedSection);
 
-        // Available friends list
-        const friendsSection = document.createElement('div');
-        friendsSection.className = 'mb-6';
+			// Available friends list
+			const friendsSection = document.createElement('div');
+			friendsSection.className = 'mb-6';
 
-        const friendsTitle = document.createElement('h4');
-        friendsTitle.textContent = 'Select 2 more friends:';
-        friendsTitle.className = 'font-semibold mb-2';
-        friendsSection.appendChild(friendsTitle);
+			const friendsTitle = document.createElement('h4');
+			friendsTitle.textContent = 'Select 2 more friends:';
+			friendsTitle.className = 'font-semibold mb-2';
+			friendsSection.appendChild(friendsTitle);
 
-        const friendsContainer = document.createElement('div');
-        friendsContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
+			const friendsContainer = document.createElement('div');
+			friendsContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
 
-        let selectedFriends: any[] = [];
+			let selectedFriends: any[] = [];
 
-        availableFriends.forEach(friend => {
-            const friendCard = document.createElement('div');
-            friendCard.className = `
+			availableFriends.forEach(friend => {
+				const friendCard = document.createElement('div');
+				friendCard.className = `
                 flex items-center justify-between p-3 border rounded-lg cursor-pointer
                 hover:bg-gray-50 transition-colors
             `;
 
-            const friendInfo = document.createElement('div');
-            friendInfo.className = 'flex items-center space-x-3';
+				const friendInfo = document.createElement('div');
+				friendInfo.className = 'flex items-center space-x-3';
 
-            const avatar = document.createElement('img');
-            avatar.src = friend.avatar || '/default-avatar.png';
-            avatar.className = 'w-8 h-8 rounded-full';
+				const avatar = document.createElement('img');
+				avatar.src = friend.avatar || '/default-avatar.png';
+				avatar.className = 'w-8 h-8 rounded-full';
 
-            const name = document.createElement('span');
-            name.textContent = friend.displayName;
-            name.className = 'font-medium';
+				const name = document.createElement('span');
+				name.textContent = friend.displayName;
+				name.className = 'font-medium';
 
-            friendInfo.appendChild(avatar);
-            friendInfo.appendChild(name);
+				friendInfo.appendChild(avatar);
+				friendInfo.appendChild(name);
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'w-4 h-4';
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.className = 'w-4 h-4';
 
-            checkbox.onchange = () => {
-                if (checkbox.checked) {
-                    if (selectedFriends.length >= 2) {
-                        checkbox.checked = false;
-                        CommonComponent.showMessage('❌ You can only select 2 more players', 'error');
-                        return;
-                    }
-                    selectedFriends.push(friend);
-                    const pill = FriendsRender.createPlayerPill(friend.displayName, true, () => {
-                        selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
-                        checkbox.checked = false;
-                        pill.remove();
-                        updateStartButton();
-                    }, friend.id); // Pass the friend.id as playerId parameter
-                    selectedList.appendChild(pill);
-                } else {
-                    selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
-                    const pill = selectedList.querySelector(`[data-player-id="${friend.id}"]`);
-                    if (pill) pill.remove();
-                }
-                updateStartButton();
-            };
+				checkbox.onchange = () => {
+					if (checkbox.checked) {
+						if (selectedFriends.length >= 2) {
+							checkbox.checked = false;
+							CommonComponent.showMessage('❌ You can only select 2 more players', 'error');
+							return;
+						}
+						selectedFriends.push(friend);
+						const pill = FriendsRender.createPlayerPill(friend.displayName, true, () => {
+							selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
+							checkbox.checked = false;
+							pill.remove();
+							updateStartButton();
+						}, friend.id); // Pass the friend.id as playerId parameter
+						selectedList.appendChild(pill);
+					} else {
+						selectedFriends = selectedFriends.filter(f => f.id !== friend.id);
+						const pill = selectedList.querySelector(`[data-player-id="${friend.id}"]`);
+						if (pill) pill.remove();
+					}
+					updateStartButton();
+				};
 
-            friendCard.appendChild(friendInfo);
-            friendCard.appendChild(checkbox);
-            friendsContainer.appendChild(friendCard);
-        });
+				friendCard.appendChild(friendInfo);
+				friendCard.appendChild(checkbox);
+				friendsContainer.appendChild(friendCard);
+			});
 
-        friendsSection.appendChild(friendsContainer);
-        modal.appendChild(friendsSection);
+			friendsSection.appendChild(friendsContainer);
+			modal.appendChild(friendsSection);
 
-        // Action buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'flex space-x-4';
+			// Action buttons
+			const buttonContainer = document.createElement('div');
+			buttonContainer.className = 'flex space-x-4';
 
-        const startBtn = CommonComponent.createStylizedButton('Start Tournament', 'purple');
-        startBtn.disabled = true;
-        startBtn.onclick = async () => {
-            modalOverlay.remove();
-            const allPlayers = [initialFriend, ...selectedFriends];
-            await FriendsRender.sendTournamentInvites(allPlayers);
-        };
+			const startBtn = CommonComponent.createStylizedButton('Start Tournament', 'purple');
+			startBtn.disabled = true;
+			startBtn.onclick = async () => {
+				modalOverlay.remove();
+				const allPlayers = [initialFriend, ...selectedFriends];
+				await FriendsRender.sendTournamentInvites(allPlayers);
+			};
 
-        const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
-        cancelBtn.onclick = () => modalOverlay.remove();
+			const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
+			cancelBtn.onclick = () => modalOverlay.remove();
 
-        function updateStartButton() {
-            startBtn.disabled = selectedFriends.length !== 2;
-        }
+			function updateStartButton() {
+				startBtn.disabled = selectedFriends.length !== 2;
+			}
 
-        buttonContainer.appendChild(startBtn);
-        buttonContainer.appendChild(cancelBtn);
-        modal.appendChild(buttonContainer);
+			buttonContainer.appendChild(startBtn);
+			buttonContainer.appendChild(cancelBtn);
+			modal.appendChild(buttonContainer);
 
-        modalOverlay.appendChild(modal);
-        //console.log('Appending modal to document body...');
-        document.body.appendChild(modalOverlay);
-        //console.log('Tournament modal should now be visible');
+			modalOverlay.appendChild(modal);
+			//console.log('Appending modal to document body...');
+			document.body.appendChild(modalOverlay);
+			//console.log('Tournament modal should now be visible');
 
-    } catch (error) {
-        console.error('Failed to load friends for tournament:', error);
-        CommonComponent.showMessage('❌ Failed to load friends list', 'error');
-    }
-}
+		} catch (error) {
+			console.error('Failed to load friends for tournament:', error);
+			CommonComponent.showMessage('❌ Failed to load friends list', 'error');
+		}
+	}
 
 	// Helper method to create player pills
 	private static createPlayerPill(displayName: string, removable: boolean, onRemove?: () => void, playerId?: string): HTMLElement {
@@ -532,7 +542,6 @@ buttonContainer.appendChild(tournamentBtn);
 		return pill;
 	}
 
-	// New method to send tournament invites to multiple players
 	private static async sendTournamentInvites(players: any[]): Promise<void> {
 		try {
 			// Create tournament game
@@ -545,6 +554,9 @@ buttonContainer.appendChild(tournamentBtn);
 			if (!res.ok) throw new Error('Failed to create tournament game');
 
 			const { gameId } = await res.json();
+
+			// Get current user for the tournament message
+			const currentUser = await UserService.getCurrentUser();
 
 			// Send invites to all selected players
 			const invitePromises = players.map(player =>
@@ -566,9 +578,44 @@ buttonContainer.appendChild(tournamentBtn);
 				CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
 			} else {
 				CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
+
+				// Create simple tournament notification message
+				const allPlayerNames = [currentUser.displayName, ...players.map(p => p.displayName)];
+				const tournamentLink = `${window.location.origin}/game/online/tournament/${gameId}`;
+
+				const tournamentMessage = `🏆 ${currentUser.displayName} started a tournament with ${allPlayerNames.join(', ')}! Join now: ${tournamentLink}`;
+
+				// Send tournament notification message to each invited player using ChatService
+				const chatPromises = players.map(async (player) => {
+					try {
+						const result = await ChatService.postMessage(player.id, tournamentMessage);
+						if (result.success) {
+							console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
+						} else {
+							console.error(`❌ Failed to send tournament message to ${player.displayName}:`, result.error);
+						}
+						return result;
+					} catch (error) {
+						console.error(`❌ Failed to send tournament message to ${player.displayName}:`, error);
+						return { success: false, error: error.message };
+					}
+				});
+
+				// try {
+				// 	const results = await Promise.all(chatPromises);
+				// 	const successfulMessages = results.filter(r => r.success).length;
+				// 	const failedMessages = results.filter(r => !r.success).length;
+
+				// 	if (failedMessages === 0) {
+				// 		console.log('✅ All tournament notification messages sent successfully');
+				// 	} else {
+				// 		console.log(`⚠️ ${successfulMessages} messages sent successfully, ${failedMessages} failed`);
+				// 	}
+				// } catch (error) {
+				// 	console.error('❌ Some tournament messages failed to send:', error);
+				// }
 			}
 
-			// Navigate to tournament page
 			window.location.href = `/game/online/tournament/${gameId}`;
 
 		} catch (error) {
@@ -620,13 +667,15 @@ buttonContainer.appendChild(tournamentBtn);
 			const route = gameType === 'duo'
 				? `/game/online/duo/${gameId}`
 				: `/game/online/tournament/${gameId}`;
-			window.location.href = route;
+			if (window.top) {
+				window.top.location.href = route;
+			} else {
+				window.location.href = route;
+			}
 
 		} catch (error) {
 			console.error('Failed to invite:', error);
 			CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
 		}
 	}
-
-
 }

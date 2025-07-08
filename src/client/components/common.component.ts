@@ -34,96 +34,94 @@ export class CommonComponent {
 		signupMsgDisplay.appendChild(message);
 	}
 
-static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'info' = 'error', isHtml: boolean = false): void {
-    // Remove any existing toast
-    const existingToast = document.getElementById('global-toast-message');
-    if (existingToast) {
-        existingToast.remove();
-    }
+	static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'info' = 'error', isHtml: boolean = false): void {
+		// Remove any existing toast
+		const existingToast = document.getElementById('global-toast-message');
+		if (existingToast) {
+			existingToast.remove();
+		}
 
-    // Create toast container - centered on screen
-    const toast = document.createElement('div');
-    toast.id = 'global-toast-message';
-    toast.className = `
-        fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999]
-        max-w-md w-full mx-4
-        bg-white border-2 border-black rounded-lg
-        shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-        p-6
-        opacity-0 scale-95 transition-all duration-300 ease-in-out
-    `;
+		// Create toast container - centered on screen
+		const toast = document.createElement('div');
+		toast.id = 'global-toast-message';
+		toast.className = `
+			fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999]
+			max-w-md w-full mx-4
+			bg-white border-2 border-black rounded-lg
+			shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+			p-6
+			opacity-0 scale-95 transition-all duration-300 ease-in-out
+		`;
 
-    // Create message content
-    const messageContent = document.createElement('div');
-    messageContent.className = 'flex flex-col items-center text-center space-y-3';
+		// Create message content
+		const messageContent = document.createElement('div');
+		messageContent.className = 'flex flex-col items-center text-center space-y-3';
 
-    // Add icon based on type (larger for center display)
-    const icon = document.createElement('div');
-    icon.className = 'text-4xl';
-    switch (type) {
-        case 'success':
-            icon.textContent = '✅';
-            break;
-        case 'warning':
-            icon.textContent = '⚠️';
-            break;
-        case 'info':
-            icon.textContent = 'ℹ️';
-            break;
-        default:
-            icon.textContent = '❌';
-    }
+		// Add icon based on type (larger for center display)
+		const icon = document.createElement('div');
+		icon.className = 'text-4xl';
+		switch (type) {
+			case 'success':
+				icon.textContent = '✅';
+				break;
+			case 'warning':
+				icon.textContent = '⚠️';
+				break;
+			case 'info':
+				icon.textContent = 'ℹ️';
+				break;
+			default:
+				icon.textContent = '❌';
+		}
 
-    // Add message text (larger and centered)
-    const messageText = document.createElement('div');
-    messageText.className = `
-        text-lg font-['Orbitron'] font-semibold text-center
-        ${type === 'success' ? 'text-green-600' :
-          type === 'warning' ? 'text-yellow-600' :
-          type === 'info' ? 'text-blue-600' : 'text-red-600'}
-    `;
+		// Add message text (larger and centered)
+		const messageText = document.createElement('div');
+		messageText.className = `
+			text-lg font-['Orbitron'] font-semibold text-center
+			${type === 'success' ? 'text-green-600' :
+			  type === 'warning' ? 'text-yellow-600' :
+			  type === 'info' ? 'text-blue-600' : 'text-red-600'}
+		`;
 
-    if (isHtml) {
-        messageText.innerHTML = text;
-    } else {
-        messageText.textContent = text;
-    }
+		if (isHtml) {
+			messageText.innerHTML = text;
+		} else {
+			messageText.textContent = text;
+		}
 
-    // Add close button (smaller and less prominent)
-    const closeButton = document.createElement('button');
-    closeButton.textContent = '×';
-    closeButton.className = 'absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl font-bold';
-    closeButton.onclick = () => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
-        setTimeout(() => toast.remove(), 300);
-    };
+		// Add close button (smaller and less prominent)
+		const closeButton = document.createElement('button');
+		closeButton.textContent = '×';
+		closeButton.className = 'absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl font-bold';
+		closeButton.onclick = () => {
+			toast.style.opacity = '0';
+			toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
+			setTimeout(() => toast.remove(), 300);
+		};
 
-    messageContent.appendChild(icon);
-    messageContent.appendChild(messageText);
-    toast.appendChild(messageContent);
-    toast.appendChild(closeButton);
+		messageContent.appendChild(icon);
+		messageContent.appendChild(messageText);
+		toast.appendChild(messageContent);
+		toast.appendChild(closeButton);
 
-    // Add to page
-    document.body.appendChild(toast);
+		// Add to page
+		document.body.appendChild(toast);
 
-    // Animate in (center fade + scale)
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translate(-50%, -50%) scale(1)';
-    }, 10);
+		// Animate in (center fade + scale)
+		setTimeout(() => {
+			toast.style.opacity = '1';
+			toast.style.transform = 'translate(-50%, -50%) scale(1)';
+		}, 10);
 
-    // Auto-remove after 4 seconds (slightly shorter since it's more prominent)
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
-            setTimeout(() => toast.remove(), 300);
-        }
-    }, 4000);
-}
-
-
+		// Auto-remove after 4 seconds (slightly shorter since it's more prominent)
+		setTimeout(() => {
+			if (toast.parentNode) {
+				toast.style.opacity = '0';
+				toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
+				setTimeout(() => toast.remove(), 300);
+			}
+		}, 4000);
+	}
 
 	/**
 	 * Create a styled label element
@@ -132,9 +130,9 @@ static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'i
 		const label = document.createElement('label');
 		label.textContent = text;
 		label.className = `
-    font-['Orbitron']
-    block text-lg font-semibold mb-2 text-gray-700
-  `.replace(/\s+/g, ' ').trim();
+		font-['Orbitron']
+		block text-lg font-semibold mb-2 text-gray-700
+	  `.replace(/\s+/g, ' ').trim();
 
 		label.style.letterSpacing = "0.1em";
 
@@ -338,5 +336,39 @@ static showToastMessage(text: string, type: 'success' | 'error' | 'warning' | 'i
 				router.navigate(redirectPath);
 			}
 		}, 1000);
+	}
+
+	static guardEmbedding() {
+		const topLocation = window.top?.location;
+		if (topLocation === undefined) {
+			window.location.href = "/";
+			return;
+		}
+
+		// Same-origin policy
+		try {
+		topLocation.hostname;
+		} catch (e) {
+			if (e instanceof DOMException) {
+				console.error("Access to this app from an unknown host is prohibited.");
+				window.location.href = "/";
+				return;
+			}
+		}
+
+		// Verify top window domain name
+		if (
+			topLocation.hostname !== "pong42.click" &&
+			topLocation.hostname !== "localhost" // For local debugging
+		) {
+			window.location.href = "/";
+			return;
+		}
+
+		// Prevent visitors from directly visiting
+		if (topLocation.pathname.startsWith("/chat")) {
+			window.location.href = "/";
+			return;
+		}
 	}
 }

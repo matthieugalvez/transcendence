@@ -1,5 +1,6 @@
 import { router } from '../configs/simplerouter';
 import { WebSocketService } from '../services/websocket.service';
+import { renderChatPage } from '../pages/ChatPage';
 import Chart from 'chart.js/auto';
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix';
 import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot';
@@ -83,75 +84,82 @@ export class StatsRender {
 
 		return header;
 	}
+
 	static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
-    // const container = document.createElement('div');
-    // container.className = 'main-content-centered';
+		//    const container = document.createElement('div');
+		//    container.className = 'main-content-centered';
 
-	document.body.style.overflow = 'auto';
-    // Create main container with flex layout and proper height constraint
-	const mainContainer = document.createElement('div');
-	mainContainer.className = 'flex gap-8 w-full h-full items-start justify-center';
-	mainContainer.style.marginLeft = '350px';
+		// Create main container with flex layout and proper height constraint
+		document.body.style.overflow = 'auto';
+		const mainContainer = document.createElement('div');
+		mainContainer.className = 'flex w-full h-full overflow-hidden';
+		mainContainer.style.marginLeft = '350px';
 
-    const statsCard = document.createElement('div');
-    statsCard.className = `
-        bg-white/90 backdrop-blur-md
-        border-2 border-black
-        rounded-xl p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-        w-[45%] max-w-xxl transition-all duration-300
-        overflow-y-auto compact-container
-    `;
+		const statsCard = document.createElement('div');
+		statsCard.title = 'statsCard';
+		statsCard.className = `
+			bg-white/90 backdrop-blur-md
+			border-2 border-black
+			rounded-xl mb-5 p-4 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+			w-[45%] max-w-xxl transition-all duration-300
+			overflow-y-auto compact-container
+		`;
 
-    // Header - make more compact
-    const header = this.createStatsHeader(user, isOwnStats);
-    statsCard.appendChild(header);
+		// Header - make more compact
+		const header = this.createStatsHeader(user, isOwnStats);
+		statsCard.appendChild(header);
 
-    // Fetch detailed stats
-    const statsData = await this.fetchDetailedStats(user.id);
+		// Fetch detailed stats
+		const statsData = await this.fetchDetailedStats(user.id);
 
-    // Overview Cards - make more compact
-    const overviewSection = this.createOverviewSection(statsData);
-    statsCard.appendChild(overviewSection);
+		// Overview Cards - make more compact
+		const overviewSection = this.createOverviewSection(statsData);
+		statsCard.appendChild(overviewSection);
 
-    // Charts Section - make more compact
-    const chartsSection = this.createChartsSection(statsData);
-    statsCard.appendChild(chartsSection);
+		// Charts Section - make more compact
+		const chartsSection = this.createChartsSection(statsData);
+		statsCard.appendChild(chartsSection);
 
-    // Recent Matches - limit the height
-    const matchesSection = await this.createDetailedMatchesSection(user.id, user);
-    statsCard.appendChild(matchesSection);
+		// Recent Matches - limit the height
+		const matchesSection = await this.createDetailedMatchesSection(user.id, user);
+		statsCard.appendChild(matchesSection);
 
-    // Recent Tournament - limit the height
-    const tournamentsSection = await this.createTournamentsSection(user.id, user);
-    statsCard.appendChild(tournamentsSection);
+		// Recent Tournament - limit the height
+		const tournamentsSection = await this.createTournamentsSection(user.id, user);
+		statsCard.appendChild(tournamentsSection);
 
-    // Create match details panel (initially hidden)
-    const matchDetailsPanel = this.createMatchDetailsPanel();
+		mainContainer.appendChild(statsCard);
 
-    mainContainer.appendChild(statsCard);
+		if (!isOwnStats) {
+			this.embedChat(user, mainContainer);
+		}
 
-	this.createCharts(statsData, user.id, mainContainer);
-    mainContainer.appendChild(matchDetailsPanel);
+		const matchDetailsPanel = this.createMatchDetailsPanel();
+		mainContainer.appendChild(matchDetailsPanel);
 
-    // Store references for match detail functionality
-    (window as any).matchDetailsPanel = matchDetailsPanel;
-    (window as any).currentUser = user;
-    document.body.appendChild(mainContainer);
-}
+		this.createCharts(statsData, user.id, mainContainer);
+
+		(window as any).matchDetailsPanel = matchDetailsPanel;
+		(window as any).currentUser = user;
+
+		document.body.appendChild(mainContainer);
+	}
 
 	private static createMatchDetailsPanel(): HTMLElement {
 		const panel = document.createElement('div');
 		panel.id = 'match-details-panel';
 		panel.className = `
+			absolute left-[45%]
             w-96 bg-white/95 backdrop-blur-md
             border-2 border-black rounded-xl
             shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
-            opacity-0 translate-x-full transition-all duration-300 ease-in-out
-            overflow-hidden
+            translate-x-full transition-all duration-300 ease-in-out
+			opacity-0 overflow-hidden
         `;
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
 		panel.style.overflowY = 'auto';
+		panel.style.zIndex = '50';
 
 		const content = document.createElement('div');
 		content.className = 'p-6';
@@ -594,7 +602,11 @@ export class StatsRender {
 
 			// Current user avatar
 			const userAvatar = document.createElement('img');
-			userAvatar.src = user.avatar || 'default.svg';
+			if (user.avatar && user.avatar !== 'null' && user.avatar !== 'undefined') {
+				userAvatar.src = user.avatar.startsWith('/avatars/') ? user.avatar : `/avatars/${user.avatar}`;
+			} else {
+				userAvatar.src = '/avatars/default.svg';
+			}
 			userAvatar.alt = user.displayName;
 			userAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -605,7 +617,11 @@ export class StatsRender {
 
 			// Opponent avatar
 			const opponentAvatar = document.createElement('img');
-			opponentAvatar.src = opponent?.avatar || 'default.svg';
+			if (opponent?.avatar && opponent.avatar !== 'null' && opponent.avatar !== 'undefined') {
+				opponentAvatar.src = opponent.avatar.startsWith('/avatars/') ? opponent.avatar : `/avatars/${opponent.avatar}`;
+			} else {
+				opponentAvatar.src = '/avatars/default.svg';
+			}
 			opponentAvatar.alt = opponent?.displayName || 'Unknown';
 			opponentAvatar.className = 'w-8 h-8 rounded-full';
 
@@ -698,7 +714,7 @@ export class StatsRender {
 
                 <!-- Opponent Info -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg flex items-center space-x-3">
-                    <img src="${opponent?.avatar || 'default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
+            <img src="${opponent?.avatar ? (opponent.avatar.startsWith('/avatars/') ? opponent.avatar : `/avatars/${opponent.avatar}`) : '/avatars/default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="font-medium text-lg">${opponent?.displayName || 'Unknown Player'}</div>
                         <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : 'Tournament'}</div>
@@ -729,8 +745,8 @@ export class StatsRender {
 		// Add event listeners
 		const closeBtn = panel.querySelector('#close-match-details');
 		closeBtn?.addEventListener('click', () => {
+			panel.style.transform = 'translateX(50%) translateY(-60%)';
 			panel.style.opacity = '0';
-			panel.style.transform = 'translateX(100%)';
 		});
 
 		const viewProfileBtn = panel.querySelector('#view-opponent-profile');
@@ -915,7 +931,7 @@ export class StatsRender {
 			<div class="grid grid-cols-2 gap-y-3">
 			${t.participants.map((p: any) => `
 				<div class="flex items-center space-x-2">
-				<img src="${p.user.avatar}" alt="${p.user.displayName}"
+        <img src="${p.user.avatar ? (p.user.avatar.startsWith('/avatars/') ? p.user.avatar : `/avatars/${p.user.avatar}`) : '/avatars/default.svg'}" alt="${p.user.displayName}"
 					class="w-8 h-8 rounded-full border">
 				<p class="text-sm">
 					${p.user.displayName}
@@ -923,7 +939,7 @@ export class StatsRender {
 				</div>`).join('')}
 			</div>
 		`;
-			
+
 		const youWon = t.winnerId === currentUserId;
 		const winner = name(t.winnerId);
 
@@ -959,8 +975,20 @@ export class StatsRender {
 
 		panel.querySelector('#close-match-details')
 			?.addEventListener('click', () => {
+				panel.style.transform = 'translateX(50%) translateY(-60%)';
 				panel.style.opacity = '0';
-				panel.style.transform = 'translateX(100%)';
 			});
+	}
+
+	private static async embedChat(user: any, mainContainer: HTMLElement) {
+		const chat_page = document.createElement('iframe');
+		chat_page.title = 'chat';
+		chat_page.src = `/chat/${user.displayName}`;
+		chat_page.style.width = "100%";
+		chat_page.style.zIndex = '40';
+		chat_page.style.marginLeft = '10px';
+		chat_page.style.marginRight = '10px';
+
+		mainContainer.appendChild(chat_page);
 	}
 }
