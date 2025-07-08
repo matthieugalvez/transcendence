@@ -11,7 +11,7 @@ import { renderChatPage } from './pages/ChatPage';
 import { FriendsPage } from './pages/FriendListPage'
 import { StatsPage } from './pages/StatsPage';
 import { UserService } from './services/user.service';
-let language_obj: any = await UserService.GetLanguageFile();
+export const language_obj = await UserService.GetLanguageFile();
 
 let isShowingViewportWarning = false;
 
