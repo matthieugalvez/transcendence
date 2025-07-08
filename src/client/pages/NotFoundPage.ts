@@ -2,10 +2,12 @@ import '../styles.css';
 import paddleImg from '../assets/logo.png';
 import { BackgroundComponent } from '../components/background.component';
 import { router } from '../configs/simplerouter';
+import { UserService } from '../services/user.service';
+import { language_obj } from '../index.ts';
 
 export function renderNotFoundPage(): void {
-	document.title = '404 - Not found';
-	BackgroundComponent.applyNormalGradientLayout();
+    document.title = `${language_obj['NoFoundpage_title']}`;
+    BackgroundComponent.applyNormalGradientLayout();
 
 	// 1) Container principal fullscreen
 	const container = document.createElement('div');
@@ -51,10 +53,10 @@ export function renderNotFoundPage(): void {
 	big404container.appendChild(row);
 	container.appendChild(big404container);
 
-	// 3) Sous-texte explicatif
-	const subtitle = document.createElement('p');
-	subtitle.textContent = `We're sorry, the page you're looking for couldn't be found.`;
-	subtitle.className = `
+    // 3) Sous-texte explicatif
+    const subtitle = document.createElement('p');
+    subtitle.textContent = `${language_obj['NoFoundpage_error_message']}`;
+    subtitle.className = `
         font-['Orbitron']
         text-gray-200 text-lg mt-2 text-center
         leading-relaxed
@@ -67,9 +69,9 @@ export function renderNotFoundPage(): void {
 	const btnContainer = document.createElement('div');
 	btnContainer.className = 'mt-8 flex justify-center';
 
-	const goHomeBtn = document.createElement('button');
-	goHomeBtn.textContent = 'Go Home';
-	goHomeBtn.className = `
+    const goHomeBtn = document.createElement('button');
+    goHomeBtn.textContent = `${language_obj['NoFoundpage_backhome_button']}`;
+    goHomeBtn.className = `
         font-['Orbitron']
         bg-blue-500 hover:bg-blue-700 text-white font-semibold
         border-2 border-black

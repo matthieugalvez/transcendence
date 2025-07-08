@@ -418,7 +418,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
 							safeNavigate('/statistics');
-						}, 2300);
+						}, 10000);
 
 						transition.appendChild(info);
 						gameContainer.appendChild(transition);

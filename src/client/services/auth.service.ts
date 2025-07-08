@@ -56,7 +56,6 @@ export class AuthService {
 
 			const apiResponseData = await response.json();
 			console.log('Logout response:', apiResponseData);
-
 			return apiResponseData;
 		} catch (error) {
 			console.error('Error logging out:', error);
@@ -67,6 +66,29 @@ export class AuthService {
 		}
 	}
 
+  static async SetLanguageUser(language: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const response = await fetch('/api/users/me/language', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for authentication
+        body: JSON.stringify({ language })
+      });
+
+      const apiResponseData = await response.json();
+      console.log('language response:', apiResponseData);
+
+      return apiResponseData;
+    } catch (error) {
+      console.error('Error language:', error);
+      return {
+        success: false,
+        error: 'Error connecting to server'
+      };
+    }
+  }
 	// Valide si y a des inputs ou pas dans name et password
 	static validateInput(name: string, password: string): boolean {
 		if (!name.trim() || !password.trim()) {

@@ -164,7 +164,6 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getUserProfileByDisplayName);
 
-
 	fastify.get('/users/search', {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.searchUsers);
@@ -173,4 +172,11 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
 
+	fastify.get('/users/me/:language', {
+		preHandler: AuthMiddleware.optionalAuth
+	}, UserController.getLanguageFile)
+
+	fastify.post('/users/me/:language', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, UserController.setUserLanguage)
 }

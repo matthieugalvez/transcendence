@@ -7,6 +7,7 @@ import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
+import { language_obj } from '../index.ts';
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
@@ -14,7 +15,7 @@ const playedMatches: any[] = [];
 // let aliasesIdArray: string[] = [];
 
 export async function renderTournamentPage() {
-	document.title = 'Tournoi';
+	document.title = `${language_obj['Tournamentpage_title']}`;
 	document.body.innerHTML = '';
 
 	// Sidebar et BG
@@ -129,7 +130,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 		}
 
 		const [leftAlias, rightAlias] = matchups[i];
-		const matchTitle = `Match ${i + 1} : ${leftAlias} vs ${rightAlias}`;
+    	const matchTitle = `${language_obj['Tournamentpage_match']} ${i + 1} : ${leftAlias} vs ${rightAlias}`;
 		wrapper.innerHTML = '';
 		const gameContainer = document.createElement('div');
 		gameContainer.className = 'relative flex flex-col items-center justify-center';
@@ -140,7 +141,7 @@ export async function launchTournament(aliases: string[], wrapper: HTMLElement) 
 			gameId = await GameService.requestNewGameId();
 		} catch (err) {
 			const errMsg = document.createElement('p');
-			errMsg.textContent = 'Erreur serveur, réessayez plus tard';
+      		errMsg.textContent = `${language_obj['Tournamentpage_error_server']}`;
 			errMsg.className = 'text-red-600';
 			wrapper.appendChild(errMsg);
 			return;

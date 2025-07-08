@@ -3,9 +3,28 @@ import { CommonComponent } from '../components/common.component'
 import { WebSocketService } from '../services/websocket.service'
 import { WebSocket } from 'ws';
 
-
-
 export class UserService {
+	static async GetLanguageFile(): Promise<{ success: boolean; message?: string; error?: string }> {
+		try {
+		  const response = await fetch('/api/users/me/language', {
+			method: 'GET',
+			credentials: 'include', // Include cookies for authentication
+		  });
+
+			const	apiResponse = await response.json();
+		//		console.log('language file response:', apiResponse);
+			const	ResponseData = apiResponse.data;
+			return	ResponseData;
+		}
+		catch (error) {
+		  console.error('Error language file:', error);
+		  return {
+			success: false,
+			error: 'Error connecting to server'
+		  };
+		}
+	}
+
 	static async getAllUsers(): Promise<Array<{ id: string; name: string; created_at: string; update_at: string }>> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/users');
@@ -166,7 +185,6 @@ export class UserService {
 		}
 	}
 
-
 	static async changeAvatar(password: string): Promise<{ success: boolean; error?: string; details?: any[] }> {
 		try {
 			const response = await ApiClient.authenticatedFetch('/api/me/avatar', {
@@ -278,7 +296,6 @@ export class UserService {
 		}
 	}
 
-
 	// FRIEND PROFILE AND SO ON
 
 	static async getUserProfile(userId: string): Promise<{ id: string; name: string; displayName: string; avatar: string; created_at: string; updated_at: string }> {
@@ -373,7 +390,6 @@ export class UserService {
 			return []; // Return empty array instead of throwing to prevent render issues
 		}
 	}
-
 	static async getFriendshipStatus(otherUserId: string): Promise<{
 		status: 'friends' | 'pending' | 'incoming' | 'blocked' | 'blocked_by' | 'none', requestId?: string }> {
 		const response = await ApiClient.authenticatedFetch(`/api/friends/status/${encodeURIComponent(otherUserId)}`);

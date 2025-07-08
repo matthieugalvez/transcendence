@@ -6,6 +6,8 @@ import profil2 from '../assets/profilpic/profilpic2.png';
 import profil3 from '../assets/profilpic/proflipic3.png';
 import bgEffect from '../assets/effects/otis-redding.png';
 import { BackgroundComponent } from '../components/background.component';
+import { UserService } from '../services/user.service';
+import { language_obj } from '../index.ts';
 
 export function renderIndexPage(): void {
   document.title = "Transcendence - Index";
@@ -98,7 +100,7 @@ export function renderIndexPage(): void {
   });
 
   const userText = document.createElement('p');
-  userText.textContent = '1000+ Players';
+  userText.textContent = `${language_obj['Homepage_player_count']}`;
   userText.className = 'text-sm font-medium ml-3';
 
   users.appendChild(userpic);
@@ -112,9 +114,7 @@ export function renderIndexPage(): void {
 
   const keywordText = document.createElement('p');
   keywordText.innerHTML = `
-    <span class="block text-lg font-bold">Fast-Paced</span>
-    <span class="block text-lg font-bold">Competitive</span>
-    <span class="block text-lg font-bold">Multiplayer</span>
+    <span>${language_obj['Homepage_description']}</span>
   `;
   keywords.appendChild(keywordText);
 

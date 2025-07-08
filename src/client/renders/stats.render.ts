@@ -7,6 +7,8 @@ import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot
 import 'chartjs-adapter-date-fns';
 import { DoughnutController, ArcElement, BarController, CategoryScale, LinearScale } from 'chart.js/auto';
 import { TimeScale, LineController, LineElement, PointElement } from 'chart.js/auto';
+import { CommonComponent } from '../components/common.component';
+import { language_obj } from '..';
 
 Chart.register(TimeScale, LineController, LineElement, PointElement);
 Chart.register(DoughnutController, ArcElement, BarController, CategoryScale, LinearScale);
@@ -86,14 +88,11 @@ export class StatsRender {
 	}
 
 	static async renderStatsContent(user: any, isOwnStats: boolean): Promise<void> {
-		//    const container = document.createElement('div');
-		//    container.className = 'main-content-centered';
-
 		// Create main container with flex layout and proper height constraint
 		document.body.style.overflow = 'auto';
 		const mainContainer = document.createElement('div');
 		mainContainer.className = 'flex w-full h-full overflow-hidden';
-		mainContainer.style.marginLeft = '350px';
+		mainContainer.style.marginLeft = '355px';
 
 		const statsCard = document.createElement('div');
 		statsCard.title = 'statsCard';
@@ -144,6 +143,9 @@ export class StatsRender {
 		(window as any).currentUser = user;
 
 		document.body.appendChild(mainContainer);
+
+		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+		document.body.appendChild(LanguageMenu);
 	}
 
 	private static createMatchDetailsPanel(): HTMLElement {
@@ -157,6 +159,7 @@ export class StatsRender {
             translate-x-full transition-all duration-300 ease-in-out
 			opacity-0 overflow-hidden
         `;
+		panel.style.pointerEvents = 'none';
 		panel.style.height = 'fit-content';
 		panel.style.maxHeight = '90vh';
 		panel.style.overflowY = 'auto';
@@ -387,7 +390,7 @@ export class StatsRender {
 	private static async createCharts(statsData: any, userId: string, mainContainer: HTMLElement) {
 		const section = document.createElement('div');
 		section.className = `
-			flex-1 m-10 w-[100%]
+			flex-1 m-10 h-full
 			bg-white/80 backdrop-blur-md
 			border-2 border-black rounded-xl p-4
 			shadow-[8px_10px_0_rgba(0,0,0,0.8)]
@@ -422,8 +425,8 @@ export class StatsRender {
 	private static async createWinRateTimeline(userId:string):Promise<HTMLElement>{
 		const box=document.createElement('div');
 		box.className='bg-gray-50 p-4 rounded-lg';
-		box.style.height = '250px';
-		box.innerHTML=`<h3 class="font-medium mb-4 text-center">Win Rate Over Time</h3><canvas></canvas>`;
+		box.style.height  = '310px';
+		box.innerHTML=`<h3 class="font-medium mb-1 text-center">Win Rate Over Time</h3><canvas></canvas>`;
 		const ctx=box.querySelector('canvas')! as HTMLCanvasElement;
 
 		/* recuperer tous les matchs connus */
@@ -456,8 +459,8 @@ export class StatsRender {
 					y:{ beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>v+'%' } }
 				},
 				responsive:true,
-				maintainAspectRatio:true,
-				aspectRatio: 2, 
+				maintainAspectRatio:false,
+				layout:{ padding:20 }
 			}
 		});
 		return box;
@@ -686,6 +689,7 @@ export class StatsRender {
 
 		// Show panel with animation
 		panel.style.opacity = '1';
+		panel.style.pointerEvents = 'auto';
 		panel.style.transform = 'translateX(-50%) translateY(60%)'; // For fixed positioning
 
 		const isWinner = match.winnerId === currentUserId;
@@ -748,6 +752,7 @@ export class StatsRender {
 		closeBtn?.addEventListener('click', () => {
 			panel.style.transform = 'translateX(50%) translateY(-60%)';
 			panel.style.opacity = '0';
+			panel.style.pointerEvents = 'none';
 		});
 
 		const viewProfileBtn = panel.querySelector('#view-opponent-profile');
@@ -904,6 +909,7 @@ export class StatsRender {
 		const panel = document.getElementById('match-details-panel');
 		if (!panel) return;
 		panel.style.opacity = '1';
+		panel.style.pointerEvents = 'auto';
 		panel.style.transform = 'translateX(-50%) translateY(60%)';
 
 		/* construire un petit bracket “semi‑finales / finale” */
@@ -978,6 +984,7 @@ export class StatsRender {
 			?.addEventListener('click', () => {
 				panel.style.transform = 'translateX(50%) translateY(-60%)';
 				panel.style.opacity = '0';
+				panel.style.pointerEvents = 'none';
 			});
 	}
 

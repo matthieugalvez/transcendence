@@ -1,11 +1,10 @@
 import logo from '../assets/logo.png';
 import { CommonComponent } from '../components/common.component';
-
 import { BackgroundComponent } from '../components/background.component';
 import { AuthService } from '../services/auth.service';
-import { GoogleService } from '../services/google.service'
+import { GoogleService } from '../services/google.service';
 import { UserService } from '../services/user.service';
-
+import { language_obj } from '../index.ts';
 
 export class AuthRender {
 	/**
@@ -18,7 +17,7 @@ export class AuthRender {
 		loginButton: HTMLButtonElement;
 	} {
 		// Set document title and body styles to match HomePage
-		document.title = 'Transcendence - Authentication';
+		document.title = `${language_obj['Authpage_title']}`;
 		//document.body.innerHTML = '';
 
 		// Apply centered gradient layout using BackgroundComponent
@@ -64,7 +63,7 @@ export class AuthRender {
 	// Page Title
 	private static createPageTitle(container: HTMLElement): void {
 		const title = document.createElement('h1');
-		title.textContent = 'Enter the Game';
+    	title.textContent = `${language_obj['Authpage_box_title']}`;
 		title.className = `
       font-['Canada-big'] uppercase font-bold
       text-3xl text-center mb-2
@@ -76,7 +75,7 @@ export class AuthRender {
 
 		// Subtitle
 		const subtitle = document.createElement('p');
-		subtitle.textContent = 'Join the ultimate ping pong experience';
+    	subtitle.textContent = `${language_obj['Authpage_box_subtitle']}`;
 		subtitle.className = `
       font-['Orbitron'] text-center text-gray-600
       text-sm font-medium mb-6
@@ -103,16 +102,17 @@ export class AuthRender {
 		const emailLabel = CommonComponent.createLabel('Email');
 		const emailInput = CommonComponent.createInput('email', 'Enter your email');
 
-		// Password input and label with gaming theme
-		const passwordLabel = CommonComponent.createLabel('Password');
-		const passwordInput = CommonComponent.createInput('password', 'Enter your password');
+    // Password input and label with gaming theme
+		const passwordLabel = CommonComponent.createLabel(`${language_obj['Authpage_password_label']}`);
+		const passwordInput = CommonComponent.createInput('password', `${language_obj['Authpage_password_input']}`);
 
 		// Button container
 		const buttonContainer = document.createElement('div');
 		buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-		const loginButton = CommonComponent.createStylizedButton('LOGIN', 'blue');
-		const signupButton = CommonComponent.createStylizedButton('SIGNUP', 'purple');
+    // Create buttons with gaming theme
+		const loginButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_login_button']}`, 'blue');
+		const signupButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_signup_button']}`, 'purple');
 		const googleButton = this.createGoogleSigninButton();
 
 
@@ -168,7 +168,7 @@ export class AuthRender {
     `;
 
 		const buttonText = document.createElement('span');
-		buttonText.textContent = 'Sign in with Google';
+		buttonText.textContent = `${language_obj['Authpage_Google_signin']}`;
 
 		googleButton.appendChild(googleIcon);
 		googleButton.appendChild(buttonText);
@@ -231,7 +231,7 @@ export class AuthRender {
 			modal.appendChild(title);
 
 			// Input
-			const input = CommonComponent.createInput('text', 'Enter your 2FA code');
+			const input = CommonComponent.createInput('text', `${language_obj['Auth2FApage_askcode']}`);
 			input.id = 'twofa-code-input';
 			input.style.marginTop = '1rem';
 			modal.appendChild(input);
@@ -247,8 +247,8 @@ export class AuthRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-			const submitButton = CommonComponent.createStylizedButton('Submit', 'blue');
-			const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+			const submitButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_submit_button']}`, 'blue');
+			const cancelButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_cancel_button']}`, 'gray');
 			buttonContainer.appendChild(submitButton);
 			buttonContainer.appendChild(cancelButton);
 			modal.appendChild(buttonContainer);
@@ -262,11 +262,10 @@ export class AuthRender {
 				}
 			});
 
-
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
-					msg.textContent = 'Please enter your 2FA code.';
+					msg.textContent = `${language_obj['Auth2FApage_askcode']}`;
 					return;
 				}
 				const shouldClose = await onVerify(code, (err) => { msg.textContent = `❌ ${err}`; });
@@ -282,7 +281,6 @@ export class AuthRender {
 				document.body.removeChild(overlay);
 				resolve();
 			});
-
 
 			// overlay.addEventListener('click', (e) => {
 			// 	if (e.target === overlay) {
@@ -318,7 +316,7 @@ export class AuthRender {
       max-w-md w-full mx-1 text-center
     `);
 
-			const title = CommonComponent.createHeading('Enable Two-Factor Authentication', 2, `
+			const title = CommonComponent.createHeading(`${language_obj['Auth2FApage_Header']}`, 2, `
       font-['Canada-big'] uppercase font-bold
       text-xl text-center mb-2
       bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
@@ -338,7 +336,7 @@ export class AuthRender {
 			modal.appendChild(qrImg);
 
 			// Input
-			const input = CommonComponent.createInput('text', 'Enter your 2FA Code');
+			const input = CommonComponent.createInput('text', `${language_obj['Auth2FApage_askcode']}`);
 			input.id = 'twofa-setup-code-input';
 			input.style.marginTop = '1rem';
 			modal.appendChild(input);
@@ -354,8 +352,8 @@ export class AuthRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
-			const submitButton = CommonComponent.createStylizedButton('Verify', 'blue');
-			const cancelButton = CommonComponent.createStylizedButton('Cancel', 'gray');
+			const submitButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_verify_button']}`, 'blue');
+			const cancelButton = CommonComponent.createStylizedButton(`${language_obj['Auth2FApage_cancel_button']}`, 'gray');
 			buttonContainer.appendChild(submitButton);
 			buttonContainer.appendChild(cancelButton);
 			modal.appendChild(buttonContainer);
@@ -372,7 +370,7 @@ export class AuthRender {
 			submitButton.addEventListener('click', async () => {
 				const code = input.value.trim();
 				if (!code) {
-					msg.textContent = '❌ You must enter a code to enable 2FA.';
+					msg.textContent = `${language_obj['Auth2FApage_error_empty_field']}`;
 					return;
 				}
 				// Call backend to verify code
@@ -381,7 +379,7 @@ export class AuthRender {
 					document.body.removeChild(overlay);
 					resolve(code);
 				} else {
-					msg.textContent = `❌ ${verifyData.error}` || '❌ Invalid code. Try again.';
+					msg.textContent = `❌ ${verifyData.error}` || `${language_obj['Auth2FApage_error_invalid_code']}`;
 					input.value = '';
 				}
 			});
