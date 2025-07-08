@@ -48,29 +48,53 @@ export class UserController {
 		}
 	}
 
-	static async	getLanguageFile(request: FastifyRequest, reply: FastifyReply) {
-		try {
-			var		language: string
-			const	userId = (request as any).userId;
-			if (userId) {
-				const	user = await UserService.getUserById(userId);
-				if (!user) {
-					return;
-				}
-				language = user.language;
-			}
-			else {
-				language = 'eng'
-			}
-            const	fs = require(path.join(__dirname, '..', 'locales', `${language}.json`));//			console.log("File data:", fs);
+    static async getLanguageFile(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            var language: string
+            const userId = (request as any).userId;
+            if (userId) {
+                const user = await UserService.getUserById(userId);
+                if (!user) {
+                    return;
+                }
+                language = user.language;
+            }
+            else {
+                language = 'eng'
+            }
 
-			return Send.success(reply, fs, 'Language file retrieved successfully');
-		}
-		catch (error) {
-			console.error('Error retrieving language file:', error)
-			return Send.internalError(reply, 'Failed to retrieve language file')
-		}
-	}
+            // Use proper path resolution for ES modules
+            const localesPath = path.join(__dirname, '..', 'locales', `${language}.json`);
+
+            console.log('🔍 Looking for language file at:', localesPath);
+            console.log('🔍 Directory exists:', fs.existsSync(path.dirname(localesPath)));
+            console.log('🔍 File exists:', fs.existsSync(localesPath));
+
+            // Check if file exists
+            if (!fs.existsSync(localesPath)) {
+                console.error(`❌ Language file not found: ${localesPath}`);
+                // Fallback to English if the requested language doesn't exist
+                const fallbackPath = path.join(__dirname, '..', 'locales', 'eng.json');
+                if (fs.existsSync(fallbackPath)) {
+                    console.log('✅ Using fallback language file:', fallbackPath);
+                    const fallbackData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+                    return Send.success(reply, fallbackData, 'Language file retrieved successfully (fallback)');
+                } else {
+                    console.error(`❌ Fallback language file not found: ${fallbackPath}`);
+                    return Send.internalError(reply, 'No language files found');
+                }
+            }
+
+            // Read the file directly instead of using require
+            const languageData = JSON.parse(fs.readFileSync(localesPath, 'utf8'));
+            console.log('✅ Language file loaded successfully');
+            return Send.success(reply, languageData, 'Language file retrieved successfully');
+        }
+        catch (error) {
+            console.error('Error retrieving language file:', error)
+            return Send.internalError(reply, 'Failed to retrieve language file')
+        }
+    }
 
 	static async	setUserLanguage(request: FastifyRequest, reply: FastifyReply) {
 		const { language } = request.body as { language: string };
