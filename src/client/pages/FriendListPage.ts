@@ -46,7 +46,7 @@ export async function FriendsPage(): Promise<void> {
         `;
 
 		const title = document.createElement('h1');
-		title.textContent = 'Friends & Requests';
+		title.textContent = `${language_obj['Friends_and_request']}`;
 		title.className = `
             font-['Canada-big'] text-4xl font-bold text-center mb-8
             bg-gradient-to-r from-purple-600 to-orange-400
@@ -60,7 +60,7 @@ export async function FriendsPage(): Promise<void> {
 		searchSection.className = 'mb-8 pb-8 border-b border-gray-300';
 
 		const searchTitle = document.createElement('h3');
-		searchTitle.textContent = 'Find Friends';
+		searchTitle.textContent = `${language_obj['Find_friends']}`;
 		searchTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
 
 		const searchContainer = document.createElement('div');
@@ -76,7 +76,7 @@ export async function FriendsPage(): Promise<void> {
 		invitesSection.className = 'mb-8 pb-8 border-b border-gray-300';
 
 		const invitesTitle = document.createElement('h3');
-		invitesTitle.textContent = 'Game Invites';
+		invitesTitle.textContent = `${language_obj['Game_invites']}`;
 		invitesTitle.className = `font-['Orbitron'] text-xl font-bold mb-4 text-gray-800`;
 
 		const invitesContainer = document.createElement('div');
@@ -88,26 +88,26 @@ export async function FriendsPage(): Promise<void> {
 			const { invites } = await res.json();
 
 			if (!invites || invites.length === 0) {
-				invitesContainer.innerHTML = '<p class="text-gray-500">No game invites</p>';
+				invitesContainer.innerHTML = `<p class="text-gray-500">${language_obj['No_game_invites']}</p>`;
 			} else {
 				for (const invite of invites) {
 					const inviteCard = document.createElement('div');
 					inviteCard.className = 'bg-yellow-50 p-4 rounded-lg flex items-center justify-between';
 
 					const info = document.createElement('span');
-					info.textContent = `Game invite from ${invite.inviter.displayName} for a game of ${invite.gameType}`;
+					info.textContent = `${language_obj['Game_invite_for']} ${invite.inviter.displayName} ${language_obj['For_a_game_of']} ${invite.gameType}`;
 
 					const actions = document.createElement('div');
 					actions.className = 'flex space-x-2';
 
-					const acceptBtn = CommonComponent.createStylizedButton('Accept', 'blue');
+					const acceptBtn = CommonComponent.createStylizedButton(`${language_obj['Accept']}`, 'blue');
 					acceptBtn.className = acceptBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Make buttons smaller
 					acceptBtn.onclick = async () => {
 						await fetch(`/api/invite/${invite.id}/accept`, { method: 'POST' });
 						window.location.href = `/game/online/duo/${invite.gameId}`;
 					};
 
-					const declineBtn = CommonComponent.createStylizedButton('Decline', 'red');
+					const declineBtn = CommonComponent.createStylizedButton(`${language_obj['Decline']}`, 'red');
 					declineBtn.className = declineBtn.className.replace('py-2 px-4', 'py-1 px-3 text-sm'); // Make buttons smaller
 					declineBtn.onclick = async () => {
 						await fetch(`/api/invite/${invite.id}/decline`, { method: 'POST' });
@@ -123,7 +123,7 @@ export async function FriendsPage(): Promise<void> {
 				}
 			}
 		} catch (error) {
-			invitesContainer.innerHTML = '<p class="text-red-500">Failed to load invites</p>';
+			invitesContainer.innerHTML = `<p class="text-red-500">${language_obj['Failed_to_load_invites']}</p>`;
 		}
 
 		invitesSection.appendChild(invitesTitle);

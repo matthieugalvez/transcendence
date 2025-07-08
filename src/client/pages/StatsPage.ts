@@ -5,6 +5,7 @@ import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
 import { AuthComponent } from '../components/auth.component';
 import { StatsRender } from '../renders/stats.render';
+import { language_obj } from '../index.ts';
 
 export async function StatsPage(params?: { userId?: string; displayName?: string }): Promise<void> {
 	document.title = 'Transcendence - Statistics';

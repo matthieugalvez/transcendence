@@ -13,6 +13,7 @@ import {
 	getShareableLink
 } from '../utils/game.utils';
 import { safeNavigate } from "../utils/navigation.utils";
+import { language_obj } from "..";
 
 let pongHandle: { start: () => void; socket: any } | null = null;
 let pauseState = { value: false };
@@ -117,8 +118,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 	// --- Etats de la partie ---
 	let playerId: number | 'spectator' | null = null;
-	let hostUsername = 'Player 1';
-	let guestUsername = 'Player 2';
+	let hostUsername = `${language_obj['Player']} 1`;
+	let guestUsername = `${language_obj['Player']} 2`;
 
 	// --- Tournament tracking ---
 	const matchups: [string, string][] = [['', ''], ['', ''], ['', '']];
@@ -138,12 +139,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		? async (winnerId: number, score1: number, score2: number) => {
 			// Prevent multiple calls
 			if (matchCreated) {
-				console.log('Match already created, skipping');
+				//console.log('Match already created, skipping');
 				return;
 			}
 			matchCreated = true;
 
-			console.log(`Creating match: Winner ${winnerId}, Scores ${score1}-${score2}`);
+//			//console.log(`Creating match: Winner ${winnerId}, Scores ${score1}-${score2}`);
 
 			const titleText = gameContainer.querySelector('h2')!.textContent!;
 			const [hostName, guestName] = titleText.split(' vs ');
@@ -169,7 +170,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						playerOneScore: score1,
 						playerTwoScore: score2
 					});
-					console.log('Match created successfully:', match);
+					//console.log('Match created successfully:', match);
 				} catch (err) {
 					console.error('Error creating match:', err);
 				}
@@ -192,7 +193,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		canvas.classList.add('blur-xs');
 
 		// Add debug info
-		// console.log('Canvas debug info:', {
+		// //console.log('Canvas debug info:', {
 		// 	width: canvas.width,
 		// 	height: canvas.height,
 		// 	style: canvas.style.cssText,
@@ -217,7 +218,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		bg-black/50 rounded-lg backdrop-blur-sm
 		border-2 border-white/20
 	`;
-	waiting.textContent = "Connecting...";
+	waiting.textContent = `${language_obj['Connecting']}`;
 	gameContainer.appendChild(waiting);
 
 	// Pour savoir si la partie est lancée (venant du host)
@@ -228,16 +229,16 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	pongHandle.socket.addEventListener('message', async (event: MessageEvent) => {
 		try {
 			const data = JSON.parse(event.data);
-			//console.log('WebSocket message received:', data);
+			////console.log('WebSocket message received:', data);
 
 			if (data.type === 'end') {
-				console.log('Game ended:', data);
+				//console.log('Game ended:', data);
 
 				// Show appropriate message based on the reason
 				if (data.reason === 'timeout') {
 					CommonComponent.showMessage(`⏰ ${data.message}`, 'warning');
 				} else {
-					CommonComponent.showMessage(`Game ended: ${data.message}`, 'warning');
+					CommonComponent.showMessage(`${language_obj['Game_ended']} ${data.message}`, 'warning');
 				}
 
 				// Always redirect to home when game ends, regardless of reason
@@ -255,16 +256,16 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 			}
 
 			if (data.type === 'error') {
-				console.log('Error message received:', data);
+				//console.log('Error message received:', data);
 				hasError = true;
 
 				if (data.error === 'already_joined') {
-					console.log('Already joined error detected');
-					waiting.textContent = "❌ You are already in this game";
+					//console.log('Already joined error detected');
+					waiting.textContent = `❌ ${language_obj['You_are_already_in_game']}`;
 					waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
 					setTimeout(() => {
-						console.log('Redirecting to home...');
+						//console.log('Redirecting to home...');
 						window.dispatchEvent(new Event('app:close-sockets'));
 						pongHandle?.socket.close();
 						safeNavigate('/home');
@@ -275,7 +276,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				waiting.textContent = `❌ Error: ${data.error}`;
 				waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
-				CommonComponent.showMessage(`❌ Game error: ${data.error}`, 'error');
+				CommonComponent.showMessage(`❌ ${language_obj['Game_error']} ${data.error}`, 'error');
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					pongHandle?.socket.close();
@@ -284,7 +285,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				return;
 			}
 			if (data.type === 'error' && data.error === 'invite_expired') {
-				CommonComponent.showMessage('❌ Your invite expired. Redirecting...', 'error');
+				CommonComponent.showMessage(`❌ ${language_obj['Your_invite_expired']}`, 'error');
 				setTimeout(() => {
 					window.dispatchEvent(new Event('app:close-sockets'));
 					router.navigate('/statistics');
@@ -297,14 +298,13 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				// PlayerId : host (1), guest (2), spectator
 				if (data.type === 'playerToken') {
 					playerId = data.playerId;
-					// console.log('Player ID assigned:', playerId);
+					// //console.log('Player ID assigned:', playerId);
 
 					// If assigned as spectator, show message but allow viewing
 					if (playerId === 'spectator') {
-						waiting.textContent = "👀 Watching as spectator";
-						// CommonComponent.showMessage('👀 Watching as spectator', 'info');
+						waiting.textContent = `👀 ${language_obj['Watching_as_spec']}`;
 					} else {
-						waiting.textContent = "Waiting for another player to join...";
+						waiting.textContent = `${language_obj['Waiting_other_player']}`;
 					}
 
 					if (playerId === 1) {
@@ -323,20 +323,20 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					if (data.type === 'playersJoined') {
 						joinedPlayers = data.players || [];
 						bothPlayersConnected = joinedPlayers.length === 4;
-						console.log('Tournament players joined:', joinedPlayers.length);
+						//console.log('Tournament players joined:', joinedPlayers.length);
 
 						// Update waiting message for tournament
 						if (joinedPlayers.length < 4) {
-							waiting.textContent = `Waiting for players... (${joinedPlayers.length}/4)`;
+							waiting.textContent = `${language_obj['Waiting_for_players']} (${joinedPlayers.length}/4)`;
 						} else {
-							waiting.textContent = "All players joined! Waiting for host to start...";
+							waiting.textContent = `${language_obj['All_players_joined']}`;
 						}
 						renderSettingsBar();
 						return;
 					}
 
 					if (data.type === 'matchStart') {
-						console.log('Tournament match starting');
+						//console.log('Tournament match starting');
 						GameSettingsComponent.tournamentStarted = true;
 
 						const transition = document.createElement('div');
@@ -353,12 +353,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 						if (lastWinner) {
 							const nextMsg = document.createElement('p');
-							nextMsg.textContent = `Next Match :⬆️`;
+							nextMsg.textContent = `${language_obj['Tournamentpage_nextmatch']} ⬆️`;
 							nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
 							transition.appendChild(nextMsg);
 
 							const winnerMsg = document.createElement('h2');
-							winnerMsg.textContent = `${lastWinner} wins this match!`;
+							winnerMsg.textContent = `${lastWinner} ${language_obj['Tournamentpage_matchend']}`;
 							winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 							transition.appendChild(winnerMsg);
 
@@ -401,12 +401,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						`;
 
 						const winnerMsg = document.createElement('h2');
-						winnerMsg.textContent = `${data.winner} wins this tournament!`;
+						winnerMsg.textContent = `${data.winner} ${language_obj['Tournamentpage_tournamentend']}`;
 						winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 						transition.appendChild(winnerMsg);
 
 						const info = document.createElement('button');
-						info.textContent = `Go to your stats`;
+						info.textContent = `${language_obj['Ingame_back_to_stats']}`;
 						info.className = `
 							text-lg text-white
 							font-["Orbitron"]
@@ -445,7 +445,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 				// Game state updates - THIS IS THE KEY PART
 				if (data.type === 'gameState' || (typeof data === "object" && "isRunning" in data && "score1" in data && "score2" in data)) {
-					// console.log('Game state received:', { isRunning: data.isRunning, gameStarted, connectedPlayers: data.connectedPlayers });
+					// //console.log('Game state received:', { isRunning: data.isRunning, gameStarted, connectedPlayers: data.connectedPlayers });
 
 					if (mode === 'duo') {
 						const wasConnected = bothPlayersConnected;
@@ -461,12 +461,12 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// Handle reconnection scenario
 					if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
 						if (playerId === 1 && !resumeAlertShown) {
-							CommonComponent.showMessage("Both player are back. Click Start Game to continue.", 'info');
+							CommonComponent.showMessage(`${language_obj['Both_players_back']}`, 'info');
 							renderSettingsBar();
 							resumeAlertShown = true;
 							hideOverlay();
 						} else {
-							waiting.textContent = "Waiting for the host to restart the game...";
+							waiting.textContent = `${language_obj['Waiting_for_host']}`;
 							hideOverlay();
 						}
 						return;
@@ -474,7 +474,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 					// Initial game setup when both players connect (for duo mode)
 					if (mode === 'duo' && bothPlayersConnected && isrendered && !hasHadDisconnection) {
-						console.log('Both players connected for duo game');
+						//console.log('Both players connected for duo game');
 						renderSettingsBar();
 						isrendered = false;
 						hideOverlay();
@@ -486,15 +486,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 							waiting.textContent = '';
 						} else {
 							waiting.textContent = bothPlayersConnected
-								? (playerId === 1 ? "Click 'Start Game' to begin" : "Waiting for the host to start the game...")
-								: "Waiting for another player to join...";
+								? (playerId === 1 ? `${language_obj['Click_start_game']}` : `${language_obj['Waiting_for_host']}`)
+								: `${language_obj['Waiting_other_player']}`;
 						}
 					}
 					if (mode === 'tournament') {
 						if (data.isRunning) {
 							waiting.textContent = '';
 						} else {
-							waiting.textContent = "Starting...";
+							waiting.textContent = `${language_obj['Starting']}`;
 							const newSettingsBar = GameSettingsComponent.render('duo-guest', {
 								onPauseGame: () => {
 									pauseState.value = !pauseState.value;
@@ -515,7 +515,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 					// Start the game when running
 					if (data.isRunning && !gameStarted) {
-						console.log('Starting game...');
+//						//console.log('Starting game...');
 
 						// Remove preview image
 						const preview = document.getElementById('pong-preview-image');
@@ -539,7 +539,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 	// Move event listeners OUTSIDE the message handler
 	const cleanupGameOnLeave = async () => {
-		// console.log('User leaving game, triggering cleanup...');
+		// //console.log('User leaving game, triggering cleanup...');
 
 		try {
 			// Use ApiClient for authenticated requests with better error handling
@@ -559,7 +559,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				console.warn(`Game cleanup failed with status: ${response.status}`);
 				// Don't throw error, just log it since cleanup is not critical for user experience
 			} else {
-				// console.log('Game cleanup successful');
+				// //console.log('Game cleanup successful');
 			}
 		} catch (error) {
 			// Improve error handling - don't let cleanup errors affect user experience
@@ -597,7 +597,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	};
 
 	function renderSettingsBar() {
-		console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
+		//console.log('Rendering settings bar for mode:', mode, 'playerId:', playerId, 'bothPlayersConnected:', bothPlayersConnected);
 
 		// Clear existing settings
 		settingsContainer.innerHTML = '';
@@ -619,11 +619,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					},
 					canStart: () => {
 						const canStart = bothPlayersConnected && playerId === 1;
-						// console.log('Can start game check:', { bothPlayersConnected, playerId, canStart });
+						// //console.log('Can start game check:', { bothPlayersConnected, playerId, canStart });
 						return canStart;
 					},
 					onStartGame: async () => {
-						console.log('Host starting game...');
+						//console.log('Host starting game...');
 						pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
 						// Update settings bar to show game controls
@@ -685,11 +685,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				},
 				canStart: () => {
 					const canStart = bothPlayersConnected && playerId === 1;
-					// console.log('Tournament can start check:', { bothPlayersConnected, playerId, joinedPlayers: joinedPlayers.length, canStart });
+					// //console.log('Tournament can start check:', { bothPlayersConnected, playerId, joinedPlayers: joinedPlayers.length, canStart });
 					return canStart;
 				},
 				onStartGame: async () => {
-					// console.log('Host starting tournament...');
+					// //console.log('Host starting tournament...');
 					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
 					const newSettingsBar = GameSettingsComponent.render('duo-guest', {
