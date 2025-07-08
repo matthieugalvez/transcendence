@@ -26,7 +26,7 @@ export class AuthMiddleware {
 		const token = request.cookies.accessToken;
 
 		if (!token) {
-			console.log('❌ No access token found');
+			// console.log('❌ No access token found');
 			return Send.unauthorized(reply, "Access token missing");
 		}
 
