@@ -181,7 +181,7 @@ export class SettingsRender {
     }
 
 	private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
-		console.log('🔍 Creating avatar section with URL:', currentAvatarUrl);
+		// console.log('🔍 Creating avatar section with URL:', currentAvatarUrl);
 
 		const avatarContainer = document.createElement('div');
 		avatarContainer.className = `
@@ -200,10 +200,10 @@ export class SettingsRender {
 
 		// Set src with better fallback logic
 		if (currentAvatarUrl && currentAvatarUrl !== 'null' && currentAvatarUrl !== 'undefined' && currentAvatarUrl.trim() !== '') {
-			console.log('✅ Using provided avatar URL:', currentAvatarUrl);
+			// console.log('✅ Using provided avatar URL:', currentAvatarUrl);
 			currentAvatar.src = currentAvatarUrl;
 		} else {
-			console.log('⚠️ No valid avatar URL, using default');
+			// console.log('⚠️ No valid avatar URL, using default');
 			currentAvatar.src = 'default.svg';
 		}
 
@@ -229,7 +229,7 @@ export class SettingsRender {
 		};
 
 		currentAvatar.onload = () => {
-			console.log('✅ Avatar loaded successfully:', currentAvatar.src);
+			// console.log('✅ Avatar loaded successfully:', currentAvatar.src);
 		};
 
 		// Rest of your avatar section code...
