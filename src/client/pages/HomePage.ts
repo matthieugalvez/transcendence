@@ -7,7 +7,7 @@ import { CommonComponent } from '../components/common.component';
 //import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
 import { UserSearchComponent } from '../components/usersearch.component';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 
 export async function RenderHomePage(): Promise<void> {

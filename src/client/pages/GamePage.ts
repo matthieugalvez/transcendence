@@ -1,7 +1,7 @@
 import '../styles.css';
 import { startPongInContainer, showGameOverOverlay } from '../utils/game.utils';
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 import { BackgroundComponent } from '../components/background.component';
 import { SidebarComponent } from "../components/sidebar.component";
 import { AuthComponent } from '../components/auth.component';

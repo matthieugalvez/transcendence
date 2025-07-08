@@ -7,7 +7,7 @@ import profil3 from '../assets/profilpic/proflipic3.png';
 import bgEffect from '../assets/effects/otis-redding.png';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export function renderIndexPage(): void {
   document.title = "Transcendence - Index";

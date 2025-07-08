@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export async function oauth2FAPage(): Promise<void> {
     console.log('🔐 OAuth 2FA page loaded');

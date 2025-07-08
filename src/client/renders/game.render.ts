@@ -1,6 +1,6 @@
 import { UserService } from '../services/user.service';
 import { GameState } from '../types/game.types.js';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 // --- Fonctions utilitaires de dessin ---
 function drawRoundedRect(

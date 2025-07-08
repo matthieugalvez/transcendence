@@ -2,7 +2,7 @@ import { GameState } from './types';
 import { renderGame } from './renderGame';
 import { CommonComponent } from '../../components/common.component';
 import { UserService } from '../../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../../index.ts';
 
 type FinishCallback = (winnerAlias: string) => void;
 

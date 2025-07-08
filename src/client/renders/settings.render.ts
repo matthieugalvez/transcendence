@@ -5,7 +5,7 @@ import { UserService } from '../services/user.service';
 import { AuthComponent } from '../components/auth.component';
 import { SidebarComponent } from "../components/sidebar.component";
 import { UserComponent } from '../components/user.component';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export class SettingsRender {
     static async render(): Promise<void> {

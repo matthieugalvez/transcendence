@@ -3,7 +3,7 @@ import paddleImg from '../assets/logo.png';
 import { BackgroundComponent } from '../components/background.component';
 import { router } from '../configs/simplerouter';
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export function renderNotFoundPage(): void {
     document.title = `${language_obj['NoFoundpage_title']}`;

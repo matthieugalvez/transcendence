@@ -3,7 +3,7 @@ import { CommonComponent } from '../components/common.component';
 import { AuthComponent } from '../components/auth.component';
 import defaultAvatar from "../assets/profilpic/profilpic1.png";
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export interface SidebarOptions {
   userName: string;

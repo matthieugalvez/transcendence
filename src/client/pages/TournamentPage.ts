@@ -7,7 +7,7 @@ import { UserService } from '../services/user.service';
 import { GameService } from '../services/game.service.ts';
 import { GameSettingsComponent } from '../components/game.component';
 import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 let pauseState = { value: false };
 let currentMatchSocket: WebSocket | null = null;
