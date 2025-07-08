@@ -391,13 +391,6 @@ export class AuthRender {
 				resolve(null);
 			});
 
-			// overlay.addEventListener('click', (e) => {
-			// 	if (e.target === overlay) {
-			// 		document.body.removeChild(overlay);
-			// 		resolve(null);
-			// 	}
-			// });
-
 			input.focus();
 		});
 	}
