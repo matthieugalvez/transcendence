@@ -1,6 +1,7 @@
 import { AuthComponent } from '../components/auth.component';
 import { router } from "../configs/simplerouter";
 import { BackgroundComponent } from "./background.component";
+import { language_obj } from '../index.ts';
 
 export class CommonComponent {
 	/**
