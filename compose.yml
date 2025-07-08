@@ -8,12 +8,17 @@ services:
     ports:
       - "3000"  # Only expose for internal communication
     environment:
+      - NODE_ENV=production
       - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_SECRET_EXPIRES_IN=15m
+      - AUTH_SECRET_EXPIRES_IN=${AUTH_SECRET_EXPIRES_IN}
       - AUTH_REFRESH_SECRET=${AUTH_REFRESH_SECRET}
-      - AUTH_REFRESH_SECRET_EXPIRES_IN=24h
+      - AUTH_REFRESH_SECRET_EXPIRES_IN=${AUTH_REFRESH_SECRET_EXPIRES_IN}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - BASE_URL=${BASE_URL}
+      - CLIENT_URL=${CLIENT_URL}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - DATABASE_URL=${DATABASE_URL}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
