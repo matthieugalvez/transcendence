@@ -18,10 +18,6 @@ export async function RenderHomePage(): Promise<void> {
 	const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
 	document.body.appendChild(LanguageMenu);
 
-    const main = document.createElement("div");
-    main.className = "min-h-screen min-w-screen flex items-start justify-center";
-    document.body.appendChild(main);
-    await HomeRender.renderInto(main);
     try {
         let user = await UserService.getCurrentUser();
 
