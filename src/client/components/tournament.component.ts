@@ -22,7 +22,7 @@ export class TournamentComponent {
 		container.appendChild(overlay);
 
 		const title = document.createElement('h2');
-		title.textContent = '⬇️ Choose 3 registered players ⬇️';
+		title.textContent = `⬇️ ${language_obj['Tournamentpage_local_name_prompt']} ⬇️`;
 		title.className = `
       text-white text-2xl mb-4 font-['Orbitron']
     `;
@@ -62,7 +62,7 @@ export class TournamentComponent {
 					// verif si deja selectionner
 					const already = slots.some((s, idx) => idx !== i && s.user === user.displayName);
 					if (already) {
-						CommonComponent.showMessage("User alreadly selected!", 'error');
+						CommonComponent.showMessage(`${language_obj['Tournamentpage_already_selected']}`, 'error');
 						return;
 					}
 					// on sélectionne
@@ -80,7 +80,7 @@ export class TournamentComponent {
           <span>${user.displayName}</span>
         `;
 				const deselectBtn = document.createElement('button');
-				deselectBtn.textContent = 'Deselect';
+				deselectBtn.textContent = `${language_obj['Deselect']}`;
 				deselectBtn.className = 'ml-4 px-2 py-1 bg-red-600 rounded hover:bg-red-700';
 				deselectBtn.addEventListener('click', () => {
 					slots[i].user = undefined;
@@ -137,9 +137,9 @@ export class TournamentComponent {
 		// Message principal
 		const winnerMsg = document.createElement('h2');
 		if (i === matchups.length - 1)
-			winnerMsg.textContent = "Tournament finished! 🏆";
+			winnerMsg.textContent = `${language_obj['Tournamentpage_finished']} 🏆`;
 		else
-			winnerMsg.textContent = `${winnerAlias} wins this match!`;
+			winnerMsg.textContent = `${winnerAlias} ${language_obj['Tournamentpage_matchend']}`;
 		winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 		transition.appendChild(winnerMsg);
 
@@ -150,9 +150,9 @@ export class TournamentComponent {
 				i + 1 === 2
 					? [winners[0], winners[1]]
 					: matchups[i + 1];
-			nextMatchMsg = `Next Match : ${nextLeft} VS ${nextRight}`;
+			nextMatchMsg = `${language_obj['Tournamentpage_nextmatch']} ${nextLeft} VS ${nextRight}`;
 		} else {
-			nextMatchMsg = `${winnerAlias} wins!`;
+			nextMatchMsg = `${winnerAlias} ${language_obj['Ingamepage_winner']}`;
 		}
 		const nextMsg = document.createElement('p');
 		nextMsg.textContent = nextMatchMsg;
@@ -162,7 +162,7 @@ export class TournamentComponent {
 		// Bouton play again si dernier match
 		if (i === matchups.length - 1) {
 			const info = document.createElement('button');
-			info.textContent = `Go to your stats`;
+			info.textContent = `${language_obj['Ingame_back_to_stats']}`;
 			info.className = `
 				text-lg text-white
 				font-["Orbitron"]
