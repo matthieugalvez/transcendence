@@ -5,6 +5,7 @@ build-dev:
 	npm install @fastify/helmet
 	npm install uuid
 	npm install chart.js
+	npm install chartjs-adapter-date-fns date-fns
 	npx prisma generate
 	npx prisma db push
 	npm run db:seed
