@@ -61,12 +61,13 @@ export class UserController {
 			if (userId) {
 				const	user = await UserService.getUserById(userId);
 				if (!user) {
-					return;
+					language = 'eng';
+				} else {
+					language = user.language;
 				}
-				language = user.language;
 			}
 			else {
-				language = 'eng'
+				language = 'eng';
 			}
             const	fs = require(path.join(__dirname, '..', 'locales', `${language}.json`));//			console.log("File data:", fs);
 
