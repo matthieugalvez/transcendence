@@ -342,7 +342,8 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						const transition = document.createElement('div');
 						transition.style.backgroundColor = "#530196";
 						transition.className = `
-							fixed left-[36%] flex flex-col items-center justify-center p-8
+							absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+							flex flex-col items-center justify-center p-8
 							backdrop-blur-2xl z-50 w-[60%] h-[30%]
 							border-2 border-black
 							whitespace-nowrap
@@ -361,7 +362,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 							winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 							transition.appendChild(winnerMsg);
 
-							wrapper.appendChild(transition);
+							gameContainer.appendChild(transition);
 							lastWinner = null;
 							currentMatchIndex++;
 						}
@@ -404,20 +405,28 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
 						transition.appendChild(winnerMsg);
 
-						const info = document.createElement('p');
-						info.textContent = `Going to your stats…`;
+						const info = document.createElement('button');
+						info.textContent = `Go to your stats`;
 						info.className = `
-							text-lg text-gray-300
+							text-lg text-white
 							font-["Orbitron"]
 							border-2 border-black
 							py-2 px-12
-							bg-orange-500
+							mt-4
+							bg-blue-500 hover:bg-blue-600
 							rounded-lg text-lg transition-colors
 							focus:outline-none focus:ring-2
+							cursor-pointer
+							shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+							disabled:opacity-50 disabled:cursor-not-allowed
 						`;
+						info.onclick = () => {
+							window.dispatchEvent(new Event('app:close-sockets'));
+							router.navigate('/statistics');
+						};
 						setTimeout(() => {
 							window.dispatchEvent(new Event('app:close-sockets'));
-							safeNavigate('/statistics');
+							router.navigate('/statistics');
 						}, 10000);
 
 						transition.appendChild(info);
