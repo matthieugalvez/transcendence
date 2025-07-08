@@ -4,7 +4,6 @@ import { GameSettingsComponent } from '../components/game.component';
 import { AuthComponent } from '../components/auth.component';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from '../components/common.component';
-import { TournamentComponent } from '../components/tournament.component';
 import { router } from "../configs/simplerouter";
 import { GameService } from "../services/game.service";
 import {
@@ -13,7 +12,6 @@ import {
 	showGameOverOverlay,
 	getShareableLink
 } from '../utils/game.utils';
-import pongPreviewImg from '../assets/gameimg/screen-pongGame.png'; // Add this import
 import { safeNavigate } from "../utils/navigation.utils";
 
 let pongHandle: { start: () => void; socket: any } | null = null;
@@ -113,14 +111,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 	settingsContainer.id = 'settings-container';
 	settingsContainer.className = 'flex-shrink-0';
 	gameAndSettingsContainer.appendChild(settingsContainer);
-
-	// screen du jeu avant toute partie
-	// const previewImg = document.createElement('img');
-	// previewImg.src = pongPreviewImg;
-	// previewImg.alt = 'Pong preview';
-	// previewImg.className = 'w-[800px] h-[610px] opacity-70 border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)] transition-all mb-4';
-	// previewImg.id = 'pong-preview-image';
-	// gameContainer.appendChild(previewImg);
 
 	// --- Récupère le username du joueur connecté (GUEST ou HOST) ---
 	const myUsername = await getUsername();
@@ -273,11 +263,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					waiting.textContent = "❌ You are already in this game";
 					waiting.className = waiting.className.replace('text-white', 'text-red-500');
 
-					// CommonComponent.showMessage(
-					// 	`❌ ${data.message || 'You are already in this game'}`,
-					// 	'error'
-					// );
-
 					setTimeout(() => {
 						console.log('Redirecting to home...');
 						window.dispatchEvent(new Event('app:close-sockets'));
@@ -353,7 +338,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					if (data.type === 'matchStart') {
 						console.log('Tournament match starting');
 						GameSettingsComponent.tournamentStarted = true;
-						// previewImg.remove();
 
 						const transition = document.createElement('div');
 						transition.style.backgroundColor = "#530196";
@@ -469,11 +453,9 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					if (bothPlayersConnected && hasHadDisconnection && data.isPaused) {
 						if (playerId === 1 && !resumeAlertShown) {
 							CommonComponent.showMessage("Both player are back. Click Start Game to continue.", 'info');
-							// alert("Both players are back. Click Start Game to continue.");
 							renderSettingsBar();
 							resumeAlertShown = true;
 							hideOverlay();
-							// if (previewImg.parentNode) previewImg.remove();
 						} else {
 							waiting.textContent = "Waiting for the host to restart the game...";
 							hideOverlay();
@@ -484,7 +466,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// Initial game setup when both players connect (for duo mode)
 					if (mode === 'duo' && bothPlayersConnected && isrendered && !hasHadDisconnection) {
 						console.log('Both players connected for duo game');
-						// if (previewImg.parentNode) previewImg.remove();
 						renderSettingsBar();
 						isrendered = false;
 						hideOverlay();
@@ -505,7 +486,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 							waiting.textContent = '';
 						} else {
 							waiting.textContent = "Starting...";
-							const newSettingsBar = GameSettingsComponent.render('duo-start', {
+							const newSettingsBar = GameSettingsComponent.render('duo-guest', {
 								onPauseGame: () => {
 									pauseState.value = !pauseState.value;
 									pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
@@ -520,7 +501,6 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					// remove blur while countdown
 					if (data.isFreeze) {
 						if (canvas) canvas.classList.remove('blur-xs');
-						// if (previewImg.parentNode) previewImg.parentNode.removeChild(previewImg);
 						if (waiting.parentNode) waiting.remove();
 					}
 
@@ -638,7 +618,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 						pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
 						// Update settings bar to show game controls
-						const newSettingsBar = GameSettingsComponent.render('duo-start', {
+						const newSettingsBar = GameSettingsComponent.render('duo-guest', {
 							onPauseGame: () => {
 								pauseState.value = !pauseState.value;
 								pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
@@ -703,7 +683,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					console.log('Host starting tournament...');
 					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
-					const newSettingsBar = GameSettingsComponent.render('duo-start', {
+					const newSettingsBar = GameSettingsComponent.render('duo-guest', {
 						onPauseGame: () => {
 							pauseState.value = !pauseState.value;
 							pongHandle?.socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));

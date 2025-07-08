@@ -348,11 +348,27 @@ export function startPongInContainer(
 	gameId: string,
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
+	const player1Color = '#FFA940';
+    const player2Color = '#B946EF';
 
 	const title = document.createElement('h2');
 	title.textContent = "Ready to pong?";
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
 	container.appendChild(title);
+
+	function updateTitle(name1: string, name2: string) {
+		let prefix = '';
+		const match = name1.match(/^(Match\s+\d+\s*:\s*)/);
+		if (match) {
+				prefix = match[1];
+				name1 = name1.slice(prefix.length);
+		}
+		title.innerHTML = `
+			<span style="color:${player1Color};-webkit-text-stroke:0.5px #fff;text-shadow:0 0 4px font-['Canada-big'] #fff">${name1}</span>` +
+			' vs ' +
+			`<span style="color:${player2Color};-webkit-text-stroke:0.5px #fff;text-shadow:0 0 4px #fff">${name2}</span>
+		`;
+	}
 
 	const bg_canvas = document.createElement('canvas');
 	bg_canvas.className = 'border-2 border-black rounded-md shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]';
@@ -404,7 +420,8 @@ export function startPongInContainer(
 		try {
 			const data = JSON.parse(event.data);
 			if ((mode === 'duo-online' || mode === 'tournament-online') && data.playerNames && data.playerNames[1] && data.playerNames[2]) {
-				title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+				// title.textContent = `${data.playerNames[1]} vs ${data.playerNames[2]}`;
+				updateTitle(data.playerNames[1], data.playerNames[2]);
 			}
 		} catch { }
 	});
@@ -483,7 +500,13 @@ export function startPongInContainer(
 	}
 
 	function start() {
-		title.textContent = matchTitle;
+		// title.textContent = matchTitle;
+		if (matchTitle.includes(' vs ')) {
+			const [name1, name2] = matchTitle.split(' vs ');
+			updateTitle(name1, name2);
+		} else {
+			updateTitle(leftPlayer, rightPlayer);
+		}
 		if (socket.readyState === WebSocket.OPEN) {
 			socket.send(JSON.stringify({ action: 'start' }));
 		} else {
