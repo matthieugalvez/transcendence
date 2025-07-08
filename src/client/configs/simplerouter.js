@@ -26,7 +26,7 @@ class SimpleRouter {
         this.renderNotFound();
     }
     renderNotFound() {
-        import('../pages/NotFoundPage').then((module) => {
+        import('../pages/NotFoundPage.ts').then((module) => {
             module.renderNotFoundPage();
         });
     }
