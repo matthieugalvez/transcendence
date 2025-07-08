@@ -69,11 +69,7 @@ function createGameControls(
 }
 
 // Verifie auth avant d'ouvrir page
-export async function GamePageCheck() {
-	document.title = "Home";
-	document.body.innerHTML = "";
-	BackgroundComponent.applyAnimatedGradient();
-
+export async function GamePageCheck(): Promise<boolean> {
 	try {
 		// Fetch user data first - if this fails, we handle it in catch block
 		let user = await UserService.getCurrentUser();
@@ -86,30 +82,21 @@ export async function GamePageCheck() {
 				user = result.userData;
 			} else {
 				// If checkAndHandleDisplayName failed, it already handled redirect
-				return;
+				return false;
 			}
 		}
 
-		// Only render sidebar and main content if authentication succeeds
-		await SidebarComponent.render({
-			userName: user.displayName,
-			avatarUrl: user.avatar,
-			showStats: true,
-			showSettings: true,
-			showBackHome: false,
-			showUserSearch: false,
-			showFriendsBtn: true
-		});
+		// Return true if authentication succeeds
+		return true;
 
-		// const main = document.createElement("div");
-		// main.className = 'ml-80 w-[calc(100%-20rem)] min-h-screen flex items-center justify-center p-8 relative';
-		// document.body.appendChild(main);
 	} catch (error) {
 		console.error('Failed to fetch user data:', error);
 		// Show error and redirect to auth - same as SettingsRender
 		CommonComponent.handleAuthError();
+		return false;
 	}
 }
+
 
 // Fonction principale
 export async function renderPongGamePage() {
@@ -123,12 +110,14 @@ export async function renderPongGamePage() {
 	const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
 	// Layout de base
-	SidebarComponent.render({
+	await SidebarComponent.render({
 		userName: user.displayName,
 		avatarUrl: user.avatar,
 		showStats: true,
-		showBackHome: true,
-		showUserSearch: false
+		showSettings: true,
+		showBackHome: false,
+		showUserSearch: false,
+		showFriendsBtn: true
 	});
 	BackgroundComponent.applyNormalGradientLayout();
 
