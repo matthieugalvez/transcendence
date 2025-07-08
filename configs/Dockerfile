@@ -22,6 +22,9 @@ COPY src ./src/
 # Build the frontend and backend
 RUN npm run build:frontend && npm run build:backend
 
+RUN cp -r src/server/locales dist-back/
+
+
 # Production stage
 FROM node:24-slim
 
