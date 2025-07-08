@@ -3,23 +3,12 @@ services:
     build:
       context: .
       dockerfile: configs/Dockerfile
+    volumes:
+      - /var/.env:/app/.env:ro
     ports:
       - "3000"  # Only expose for internal communication
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOST=0.0.0.0
-      - DATABASE_URL=file:./data/transcendence.db
-      - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_SECRET_EXPIRES_IN=15m
-      - AUTH_REFRESH_SECRET=${AUTH_REFRESH_SECRET}
-      - AUTH_REFRESH_SECRET_EXPIRES_IN=24h
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - BASE_URL=https://pong42.click
-      - GOOGLE_REDIRECT_URI=https://pong42.click/api/auth/oauth2/google/callback
-      # Set to use db/users directory consistently
-      - AVATAR_UPLOAD_DIR=/app/src/server/db/users
+    env_file:
+      - /var/.env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]

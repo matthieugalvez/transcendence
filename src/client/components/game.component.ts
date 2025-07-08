@@ -46,14 +46,19 @@ export class GameSettingsComponent {
 	 */
 	static render(state: SettingState = 'initial', callbacks: GameSettingsCallbacks = {}): HTMLElement {
 		const existing = document.getElementById(GameSettingsComponent.panelId);
+		const parentContainer = existing?.parentElement; // Store the parent before removing
+
 		if (existing) existing.remove();
 
-		GameSettingsComponent.currentMode = state;
-
 		// create panel
-    const settingsBar = document.createElement("nav");
-    settingsBar.id = GameSettingsComponent.panelId;
-    settingsBar.className = `
+		const settingsBar = document.createElement("nav");
+		settingsBar.id = GameSettingsComponent.panelId;
+
+		GameSettingsComponent.currentMode = state;
+		if (parentContainer) {
+			parentContainer.appendChild(settingsBar);
+		}
+		settingsBar.className = `
         w-80 h-[768px] max-h-[768-px]
         bg-blue-950/70 backdrop-blur-2xl
         rounded-lg text-lg transition-colors

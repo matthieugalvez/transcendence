@@ -4,7 +4,7 @@
     "experimentalDecorators": true,
     "target": "es2017",
     "module": "es2022",
-	"lib": ["ES2017"],
+	"lib": ["DOM", "ESNext"],
     "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,

@@ -6,7 +6,13 @@ import { promisify } from 'util';
 import path from 'path'; // Add this import
 import fs from 'fs';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+
+
 const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const pump = promisify(pipeline); // Add this line
 
@@ -62,8 +68,7 @@ export class UserController {
 			else {
 				language = 'eng'
 			}
-			const	fs = require(`../locales/${language}.json`);
-//			console.log("File data:", fs);
+            const	fs = require(path.join(__dirname, '..', 'locales', `${language}.json`));//			console.log("File data:", fs);
 
 			return Send.success(reply, fs, 'Language file retrieved successfully');
 		}

@@ -4,6 +4,7 @@ import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component';
 import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
+import { language_obj } from '../index.js';
 
 let emailInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;

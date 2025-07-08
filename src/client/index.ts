@@ -8,8 +8,6 @@ import { SettingsPage } from './pages/SettingsPage';
 import { oauth2FAPage } from './pages/OAuth2FAPage';
 import { renderJoinPage } from './pages/JoinPage';
 import { renderChatPage } from './pages/ChatPage';
-import { ProfilePage } from './pages/UserProfilePage';
-import { UsersPage } from './pages/UserPage';
 import { FriendsPage } from './pages/FriendListPage'
 import { StatsPage } from './pages/StatsPage';
 import { UserService } from './services/user.service';
@@ -19,7 +17,7 @@ let isShowingViewportWarning = false;
 
 function checkMinimumViewport(): boolean {
 	if (window.self !== window.top) {
-		return true; // Always pass for embedded content
+		return true;
 	}
 	const minWidth = 1024;
 	const minHeight = 700;

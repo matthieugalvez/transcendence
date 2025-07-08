@@ -11,7 +11,7 @@ RUN npm install
 # Copy configuration files
 COPY configs ./configs/
 COPY prisma ./prisma/
-COPY .env* ./
+# COPY /var/.env ./
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -21,6 +21,9 @@ COPY src ./src/
 
 # Build the frontend and backend
 RUN npm run build:frontend && npm run build:backend
+
+RUN cp -r src/server/locales dist-back/
+
 
 # Production stage
 FROM node:24-slim
