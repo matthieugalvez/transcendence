@@ -7,6 +7,8 @@ import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot
 import 'chartjs-adapter-date-fns';
 import { DoughnutController, ArcElement, BarController, CategoryScale, LinearScale } from 'chart.js/auto';
 import { TimeScale, LineController, LineElement, PointElement } from 'chart.js/auto';
+import { CommonComponent } from '../components/common.component';
+import { language_obj } from '..';
 
 Chart.register(TimeScale, LineController, LineElement, PointElement);
 Chart.register(DoughnutController, ArcElement, BarController, CategoryScale, LinearScale);
@@ -144,6 +146,9 @@ export class StatsRender {
 		(window as any).currentUser = user;
 
 		document.body.appendChild(mainContainer);
+
+		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+		document.body.appendChild(LanguageMenu);
 	}
 
 	private static createMatchDetailsPanel(): HTMLElement {

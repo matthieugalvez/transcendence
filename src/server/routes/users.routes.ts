@@ -172,11 +172,11 @@ export default async function userRoutes(fastify: FastifyInstance) {
 		preHandler: [AuthMiddleware.authenticateUser]
 	}, UserController.getOnlineStatus);
 
-	fastify.post('/users/me/:language', {
-		preHandler: AuthMiddleware.authenticateUser
-	}, UserController.setUserLanguage)
-
 	fastify.get('/users/me/:language', {
 		preHandler: AuthMiddleware.optionalAuth
 	}, UserController.getLanguageFile)
+
+	fastify.post('/users/me/:language', {
+		preHandler: AuthMiddleware.authenticateUser
+	}, UserController.setUserLanguage)
 }

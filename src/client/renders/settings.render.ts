@@ -154,6 +154,10 @@ export class SettingsRender {
 
 		wrapper.appendChild(mainContainer);
 		document.body.appendChild(wrapper);
+
+		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+		document.body.appendChild(LanguageMenu);
+
 	}
 
     private static createLoadingContainer(): HTMLDivElement {

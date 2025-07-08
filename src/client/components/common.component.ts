@@ -204,6 +204,7 @@ export class CommonComponent {
 
 	static	createLanguageMenu(language: string): HTMLDivElement {
 		const	LanguageDropdownMenu = document.createElement('div');
+		LanguageDropdownMenu.title = 'LanguageDropdownMenu';
 		LanguageDropdownMenu.className = `
 		  bg-white/90 backdrop-blur-md
 		  border-2 border-black
@@ -212,6 +213,7 @@ export class CommonComponent {
 		LanguageDropdownMenu.style.position = 'absolute';
 		LanguageDropdownMenu.style.top = '8px';
 		LanguageDropdownMenu.style.right = '16px';
+		LanguageDropdownMenu.style.zIndex = '50';
 		LanguageDropdownMenu.style.display = 'inline-grid';
 			
 		const	LanguageDropdownButton = document.createElement('button');
@@ -241,7 +243,7 @@ export class CommonComponent {
 		EnglishButton.textContent = '🇬🇧';
 		EnglishButton.addEventListener('click', async () => {
 			const success = await AuthComponent.SetLanguageUser('eng');
-			if (success.error) {
+			if (!success) {
 					CommonComponent.showMessage('Failed to change language', 'error');
 				}
 			location.reload();
@@ -251,7 +253,7 @@ export class CommonComponent {
 		FrenchButton.textContent = '🇫🇷';
 		FrenchButton.addEventListener('click', async () => {
 			const success = await AuthComponent.SetLanguageUser('fr');
-			if (success.error) {
+			if (!success) {
 					CommonComponent.showMessage('Failed to change language', 'error');
 				}
 			location.reload();

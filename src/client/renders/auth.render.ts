@@ -84,9 +84,6 @@ export class AuthRender {
 
 		container.appendChild(title);
 		container.appendChild(subtitle);
-
-		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
-		document.body.appendChild(LanguageMenu);
 	}
 
 	/**

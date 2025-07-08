@@ -5,6 +5,7 @@ import { AuthComponent } from '../components/auth.component';
 import { CommonComponent } from '../components/common.component';
 import { FriendsRender } from '../renders/friends.render';
 import { UserSearchComponent } from '../components/usersearch.component';
+import { language_obj } from '../index.ts';
 
 export async function FriendsPage(): Promise<void> {
 	document.title = 'Transcendence - Friends';
@@ -136,6 +137,9 @@ export async function FriendsPage(): Promise<void> {
 
 		container.appendChild(friendsCard);
 		document.body.appendChild(container);
+
+		const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+		document.body.appendChild(LanguageMenu);
 
 	} catch (error) {
 		console.error('Failed to load friends page:', error);
