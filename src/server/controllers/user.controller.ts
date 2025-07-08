@@ -6,6 +6,8 @@ import { promisify } from 'util';
 import path from 'path'; // Add this import
 import fs from 'fs';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
