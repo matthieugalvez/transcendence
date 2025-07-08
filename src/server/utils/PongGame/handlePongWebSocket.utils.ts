@@ -160,7 +160,6 @@ export async function handlePongWebSocket(ws: WebSocket, req: any) {
 	ws.on('close', () => {
 		console.log(`WebSocket closed for user ${username} in game ${gameId}`);
 
-		// --- Existing logic for classic games (duo) ---
 		if (game && username) {
 			const userIsInviter = invites.some(invite =>
 				invite.inviter?.displayName?.trim().toLowerCase() === username?.trim().toLowerCase()
