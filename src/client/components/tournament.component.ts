@@ -1,101 +1,200 @@
-import { startPongInContainer } from '../pages/game/utils';
-import { GameService } from '../services/game.service';
-import { TournamentRender } from '../renders/tournament.render';
+import { CommonComponent } from './common.component';
+import { UserSearchComponent } from './usersearch.component';
+import { router } from '../configs/simplerouter';
 import { UserService } from '../services/user.service';
 const	language_obj = await UserService.GetLanguageFile();
 
 export class TournamentComponent {
-  /**
-   * Validate tournament player names
-   */
-  static validateTournamentPlayers(playerNames: string[]): boolean {
-    // Check if all names are filled
-    for (const name of playerNames) {
-      if (!name.trim()) {
-        alert(`${language_obj['Tournamentpage_error_empty_name']}`);
-        return false;
-      }
-    }
+	/**
+	* Affiche un overlay pour sélectionner exactement 4 utilisateurs existants.
+	* Appelle `onComplete` avec la liste de leurs displayNames.
+	*/
+	static async showPlayerSelection(
+		container: HTMLElement,
+		onComplete: (players: string[]) => void
+	) {
+		container.innerHTML = '';
+		const overlay = document.createElement('div');
+		overlay.className = `
+      fixed inset-0 flex flex-col items-center justify-center
+      bg-black/70 p-6 space-y-4 z-20 w-[53%] h-full ml-[25.5%]
+    `;
+		container.appendChild(overlay);
 
-    // Check for duplicate names
-    const uniqueNames = new Set(playerNames);
-    if (uniqueNames.size !== playerNames.length) {
-      alert(`${language_obj['Tournamentpage_error_different_name']}`);
-      return false;
-    }
+		const title = document.createElement('h2');
+		title.textContent = '⬇️ Choose 3 registered players ⬇️';
+		title.className = `
+      text-white text-2xl mb-4 font-['Orbitron']
+    `;
+		overlay.appendChild(title);
 
-    return true;
-  }
+		const startBtn = document.createElement('button');
+		startBtn.textContent = 'Launch tournament';
+		startBtn.disabled = true;
+		startBtn.className = `
+      bg-purple-600 text-white
+      font-['Orbitron']
+      font-semibold
+      border-2 border-black
+      py-2 px-12
+      rounded-lg text-lg transition-colors
+      focus:outline-none focus:ring-2
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+      disabled:opacity-50 disabled:cursor-not-allowed
+    `;
 
-  /**
-   * Launch the tournament with given players
-   */
-  static async launchTournament(playerNames: string[]): Promise<void> {
-    // Prepare matchups: semi-finals and final
-    const matchups: [string, string][] = [
-      [playerNames[0], playerNames[1]],
-      [playerNames[2], playerNames[3]],
-      ['', ''], // Final match - will be filled with winners
-    ];
+		// recupere utilisateur connecte
+		const currentUser = await UserService.getCurrentUser();
 
-    const winners: string[] = [];
+		const slots: { user?: string; elem: HTMLElement }[] = [];
+		for (let i = 0; i < 4; i++) {
+			const slot = document.createElement('div');
+			slot.className = 'w-full mb-2';
+			overlay.appendChild(slot);
+			slots.push({ elem: slot });
 
-    // Function to play each match
-    async function playMatch(i: number): Promise<void> {
-      if (i >= matchups.length) {
-        // Tournament finished
-        TournamentRender.renderTournamentComplete();
-        return;
-      }
+			// rendre la search et resultats
+			function renderSearchUI() {
+				slot.innerHTML = '';
+				const searchSection = document.createElement('div');
+				slot.appendChild(searchSection);
+				UserSearchComponent.render(searchSection, (user) => {
+					// verif si deja selectionner
+					const already = slots.some((s, idx) => idx !== i && s.user === user.displayName);
+					if (already) {
+						CommonComponent.showMessage("User alreadly selected!", 'error');
+						return;
+					}
+					// on sélectionne
+					slots[i].user = user.displayName;
+					checkReady();
+					renderSelectedUI(user);
+				}, { theme: 'dark' });
+			}
+			// UI une fois qu’on a sélectionné
+			function renderSelectedUI(user: { displayName: string; avatar: string; id: string }) {
+				slot.innerHTML = '';
+				const pill = document.createElement('div');
+				pill.className = 'flex items-center justify-between p-2 bg-purple-900/60 text-white rounded';
+				pill.innerHTML = `
+          <span>${user.displayName}</span>
+        `;
+				const deselectBtn = document.createElement('button');
+				deselectBtn.textContent = 'Deselect';
+				deselectBtn.className = 'ml-4 px-2 py-1 bg-red-600 rounded hover:bg-red-700';
+				deselectBtn.addEventListener('click', () => {
+					slots[i].user = undefined;
+					checkReady();
+					renderSearchUI();
+				});
+				pill.appendChild(deselectBtn);
+				slot.appendChild(pill);
+			}
+			renderSearchUI();
+		}
 
-      // If it's the final match, fill with winners from semi-finals
-      if (i === 2) {
-        matchups[2][0] = winners[0];
-        matchups[2][1] = winners[1];
-      }
+		slots[0].user = currentUser.displayName;
+		const first = slots[0].elem;
+		first.innerHTML = `
+      <div class="flex items-center justify-between p-2 bg-purple-900/60 text-white rounded">
+        <span>${currentUser.displayName}</span>
+      </div>
+    `;
+		checkReady();
 
-      const [leftAlias, rightAlias] = matchups[i];
-      const matchTitle = `${language_obj['Tournamentpage_match']} ${i + 1} : ${leftAlias} vs ${rightAlias}`;
+		overlay.appendChild(startBtn);
 
-      // Render match container
-      const gameContainer = TournamentRender.renderTournamentMatch(matchTitle);
+		function checkReady() {
+			const allSelected = slots.every(s => typeof s.user === 'string');
+			startBtn.disabled = !allSelected;
+		}
 
-      try {
-        // Get gameId from server
-        const gameId = await GameService.requestNewGameId();
+		startBtn.onclick = () => {
+			const players = slots.map(s => s.user!) as string[];
+			overlay.remove();
+			onComplete(players);
+		};
+	}
 
-        // Display the game ID for the match
-        const gameIdElement = document.createElement('div');
-        gameIdElement.className = 'text-sm text-gray-600 mb-4 text-center';
-        gameIdElement.textContent = `${language_obj['Tournamentpage_gameID']} ${gameId}`;
-		gameContainer.appendChild(gameIdElement);
+	static showTransitionPanel(
+		gameContainer: HTMLElement,
+		i: number,
+		matchups: [string, string][],
+		winnerAlias: string,
+		winners: string[],
+		onNext: () => void
+	) {
+		const transition = document.createElement('div');
+		transition.style.backgroundColor = "#530196";
+		transition.className = `
+      absolute flex flex-col items-center justify-center p-8
+      backdrop-blur-2xl z-50 w-[60%] h-[30%]
+      border-2 border-black
+      whitespace-nowrap
+      rounded-lg
+      shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+    `;
+		// Message principal
+		const winnerMsg = document.createElement('h2');
+		if (i === matchups.length - 1)
+			winnerMsg.textContent = "Tournament finished! 🏆";
+		else
+			winnerMsg.textContent = `${winnerAlias} wins this match!`;
+		winnerMsg.className = 'font-["Canada-big"] uppercase mb-4 text-white text-2xl';
+		transition.appendChild(winnerMsg);
 
-        // Start the match
-        startPongInContainer(
-          gameContainer,
-          matchTitle,
-          leftAlias,
-          rightAlias,
-          (winnerAlias: string) => {
-            // Match finished, proceed to next match after delay
-            setTimeout(() => {
-              winners.push(winnerAlias);
-              playMatch(i + 1);
-            }, 4000); // Give time to see winner message
-          },
-          gameId
-        );
-      } catch (error) {
-        console.error('Error starting tournament match:', error);
-        const errMsg = document.createElement('p');
-        errMsg.textContent = `${language_obj['Tournamentpage_error_server']}`;
-        errMsg.className = 'text-red-600';
-        document.body.appendChild(errMsg);
-        return;
-      }
-    }
+		// Sous message / prochain match ou résultat final
+		let nextMatchMsg = '';
+		if (i < matchups.length - 1) {
+			const [nextLeft, nextRight] =
+				i + 1 === 2
+					? [winners[0], winners[1]]
+					: matchups[i + 1];
+			nextMatchMsg = `Next Match : ${nextLeft} VS ${nextRight}`;
+		} else {
+			nextMatchMsg = `${winnerAlias} wins!`;
+		}
+		const nextMsg = document.createElement('p');
+		nextMsg.textContent = nextMatchMsg;
+		nextMsg.className = `font-["Orbitron"] text-white mt-2 text-xl`;
+		transition.appendChild(nextMsg);
 
-    // Start tournament with first match
-    await playMatch(0);
-  }
+		// Bouton play again si dernier match
+		if (i === matchups.length - 1) {
+			const info = document.createElement('button');
+			info.textContent = `Go to your stats`;
+			info.className = `
+        text-lg text-white
+        font-["Orbitron"]
+        border-2 border-black
+        py-2 px-12
+        mt-4
+        bg-blue-500 hover:bg-blue-600
+        rounded-lg text-lg transition-colors
+        focus:outline-none focus:ring-2
+        cursor-pointer
+        shadow-[4.0px_5.0px_0.0px_rgba(0,0,0,0.8)]
+        disabled:opacity-50 disabled:cursor-not-allowed
+    `;
+			info.onclick = () => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				router.navigate('/statistics');
+			};
+			setTimeout(() => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				router.navigate('/statistics');
+			}, 2000);
+			transition.appendChild(info);
+		}
+
+		gameContainer.appendChild(transition);
+		const canvas = gameContainer.querySelector('canvas');
+		if (canvas) canvas.classList.add('blur-xs');
+
+		setTimeout(() => {
+			if (canvas) canvas.classList.remove('blur-xs');
+			transition.remove();
+			if (i < matchups.length - 1) onNext();
+		}, 4000);
+	}
 }

@@ -24,7 +24,7 @@ export async function oauth2FAPage(): Promise<void> {
     //container.appendChild(loadingText);
     //document.body.appendChild(container);
 
-    // Show the existing 2FA modal
+    // Show the 2FA modal
     try {
         await AuthRender.show2FAModal(async (code, setError) => {
             console.log('🔐 Attempting OAuth 2FA verification with code:', code);

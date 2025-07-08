@@ -2,18 +2,19 @@ import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { router } from '../configs/simplerouter'
+import { language_obj } from '../index.ts';
 
 export class AuthComponent {
 
 	// Signup User main function
-	static async signupUser(name: string, password: string): Promise<boolean> {
-		if (!AuthService.validateInput(name, password)) {
+	static async signupUser(email: string, password: string): Promise<boolean> {
+		if (!AuthService.validateInput(email, password)) {
 			CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
 			return false;
 		}
 
-		const apiResponseData = await AuthService.signupUser(name, password);
+		const apiResponseData = await AuthService.signupUser(email, password);
 
 		if (apiResponseData.success) {
 			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
@@ -25,8 +26,8 @@ export class AuthComponent {
 	}
 
 	// Login user main function
-	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
-		if (!AuthService.validateInput(name, password)) {
+	static async loginUser(email: string, password: string, twoFACode?: string): Promise<any> {
+		if (!AuthService.validateInput(email, password)) {
 			// Only show error message on main page if modal is not open
 			if (!document.getElementById('twofa-modal-msg')) {
 				CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
@@ -34,9 +35,10 @@ export class AuthComponent {
 			return false;
 		}
 
-		const apiResponseData = await AuthService.loginUser(name, password, twoFACode);
+		const apiResponseData = await AuthService.loginUser(email, password, twoFACode);
 
 		if (apiResponseData.success) {
+
 			if (!document.getElementById('twofa-modal')) {
 				CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
 			}
@@ -52,6 +54,7 @@ export class AuthComponent {
 			}
 			return apiResponseData;
 		}
+
 	}
 
 	// Logout main function
@@ -86,8 +89,8 @@ export class AuthComponent {
 	}
 
 	// Validate Input avec message d'erreur
-	static validateInput(name: string, password: string): boolean {
-		if (!AuthService.validateInput(name, password)) {
+	static validateInput(email: string, password: string): boolean {
+		if (!AuthService.validateInput(email, password)) {
 			CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
 			return false;
 		}
@@ -141,6 +144,97 @@ export class AuthComponent {
 		} else {
 			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Failed to disable 2FA'}`, 'error');
 			return false;
+		}
+	}
+
+	static async signupUserWithDisplayName(email: string, password: string, displayName: string): Promise<boolean> {
+		if (!AuthService.validateInput(email, password)) {
+			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			return false;
+		}
+
+		try {
+			const response = await fetch('/api/auth/signup', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				credentials: 'include',
+				body: JSON.stringify({ email, password, displayName })
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				CommonComponent.showMessage(`✅ ${data.message || 'Account created successfully!'}`, 'success');
+				return true;
+			} else {
+				this.handleAuthError(data);
+				return false;
+			}
+		} catch (error) {
+			console.error('Signup with display name error:', error);
+			CommonComponent.showMessage('❌ Failed to create account. Please try again.', 'error');
+			return false;
+		}
+	}
+
+	static async checkAndHandleDisplayName(): Promise<{ success: boolean; userData?: any }> {
+		try {
+			// Get current user data
+			const userData = await UserService.getCurrentUser();
+
+			// Check if display name is missing or same as username
+			const needsDisplayName = !userData.displayName ||
+				userData.displayName.trim() === '' ||
+				userData.displayName === userData.email;
+
+			if (!needsDisplayName) {
+				return { success: true, userData };
+			}
+
+			// console.log('User needs display name setup');
+
+			// Show display name modal
+			const displayName = await AuthRender.showDisplayNameModal(true);
+
+			if (!displayName) {
+				// If user cancels, logout and redirect
+				await this.logoutUser();
+				router.navigate('/auth');
+				return { success: false };
+			}
+
+			// Update display name
+			const updateResult = await UserService.changeUsername(displayName);
+
+			if (updateResult.success) {
+				// CommonComponent.showMessage('✅ Display name set successfully!', 'success');
+				const updatedUserData = await UserService.getCurrentUser();
+				return { success: true, userData: updatedUserData };
+			} else {
+				// Show error and retry
+				let errorMessage = updateResult.error || 'Failed to set display name';
+
+				// Handle validation errors
+				if (updateResult.details && updateResult.details.length > 0) {
+					const validationErrors = updateResult.details
+						.map((detail: any) => detail.message)
+						.join(', ');
+					errorMessage = validationErrors;
+				}
+
+				CommonComponent.showMessage(`❌ ${errorMessage}`, 'error');
+
+				// Recursively call this method to show the modal again
+				return await this.checkAndHandleDisplayName();
+			}
+
+		} catch (error) {
+			console.error('Error checking display name:', error);
+			await this.logoutUser();
+			router.navigate('/auth');
+			return { success: false };
 		}
 	}
 }

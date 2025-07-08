@@ -1,14 +1,14 @@
 export class AuthService {
 
 	// Signup API Call
-	static async signupUser(name: string, password: string): Promise<{ success: boolean; message?: string; error?: string; details?: any[] }> {
+	static async signupUser(email: string, password: string): Promise<{ success: boolean; message?: string; error?: string; details?: any[] }> {
 		try {
 			const response = await fetch('/api/auth/signup', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ name, password })
+				body: JSON.stringify({ email, password })
 			});
 
 			const apiResponseData = await response.json();
@@ -25,9 +25,9 @@ export class AuthService {
 	}
 
 	// Login API Call
-	static async loginUser(name: string, password: string, twoFACode?: string): Promise<any> {
+	static async loginUser(email: string, password: string, twoFACode?: string): Promise<any> {
 		try {
-			const body: any = { name, password };
+			const body: any = { email, password };
 			if (twoFACode) body.twoFACode = twoFACode;
 
 			const response = await fetch('/api/auth/login', {
@@ -68,7 +68,7 @@ export class AuthService {
 
   static async SetLanguageUser(language: string): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
-      const response = await fetch('/api/users/me/:language', {
+      const response = await fetch('/api/users/me/language', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

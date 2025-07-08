@@ -7,40 +7,157 @@ datasource db {
   url      = "file:./transcendence.db"
 }
 
-model User {
-  id			Int			@id @default(autoincrement())
-  name			String		@unique
-  displayName	String?
+model	User {
+  id            String   @id @default(uuid()) // Changed from Int to String with UUID
+  email         String   @unique
+  displayName   String?
+  password_hash String
   language		String		@default("eng")
-  password_hash	String
-  provider		String		@default("local") // "local" or "google"
-  refreshToken	String?
-  twoFAEnabled	Boolean 	@default(false)
-  twoFASecret	String?
-  created_at	DateTime	@default(now())
-  updated_at	DateTime	@updatedAt
+  provider      String   @default("local")
+  refreshToken  String?
+  twoFAEnabled  Boolean  @default(false)
+  twoFASecret   String?
+  avatar        String   @default("/avatars/default.svg")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
-  // Relations
-  player1_sessions GameSession[] @relation("Player1Sessions")
-  player2_sessions GameSession[] @relation("Player2Sessions")
+  // Friendlist functions
+	messages_send			Message[]		@relation("sender")
+	messages_received		Message[]		@relation("receiver")
+	sentFriendRequests		Friendship[]	@relation("UserSentRequests")
+	receivedFriendRequests	Friendship[]	@relation("UserReceivedRequests")
+
+  // User stats
+	userStats        UserStats?
+	playerOneMatches Match[]    @relation("PlayerOne")
+	playerTwoMatches Match[]    @relation("PlayerTwo")
+
+	// Tournament
+	tournamentsWon    Tournament[]     @relation("WonTournaments")
+	tournamentEntries TournamentUser[]
+
+  // GameInvite
+  sentGameInvites     GameInvite[] @relation("Inviter")
+  receivedGameInvites GameInvite[] @relation("Invitee")
 
   @@map("users")
 }
 
+model	Message {
+	id			String		@id @default(uuid())
+	sender_id	String
+	receiver_id	String
+	created_at	DateTime	@default(now())
+	updated_at	DateTime	@updatedAt
+	content		String
+	deleted		Boolean		@default(false)
 
-model GameSession {
-  id            Int      @id @default(autoincrement())
-  player1_id    Int
-  player2_id    Int
-  player1_score Int
-  player2_score Int
-  winner_id     Int?
-  created_at    DateTime @default(now())
-  status        String   @default("completed")
+	sender		User	@relation("sender", fields: [sender_id], references: [id])
+	receiver	User	@relation("receiver", fields: [receiver_id], references: [id])
 
-  // Relations
-  player1 User @relation("Player1Sessions", fields: [player1_id], references: [id])
-  player2 User @relation("Player2Sessions", fields: [player2_id], references: [id])
+	@@map("messages")
+}
 
-  @@map("game_sessions")
+model Friendship {
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  sender   User @relation("UserSentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("UserReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("friendships")
+}
+
+enum FriendshipStatus {
+	PENDING
+	ACCEPTED
+	BLOCKED
+}
+
+model UserStats {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  oneVOneWins      Int @default(0)
+  oneVOneLosses    Int @default(0)
+  tournamentWins   Int @default(0)
+  tournamentLosses Int @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  playerOneId String
+  playerTwoId String
+  winnerId    String?
+  matchType   MatchType
+
+  playerOneScore Int @default(0)
+  playerTwoScore Int @default(0)
+
+  playedAt DateTime @default(now())
+
+  playerOne User @relation("PlayerOne", fields: [playerOneId], references: [id], onDelete: Cascade)
+  playerTwo User @relation("PlayerTwo", fields: [playerTwoId], references: [id], onDelete: Cascade)
+
+  tournamentId String?
+  tournament   Tournament? @relation("TournamentMatches", fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@map("matches")
+}
+
+enum MatchType {
+  ONE_V_ONE
+  TOURNAMENT
+}
+
+model Tournament {
+  id           String           @id @default(cuid())
+  winnerId     String?
+  participants TournamentUser[]
+  matches      Match[]          @relation("TournamentMatches")
+  winner       User?            @relation("WonTournaments", fields: [winnerId], references: [id])
+
+  playedAt DateTime @default(now())
+
+  @@map("tournaments")
+}
+
+model TournamentUser {
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+
+  rank     Int?
+  joinedAt DateTime @default(now())
+
+  @@id([tournamentId, userId])
+  @@map("tournament_users")
+}
+
+model GameInvite {
+  id        String   @id @default(uuid())
+  gameId    String
+  gameType  String   @default("duo")
+  inviterId String
+  inviteeId String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  inviter User @relation("Inviter", fields: [inviterId], references: [id])
+  invitee User @relation("Invitee", fields: [inviteeId], references: [id])
+
+  // Prevent duplicate pending invites for same game/user
+  @@unique([gameId, inviteeId, status])
+  @@map("game_invites")
 }

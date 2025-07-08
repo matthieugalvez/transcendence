@@ -1,5 +1,5 @@
 /** Identifiant d’un joueur (1 ou 2 par défaut) */
-export type PlayerId = 1 | 2;
+export type PlayerId = number;
 
 /** Direction possible pour déplacer une raquette */
 export type Direction = 'up' | 'down';
@@ -27,4 +27,6 @@ export interface GameState {
   ballVelocity: { vx: number; vy: number };
   /** Si le jeu est en cours ou en pause */
   isRunning: boolean;
+  isPaused: boolean;
+  isFreeze: boolean;
 }

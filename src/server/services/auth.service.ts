@@ -1,25 +1,48 @@
-import { prisma } from '../db'
+import { prisma } from '../db.js'
 import bcrypt from 'bcrypt'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
 
-
 export class AuthService {
-	static async createUser(name: string, password: string) {
+	static async createUser(email: string, password: string) {
 		const password_hash = await bcrypt.hash(password, 10)
 
-		return await prisma.user.create({
+		const user = await prisma.user.create({
 			data: {
-				name: name.trim(),
+				email: email.toLowerCase().trim(),
+				displayName: '',
 				password_hash
 			}
-		})
+		});
+
+		await prisma.userStats.create({
+			data: {
+				userId: user.id,
+				oneVOneWins: 0,
+				oneVOneLosses: 0,
+				tournamentWins: 0,
+				tournamentLosses: 0,
+			}
+		});
+
+		return user;
+	}
+
+	static async createGoogleUserPending(email: string, defaultName: string) {
+		return await prisma.user.create({
+			data: {
+				email: email,
+				displayName: null, // Will be set during setup
+				password_hash: '', // No password for Google users
+				provider: 'google'
+			}
+		});
 	}
 
 	/**
 	 * Update refresh token for a user
 	 */
-	static async updateRefreshToken(userId: number, refreshToken: string | null) {
+	static async updateRefreshToken(userId: string, refreshToken: string | null) {
 		return await prisma.user.update({
 			where: { id: userId },
 			data: { refreshToken }
@@ -29,11 +52,11 @@ export class AuthService {
 	/**
 	 * Verify user credentials and return user if valid
 	 */
-	static async verifyUser(name: string, password: string) {
+	static async verifyUser(email: string, password: string) {
 		try {
 			// Get the user by name
 			const user = await prisma.user.findUnique({
-				where: { name }
+				where: { email: email.toLocaleLowerCase().trim() }
 			})
 
 			// If user doesn't exist
@@ -60,7 +83,7 @@ export class AuthService {
 	/**
 	 * Invalidate all refresh tokens for a user (useful for security)
 	 */
-	static async invalidateAllTokens(userId: number) {
+	static async invalidateAllTokens(userId: string) {
 		return await prisma.user.update({
 			where: { id: userId },
 			data: { refreshToken: null }
@@ -71,7 +94,7 @@ export class AuthService {
 
 	//api/2fa/setup
 
-	static async generate2FASecret(userId: number) {
+	static async generate2FASecret(userId: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user) throw new Error('User not found');
 
@@ -80,7 +103,7 @@ export class AuthService {
 		}
 
 		const issuer = 'Transcendence';
-		const label = `${issuer}:${user.name}`;
+		const label = `${issuer}:${user.displayName}`;
 		const secret = speakeasy.generateSecret({
 			name: label,
 			issuer: issuer,
@@ -89,13 +112,13 @@ export class AuthService {
 			where: { id: userId },
 			data: { twoFASecret: secret.base32 }
 		});
-		const otpAuthUrl = secret.otpauth_url;
+		const otpAuthUrl = secret.otpauth_url || '';
 		const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
 		console.log(otpAuthUrl);
 		return { secret: secret.base32, otpAuthUrl: otpAuthUrl, qrCodeDataURL: qrCodeDataURL }
 	}
 
-	static async verify2FACode(userId: number, token: string) {
+	static async verify2FACode(userId: string, token: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user?.twoFASecret)
 			return false;
@@ -108,14 +131,14 @@ export class AuthService {
 	}
 
 	// /api/2fa/disable
-	static async enable2FA(userId: number) {
+	static async enable2FA(userId: string) {
 		await prisma.user.update({
 			where: { id: userId },
 			data: { twoFAEnabled: true }
 		});
 	}
 
-	static async disable2FA(userId: number) {
+	static async disable2FA(userId: string) {
 		const user = await prisma.user.findUnique({ where: { id: userId } });
 		if (!user) throw new Error('User not found');
 		if (!user.twoFAEnabled) {
@@ -134,10 +157,19 @@ export class AuthService {
 		// Create user without password since they login via Google
 		const user = await prisma.user.create({
 			data: {
-				name: email, // Use email as username
-				displayName: displayName || email,
+				email: email.toLocaleLowerCase().trim(), // Use email as username
+				displayName: '',
 				password_hash: '', // Empty for OAuth users
 				provider: 'google'
+			}
+		});
+		await prisma.userStats.create({
+			data: {
+				userId: user.id,
+				oneVOneWins: 0,
+				oneVOneLosses: 0,
+				tournamentWins: 0,
+				tournamentLosses: 0,
 			}
 		});
 		return user;

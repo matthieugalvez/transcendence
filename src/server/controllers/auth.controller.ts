@@ -1,35 +1,39 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { UserService } from '../services/users.service'
-import { ResponseUtils as Send } from '../utils/response.utils'
+import { UserService } from '../services/users.service.js'
+import { ResponseUtils as Send } from '../utils/response.utils.js'
 import jwt from 'jsonwebtoken'
-import authConfig from '../config/auth.config'
-import { AuthService } from '../services/auth.service'
-import OAuth2, { OAuthNamespace } from "@fastify/oauth2";
+import authConfig from '../config/auth.config.js'
+import { AuthService } from '../services/auth.service.js'
+import OAuth2 from "@fastify/oauth2";
+import { appConfig, getAuthRedirectUrl } from '../config/app.config.js';
+
 
 export class AuthController {
 	static async signup(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const { name, password } = request.body as { name: string, password: string }
+			const { email, password } = request.body as { email: string, password: string }
 
 			// Check if user already exists
-			const existingUser = await UserService.getUserByName(name)
+			const existingUser = await UserService.getUserByEmail(email)
 			if (existingUser) {
-				return Send.conflict(reply, 'Username already exists')
+				return Send.conflict(reply, 'Account already exists')
 			}
 
 
 			// Create new user
-			const user = await AuthService.createUser(name, password)
+			const user = await AuthService.createUser(email, password)
 
 			// Create new user
 
 
 			// Generate JWT tokens
+			// @ts-ignore
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
 				{ expiresIn: authConfig.secret_expires_in }
 			)
+			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
@@ -46,12 +50,12 @@ export class AuthController {
 			// Set HttpOnly cookies
 			reply.setCookie('accessToken', accessToken, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production', // Changed from secure: true
-				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 				domain: undefined,
 				path: '/',
 				maxAge: 15 * 60 * 1000
-			})
+			});
 
 			reply.setCookie('refreshToken', refreshToken, {
 				httpOnly: true,
@@ -64,11 +68,11 @@ export class AuthController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
+				email: user.email,
 				created_at: user.created_at
 			}
 
-			return Send.created(reply, userData, `Account created for: ${name}`)
+			return Send.created(reply, userData, `Account created for: ${email}`)
 
 		} catch (error) {
 			console.error('Signup error:', error)
@@ -78,12 +82,12 @@ export class AuthController {
 
 	static async login(request: FastifyRequest, reply: FastifyReply) {
 		try {
-			const { name, password, twoFACode } = request.body as { name: string, password: string, twoFACode: string }
+			const { email, password, twoFACode } = request.body as { email: string, password: string, twoFACode: string }
 
-			const user = await AuthService.verifyUser(name, password)
+			const user = await AuthService.verifyUser(email, password)
 
 			if (!user) {
-				return Send.unauthorized(reply, 'Invalid username or password')
+				return Send.unauthorized(reply, 'Invalid email or password')
 			}
 
 			if (user.twoFAEnabled) {
@@ -99,11 +103,14 @@ export class AuthController {
 			}
 
 			// Generate JWT tokens
+			// @ts-ignore
+
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
 				{ expiresIn: authConfig.secret_expires_in }
 			)
+			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
@@ -139,11 +146,11 @@ export class AuthController {
 
 			const userData = {
 				id: user.id,
-				name: user.name,
+				email: user.email,
 				created_at: user.created_at
 			}
 
-			return Send.success(reply, userData, `Successful login for: ${name}`)
+			return Send.success(reply, userData, `Successful login for: ${email}`)
 
 		} catch (error) {
 			console.error('Login error:', error)
@@ -202,7 +209,7 @@ export class AuthController {
 			}
 
 			// Verify refresh token
-			const decoded = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: number };
+			const decoded = jwt.verify(refreshToken, authConfig.refresh_secret) as { userId: string };
 
 			// Check if refresh token exists in database
 			const user = await UserService.getUserById(decoded.userId);
@@ -211,6 +218,8 @@ export class AuthController {
 			}
 
 			// Generate new access token
+			// @ts-ignore
+
 			const newAccessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
@@ -218,6 +227,8 @@ export class AuthController {
 			);
 
 			// Rotate refresh token
+			// @ts-ignore
+
 			const newRefreshToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.refresh_secret,
@@ -324,45 +335,20 @@ export class AuthController {
 	static async googleCallback(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			console.log('🔍 Google OAuth callback received');
-			// console.log('🔍 Request URL:', request.url);
-			// console.log('🔍 Request query:', request.query);
 
 			const token = await (request.server as any).GoogleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-			// console.log('🔍 Token received:', token ? '***EXISTS***' : 'MISSING');
 
-			// // 🚨 CRITICAL DEBUG: Log the actual token structure
-			// console.log('🔍 Raw token object:', token);
-			// console.log('🔍 Token type:', typeof token);
-			// console.log('🔍 Token keys:', token ? Object.keys(token) : 'NO KEYS');
-
-			// Try all possible access token locations
-			const possibleTokens = {
-				'token.access_token': token?.access_token,
-				'token.accessToken': token?.accessToken,
-				'token.token': token?.token,
-				'token.token.access_token': token?.token?.access_token,
-				'entire token as string': typeof token === 'string' ? token : null
-			};
-
-			// console.log('🔍 Possible token locations:', possibleTokens);
-
-			// Find the actual access token (apparemment google renvoie des trucs differents parfois donc c'est bizarre)
 			const googleAccessToken = token?.access_token ||
 				token?.accessToken ||
 				token?.token?.access_token ||
 				(typeof token === 'string' ? token : null);
 
-			// console.log('🔍 Google access token found:', !!googleAccessToken);
-			// console.log('🔍 Google access token preview:', googleAccessToken ? googleAccessToken.substring(0, 20) + '...' : 'NONE');
-
 			if (!googleAccessToken) {
-				console.error('❌ No Google access token found in token object');
-				console.log('🔍 Full token dump:', JSON.stringify(token, null, 2));
-				return reply.redirect('http://localhost:5173/auth?error=no_google_token');
+				console.error('❌ No Google access token found');
+				return reply.redirect(getAuthRedirectUrl('/auth?error=no_google_token'));
 			}
 
-			// Test the Google token by fetching user info
-			console.log('🔍 Fetching Google user info...');
+			// Fetch Google user info
 			const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
 				headers: {
 					'Authorization': `Bearer ${googleAccessToken}`
@@ -370,100 +356,79 @@ export class AuthController {
 			});
 
 			if (!response.ok) {
-				console.error('❌ Failed to fetch Google user info:', response.status, await response.text());
-				return reply.redirect('http://localhost:5173/auth?error=invalid_google_token');
+				console.error('❌ Failed to fetch Google user info');
+				return reply.redirect(getAuthRedirectUrl('/auth?error=invalid_google_token'));
 			}
 
-			const googleUser = await response.json();
-			console.log('✅ Google user data received:', { email: googleUser.email, name: googleUser.name });
+			const googleUser: any = await response.json();
+			console.log('✅ Google user data received:', { email: googleUser.email });
 
-			// Check if user exists or create new one
-			let user = await UserService.getUserByName(googleUser.email);
+			// Find or create user
+			let user = await UserService.getUserByEmail(googleUser.email);
 
 			if (!user) {
 				console.log('🔍 Creating new user for:', googleUser.email);
-				user = await AuthService.createGoogleUser(googleUser.email, googleUser.name || googleUser.email);
-				console.log('✅ Created new user:', user.id);
-			} else {
-				console.log('✅ Found existing user:', user.id);
+				user = await AuthService.createGoogleUser(googleUser.email, googleUser.email);
 			}
 
-			// 2FA pour le signin on cree un token d'access temporaire pour ensuite acceder a la page OAuth2FA (ou on recupere en fait les infos de l'utilisateur avec un premier login)
-			// Comme pour le login local.
-			// L'idee de faire comme ca c'est de pas permettre a qqn sans 2FA d'acceder a l'api, mais a voir si il y a pas une faille de secu ici
-			// Vu que le token temporaire est valable 1min.
+			// Handle 2FA if enabled
+			if (user.twoFAEnabled) {
+				const tempToken = jwt.sign(
+					{ userId: user.id, purpose: '2fa_pending_oauth' },
+					authConfig.secret,
+					{ expiresIn: '10m' }
+				);
 
-			 if (user.twoFAEnabled) {
-            console.log('🔐 User has 2FA enabled, creating temporary session');
+				reply.setCookie('tempOAuthAuth', tempToken, {
+					httpOnly: true,
+					secure: true, // Always true in production
+					sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
+					path: '/',
+					maxAge: 10 * 60 * 1000
+				});
 
-            // Create a temporary token for 2FA verification
-            const tempToken = jwt.sign(
-                { userId: user.id, purpose: '2fa_pending_oauth' },
-                authConfig.secret,
-                { expiresIn: '1m' } // 1 minutes to complete 2FA
-            );
+				return reply.redirect(getAuthRedirectUrl('/auth/oauth-2fa'));
+			}
 
-            // Set temporary cookie and redirect to 2FA verification page
-            reply.setCookie('tempOAuthAuth', tempToken, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                path: '/',
-                maxAge: 1 * 60 * 1000 // 1 minutes
-            });
-
-            console.log('🔐 Redirecting to OAuth 2FA page');
-            return reply.redirect('http://localhost:5173/auth/oauth-2fa');
-        }
-
-        // Continue with normal JWT token generation if no 2FA...
-        console.log('🔍 Generating JWT tokens...');
-        // ...rest of existing code...
+			// Generate JWT tokens
 			const jwtAccessToken = jwt.sign(
 				{ userId: user.id },
-				authConfig.secret,
-				{ expiresIn: authConfig.secret_expires_in }
+				authConfig.secret as string,
+				{ expiresIn: authConfig.secret_expires_in as any }
 			);
 
 			const jwtRefreshToken = jwt.sign(
 				{ userId: user.id },
-				authConfig.refresh_secret,
-				{ expiresIn: authConfig.refresh_secret_expires_in }
+				authConfig.refresh_secret as string,
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
 			);
 
-			console.log('🔍 JWT tokens generated successfully');
-			console.log('🔍 JWT Access token preview:', jwtAccessToken.substring(0, 30) + '...');
-
-			// Store refresh token in database
+			// Store refresh token
 			await AuthService.updateRefreshToken(user.id, jwtRefreshToken);
-			console.log('✅ Refresh token stored in database');
 
-			// Set JWT cookies (these are your app's auth tokens)
+			// Set cookies with correct settings for production
 			reply.setCookie('accessToken', jwtAccessToken, {
 				httpOnly: true,
-				secure: false, // localhost
-				sameSite: 'lax',
+				secure: true, // Always true in production
+				sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
 				path: '/',
 				maxAge: 15 * 60 * 1000
 			});
 
 			reply.setCookie('refreshToken', jwtRefreshToken, {
 				httpOnly: true,
-				secure: false, // localhost
-				sameSite: 'lax',
+				secure: true, // Always true in production
+				sameSite: 'lax', // Changed from 'strict' to 'lax' for OAuth
 				path: '/',
 				maxAge: 24 * 60 * 60 * 1000
 			});
 
 			console.log('🍪 JWT cookies set successfully');
-			console.log('🔄 Redirecting to frontend home page...');
-
-			// Redirect to frontend
-			return reply.redirect('http://localhost:5173/home');
+			return reply.redirect(getAuthRedirectUrl('/home'));
 
 		} catch (error) {
 			console.error('❌ Google OAuth callback error:', error);
-			return reply.redirect('http://localhost:5173/auth?error=oauth_failed');
+			return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_failed'));
 		}
 	}
 
@@ -472,20 +437,45 @@ export class AuthController {
 	static async googleSignin(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			console.log('🔍 Initiating Google OAuth signin...');
+			console.log('Request URL:', request.url);
+			console.log('Request method:', request.method);
 
-
+			// Access the OAuth2 plugin
 			const oauth2 = (request.server as any).GoogleOAuth2;
 
 			if (!oauth2) {
 				console.error('❌ GoogleOAuth2 plugin not available');
-				return reply.redirect('/auth?error=oauth_not_configured');
+				console.log('Available plugins on server:', Object.keys(request.server));
+				return reply.redirect(getAuthRedirectUrl('/auth?error=oauth_not_configured'));
 			}
 
-			return oauth2.generateAuthorizationUri(request, reply);
+			console.log('✅ OAuth2 plugin found');
+
+			try {
+				const authResult = oauth2.generateAuthorizationUri(request, reply);
+
+				// Check if it's a Promise
+				if (authResult && typeof authResult.then === 'function') {
+					console.log('🔄 Awaiting authorization URI generation...');
+					const authorizationUri = await authResult;
+					console.log('🔗 Generated authorization URI:', authorizationUri);
+					return reply.redirect(authorizationUri);
+				} else if (typeof authResult === 'string') {
+					console.log('🔗 Generated authorization URI:', authResult);
+					return reply.redirect(authResult);
+				} else {
+					// If generateAuthorizationUri doesn't return a URL, it might handle the redirect internally
+					console.log('🔄 OAuth2 plugin handling redirect internally');
+					return authResult;
+				}
+			} catch (uriError) {
+				console.error('❌ Error generating authorization URI:', uriError);
+				throw uriError;
+			}
 
 		} catch (error) {
 			console.error('❌ Google signin initiation error:', error);
-			return reply.redirect('/auth?error=google_signin_failed');
+			return reply.redirect(getAuthRedirectUrl('/auth?error=google_signin_failed'));
 		}
 	}
 
@@ -500,7 +490,7 @@ export class AuthController {
 
 			// Verify temporary token is valid
 			try {
-				const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+				const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: string, purpose: string };
 
 				if (decoded.purpose !== '2fa_pending_oauth') {
 					return Send.unauthorized(reply, 'Invalid OAuth session');
@@ -532,7 +522,7 @@ export class AuthController {
 			}
 
 			// Verify temporary token
-			const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: number, purpose: string };
+			const decoded = jwt.verify(tempOAuthAuth, authConfig.secret) as { userId: string, purpose: string };
 
 			if (decoded.purpose !== '2fa_pending_oauth') {
 				return Send.unauthorized(reply, 'Invalid verification session');
@@ -551,16 +541,19 @@ export class AuthController {
 			}
 
 			// Generate actual JWT tokens (same logic as in googleCallback)
+			// @ts-ignore
+
 			const accessToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.secret,
-				{ expiresIn: authConfig.secret_expires_in }
+				{ expiresIn: authConfig.secret_expires_in as any }
 			);
+			// @ts-ignore
 
 			const refreshToken = jwt.sign(
 				{ userId: user.id },
 				authConfig.refresh_secret,
-				{ expiresIn: authConfig.refresh_secret_expires_in }
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
 			);
 
 			// Store refresh token and set cookies
@@ -585,11 +578,94 @@ export class AuthController {
 			// Clear temporary auth cookie
 			reply.setCookie('tempOAuthAuth', '', { maxAge: 0 });
 
-			return Send.success(reply, { id: user.id, name: user.name }, 'OAuth 2FA verification successful');
+			return Send.success(reply, { id: user.id, email: user.email }, 'OAuth 2FA verification successful');
 
 		} catch (error) {
 			console.error('OAuth 2FA verify error:', error);
 			return Send.internalError(reply, 'Failed to verify 2FA');
 		}
 	}
+
+	// DEPRECATED
+	static async signupWithDisplayName(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { email, password, displayName } = request.body as {
+				email: string;
+				password: string;
+				displayName: string;
+			};
+
+			// Check if user already exists
+			const existingUser = await UserService.getUserByEmail(email);
+			if (existingUser) {
+				return Send.conflict(reply, 'Username already exists');
+			}
+
+			const isDisplayNameTaken = await UserService.isDisplayNameTaken(displayName);
+			if (isDisplayNameTaken) {
+				return Send.conflict(reply, 'Display name is already taken')
+			}
+
+
+
+			// Create user with display name - use the same pattern as regular signup
+			const user = await AuthService.createUser(email, password)
+
+			// Generate JWT tokens - use same pattern as regular signup
+			// @ts-ignore
+
+			const accessToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.secret,
+				{ expiresIn: authConfig.secret_expires_in as any }
+			);
+			// @ts-ignore
+
+			const refreshToken = jwt.sign(
+				{ userId: user.id },
+				authConfig.refresh_secret,
+				{ expiresIn: authConfig.refresh_secret_expires_in as any }
+			);
+
+			// Store refresh token in database
+			await AuthService.updateRefreshToken(user.id, refreshToken);
+
+			console.log('🍪 Setting cookies for new user with display name:', user.id);
+
+			// Set HttpOnly cookies - use same pattern as regular signup
+			reply.setCookie('accessToken', accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				domain: undefined,
+				path: '/',
+				maxAge: 15 * 60 * 1000
+			});
+
+			reply.setCookie('refreshToken', refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				domain: undefined,
+				path: '/',
+				maxAge: 24 * 60 * 60 * 1000
+			});
+
+			const userData = {
+				id: user.id,
+				email: user.email,
+				displayName: user.displayName,
+				created_at: user.created_at
+			};
+
+			return Send.created(reply, userData, `Account created for: ${email}`);
+
+		} catch (error) {
+			console.error('Signup with display name error:', error);
+			return Send.internalError(reply, 'Failed to create account');
+		}
+	}
+
+
+
 }

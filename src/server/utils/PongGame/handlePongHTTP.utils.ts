@@ -1,13 +1,27 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { GameInstance } from '../../game/gameInstance';
-import { gamesMap } from '../../routes/game.routes'
+import { createGameRoom, getGameRoom } from '../../game/gameRooms.js';
+import { createTournamentRoom, getTournamentRoom } from '../../game/tournamentRooms.js';
 
 /** Création d’une nouvelle partie via HTTP (pour CLI) */
 export async function handleStartGame(request: FastifyRequest, reply: FastifyReply) {
   const gameId = uuidv4();
-  const game = new GameInstance(gameId);
-  gamesMap.set(gameId, game);
+  let difficulty = (request.body as any)?.difficulty || 'MEDIUM';
+  let game = getGameRoom(gameId);
+  if (!game) {
+    game = createGameRoom(gameId, difficulty);
+  }
+  return reply.send({ success: true, gameId });
+}
+
+/** Démarrer un TOURNOI (4 joueurs) */
+export async function handleStartTournament(req: FastifyRequest, reply: FastifyReply) {
+  const gameId = uuidv4();
+  const difficulty = (req.body as any)?.difficulty || 'MEDIUM';
+  let tour = getTournamentRoom(gameId);
+  if (!tour) {
+    tour = createTournamentRoom(gameId, difficulty);
+  }
   return reply.send({ success: true, gameId });
 }
 
@@ -18,7 +32,7 @@ export async function handleMove(request: FastifyRequest, reply: FastifyReply) {
     playerId: 1 | 2;
     action: 'up' | 'down';
   };
-  const game = gamesMap.get(gameId);
+  const game = getGameRoom(gameId);
   if (!game) {
     return reply.code(404).send({ success: false, error: 'Game not found' });
   }

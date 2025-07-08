@@ -1,124 +1,114 @@
-import { CommonComponent } from '../components/common.component';
 import { UserService } from '../services/user.service';
+import { GameState } from '../types/game.types.js';
 const	language_obj = await UserService.GetLanguageFile();
 
-export class GameRender {
-  /**
-   * Render the game page with player inputs and controls
-   */
-  static renderGamePage(): {
-    container: HTMLDivElement;
-    player1Input: HTMLInputElement;
-    player2Input: HTMLInputElement;
-    startButton: HTMLButtonElement;
-  } {
-    document.title = `${language_obj['Gamepage_title']}`;
-    document.body.className = 'bg-gray-100 font-sans min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.innerHTML = '';
+// --- Fonctions utilitaires de dessin ---
+function drawRoundedRect(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	radius: number,
+	borderColor?: string,
+	borderWidth: number = 4
+) {
+	ctx.beginPath();
+	ctx.moveTo(x + radius, y);
+	ctx.lineTo(x + width - radius, y);
+	ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+	ctx.lineTo(x + width, y + height - radius);
+	ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+	ctx.lineTo(x + radius, y + height);
+	ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+	ctx.lineTo(x, y + radius);
+	ctx.quadraticCurveTo(x, y, x + radius, y);
+	ctx.closePath();
+	ctx.fill();
+	if (borderColor) {
+		ctx.strokeStyle = borderColor;
+		ctx.lineWidth = borderWidth;
+		ctx.shadowBlur = 0;
+		ctx.stroke();
+	}
+}
 
-    // Main container
-    const container = document.createElement('div');
-    container.className = 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-8';
-    document.body.appendChild(container);
+function drawPaddle(ctx: CanvasRenderingContext2D, rect, color, borderColor) {
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = color;
+  drawRoundedRect(ctx, rect.x, rect.y, rect.width, rect.height, 5, borderColor, 1.5);
+}
 
-    // Title
-    const title = CommonComponent.createHeading(`${language_obj['Gamepage_game_heading']}`, 1, 'text-3xl font-bold text-gray-800 mb-8 text-center');
-    container.appendChild(title);
+function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) {
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+}
 
-    // Player input form
-    const formContainer = CommonComponent.createContainer('bg-white rounded-lg shadow-lg p-6 mb-6');
+// --- Fonction principale de rendu ---
+export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): void {
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	drawPaddle(ctx, state.paddle1, "#FFA940", "#ffc56e");
+	drawPaddle(ctx, state.paddle2, "#B946EF", "#d579fc");
+	drawBall(ctx, state.ball.x, state.ball.y, state.ball.radius);
 
-    const player1Label = CommonComponent.createLabel(`${language_obj['Gamepage_P1name_label']}`);
-    const player1Input = CommonComponent.createInput('text', `${language_obj['Gamepage_P1name_input']}`);
+  // Affichage de "Paused" si jeu en pause
+	if (state.isPaused) {
+		ctx.globalAlpha = 0.7;
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, ctx.canvas.height / 2 - 60, ctx.canvas.width, 120);
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = "#FFF";
+		ctx.font = "70px Orbitron, sans-serif";
+		ctx.textAlign = "center";
+		ctx.fillText("PAUSED", ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
+	}
+}
 
-    const player2Label = CommonComponent.createLabel(`${language_obj['Gamepage_P2name_label']}`);
-    const player2Input = CommonComponent.createInput('text', `${language_obj['Gamepage_P2name_input']}`);
+export function drawScores(ctx: CanvasRenderingContext2D, score1: number, score2: number) {
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    const startButton = CommonComponent.createButton(`${language_obj['Gamepage_start_button']}`);
-    startButton.disabled = true;
-    startButton.className += ' disabled:opacity-50 disabled:cursor-not-allowed';
+	const xCenter = ctx.canvas.width / 2;
+	const score1Text = score1.toString();
+	const score2Text = score2.toString();
+	const score1Width = ctx.measureText(score1Text).width;
+	const gap = 60;
+	const y = 90;
 
-    formContainer.appendChild(player1Label);
-    formContainer.appendChild(player1Input);
-    formContainer.appendChild(player2Label);
-    formContainer.appendChild(player2Input);
-    formContainer.appendChild(startButton);
+	// Score gauche
+	ctx.shadowColor = '#8024ab';
+	ctx.strokeStyle = 'purple';
+	ctx.lineWidth = 3;
+	ctx.strokeText(score1Text, xCenter - gap - score1Width, y);
+	ctx.fillText(score1Text, xCenter - gap - score1Width, y);
 
-    container.appendChild(formContainer);
+	// Score droit
+	ctx.shadowColor = '#FFA940';
+	ctx.strokeStyle = '#db8e30';
+	ctx.lineWidth = 2;
+	ctx.strokeText(score2Text, xCenter + gap, y);
+	ctx.fillText(score2Text, xCenter + gap, y);
+}
 
-    // Instructions
-    const instructions = document.createElement('div');
-    instructions.className = 'text-center text-gray-600 mb-4';
-    instructions.innerHTML = `
-      <p class="mb-2"><strong>Controls:</strong></p>
-      <p>Player 1: W (up) / S (down)</p>
-      <p>Player 2: ↑ (up) / ↓ (down)</p>
-    `;
-    container.appendChild(instructions);
+function drawCenterLine(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = '#FFA940';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 18]);
+  ctx.beginPath();
+  ctx.moveTo(ctx.canvas.width / 2, 0);
+  ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
 
-    return {
-      container,
-      player1Input,
-      player2Input,
-      startButton
-    };
-  }
-
-  /**
-   * Render the game canvas and controls
-   */
-  static renderGameCanvas(container: HTMLDivElement, player1Name: string, player2Name: string): HTMLCanvasElement {
-    // Clear form content but keep container
-    const formContainer = container.querySelector('.bg-white');
-    if (formContainer) {
-      formContainer.remove();
-    }
-
-    // Game title with player names
-    const gameTitle = document.createElement('h2');
-    gameTitle.textContent = `${player1Name} vs ${player2Name}`;
-    gameTitle.className = 'text-2xl font-semibold text-center mb-4';
-    container.appendChild(gameTitle);
-
-    // Canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.className = 'border border-gray-400 bg-black';
-    container.appendChild(canvas);
-
-    // Back button
-    const backButton = CommonComponent.createButton('Back to Setup');
-    backButton.className = 'mt-4 bg-gray-600 hover:bg-gray-700';
-    container.appendChild(backButton);
-
-    return canvas;
-  }
-
-  /**
-   * Show game over screen
-   */
-  static renderGameOver(container: HTMLDivElement, winnerName: string): void {
-    // Clear existing content except title
-    const children = Array.from(container.children);
-    children.forEach((child, index) => {
-      if (index > 0) { // Keep the first child (title)
-        child.remove();
-      }
-    });
-
-    const winnerDiv = document.createElement('div');
-    winnerDiv.className = 'text-center bg-white rounded-lg shadow-lg p-8';
-
-    const winnerText = CommonComponent.createHeading(`🏆 ${winnerName} Wins!`, 2, 'text-3xl font-bold text-green-600 mb-4');
-    const playAgainBtn = CommonComponent.createButton('Play Again');
-    const homeBtn = CommonComponent.createButton('Back to Home');
-    homeBtn.className = 'ml-4 bg-gray-600 hover:bg-gray-700';
-
-    winnerDiv.appendChild(winnerText);
-    winnerDiv.appendChild(playAgainBtn);
-    winnerDiv.appendChild(homeBtn);
-
-    container.appendChild(winnerDiv);
-  }
+export function drawBackground(ctx: CanvasRenderingContext2D) {
+	const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, ctx.canvas.height);
+	gradient.addColorStop(0, "#8136c2");   // violet
+	gradient.addColorStop(0.5, "#b946ef"); // magenta
+	gradient.addColorStop(1, "#ffb36c");   // orange
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	drawCenterLine(ctx);
 }

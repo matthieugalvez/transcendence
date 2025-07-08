@@ -2,23 +2,23 @@ import logo from '../assets/logo.png';
 import { CommonComponent } from '../components/common.component';
 import { BackgroundComponent } from '../components/background.component';
 import { AuthService } from '../services/auth.service';
-import { GoogleService } from '../services/google.service'
+import { GoogleService } from '../services/google.service';
 import { UserService } from '../services/user.service';
-const	language_obj = await UserService.GetLanguageFile();
+import { language_obj } from '../index.ts';
 
 export class AuthRender {
 	/**
 	 * Render the complete signup/login page
 	 */
 	static renderSignupPage(): {
-		nameInput: HTMLInputElement;
+		emailInput: HTMLInputElement;
 		passwordInput: HTMLInputElement;
 		signupButton: HTMLButtonElement;
 		loginButton: HTMLButtonElement;
 	} {
 		// Set document title and body styles to match HomePage
-	document.title = `${language_obj['Authpage_title']}`;
-		document.body.innerHTML = '';
+		document.title = `${language_obj['Authpage_title']}`;
+		//document.body.innerHTML = '';
 
 		// Apply centered gradient layout using BackgroundComponent
 		BackgroundComponent.applyCenteredGradientLayout();
@@ -93,7 +93,7 @@ export class AuthRender {
 	 * Create form elements (inputs and buttons)
 	 */
 	private static createFormElements(container: HTMLElement): {
-		nameInput: HTMLInputElement;
+		emailInput: HTMLInputElement;
 		passwordInput: HTMLInputElement;
 		signupButton: HTMLButtonElement;
 		loginButton: HTMLButtonElement;
@@ -101,22 +101,22 @@ export class AuthRender {
 		const inputContainer = document.createElement('div');
 		inputContainer.className = 'text-center mb-6';
 
-    // Name input and label with gaming theme
-    const nameLabel = CommonComponent.createLabel(`${language_obj['Authpage_name_label']}`);
-    const nameInput = CommonComponent.createInput('text', `${language_obj['Authpage_name_input']}`);
+		// Name input and label with gaming theme
+		const emailLabel = CommonComponent.createLabel('Email');
+		const emailInput = CommonComponent.createInput('email', 'Enter your email');
 
     // Password input and label with gaming theme
-    const passwordLabel = CommonComponent.createLabel(`${language_obj['Authpage_password_label']}`);
-    const passwordInput = CommonComponent.createInput('password', `${language_obj['Authpage_password_input']}`);
+		const passwordLabel = CommonComponent.createLabel(`${language_obj['Authpage_password_label']}`);
+		const passwordInput = CommonComponent.createInput('password', `${language_obj['Authpage_password_input']}`);
 
 		// Button container
 		const buttonContainer = document.createElement('div');
 		buttonContainer.className = 'flex gap-4 justify-center mt-6';
 
     // Create buttons with gaming theme
-    const loginButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_login_button']}`, 'blue');
-    const signupButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_signup_button']}`, 'purple');
-	const googleButton = this.createGoogleSigninButton();
+		const loginButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_login_button']}`, 'blue');
+		const signupButton = CommonComponent.createStylizedButton(`${language_obj['Authpage_signup_button']}`, 'purple');
+		const googleButton = this.createGoogleSigninButton();
 
 
 		// Append buttons to container
@@ -125,8 +125,8 @@ export class AuthRender {
 
 
 		// Append all elements to input container
-		inputContainer.appendChild(nameLabel);
-		inputContainer.appendChild(nameInput);
+		inputContainer.appendChild(emailLabel);
+		inputContainer.appendChild(emailInput);
 		inputContainer.appendChild(passwordLabel);
 		inputContainer.appendChild(passwordInput);
 		inputContainer.appendChild(buttonContainer);
@@ -140,7 +140,7 @@ export class AuthRender {
 		container.appendChild(inputContainer);
 
 		return {
-			nameInput,
+			emailInput,
 			passwordInput,
 			signupButton,
 			loginButton
@@ -392,14 +392,137 @@ export class AuthRender {
 				resolve(null);
 			});
 
-			// overlay.addEventListener('click', (e) => {
-			// 	if (e.target === overlay) {
-			// 		document.body.removeChild(overlay);
-			// 		resolve(null);
-			// 	}
-			// });
-
 			input.focus();
+		});
+	}
+
+	static showDisplayNameModal(isGoogleUser: boolean = false): Promise<string | null> {
+		return new Promise((resolve) => {
+			// Create overlay with blur
+			const overlay = document.createElement('div');
+			overlay.style.position = 'fixed';
+			overlay.style.top = '0';
+			overlay.style.left = '0';
+			overlay.style.width = '100vw';
+			overlay.style.height = '100vh';
+			overlay.style.background = 'rgba(0,0,0,0.35)';
+			overlay.style.backdropFilter = 'blur(6px)';
+			overlay.style.display = 'flex';
+			overlay.style.justifyContent = 'center';
+			overlay.style.alignItems = 'center';
+			overlay.style.zIndex = '1000';
+
+			// Create modal container
+			const modal = CommonComponent.createContainer(`
+                bg-white/90 backdrop-blur-md
+                border-2 border-black
+                rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+                max-w-md w-full mx-4 text-center
+            `);
+
+			// Title
+			const title = CommonComponent.createHeading(
+				isGoogleUser ? 'Complete Your Sign-Up' : 'Choose Your Display Name',
+				2,
+				`
+                    font-['Canada-big'] uppercase font-bold
+                    text-xl text-center mb-2
+                    bg-gradient-to-r from-[#7101b2] to-[#ffae45f2]
+                    bg-clip-text text-transparent
+                    select-none
+                `
+			);
+			title.style.letterSpacing = "0.1em";
+			modal.appendChild(title);
+
+			// Description
+			const description = document.createElement('p');
+			description.textContent = isGoogleUser
+				? 'Please choose a display name for your account'
+				: 'This will be shown to other players';
+			description.className = 'text-gray-600 mb-4';
+			modal.appendChild(description);
+
+			// Input
+			const input = CommonComponent.createInput('text', 'Enter your display name');
+			input.id = 'displayname-input';
+			input.style.marginTop = '1rem';
+			modal.appendChild(input);
+
+			// Error message
+			const errorMsg = document.createElement('div');
+			errorMsg.id = 'displayname-error-msg';
+			errorMsg.className = 'text-red-600 font-semibold mt-2 text-center';
+			modal.appendChild(errorMsg);
+
+			// Buttons
+			const buttonContainer = document.createElement('div');
+			buttonContainer.className = 'flex gap-4 justify-center mt-6';
+
+			const submitButton = CommonComponent.createStylizedButton('Continue', 'blue');
+
+			buttonContainer.appendChild(submitButton);
+
+			// Only show cancel if not required
+
+			modal.appendChild(buttonContainer);
+			overlay.appendChild(modal);
+			document.body.appendChild(overlay);
+
+			// Event listeners
+			input.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') {
+					submitButton.click();
+				}
+			});
+
+			submitButton.addEventListener('click', async () => {
+				const displayName = input.value.trim();
+
+				// Clear previous error
+				errorMsg.textContent = '';
+
+				// Basic validation
+				if (!displayName) {
+					errorMsg.textContent = 'Please enter a display name';
+					return;
+				}
+				if (displayName.length < 3) {
+					errorMsg.textContent = 'Display name must be at least 3 characters';
+					return;
+				}
+				if (displayName.length > 12) {
+					errorMsg.textContent = 'Display name must be less than 12 characters';
+					return;
+				}
+
+				// Disable button during check
+				submitButton.disabled = true;
+				submitButton.textContent = 'Checking...';
+
+				try {
+					const availabilityResult = await UserService.checkDisplayNameAvailability(displayName);
+
+					// console.log('🔍 Display name availability result:', availabilityResult);
+
+					if (availabilityResult.available) {
+						// Display name is available, close modal
+						document.body.removeChild(overlay);
+						resolve(displayName);
+					} else {
+						// Display name is taken
+						errorMsg.textContent = availabilityResult.message || 'Display name is already taken';
+						submitButton.disabled = false;
+						submitButton.textContent = 'Continue';
+					}
+
+				} catch (error) {
+					console.error('Error checking display name:', error);
+					errorMsg.textContent = 'Failed to check availability. Please try again.';
+					submitButton.disabled = false;
+					submitButton.textContent = 'Continue';
+				}
+			});
 		});
 	}
 }
