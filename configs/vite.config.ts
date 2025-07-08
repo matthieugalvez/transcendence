@@ -34,6 +34,7 @@ export default defineConfig({
 	build: {
 		outDir: '../../dist',
 		emptyOutDir: true,
+		target: 'esnext',
 		sourcemap: false,
 		rollupOptions: {
 			input: {
@@ -52,5 +53,8 @@ export default defineConfig({
 			'@': resolve(__dirname, '../src/client'),
 			'@assets': resolve(__dirname, '../src/client/assets')
 		}
+	},
+	esbuild: {
+		target: 'esnext'
 	}
 })
