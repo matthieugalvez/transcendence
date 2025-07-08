@@ -266,11 +266,11 @@ export async function renderPongGamePage() {
 											socket.send(JSON.stringify({ action: pauseState.value ? 'pause' : 'resume' }));
 										}
 									},
-									onDifficultyChange: (difficulty) => {
-										if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
-											pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-										}
-									},
+									// onDifficultyChange: (difficulty) => {
+									// 	if (pongHandle && pongHandle.socket && pongHandle.socket.readyState === pongHandle.socket.OPEN) {
+									// 		pongHandle.socket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+									// 	}
+									// },
 									onRestartGame: () => renderPongGamePage()
 								});
 								settingsContainer.innerHTML = '';

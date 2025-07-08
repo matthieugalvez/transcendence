@@ -66,11 +66,11 @@ export async function renderTournamentPage() {
 								}
 						},
 						onRestartGame: () => renderTournamentPage(),
-						onDifficultyChange: (difficulty) => {
-								if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
-										currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
-								}
-						},
+						// onDifficultyChange: (difficulty) => {
+						// 		if (currentMatchSocket && currentMatchSocket.readyState === currentMatchSocket.OPEN) {
+						// 				currentMatchSocket.send(JSON.stringify({ action: 'difficulty', difficulty }));
+						// 		}
+						// },
 				});
                 settingsContainer.innerHTML = '';
                 settingsContainer.appendChild(newBar);
