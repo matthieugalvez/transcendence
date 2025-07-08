@@ -1,5 +1,6 @@
 import { UserService } from '../services/user.service';
 import { CommonComponent } from './common.component';
+import { language_obj } from '../index.ts';
 
 export class UserComponent {
 static async saveSettings(): Promise<void> {
@@ -31,7 +32,7 @@ static async saveSettings(): Promise<void> {
             const usernameResult = await UserService.changeUsername(newUsername);
             if (usernameResult.success) {
                 hasChanges = true;
-                successes.push('✅ Display name updated successfully!');
+                successes.push(`✅ ${language_obj['Display_name_success']}`);
                 usernameInput.value = ''; // Clear the input
 				setTimeout(() => {
 					window.location.reload();
@@ -48,7 +49,7 @@ static async saveSettings(): Promise<void> {
             const passwordResult = await UserService.changePassword(newPassword);
             if (passwordResult.success) {
                 hasChanges = true;
-                successes.push('✅ Password updated successfully!');
+                successes.push(`✅ ${language_obj['Authpage_password_success']}`);
                 passwordInput.value = ''; // Clear the input
             } else {
                 // Handle detailed validation errors for password - same as AuthComponent
@@ -93,7 +94,7 @@ static async saveSettings(): Promise<void> {
             errors.push(...validationErrors);
         } else {
             // Handle simple error message
-            const errorMessage = apiResponseData.error || `Failed to update ${fieldName.toLowerCase()}`;
+            const errorMessage = apiResponseData.error || `${language_obj['Authpage_update_error']} ${fieldName.toLowerCase()}`;
             errors.push(`❌ ${fieldName} ${errorMessage}`);
         }
     }
