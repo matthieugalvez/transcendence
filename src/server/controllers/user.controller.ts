@@ -5,9 +5,10 @@ import { pipeline } from 'stream';
 import { promisify } from 'util';
 import path from 'path'; // Add this import
 import fs from 'fs';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 const pump = promisify(pipeline); // Add this line
-
 
 export class UserController {
 	static async getAllUsers(request: FastifyRequest, reply: FastifyReply) {
@@ -44,6 +45,46 @@ export class UserController {
 		} catch (error) {
 			console.error('Error checking user existence:', error)
 			return Send.internalError(reply, 'Failed to check user')
+		}
+	}
+
+	static async	getLanguageFile(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			var		language: string
+			const	userId = (request as any).userId;
+			if (userId) {
+				const	user = await UserService.getUserById(userId);
+				if (!user) {
+					return;
+				}
+				language = user.language;
+			}
+			else {
+				language = 'eng'
+			}
+			const	fs = require(`../locales/${language}.json`);
+//			console.log("File data:", fs);
+
+			return Send.success(reply, fs, 'Language file retrieved successfully');
+		}
+		catch (error) {
+			console.error('Error retrieving language file:', error)
+			return Send.internalError(reply, 'Failed to retrieve language file')
+		}
+	}
+
+	static async	setUserLanguage(request: FastifyRequest, reply: FastifyReply) {
+		const { language } = request.body as { language: string };
+		const userId = (request as any).userId;
+		try {
+			if (userId) {
+				await UserService.setUserLanguage(userId, language);
+			}
+			return Send.success(reply, `User language changed to ${language}`);
+		}
+		catch (error) {
+			console.error(`Could not change language for ${userId.name}`, error);
+			return Send.internalError(reply, 'Failed to change language');
 		}
 	}
 
@@ -379,6 +420,4 @@ export class UserController {
 		const online = UserOnline.isUserOnline(userId);
 		return reply.send({ success: true, online });
 	}
-
-
 }

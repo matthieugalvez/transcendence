@@ -12,6 +12,8 @@ import { ProfilePage } from './pages/UserProfilePage';
 import { UsersPage } from './pages/UserPage';
 import { FriendsPage } from './pages/FriendListPage'
 import { StatsPage } from './pages/StatsPage';
+import { UserService } from './services/user.service';
+export const	language_obj = await UserService.GetLanguageFile();
 
 let isShowingViewportWarning = false;
 

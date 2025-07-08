@@ -2,6 +2,7 @@ import { CommonComponent } from './common.component';
 import { UserSearchComponent } from './usersearch.component';
 import { router } from '../configs/simplerouter';
 import { UserService } from '../services/user.service';
+import { language_obj } from '../index.ts';
 
 export class TournamentComponent {
 	/**

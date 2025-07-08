@@ -1,9 +1,9 @@
 import '../styles.css';
 import { router } from '../configs/simplerouter';
-import { AuthRender } from '../renders/auth.render';
-import { AuthComponent } from '../components/auth.component';
 import { ApiClient } from '../utils/apiclient.utils';
 import { CommonComponent } from '../components/common.component';
+import { AuthRender } from '../renders/auth.render';
+import { AuthComponent } from '../components/auth.component';
 
 let emailInput: HTMLInputElement;
 let passwordInput: HTMLInputElement;

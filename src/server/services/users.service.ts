@@ -32,6 +32,13 @@ export class UserService {
 		});
 	}
 
+	static async	setUserLanguage(userId: string, new_language: string) {
+		return await prisma.user.update({
+			where: { id: userId },
+			data: { language: new_language }
+		})
+	}
+
 	static async updateUserName(userId: string, newDisplayName: string): Promise<User | null> {
 		try {
 			// Validation is handled by middleware, so we can remove it here

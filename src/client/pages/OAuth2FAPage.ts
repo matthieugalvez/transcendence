@@ -2,6 +2,8 @@ import { AuthRender } from '../renders/auth.render';
 import { CommonComponent } from '../components/common.component';
 import { router } from '../configs/simplerouter';
 import { BackgroundComponent } from '../components/background.component';
+import { UserService } from '../services/user.service';
+import { language_obj } from '../index.ts';
 
 export async function oauth2FAPage(): Promise<void> {
     console.log('🔐 OAuth 2FA page loaded');
@@ -13,7 +15,7 @@ export async function oauth2FAPage(): Promise<void> {
     }
 
     // Set up the page background
-    document.title = 'Transcendence - 2FA Verification';
+    document.title = `${language_obj['Auth2FApage_title']}`;
     document.body.innerHTML = '';
 
     // Create a simple background container
@@ -39,7 +41,7 @@ export async function oauth2FAPage(): Promise<void> {
                 console.log('🔐 OAuth 2FA verification response:', data);
 
                 if (data.success) {
-                    CommonComponent.showMessage('✅ Google Sign-In successful', 'success');
+                    CommonComponent.showMessage(`${language_obj['Auth2FApage_GoogleSIsuccess']}`, 'success');
                     setTimeout(() => {
                         router.navigate('/home');
                     }, 500);

@@ -1,15 +1,16 @@
 import { CommonComponent } from './common.component';
 import { AuthService } from '../services/auth.service';
 import { AuthRender } from '../renders/auth.render'
-import { router } from '../configs/simplerouter'
 import { UserService } from '../services/user.service';
+import { router } from '../configs/simplerouter'
+import { language_obj } from '../index.ts';
 
 export class AuthComponent {
 
 	// Signup User main function
 	static async signupUser(email: string, password: string): Promise<boolean> {
 		if (!AuthService.validateInput(email, password)) {
-			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
 			return false;
 		}
 
@@ -29,7 +30,7 @@ export class AuthComponent {
 		if (!AuthService.validateInput(email, password)) {
 			// Only show error message on main page if modal is not open
 			if (!document.getElementById('twofa-modal-msg')) {
-				CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+				CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
 			}
 			return false;
 		}
@@ -64,7 +65,7 @@ export class AuthComponent {
 			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
 			return true;
 		} else {
-			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Logout failed'}`, 'error');
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || `${language_obj['Authpage_error_logout_failed']}`}`, 'error');
 			return false;
 		}
 	}
@@ -90,10 +91,23 @@ export class AuthComponent {
 	// Validate Input avec message d'erreur
 	static validateInput(email: string, password: string): boolean {
 		if (!AuthService.validateInput(email, password)) {
-			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			CommonComponent.showMessage(`${language_obj['Authpage_error_empty_field']}`, 'error');
 			return false;
 		}
 		return true;
+	}
+
+	static async	SetLanguageUser(language: string): Promise<boolean> {
+		const	apiResponseData = await AuthService.SetLanguageUser(language);
+
+		if (apiResponseData.success) {
+			CommonComponent.showMessage(`✅ ${apiResponseData.message}`, 'success');
+			return true;
+		}
+		else {
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'language change failed'}`, 'error');
+			return false;
+		}
 	}
 
 	// 2FA Setup Handler (modal pour User settings)

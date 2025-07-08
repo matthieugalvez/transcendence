@@ -7,12 +7,16 @@ import { CommonComponent } from '../components/common.component';
 //import { AuthRender } from '../renders/auth.render';
 import { AuthComponent } from '../components/auth.component';
 import { UserSearchComponent } from '../components/usersearch.component';
+import { language_obj } from '../index.ts';
 
 
 export async function RenderHomePage(): Promise<void> {
     document.title = "Home";
     document.body.innerHTML = "";
     BackgroundComponent.applyAnimatedGradient();
+
+	const	LanguageMenu = CommonComponent.createLanguageMenu(language_obj['_lang']);
+	document.body.appendChild(LanguageMenu);
 
     try {
         let user = await UserService.getCurrentUser();

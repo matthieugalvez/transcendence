@@ -1,3 +1,4 @@
+import { AuthComponent } from '../components/auth.component';
 import { router } from "../configs/simplerouter";
 import { BackgroundComponent } from "./background.component";
 
@@ -199,6 +200,71 @@ export class CommonComponent {
 		button.style.letterSpacing = "0.2em";
 
 		return button;
+	}
+
+	static	createLanguageMenu(language: string): HTMLDivElement {
+		const	LanguageDropdownMenu = document.createElement('div');
+		LanguageDropdownMenu.title = 'LanguageDropdownMenu';
+		LanguageDropdownMenu.className = `
+		  bg-white/90 backdrop-blur-md
+		  border-2 border-black
+		  rounded-xl p-2 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
+		`.replace(/\s+/g, ' ').trim();
+		LanguageDropdownMenu.style.position = 'absolute';
+		LanguageDropdownMenu.style.top = '8px';
+		LanguageDropdownMenu.style.right = '16px';
+		LanguageDropdownMenu.style.zIndex = '50';
+		LanguageDropdownMenu.style.display = 'inline-grid';
+			
+		const	LanguageDropdownButton = document.createElement('button');
+		LanguageDropdownButton.className = 'dropbtn';
+		if (language === 'eng') {
+			LanguageDropdownButton.textContent = '🇬🇧';
+		}
+		if (language === 'fr') {
+			LanguageDropdownButton.textContent = '🇫🇷';
+		}
+
+		const	LanguageDropdownContent = document.createElement('div');
+		LanguageDropdownContent.className = 'dropdown-content';
+		LanguageDropdownContent.style.display = 'none';
+
+		LanguageDropdownMenu.addEventListener('mouseover', (event) => {
+			LanguageDropdownButton.style.display = "none";
+			LanguageDropdownContent.style.display = 'inline-grid';
+			});
+
+		LanguageDropdownMenu.addEventListener('mouseout', (event) => {
+			LanguageDropdownButton.style.display = "initial";
+			LanguageDropdownContent.style.display = 'none';
+			});
+
+		const	EnglishButton = document.createElement('button');
+		EnglishButton.textContent = '🇬🇧';
+		EnglishButton.addEventListener('click', async () => {
+			const success = await AuthComponent.SetLanguageUser('eng');
+			if (!success) {
+					CommonComponent.showMessage('Failed to change language', 'error');
+				}
+			location.reload();
+		});
+
+		const	FrenchButton = document.createElement('button');
+		FrenchButton.textContent = '🇫🇷';
+		FrenchButton.addEventListener('click', async () => {
+			const success = await AuthComponent.SetLanguageUser('fr');
+			if (!success) {
+					CommonComponent.showMessage('Failed to change language', 'error');
+				}
+			location.reload();
+		});
+
+		LanguageDropdownMenu.appendChild(LanguageDropdownButton);
+		LanguageDropdownContent.appendChild(EnglishButton);
+		LanguageDropdownContent.appendChild(FrenchButton);
+		LanguageDropdownMenu.appendChild(LanguageDropdownContent);
+		
+		return LanguageDropdownMenu;
 	}
 
 	/**
