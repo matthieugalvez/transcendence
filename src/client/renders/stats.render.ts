@@ -132,12 +132,13 @@ export class StatsRender {
 
 		if (!isOwnStats) {
 			this.embedChat(user, mainContainer);
+		} else {
+			this.createCharts(statsData, user.id, mainContainer);
 		}
 
 		const matchDetailsPanel = this.createMatchDetailsPanel();
 		mainContainer.appendChild(matchDetailsPanel);
 
-		this.createCharts(statsData, user.id, mainContainer);
 
 		(window as any).matchDetailsPanel = matchDetailsPanel;
 		(window as any).currentUser = user;
