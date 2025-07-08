@@ -29,7 +29,7 @@ RUN cp -r src/server/locales dist-back/
 FROM node:24-slim
 
 # Install curl and other dependencies
-RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl ca-certificates sqlite3 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
