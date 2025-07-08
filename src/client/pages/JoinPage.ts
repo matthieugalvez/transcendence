@@ -192,15 +192,15 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 		canvas.classList.add('blur-xs');
 
 		// Add debug info
-		console.log('Canvas debug info:', {
-			width: canvas.width,
-			height: canvas.height,
-			style: canvas.style.cssText,
-			classes: canvas.className,
-			display: getComputedStyle(canvas).display,
-			visibility: getComputedStyle(canvas).visibility,
-			opacity: getComputedStyle(canvas).opacity
-		});
+		// console.log('Canvas debug info:', {
+		// 	width: canvas.width,
+		// 	height: canvas.height,
+		// 	style: canvas.style.cssText,
+		// 	classes: canvas.className,
+		// 	display: getComputedStyle(canvas).display,
+		// 	visibility: getComputedStyle(canvas).visibility,
+		// 	opacity: getComputedStyle(canvas).opacity
+		// });
 
 		// Force canvas to be visible
 		canvas.style.display = 'block';
@@ -297,7 +297,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				// PlayerId : host (1), guest (2), spectator
 				if (data.type === 'playerToken') {
 					playerId = data.playerId;
-					console.log('Player ID assigned:', playerId);
+					// console.log('Player ID assigned:', playerId);
 
 					// If assigned as spectator, show message but allow viewing
 					if (playerId === 'spectator') {
@@ -530,7 +530,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 
 	// Move event listeners OUTSIDE the message handler
 	const cleanupGameOnLeave = async () => {
-		console.log('User leaving game, triggering cleanup...');
+		// console.log('User leaving game, triggering cleanup...');
 
 		try {
 			// Use ApiClient for authenticated requests with better error handling
@@ -550,7 +550,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				console.warn(`Game cleanup failed with status: ${response.status}`);
 				// Don't throw error, just log it since cleanup is not critical for user experience
 			} else {
-				console.log('Game cleanup successful');
+				// console.log('Game cleanup successful');
 			}
 		} catch (error) {
 			// Improve error handling - don't let cleanup errors affect user experience
@@ -610,7 +610,7 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 					},
 					canStart: () => {
 						const canStart = bothPlayersConnected && playerId === 1;
-						console.log('Can start game check:', { bothPlayersConnected, playerId, canStart });
+						// console.log('Can start game check:', { bothPlayersConnected, playerId, canStart });
 						return canStart;
 					},
 					onStartGame: async () => {
@@ -676,11 +676,11 @@ export async function renderJoinPage(params: { gameId: string; mode: 'duo' | 'to
 				},
 				canStart: () => {
 					const canStart = bothPlayersConnected && playerId === 1;
-					console.log('Tournament can start check:', { bothPlayersConnected, playerId, joinedPlayers: joinedPlayers.length, canStart });
+					// console.log('Tournament can start check:', { bothPlayersConnected, playerId, joinedPlayers: joinedPlayers.length, canStart });
 					return canStart;
 				},
 				onStartGame: async () => {
-					console.log('Host starting tournament...');
+					// console.log('Host starting tournament...');
 					pongHandle?.socket.send(JSON.stringify({ action: 'start' }));
 
 					const newSettingsBar = GameSettingsComponent.render('duo-guest', {

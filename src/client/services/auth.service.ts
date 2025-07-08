@@ -12,7 +12,7 @@ export class AuthService {
 			});
 
 			const apiResponseData = await response.json();
-			console.log('Signup response:', apiResponseData);
+			// console.log('Signup response:', apiResponseData);
 
 			return apiResponseData;
 		} catch (error) {

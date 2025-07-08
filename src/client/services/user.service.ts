@@ -128,7 +128,7 @@ export class UserService {
 
 			const data = await response.json();
 
-			console.log('Change username response:', data); // Debug log
+			// console.log('Change username response:', data); // Debug log
 
 			if (!data.success) {
 				return {
@@ -249,8 +249,8 @@ export class UserService {
 				credentials: 'include' // This is crucial for authentication
 			});
 
-			console.log('Upload response status:', response.status);
-			console.log('Upload response headers:', response.headers);
+			// console.log('Upload response status:', response.status);
+			// console.log('Upload response headers:', response.headers);
 
 			if (!response.ok) {
 				const errorText = await response.text();

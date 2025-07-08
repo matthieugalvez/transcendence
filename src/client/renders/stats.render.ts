@@ -29,7 +29,7 @@ export class StatsRender {
 
 		const avatar = document.createElement('img');
 		avatar.src = user.avatar;
-		console.log(`Avatar URL for stats: ${user.avatar}`);
+		//console.log(`Avatar URL for stats: ${user.avatar}`);
 		avatar.alt = user.displayName;
 		avatar.className = 'w-14 h-14 rounded-full border-2 border-purple-400 shadow';
 
@@ -531,7 +531,7 @@ export class StatsRender {
 		new Chart(ctx,{
 			type:'doughnut',
 			data:{ labels, datasets:[{ data:values, backgroundColor:colors }]},
-			options:{ 
+			options:{
 				plugins:{ legend:{ position:'bottom' } },
 				maintainAspectRatio: false,
 				cutout: '60%',
