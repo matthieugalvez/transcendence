@@ -11,7 +11,7 @@ import { renderChatPage } from './pages/ChatPage';
 import { FriendsPage } from './pages/FriendListPage'
 import { StatsPage } from './pages/StatsPage';
 import { UserService } from './services/user.service';
-let language_obj: any = {};
+let language_obj: any = await UserService.GetLanguageFile();
 
 let isShowingViewportWarning = false;
 
@@ -92,15 +92,7 @@ function updateCurrentSizeDisplay(): void {
 	}
 }
 
-async function startSPA() {
-
-	try {
-		language_obj = await UserService.GetLanguageFile();
-	} catch (error) {
-		console.error('Failed to load language file:', error);
-		// Provide fallback language object
-		language_obj = { _lang: 'eng' };
-	}
+function startSPA() {webkitURL
 	// Check viewport size on window resize
 	window.onresize = async () => {
 		if (!checkMinimumViewport()) {
@@ -148,8 +140,6 @@ async function startSPA() {
 
 	router.start();
 }
-
-export { language_obj};
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', startSPA);
