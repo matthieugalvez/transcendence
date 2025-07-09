@@ -482,11 +482,11 @@ export class GameSettingsComponent {
 
 			const up = document.createElement('p');
 			up.className = 'text-white';
-			up.innerHTML = `<span class="font-bold">${keyUp}</span> : up`;
+			up.innerHTML = `<span class="font-bold">${keyUp}</span> : ${language_obj['Up']}`;
 
 			const down = document.createElement('p');
 			down.className = 'text-white';
-			down.innerHTML = `<span class="font-bold">${keyDown}</span> : down`;
+			down.innerHTML = `<span class="font-bold">${keyDown}</span> : ${language_obj['Down']}`;
 
 			box.append(title, up, down);
 			return box;

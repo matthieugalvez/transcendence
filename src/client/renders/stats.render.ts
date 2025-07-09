@@ -741,7 +741,7 @@ export class StatsRender {
                 <!-- Simple Actions -->
                 <div class="space-y-2">
                     <button id="view-opponent-profile" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        ${language_obj['View']}${opponent?.displayName || `${language_obj['Player']}`} ${language_obj['Profile']}
+                        ${language_obj['View']} ${opponent?.displayName || `${language_obj['Player']}`} ${language_obj['Profile']}
                     </button>
                 </div>
             </div>

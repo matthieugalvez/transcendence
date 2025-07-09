@@ -240,5 +240,9 @@
 	"You_lost": "YOU LOST",
 	"Stats_winner": "Winner",
 	"Players": "Players",
-	"Bracket": "Bracket"
+	"Bracket": "Bracket",
+	"Paused": "PAUSED",
+	"Up": "Up",
+	"Down": "Down",
+	"Waitinf_for_reconnect": "Waiting for the other player to reconnect..."
 }

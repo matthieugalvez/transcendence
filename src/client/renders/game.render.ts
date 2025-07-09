@@ -63,7 +63,7 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState): voi
 		ctx.fillStyle = "#FFF";
 		ctx.font = "70px Orbitron, sans-serif";
 		ctx.textAlign = "center";
-		ctx.fillText("PAUSED", ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
+		ctx.fillText(`${language_obj['Paused']}`, ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
 	}
 }
 

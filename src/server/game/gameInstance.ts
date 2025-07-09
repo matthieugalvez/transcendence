@@ -499,7 +499,7 @@ export class GameInstance {
 		}
 
 		this.isPaused = true;
-		this.broadcastPause("Waiting for the other player to reconnect...");
+		this.broadcastPause("Waiting_for_reconnect");
 
 		this.pauseTimeoutHandle = setTimeout(() => {
 			if (!this.players.every(p => p.ws)) {
