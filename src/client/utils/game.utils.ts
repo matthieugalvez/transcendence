@@ -118,7 +118,9 @@ function createGameWebSocket(
 			}
 
 			if (data.type === 'pause') {
-				showOverlay(language_obj[data.message]);
+				const translatedMessage = language_obj[data.message] || data.message;
+				showOverlay(translatedMessage);
+				return;
 				return;
 			}
 
@@ -350,7 +352,7 @@ export function startPongInContainer(
 	mode: 'duo-local' | 'duo-online' | 'tournament-online' | 'solo' = 'solo',
 ): PongHandle & { socket: WebSocket } {
 	const player1Color = '#FFA940';
-    const player2Color = '#B946EF';
+	const player2Color = '#B946EF';
 
 	const title = document.createElement('h2');
 	title.textContent = `${language_obj['Ready_to_pong']}`;
@@ -361,8 +363,8 @@ export function startPongInContainer(
 		let prefix = '';
 		const match = name1.match(/^(Match\s+\d+\s*:\s*)/);
 		if (match) {
-				prefix = match[1];
-				name1 = name1.slice(prefix.length);
+			prefix = match[1];
+			name1 = name1.slice(prefix.length);
 		}
 		title.innerHTML = `
 			<span style="color:${player1Color};-webkit-text-stroke:0.5px #fff;text-shadow:0 0 4px font-['Canada-big'] #fff">${name1}</span>` +
