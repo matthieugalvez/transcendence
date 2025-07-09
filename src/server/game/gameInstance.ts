@@ -481,16 +481,25 @@ export class GameInstance {
 	}
 
 	private startPauseOnDisconnect() {
-
 		if (this.score1 >= this.maxScore || this.score2 >= this.maxScore) {
 			return;
 		}
+
+		if (this.pauseTimeoutHandle) {
+			clearTimeout(this.pauseTimeoutHandle);
+			this.pauseTimeoutHandle = null;
+		}
+
 		this.isPaused = true;
 		this.broadcastPause("Waiting for the other player to reconnect...");
 
 		this.pauseTimeoutHandle = setTimeout(() => {
-			this.endGameDueToDisconnect();
-		}, 10000);  // 10 sec
+			if (!this.players.every(p => p.ws)) {
+				this.endGameDueToDisconnect();
+			} else {
+				console.log(`Timeout fired but all players are connected for game ${this.gameId}`);
+			}
+		}, 30000);  // 30 sec
 	}
 
 	private cancelPauseOnReconnect() {
@@ -506,7 +515,10 @@ export class GameInstance {
 	}
 
 	private endGameDueToDisconnect() {
-		// Mark as ended first
+
+		if (this.players.every(p => p.ws)) {
+			return;
+		}
 		this.isRunning = false;
 
 		// Send a clear end message that will trigger redirection

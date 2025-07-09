@@ -83,6 +83,7 @@ function hideViewportWarning(): void {
 	if (warning) {
 		warning.remove();
 	}
+	window.location.reload();
 }
 
 function updateCurrentSizeDisplay(): void {
