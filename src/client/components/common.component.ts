@@ -221,9 +221,10 @@ export class CommonComponent {
 		LanguageDropdownButton.className = 'dropbtn';
 		if (language === 'eng') {
 			LanguageDropdownButton.textContent = '🇬🇧';
-		}
-		if (language === 'fr') {
+		} else if (language === 'fr') {
 			LanguageDropdownButton.textContent = '🇫🇷';
+		} else if (language === 'es') {
+			LanguageDropdownButton.textContent = '🇪🇸';
 		}
 
 		const	LanguageDropdownContent = document.createElement('div');
@@ -260,9 +261,20 @@ export class CommonComponent {
 			location.reload();
 		});
 
+		const	SpanishButton = document.createElement('button');
+		SpanishButton.textContent = '🇪🇸';
+		SpanishButton.addEventListener('click', async () => {
+			const success = await AuthComponent.SetLanguageUser('es');
+			if (!success) {
+					CommonComponent.showMessage(`${language_obj['Language_change_failed']}`, 'error');
+				}
+			location.reload();
+		});
+
 		LanguageDropdownMenu.appendChild(LanguageDropdownButton);
 		LanguageDropdownContent.appendChild(EnglishButton);
 		LanguageDropdownContent.appendChild(FrenchButton);
+		LanguageDropdownContent.appendChild(SpanishButton);
 		LanguageDropdownMenu.appendChild(LanguageDropdownContent);
 		
 		return LanguageDropdownMenu;
