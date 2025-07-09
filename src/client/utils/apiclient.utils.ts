@@ -10,7 +10,7 @@ export class ApiClient {
 
 	static async fetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
 		const url = `${this.getBaseUrl()}${endpoint}`;
-		console.log('API request:', url);
+		//console.log('API request:', url);
 
 		return fetch(url, {
 			credentials: 'include', // Always include cookies

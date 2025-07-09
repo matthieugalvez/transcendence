@@ -12,7 +12,7 @@ export class AuthService {
 			});
 
 			const apiResponseData = await response.json();
-			// console.log('Signup response:', apiResponseData);
+			// //console.log('Signup response:', apiResponseData);
 
 			return apiResponseData;
 		} catch (error) {
@@ -55,7 +55,7 @@ export class AuthService {
 			});
 
 			const apiResponseData = await response.json();
-			console.log('Logout response:', apiResponseData);
+			//console.log('Logout response:', apiResponseData);
 			return apiResponseData;
 		} catch (error) {
 			console.error('Error logging out:', error);
@@ -78,7 +78,7 @@ export class AuthService {
       });
 
       const apiResponseData = await response.json();
-      console.log('language response:', apiResponseData);
+      //console.log('language response:', apiResponseData);
 
       return apiResponseData;
     } catch (error) {
