@@ -20,7 +20,7 @@ export class StatsRender {
 		header.className = 'flex items-center justify-between mb-8';
 
 		const title = document.createElement('h1');
-		title.textContent = isOwnStats ? `${language_obj['Your_stats']}` : `${user.displayName}'s Stats`;
+		title.textContent = isOwnStats ? `${language_obj['Your_stats']}` : `${user.displayName}'s ${language_obj['Stats']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold text-gray-900`;
 
 		// Avatar container with status dot
@@ -650,7 +650,7 @@ export class StatsRender {
 			score.className = `font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}`;
 
 			const result = document.createElement('div');
-			result.textContent = isWinner ? 'WIN' : 'LOSS';
+			result.textContent = isWinner ? `${language_obj['Win_iswinner']}`  : `${language_obj['Loss_iswinner']}`;
 			result.className = `text-xs font-medium ${isWinner ? 'text-green-600' : 'text-red-600'}`;
 
 			resultInfo.appendChild(score);
@@ -710,7 +710,7 @@ export class StatsRender {
                 <div class="text-center mb-6 p-4 rounded-lg ${isWinner ? 'bg-green-50' : 'bg-red-50'}">
                     <div class="text-2xl mb-2">${isWinner ? '🏆' : '😔'}</div>
                     <div class="text-xl font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}">
-                        ${isWinner ? 'WIN' : 'LOSS'}
+                        ${isWinner ? `${language_obj['Win_iswinner']}`  : `${language_obj['Loss_iswinner']}`}
                     </div>
                     <div class="text-2xl font-bold text-gray-800 mt-2">
                         ${currentUserScore} - ${opponentScore}
@@ -874,7 +874,7 @@ export class StatsRender {
 			item.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
                     <div class="flex items-center space-x-2">
-                    <span class="font-semibold">${isWinner ? '🏆 VICTORY' : '🚩 DEFEAT'}</span>
+                    <span class="font-semibold">${isWinner ? `🏆 ${language_obj['Victory']} ` : `🚩 ${language_obj['Defeat']} `}</span>
                     <span class="text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600">
                         ${language_obj['Tornament']}
                     </span>
@@ -884,7 +884,7 @@ export class StatsRender {
                             ${userScore} - ${oppScore}
                         </div>
                         <div class="text-xs font-medium ${isWinner ? 'text-green-600' : 'text-red-600'}">
-                            ${isWinner ? 'WIN' : 'LOSS'}
+                            ${isWinner ? `${language_obj['Win_iswinner']}`  : `${language_obj['Loss_iswinner']}`}
                         </div>
                     </div>
                 </div>
@@ -953,7 +953,7 @@ export class StatsRender {
 		panel.innerHTML = `
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">Tournament Details</h3>
+                <h3 class="text-xl font-bold">${language_obj['Tournament_details']}</h3>
                 <button id="close-match-details"
                     class="text-gray-500 hover:text-gray-700 text-xl font-bold">×</button>
                 </div>
@@ -961,11 +961,11 @@ export class StatsRender {
                 <div class="text-center mb-4 p-4 rounded-lg ${youWon ? 'bg-green-50' : 'bg-red-50'}">
                 <div class="text-2xl mb-2">${youWon ? '🏆' : '😔'}</div>
                 <div class="text-xl font-bold ${youWon ? 'text-green-600' : 'text-red-600'}">
-                    ${youWon ? 'YOU WON' : 'YOU LOST'}
+                    ${youWon ? `${language_obj['You_won']}`  : `${language_obj['You_lost']}`}
                 </div>
                 </div>
 
-                <h4 class="font-semibold mb-2">Bracket</h4>
+                <h4 class="font-semibold mb-2">${language_obj['Bracket']}</h4>
                 <div class="bg-gray-50 p-4 rounded mb-2">
 					${matchRow(semi1)}
 					${matchRow(semi2)}
@@ -973,9 +973,9 @@ export class StatsRender {
 					${matchRow(final)}
                 </div>
 
-				<div class="mb-4 text-center"> <span class="font-semibold">🏆 Winner:</span> ${winner}</div>
+				<div class="mb-4 text-center"><span class="font-semibold">🏆 ${language_obj['Stats_winner']}</span> ${winner}</div>
 
-                <h4 class="font-semibold mb-2">Players</h4>
+                <h4 class="font-semibold mb-2">${language_obj['Players']}</h4>
                 ${playersGrid}
             </div>
         `;

@@ -229,5 +229,16 @@
 	"Right_player": "Right player",
 	"Left_player": "Left player",
 	"Enable_2FA": "Enable 2FA",
-	"Online": "Online"
+	"Online": "Online",
+	"Stats": "Stats",
+	"Victory": "VICTORY",
+	"Defeat": "DEFEAT",
+	"Win_iswinner": "WIN",
+	"Loss_iswinner": "LOSS",
+	"Tournament_details": "Tournament Details",
+	"You_won": "YOU WON",
+	"You_lost": "YOU LOST",
+	"Stats_winner": "Winner",
+	"Players": "Players",
+	"Bracket": "Bracket"
 }
