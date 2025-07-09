@@ -417,8 +417,6 @@ export class AuthRender {
                 max-w-md w-full mx-4 text-center
             `);
 
-			`${language_obj['Complete_signup']}`
-			`${language_obj['Choose_displayName']}`
 
 			// Title
 			const title = CommonComponent.createHeading(
