@@ -118,9 +118,7 @@ function createGameWebSocket(
 			}
 
 			if (data.type === 'pause') {
-				const translatedMessage = language_obj[data.message] || data.message;
-				showOverlay(translatedMessage);
-				return;
+				showOverlay(data.message);
 				return;
 			}
 
