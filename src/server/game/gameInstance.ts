@@ -485,7 +485,6 @@ export class GameInstance {
 			return;
 		}
 
-		// Clear any existing timeout first
 		if (this.pauseTimeoutHandle) {
 			clearTimeout(this.pauseTimeoutHandle);
 			this.pauseTimeoutHandle = null;
@@ -495,13 +494,12 @@ export class GameInstance {
 		this.broadcastPause("Waiting for the other player to reconnect...");
 
 		this.pauseTimeoutHandle = setTimeout(() => {
-			// Double-check that players are still disconnected before ending
 			if (!this.players.every(p => p.ws)) {
 				this.endGameDueToDisconnect();
 			} else {
 				console.log(`Timeout fired but all players are connected for game ${this.gameId}`);
 			}
-		}, 30000);  // 10 sec
+		}, 30000);  // 30 sec
 	}
 
 	private cancelPauseOnReconnect() {
