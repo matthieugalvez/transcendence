@@ -11,7 +11,7 @@ export class FriendsRender {
 
 			// Extract the actual friendships array from the response
 			const friendsList = friendsResponse?.data || friendsResponse || [];
-			// //console.log('🔍 Friends list:', friendsList); // Debug log
+			// ////console.log('🔍 Friends list:', friendsList); // Debug log
 
 			const friendsSection = document.createElement('div');
 			friendsSection.className = 'space-y-8';
@@ -321,10 +321,10 @@ export class FriendsRender {
 		const tournamentBtn = CommonComponent.createStylizedButton(`${language_obj['Tournament_4p']}`, 'red');
 		tournamentBtn.className += ' w-full';
 		tournamentBtn.onclick = async () => {
-			// //console.log('Tournament button clicked!');
+			// ////console.log('Tournament button clicked!');
 			modalOverlay.remove();
 			try {
-				//console.log('Calling showTournamentPlayerSelection with friend:', friend);
+				////console.log('Calling showTournamentPlayerSelection with friend:', friend);
 				await FriendsRender.showTournamentPlayerSelection(friend);
 			} catch (error) {
 				console.error('Error in showTournamentPlayerSelection:', error);
@@ -346,18 +346,18 @@ export class FriendsRender {
 
 	// New method for tournament player selection
 	private static async showTournamentPlayerSelection(initialFriend: any): Promise<void> {
-		//console.log('showTournamentPlayerSelection called with:', initialFriend);
+		////console.log('showTournamentPlayerSelection called with:', initialFriend);
 		try {
 			// Get current user's friends list
-			//console.log('Fetching friends list...');
+			////console.log('Fetching friends list...');
 			const friendsResponse = await UserService.getFriends();
-			//console.log('Friends response:', friendsResponse);
+			////console.log('Friends response:', friendsResponse);
 
 			const friendsList = friendsResponse?.data || friendsResponse || [];
-			//console.log('Processed friends list:', friendsList);
+			////console.log('Processed friends list:', friendsList);
 
 			const currentUser = await UserService.getCurrentUser();
-			//console.log('Current user:', currentUser);
+			////console.log('Current user:', currentUser);
 
 			// Filter to accepted friends only, excluding the initial friend
 			const availableFriends = friendsList
@@ -365,15 +365,15 @@ export class FriendsRender {
 				.map(f => f.senderId === currentUser.id ? f.receiver : f.sender)
 				.filter(friend => friend.id !== initialFriend.id);
 
-			//console.log('Available friends for tournament:', availableFriends);
+			////console.log('Available friends for tournament:', availableFriends);
 
 			if (availableFriends.length < 2) {
-				//console.log('Not enough friends for tournament');
+				////console.log('Not enough friends for tournament');
 				CommonComponent.showMessage(`❌ ${language_obj['You_need_3_friends']}`, 'error');
 				return;
 			}
 
-			//console.log('Creating tournament modal...');
+			////console.log('Creating tournament modal...');
 			// Create modal overlay
 			const modalOverlay = document.createElement('div');
 			modalOverlay.className = `
@@ -389,7 +389,7 @@ export class FriendsRender {
 
 			// Modal title
 			const title = document.createElement('h3');
-			title.textContent = 'Select 2 more players for tournament';
+			title.textContent = `${language_obj['Select_2more']}`;
 			title.className = `font-['Orbitron'] text-xl font-bold mb-4 text-center`;
 			modal.appendChild(title);
 
@@ -398,7 +398,7 @@ export class FriendsRender {
 			selectedSection.className = 'mb-6';
 
 			const selectedTitle = document.createElement('h4');
-			selectedTitle.textContent = 'Selected Players:';
+			selectedTitle.textContent = `${language_obj['Selected_players']}`;
 			selectedTitle.className = 'font-semibold mb-2';
 			selectedSection.appendChild(selectedTitle);
 
@@ -419,7 +419,7 @@ export class FriendsRender {
 			friendsSection.className = 'mb-6';
 
 			const friendsTitle = document.createElement('h4');
-			friendsTitle.textContent = 'Select 2 more friends:';
+			friendsTitle.textContent = `${language_obj['Select_2more_friends']}`;
 			friendsTitle.className = 'font-semibold mb-2';
 			friendsSection.appendChild(friendsTitle);
 
@@ -457,7 +457,7 @@ export class FriendsRender {
 					if (checkbox.checked) {
 						if (selectedFriends.length >= 2) {
 							checkbox.checked = false;
-							CommonComponent.showMessage('❌ You can only select 2 more players', 'error');
+							CommonComponent.showMessage(`❌ ${language_obj['You_can_only_select_2more']}`, 'error');
 							return;
 						}
 						selectedFriends.push(friend);
@@ -488,7 +488,7 @@ export class FriendsRender {
 			const buttonContainer = document.createElement('div');
 			buttonContainer.className = 'flex space-x-4';
 
-			const startBtn = CommonComponent.createStylizedButton('Start Tournament', 'purple');
+			const startBtn = CommonComponent.createStylizedButton(`${language_obj['Tournamentpage_start']}`, 'purple');
 			startBtn.disabled = true;
 			startBtn.onclick = async () => {
 				modalOverlay.remove();
@@ -496,7 +496,7 @@ export class FriendsRender {
 				await FriendsRender.sendTournamentInvites(allPlayers);
 			};
 
-			const cancelBtn = CommonComponent.createStylizedButton('Cancel', 'gray');
+			const cancelBtn = CommonComponent.createStylizedButton(`${language_obj['Cancel']}`, 'gray');
 			cancelBtn.onclick = () => modalOverlay.remove();
 
 			function updateStartButton() {
@@ -508,13 +508,13 @@ export class FriendsRender {
 			modal.appendChild(buttonContainer);
 
 			modalOverlay.appendChild(modal);
-			//console.log('Appending modal to document body...');
+			////console.log('Appending modal to document body...');
 			document.body.appendChild(modalOverlay);
-			//console.log('Tournament modal should now be visible');
+			////console.log('Tournament modal should now be visible');
 
 		} catch (error) {
 			console.error('Failed to load friends for tournament:', error);
-			CommonComponent.showMessage('❌ Failed to load friends list', 'error');
+			CommonComponent.showMessage(`❌ ${language_obj['Failed_to_load_friends_list']}`, 'error');
 		}
 	}
 
@@ -576,22 +576,22 @@ export class FriendsRender {
 			const failedInvites = results.filter(r => !r.ok);
 
 			if (failedInvites.length > 0) {
-				CommonComponent.showMessage('⚠️ Some invites failed to send', 'warning');
+				CommonComponent.showMessage(`⚠️ ${language_obj['Some_invites_failed']}`, 'warning');
 			} else {
-				CommonComponent.showMessage('✅ Tournament invites sent to all players!', 'success');
+				CommonComponent.showMessage(`✅ ${language_obj['Tournament_invites_sent']}`, 'success');
 
 				// Create simple tournament notification message
 				const allPlayerNames = [currentUser.displayName, ...players.map(p => p.displayName)];
 				const tournamentLink = `${window.location.origin}/game/online/tournament/${gameId}`;
 
-				const tournamentMessage = `🏆 ${currentUser.displayName} started a tournament with ${allPlayerNames.join(', ')}! Join now: ${tournamentLink}`;
+				const tournamentMessage = `🏆 ${currentUser.displayName} ${language_obj['Started_a_tournament_with']} ${allPlayerNames.join(', ')}! ${language_obj['Join_now']} ${tournamentLink}`;
 
 				// Send tournament notification message to each invited player using ChatService
 				const chatPromises = players.map(async (player) => {
 					try {
 						const result = await ChatService.postMessage(player.id, tournamentMessage);
 						if (result.success) {
-							console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
+							//console.log(`✅ Tournament message sent successfully to ${player.displayName}`);
 						} else {
 							console.error(`❌ Failed to send tournament message to ${player.displayName}:`, result.error);
 						}
@@ -608,9 +608,9 @@ export class FriendsRender {
 				// 	const failedMessages = results.filter(r => !r.success).length;
 
 				// 	if (failedMessages === 0) {
-				// 		console.log('✅ All tournament notification messages sent successfully');
+				// 		//console.log('✅ All tournament notification messages sent successfully');
 				// 	} else {
-				// 		console.log(`⚠️ ${successfulMessages} messages sent successfully, ${failedMessages} failed`);
+				// 		//console.log(`⚠️ ${successfulMessages} messages sent successfully, ${failedMessages} failed`);
 				// 	}
 				// } catch (error) {
 				// 	console.error('❌ Some tournament messages failed to send:', error);
@@ -621,7 +621,7 @@ export class FriendsRender {
 
 		} catch (error) {
 			console.error('Failed to create tournament:', error);
-			CommonComponent.showMessage('❌ Failed to create tournament', 'error');
+			CommonComponent.showMessage(`❌ ${language_obj['Failed_to_create_tournament']}`, 'error');
 		}
 	}
 
@@ -630,7 +630,7 @@ export class FriendsRender {
 			// Check if friend is currently the logged-in user
 			const currentUser = await UserService.getCurrentUser();
 			if (friend.id === currentUser?.id) {
-				CommonComponent.showMessage('❌ Cannot invite yourself!', 'error');
+				CommonComponent.showMessage(`❌ ${language_obj['Cannot_invite_self']}`, 'error');
 				return;
 			}
 
@@ -662,7 +662,7 @@ export class FriendsRender {
 				throw new Error(errorData.error || 'Failed to send invite');
 			}
 
-			CommonComponent.showMessage(`✅ ${gameType === 'duo' ? 'Duo' : 'Tournament'} invite sent to ${friend.displayName}!`, 'success');
+			CommonComponent.showMessage(`✅ ${gameType === 'duo' ? 'Duo' : `${language_obj['Tournament']}`} ${language_obj['Invite_sent_to']} ${friend.displayName}!`, 'success');
 
 			// Navigate to the appropriate game page
 			const route = gameType === 'duo'
@@ -676,7 +676,7 @@ export class FriendsRender {
 
 		} catch (error) {
 			console.error('Failed to invite:', error);
-			CommonComponent.showMessage(`❌ ${error.message || `Failed to send ${gameType} invite`}`, 'error');
+			CommonComponent.showMessage(`❌ ${error.message || `${language_obj['Failed_to_send']} ${gameType} ${language_obj['Invite']}`}`, 'error');
 		}
 	}
 }
