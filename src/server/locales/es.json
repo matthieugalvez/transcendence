@@ -249,5 +249,7 @@
 	"You_need_3_friends": "Necesitas al menos 3 amigos para crear un torneo",
 	"Your_invite_expired": "Tu invitación expiró. Redirigiendo...",
 	"Your_stats": "Tus estadísticas",
-	"You_won": "GANASTE"
+	"You_won": "GANASTE",
+	"Homepage_winner": "Triunfo"
+
 }

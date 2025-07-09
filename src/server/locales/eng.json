@@ -249,5 +249,6 @@
 	"You_need_3_friends": "You need at least 3 friends to create a tournament",
 	"Your_invite_expired": "Your invite expired. Redirecting...",
 	"Your_stats": "Your Stats",
-	"You_won": "YOU WON"
+	"You_won": "YOU WON",
+	"Homepage_winner": "Wins"
 }

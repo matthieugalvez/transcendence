@@ -170,7 +170,7 @@ export class HomeRender {
 
 				const wins = document.createElement('span');
 				const totalWins = (player.oneVOneWins || 0) + (player.tournamentWins || 0);
-				wins.textContent = `${totalWins} ${language_obj['Ingamepage_winner']}`;
+				wins.textContent = `${totalWins} ${language_obj['Homepage_winner']}`;
 				wins.className = 'font-semibold text-green-400 flex-shrink-0';
 
 				playerItem.appendChild(leftSide);
