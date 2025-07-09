@@ -124,12 +124,12 @@ export class SettingsRender {
 			shadow-sm
 		`.replace(/\s+/g, ' ').trim();
 
-		const userNameLabel = CommonComponent.createLabel('Change display name');
-		const userNameInput = CommonComponent.createInput('text', 'Enter your display name');
+		const userNameLabel = CommonComponent.createLabel(`${language_obj['Change_displayname']}`);
+		const userNameInput = CommonComponent.createInput('text', `${language_obj['Enter_display_name']}`);
 		userNameInput.id = 'username-input';
 
-		const passwordLabel = CommonComponent.createLabel('Change password');
-		const passwordInput = CommonComponent.createInput('password', 'Enter new password');
+		const passwordLabel = CommonComponent.createLabel(`${language_obj['Change_password']}`);
+		const passwordInput = CommonComponent.createInput('password', `${language_obj['Enter_password']}`);
 		passwordInput.id = 'password-input';
 
 		buttonContainer.appendChild(Enable2FAButton);
@@ -181,7 +181,7 @@ export class SettingsRender {
     }
 
 	private static createAvatarSection(currentAvatarUrl: string): HTMLDivElement {
-		// console.log('🔍 Creating avatar section with URL:', currentAvatarUrl);
+		// //console.log('🔍 Creating avatar section with URL:', currentAvatarUrl);
 
 		const avatarContainer = document.createElement('div');
 		avatarContainer.className = `
@@ -192,7 +192,7 @@ export class SettingsRender {
 		`.replace(/\s+/g, ' ').trim();
 
 		// Avatar label
-		const avatarLabel = CommonComponent.createLabel('Profile Avatar');
+		const avatarLabel = CommonComponent.createLabel(`${language_obj['Profile_avatar']}`);
 		avatarLabel.className = `font-['Orbitron'] mb-4 block text-center`;
 
 		// Current avatar display
@@ -200,10 +200,10 @@ export class SettingsRender {
 
 		// Set src with better fallback logic
 		if (currentAvatarUrl && currentAvatarUrl !== 'null' && currentAvatarUrl !== 'undefined' && currentAvatarUrl.trim() !== '') {
-			// console.log('✅ Using provided avatar URL:', currentAvatarUrl);
+			// //console.log('✅ Using provided avatar URL:', currentAvatarUrl);
 			currentAvatar.src = currentAvatarUrl;
 		} else {
-			// console.log('⚠️ No valid avatar URL, using default');
+			// //console.log('⚠️ No valid avatar URL, using default');
 			currentAvatar.src = 'default.svg';
 		}
 
@@ -223,13 +223,13 @@ export class SettingsRender {
 				console.error('❌ Even default avatar failed to load!');
 				// Don't set onerror to null here, let it fail visibly
 			} else {
-				console.log('🔄 Falling back to default avatar');
+				//console.log('🔄 Falling back to default avatar');
 				currentAvatar.src = 'default.svg';
 			}
 		};
 
 		currentAvatar.onload = () => {
-			// console.log('✅ Avatar loaded successfully:', currentAvatar.src);
+			// //console.log('✅ Avatar loaded successfully:', currentAvatar.src);
 		};
 
 		// Rest of your avatar section code...
@@ -239,7 +239,7 @@ export class SettingsRender {
 		fileInput.style.display = 'none';
 		fileInput.id = 'avatar-input';
 
-		const uploadButton = CommonComponent.createStylizedButton('Change Avatar', 'blue');
+		const uploadButton = CommonComponent.createStylizedButton(`${language_obj['Change_avatar']}`, 'blue');
 		uploadButton.id = 'avatar-upload-btn';
 		uploadButton.addEventListener('click', () => {
 			fileInput.click();

@@ -20,7 +20,7 @@ export class StatsRender {
 		header.className = 'flex items-center justify-between mb-8';
 
 		const title = document.createElement('h1');
-		title.textContent = isOwnStats ? 'Your Stats' : `${user.displayName}'s Stats`;
+		title.textContent = isOwnStats ? `${language_obj['Your_stats']}` : `${user.displayName}'s Stats`;
 		title.className = `font-['Orbitron'] text-2xl font-bold text-gray-900`;
 
 		// Avatar container with status dot
@@ -29,7 +29,7 @@ export class StatsRender {
 
 		const avatar = document.createElement('img');
 		avatar.src = user.avatar;
-		//console.log(`Avatar URL for stats: ${user.avatar}`);
+		////console.log(`Avatar URL for stats: ${user.avatar}`);
 		avatar.alt = user.displayName;
 		avatar.className = 'w-14 h-14 rounded-full border-2 border-purple-400 shadow';
 
@@ -45,7 +45,7 @@ export class StatsRender {
 		statusDot.style.borderRadius = '50%';
 		statusDot.style.background = 'gray';
 		statusDot.style.border = '2px solid white';
-		statusDot.title = 'Checking status...';
+		statusDot.title = `${language_obj['Checking_status']}`;
 
 		const wsService = WebSocketService.getInstance();
 
@@ -170,7 +170,7 @@ export class StatsRender {
 		content.innerHTML = `
             <div class="text-center text-gray-500 py-8">
                 <div class="text-4xl mb-4">🏓</div>
-                <p>Click on a match to view details</p>
+                <p>${language_obj['Click_to_view_details']}</p>
             </div>
         `;
 
@@ -183,7 +183,7 @@ export class StatsRender {
 		section.className = 'mb-8';
 
 		const title = document.createElement('h2');
-		title.textContent = 'Overview';
+		title.textContent = `${language_obj['Overview']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
 
 		const grid = document.createElement('div');
@@ -196,25 +196,25 @@ export class StatsRender {
 
 		const overviewStats = [
 			{
-				label: 'Total Games',
+				label: `${language_obj['Total_games']}`,
 				value: totalGames.toString(),
 				icon: '🎮',
 				color: 'bg-blue-100 text-blue-800'
 			},
 			{
-				label: 'Win Rate',
+				label: `${language_obj['Winrate']}`,
 				value: `${winRate}%`,
 				icon: '🏆',
 				color: 'bg-green-100 text-green-800'
 			},
 			{
-				label: 'Total Wins',
+				label: `${language_obj['Total_wins']}`,
 				value: totalWins.toString(),
 				icon: '🔥',
 				color: 'bg-orange-100 text-orange-800'
 			},
 			{
-				label: 'Favorite Mode',
+				label: `${language_obj['Favorite_mode']}`,
 				value: (statsData.oneVOneWins || 0) >= (statsData.tournamentWins || 0) ? '1v1' : 'Tournament',
 				icon: '⭐',
 				color: 'bg-purple-100 text-purple-800'
@@ -254,7 +254,7 @@ export class StatsRender {
 		section.className = 'mb-8';
 
 		const title = document.createElement('h2');
-		title.textContent = 'Performance Charts';
+		title.textContent = `${language_obj['Performance_charts']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
 
 		const chartsGrid = document.createElement('div');
@@ -279,17 +279,17 @@ export class StatsRender {
 		container.className = 'bg-gray-50 p-4 rounded-lg';
 
 		const title = document.createElement('h3');
-		title.textContent = 'Win/Loss Distribution';
+		title.textContent = `${language_obj['Win_loss_distr']}`;
 		title.className = 'font-medium mb-4 text-center';
 
 		const chartContainer = document.createElement('div');
 		chartContainer.className = 'space-y-2';
 
 		const categories = [
-			{ label: '1v1 Wins', value: statsData.oneVOneWins || 0, color: 'bg-green-500' },
-			{ label: '1v1 Losses', value: statsData.oneVOneLosses || 0, color: 'bg-red-500' },
-			{ label: 'Tournament Wins', value: statsData.tournamentWins || 0, color: 'bg-blue-500' },
-			{ label: 'Tournament Losses', value: statsData.tournamentLosses || 0, color: 'bg-orange-500' }
+			{ label: `1v1 ${language_obj['Wins']}`, value: statsData.oneVOneWins || 0, color: 'bg-green-500' },
+			{ label: `1v1 ${language_obj['Losses']}`, value: statsData.oneVOneLosses || 0, color: 'bg-red-500' },
+			{ label: `${language_obj['Tornament']} ${language_obj['Wins']}`, value: statsData.tournamentWins || 0, color: 'bg-blue-500' },
+			{ label: `${language_obj['Tornament']} ${language_obj['Losses']}`, value: statsData.tournamentLosses || 0, color: 'bg-orange-500' }
 		];
 
 		const maxValue = Math.max(...categories.map(c => c.value), 1);
@@ -331,7 +331,7 @@ export class StatsRender {
 		container.className = 'bg-gray-50 p-4 rounded-lg';
 
 		const title = document.createElement('h3');
-		title.textContent = 'Mode Performance';
+		title.textContent = `${language_obj['mode_performance']}`;
 		title.className = 'font-medium mb-4 text-center';
 
 		const modeData = [
@@ -342,7 +342,7 @@ export class StatsRender {
 				color: 'bg-blue-500'
 			},
 			{
-				mode: 'Tournament',
+				mode: `${language_obj['Tornament']}`,
 				wins: statsData.tournamentWins || 0,
 				losses: statsData.tournamentLosses || 0,
 				color: 'bg-purple-500'
@@ -398,7 +398,7 @@ export class StatsRender {
 		`;
 
 		const title = document.createElement('h2');
-		title.textContent = 'Visual Charts';
+		title.textContent = `${language_obj['Visual_charts']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold mb-4 text-gray-800`;
 
 		const chartsGrid = document.createElement('div');
@@ -426,7 +426,7 @@ export class StatsRender {
 		const box=document.createElement('div');
 		box.className='bg-gray-50 p-4 rounded-lg';
 		box.style.height  = '310px';
-		box.innerHTML=`<h3 class="font-medium mb-1 text-center">Win Rate Over Time</h3><canvas></canvas>`;
+		box.innerHTML=`<h3 class="font-medium mb-1 text-center">${language_obj['Winrate_over_time']}</h3><canvas></canvas>`;
 		const ctx=box.querySelector('canvas')! as HTMLCanvasElement;
 
 		/* recuperer tous les matchs connus */
@@ -470,7 +470,7 @@ export class StatsRender {
 		const box = document.createElement('div');
 		box.className = 'bg-gray-50 p-4 rounded-lg';
 
-		box.innerHTML = `<h3 class="font-medium mb-4 text-center">Head&nbsp;to&nbsp;Head (Top&nbsp;3)</h3>
+		box.innerHTML = `<h3 class="font-medium mb-4 text-center">${language_obj['H2H']}</h3>
 						<canvas></canvas>`;
 		const ctx = box.querySelector('canvas') as HTMLCanvasElement;
 
@@ -520,7 +520,7 @@ export class StatsRender {
 		box.style.height  = '310px';
     	box.style.width   = '70%';
 
-		box.innerHTML=`<h3 class="font-medium mb-1 text-center">Win/Loss Breakdown</h3><canvas></canvas>`;
+		box.innerHTML=`<h3 class="font-medium mb-1 text-center">${language_obj['Win_loss_breakdown']}</h3><canvas></canvas>`;
 		const ctx=box.querySelector('canvas') as HTMLCanvasElement;
 
 		const values=[ stats.oneVOneWins||0, stats.oneVOneLosses||0,
@@ -549,7 +549,7 @@ export class StatsRender {
 		header.className = 'flex items-center justify-between mb-4';
 
 		const title = document.createElement('h2');
-		title.textContent = 'Recent Matches';
+		title.textContent = `${language_obj['Recent_matches']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold text-gray-800`;
 
 		header.appendChild(title);
@@ -576,7 +576,7 @@ export class StatsRender {
 		if (matches.length === 0) {
 			const noMatches = document.createElement('div');
 			noMatches.className = 'text-center py-8 text-gray-500';
-			noMatches.textContent = 'No matches played yet';
+			noMatches.textContent = `${language_obj['No_matches_yet']}`;
 			return noMatches;
 		}
 
@@ -632,7 +632,7 @@ export class StatsRender {
 			// Match details with opponent name
 			const matchDetails = document.createElement('div');
 			const matchType = document.createElement('span');
-			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : 'Tournament';
+			matchType.textContent = match.matchType === 'ONE_V_ONE' ? '1v1' : `${language_obj['Tournament']}`;
 			matchType.className = 'text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600';
 
 			matchDetails.appendChild(matchType);
@@ -673,7 +673,7 @@ export class StatsRender {
 			// Add click indicator
 			const clickIndicator = document.createElement('div');
 			clickIndicator.className = 'text-xs text-purple-500 mt-1 opacity-70';
-			clickIndicator.textContent = 'Click for details →';
+			clickIndicator.textContent = `${language_obj['Click_for_details']}`;
 
 			matchItem.appendChild(matchHeader);
 			matchItem.appendChild(matchDate);
@@ -702,7 +702,7 @@ export class StatsRender {
 		panel.innerHTML = `
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Match Details</h3>
+                    <h3 class="text-xl font-bold text-gray-800">${language_obj['Matches_details']}</h3>
                     <button id="close-match-details" class="text-gray-500 hover:text-gray-700 text-xl font-bold">×</button>
                 </div>
 
@@ -722,7 +722,7 @@ export class StatsRender {
             <img src="${opponent?.avatar ? (opponent.avatar.startsWith('/avatars/') ? opponent.avatar : `/avatars/${opponent.avatar}`) : '/avatars/default.svg'}" alt="${opponent?.displayName || 'Unknown'}" class="w-12 h-12 rounded-full">
                     <div>
                         <div class="font-medium text-lg">${opponent?.displayName || 'Unknown Player'}</div>
-                        <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : 'Tournament'}</div>
+                        <div class="text-sm text-gray-500">${match.matchType === 'ONE_V_ONE' ? '1v1 Match' : `${language_obj['Tournament']}`}</div>
                     </div>
                 </div>
 
@@ -741,7 +741,7 @@ export class StatsRender {
                 <!-- Simple Actions -->
                 <div class="space-y-2">
                     <button id="view-opponent-profile" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        View ${opponent?.displayName || 'Player'}'s Profile
+                        View ${opponent?.displayName || `${language_obj['Player']}`} ${language_obj['Profile']}
                     </button>
                 </div>
             </div>
@@ -826,7 +826,7 @@ export class StatsRender {
 		section.className = 'mb-8';
 
 		const title = document.createElement('h2');
-		title.textContent = 'Recent Tournaments';
+		title.textContent = `${language_obj['Recent_tournaments']}`;
 		title.className = `font-['Orbitron'] text-2xl font-bold text-gray-800 mb-4`;
 		section.appendChild(title);
 
@@ -838,7 +838,7 @@ export class StatsRender {
 
 		if (tourns.length === 0) {
 			list.innerHTML = `<div class="text-center py-8 text-gray-500">
-                No tournaments played yet
+                ${language_obj['No_tornament_yet']}
             </div>`;
 			return section;
 		}
@@ -876,7 +876,7 @@ export class StatsRender {
                     <div class="flex items-center space-x-2">
                     <span class="font-semibold">${isWinner ? '🏆 VICTORY' : '🚩 DEFEAT'}</span>
                     <span class="text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600">
-                        Tournament
+                        ${language_obj['Tornament']}
                     </span>
                     </div>
                     <div class="text-right">
@@ -894,7 +894,7 @@ export class StatsRender {
 			})}
                 </div>
                 <div class="text-xs text-purple-500 opacity-70">
-                    Click for details →
+                    ${language_obj['Click_for_details']}
                 </div>
             `;
 
