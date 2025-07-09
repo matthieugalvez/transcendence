@@ -134,7 +134,7 @@
 	"No_friends_or_requests": "No friends or requests yet",
 	"No_game_invites": "No game invites",
 	"No_matches_yet": "No matches played yet",
-	"No_tornament_yet": "No tornament played yet",
+	"No_tournament_yet": "No tournament played yet",
 	"Onboardingpage_backhome_button": "Back to Home",
 	"Onboardingpage_box_subtitle": "Choose your game mode",
 	"Onboardingpage_disable2FA": "Disable2FA",
@@ -247,5 +247,9 @@
 	"Waiting_for_reconnect": "Waiting for the other player to reconnect...",
 	"Save": "Save",
 	"Manage_settings": "Manage your account settings",
-	"Settings_for": "Settings for"
+	"Settings_for": "Settings for",
+	"Complete_signup": "Complete Your Sign-Up",
+	"Choose_displayName": "Choose Your Display Name"
+
+
 }

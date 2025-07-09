@@ -288,8 +288,8 @@ export class StatsRender {
 		const categories = [
 			{ label: `1v1 ${language_obj['Wins']}`, value: statsData.oneVOneWins || 0, color: 'bg-green-500' },
 			{ label: `1v1 ${language_obj['Losses']}`, value: statsData.oneVOneLosses || 0, color: 'bg-red-500' },
-			{ label: `${language_obj['Tornament']} ${language_obj['Wins']}`, value: statsData.tournamentWins || 0, color: 'bg-blue-500' },
-			{ label: `${language_obj['Tornament']} ${language_obj['Losses']}`, value: statsData.tournamentLosses || 0, color: 'bg-orange-500' }
+			{ label: `${language_obj['Tournament']} ${language_obj['Wins']}`, value: statsData.tournamentWins || 0, color: 'bg-blue-500' },
+			{ label: `${language_obj['Tournament']} ${language_obj['Losses']}`, value: statsData.tournamentLosses || 0, color: 'bg-orange-500' }
 		];
 
 		const maxValue = Math.max(...categories.map(c => c.value), 1);
@@ -342,7 +342,7 @@ export class StatsRender {
 				color: 'bg-blue-500'
 			},
 			{
-				mode: `${language_obj['Tornament']}`,
+				mode: `${language_obj['Tournament']}`,
 				wins: statsData.tournamentWins || 0,
 				losses: statsData.tournamentLosses || 0,
 				color: 'bg-purple-500'
@@ -838,7 +838,7 @@ export class StatsRender {
 
 		if (tourns.length === 0) {
 			list.innerHTML = `<div class="text-center py-8 text-gray-500">
-                ${language_obj['No_tornament_yet']}
+                ${language_obj['No_tournament_yet']}
             </div>`;
 			return section;
 		}
@@ -876,7 +876,7 @@ export class StatsRender {
                     <div class="flex items-center space-x-2">
                     <span class="font-semibold">${isWinner ? `🏆 ${language_obj['Victory']} ` : `🚩 ${language_obj['Defeat']} `}</span>
                     <span class="text-xs bg-gray-100 px-2 py-1 rounded ml-2 font-medium text-gray-600">
-                        ${language_obj['Tornament']}
+                        ${language_obj['Tournament']}
                     </span>
                     </div>
                     <div class="text-right">

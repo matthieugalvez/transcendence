@@ -92,7 +92,7 @@
 	"Gamepage_auth_error": "Vous devez être connecté pour jouer",
 	"Gamepage_copied_link": "Copié !",
 	"Gamepage_game_heading": "Partie de Pong",
-	"Gamepage_game_link": "Lien de partie copié",
+	"Gamepage_game_link": "Copie le lien de partie",
 	"Gamepage_link_copy_failure": "Echec de la copie",
 	"Gamepage_name_input": "Entrer Joueur",
 	"Gamepage_name": "Nom",
@@ -134,7 +134,7 @@
 	"No_friends_or_requests": "Pas encore d'ami ou de requête",
 	"No_game_invites": "Pas d'invitation",
 	"No_matches_yet": "Pas encore de match joué",
-	"No_tornament_yet": "Pas encore de tournoi joué",
+	"No_tournament_yet": "Pas encore de tournoi joué",
 	"Onboardingpage_backhome_button": "Retour à l'accueil",
 	"Onboardingpage_box_subtitle": "Sélectionnez un mode de jeu",
 	"Onboardingpage_disable2FA": "Désactiver le 2FA",
@@ -143,7 +143,7 @@
 	"Onboardingpage_error_fetch_data": "Echec lors de la recherche de la donnée utilisateur:",
 	"Onboardingpage_loading": "Chargement...",
 	"Onboardingpage_login_button": "Connexion",
-	"Onboardingpage_logout_button": "Deconnexion",
+	"Onboardingpage_logout_button": "Déconnexion",
 	"Onboardingpage_play_button": "Jouer",
 	"Onboardingpage_title": "Transcendence - Lobby",
 	"Onboardingpage_welcome": "Bienvenue",
@@ -234,7 +234,7 @@
 	"Victory": "VICTOIRE",
 	"Defeat": "DÉFAITE",
 	"Win_iswinner": "VICTOIRE",
-	"Loss_iswinner": "PERTE",
+	"Loss_iswinner": "DÉFAITE",
 	"Tournament_details": "Détails du tournoi",
 	"You_won": "TU AS GAGNÉ",
 	"You_lost": "TU AS PERDU",
@@ -247,7 +247,9 @@
 	"Waiting_for_reconnect": "Attente de la reconnexion des autres joueurs",
 	"Save": "Sauvegarder",
 	"Manage_settings": "Gérez vos paramètres de compte",
-	"Settings_for": "Paramètres de"
+	"Settings_for": "Paramètres de",
+	"Complete_signup": "Compléte ton enregistrement",
+	"Choose_displayName": "Choisis ton nom d'utilisateur"
 
 
 }
