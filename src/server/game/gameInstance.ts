@@ -517,8 +517,7 @@ export class GameInstance {
 	}
 
 	private endGameDueToDisconnect() {
-		// Mark as ended first
-		// Add a check to prevent ending if players have reconnected
+
 		if (this.players.every(p => p.ws)) {
 			return;
 		}
