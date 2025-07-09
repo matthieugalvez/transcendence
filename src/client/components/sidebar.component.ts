@@ -86,7 +86,10 @@ export class SidebarComponent {
 		if (showStats) {
 			const profileBtn = CommonComponent.createStylizedButton('👤 My statistics', 'orange');
 			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			profileBtn.onclick = () => router.navigate('/profile');
+			profileBtn.onclick = () => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				router.navigate('/profile')
+			};
 			sidebar.appendChild(profileBtn);
 		}
 
@@ -98,7 +101,10 @@ export class SidebarComponent {
 
 			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'purple');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
-			friendsBtn.onclick = () => router.navigate('/friendlist');
+			friendsBtn.onclick = () => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				router.navigate('/friendlist')
+			};
 
 			// Create notification bell (always create it, just hide/show as needed)
 			const notificationBell = document.createElement('div');
@@ -164,7 +170,10 @@ export class SidebarComponent {
 		if (showSettings) {
 			const settingBtn = CommonComponent.createStylizedButton("⚙️ Settings", "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
-			settingBtn.onclick = () => router.navigate("/settings");
+			settingBtn.onclick = () => {
+				window.dispatchEvent(new Event('app:close-sockets'));
+				router.navigate("/settings")
+			};
 			bottomContainer.appendChild(settingBtn);
 
 		}
@@ -174,6 +183,7 @@ export class SidebarComponent {
 		logoutBtn.addEventListener("click", async () => {
 			const success = await AuthComponent.logoutUser();
 			if (success) {
+				window.dispatchEvent(new Event('app:close-sockets'));
 				document.body.innerHTML = "";
 				setTimeout(() => router.navigate("/auth"), 300);
 			}

@@ -57,6 +57,7 @@ export class GameInstance {
 	private readonly maxScore: number = 5;
 	// Tick interval
 	private intervalHandle?: NodeJS.Timeout;
+	private countdownInterval?: NodeJS.Timeout;
 	// Parameters that won't change
 	private readonly canvasWidth = 800;
 	private readonly canvasHeight = 600;
@@ -186,11 +187,14 @@ export class GameInstance {
 			this.pauseTimeoutHandle = null;
 		}
 		let s = 3;
-		const id = setInterval(() => {
+		this.countdownInterval = setInterval(() => {
 			s--;
 			if (s >= 0) this.broadcastToAll(JSON.stringify({ type: 'countdown', seconds: s }));
 			else {
-				clearInterval(id);
+				if (this.countdownInterval) {
+					clearInterval(this.countdownInterval);
+					this.countdownInterval = undefined;
+				}
 				this.isFreeze = false;
 				this.ballVel = this.randomBallVel();
 				this.isRunning = true;
@@ -279,6 +283,10 @@ export class GameInstance {
 		if (this.intervalHandle) {
 			clearInterval(this.intervalHandle);
 			this.intervalHandle = undefined;
+		}
+		if (this.countdownInterval) {
+			clearInterval(this.countdownInterval);
+			this.countdownInterval = undefined;
 		}
 	}
 	// move paddle up or down
