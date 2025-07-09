@@ -244,5 +244,8 @@
 	"Paused": "PAUSED",
 	"Up": "Up",
 	"Down": "Down",
-	"Waiting_for_reconnect": "Waiting for the other player to reconnect..."
+	"Waiting_for_reconnect": "Waiting for the other player to reconnect...",
+	"Save": "Save",
+	"Manage_settings": "Manage your account settings",
+	"Settings_for": "Settings for"
 }

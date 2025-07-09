@@ -244,5 +244,10 @@
 	"Paused": "PAUSE",
 	"Up": "Haut",
 	"Down": "Bas",
-	"Waiting_for_reconnect": "Attente de la reconnexion des autres joueurs"
+	"Waiting_for_reconnect": "Attente de la reconnexion des autres joueurs",
+	"Save": "Sauvegarder",
+	"Manage_settings": "Gérez vos paramètres de compte",
+	"Settings_for": "Paramètres de"
+
+
 }
