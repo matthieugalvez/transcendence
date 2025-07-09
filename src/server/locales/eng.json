@@ -244,5 +244,5 @@
 	"Paused": "PAUSED",
 	"Up": "Up",
 	"Down": "Down",
-	"Waitinf_for_reconnect": "Waiting for the other player to reconnect..."
+	"Waiting_for_reconnect": "Waiting for the other player to reconnect..."
 }
