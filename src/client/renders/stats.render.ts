@@ -331,7 +331,7 @@ export class StatsRender {
 		container.className = 'bg-gray-50 p-4 rounded-lg';
 
 		const title = document.createElement('h3');
-		title.textContent = `${language_obj['mode_performance']}`;
+		title.textContent = `${language_obj['Mode_performance']}`;
 		title.className = 'font-medium mb-4 text-center';
 
 		const modeData = [
