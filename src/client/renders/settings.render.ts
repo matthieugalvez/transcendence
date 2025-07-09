@@ -84,7 +84,7 @@ export class SettingsRender {
 		buttonContainer.className = 'flex flex-col gap-3 justify-center mb-4';
 
 		// 2FA Settings buttons
-		const Enable2FAButton = CommonComponent.createStylizedButton('Enable 2FA', 'blue');
+		const Enable2FAButton = CommonComponent.createStylizedButton(`${language_obj['Enable_2FA']}`, 'blue');
 		Enable2FAButton.addEventListener('click', async () => {
 			await AuthComponent.handle2FASetup();
 		});

@@ -224,5 +224,10 @@
 	"You_can_only_select_2more": "You can only select 2 more players",
 	"You_need_3_friends": "You need at least 3 friends to create a tournament",
 	"Your_invite_expired": "Your invite expired. Redirecting...",
-	"Your_stats": "Your Stats"
+	"Your_stats": "Your Stats",
+	"Win_overlay_won": "won",
+	"Right_player": "Right player",
+	"Left_player": "Left player",
+	"Enable_2FA": "Enable 2FA",
+	"Online": "Online"
 }

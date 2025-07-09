@@ -113,8 +113,7 @@ export class GameSettingsComponent {
 				// Instead of just calling render, we need to trigger the callback
 				callbacks.onStartGame?.('duo-local');
 			};
-
-			const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+			const onlineBtn = CommonComponent.createStylizedButton(`${language_obj['Online']}`, 'orange');
 			onlineBtn.onclick = () => callbacks.onStartGame?.('duo-online');
 
 			chooseMode.appendChild(localBtn);
@@ -208,7 +207,7 @@ export class GameSettingsComponent {
 			const localBtn = CommonComponent.createStylizedButton('Local', 'red');
 			localBtn.onclick = () => router.navigate('/tournament');
 
-			const onlineBtn = CommonComponent.createStylizedButton('Online', 'orange');
+			const onlineBtn = CommonComponent.createStylizedButton(`${language_obj['Online']}`, 'orange');
 			onlineBtn.onclick = () => callbacks.onStartGame?.('tournament-online');
 
 			chooseMode.appendChild(localBtn);
@@ -403,7 +402,7 @@ export class GameSettingsComponent {
 				callbacks.onDifficultyChange?.(label);
 				// Refresh buttons pour mettre à jour l'état visuel
 				// GameSettingsComponent.render(GameSettingsComponent.currentMode, callbacks);
-				diffBox.querySelectorAll('button').forEach(b => 
+				diffBox.querySelectorAll('button').forEach(b =>
 					b.classList.remove('ring-2','ring-yellow-400','opacity-100'));
 				btn.classList.add('ring-2','ring-yellow-400','opacity-100');
 			};
@@ -494,14 +493,17 @@ export class GameSettingsComponent {
 		};
 		if (mode === 'duo') {
 			wrapper.append(
-				makeSide('Left Player', 'W', 'S', 'bg-amber-500/90'),
-				makeSide('Right Player', '↑', '↓', 'bg-fuchsia-600/90')
+				makeSide(`${language_obj['Left_player']}`, 'W', 'S', 'bg-amber-500/90'),
+				makeSide(`${language_obj['Right_player']}`, '↑', '↓', 'bg-fuchsia-600/90')
 			);
 		} else {
 			wrapper.append(
-				makeSide('Player', 'W/↑', 'S/↓', 'bg-amber-500/90'),
+				makeSide(`${language_obj['Gamepage_player']}`, 'W/↑', 'S/↓', 'bg-amber-500/90'),
 			);
 		}
 		return wrapper;
 	}
 }
+
+
+

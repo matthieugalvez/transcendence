@@ -353,7 +353,7 @@ export function startPongInContainer(
     const player2Color = '#B946EF';
 
 	const title = document.createElement('h2');
-	title.textContent = "Ready to pong?";
+	title.textContent = `${language_obj['Ready_to_pong']}`;
 	title.className = 'text-2xl font-["Orbitron"] text-white text-center mt-8 mb-4';
 	container.appendChild(title);
 
@@ -548,7 +548,7 @@ export function showGameOverOverlay(
 	ov.appendChild(panel);
 
 	const msg = document.createElement('p');
-	msg.textContent = `${winner} won! 🎉`;
+	msg.textContent = `${winner} ${language_obj['Win_overlay_won']}! 🎉`;
 	msg.className = `
 		text-2xl text-white
 		font-["Canada-big"] mb-4
