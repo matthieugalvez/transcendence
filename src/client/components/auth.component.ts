@@ -45,12 +45,12 @@ export class AuthComponent {
 			return apiResponseData;
 		} else {
 			// Only show non-2FA errors on the main page
-			const twoFAErrors = ['2FA Code is missing', 'Invalid 2FA Code'];
+			const twoFAErrors = [`${language_obj['Auth2FApage_error_empty_field']}`, `${language_obj['Auth2FApage_error_invalid_code']}`];
 			if (
 				!document.getElementById('twofa-modal') &&
 				!twoFAErrors.includes(apiResponseData.error)
 			) {
-				CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Login failed'}`, 'error');
+				CommonComponent.showMessage(`❌ ${apiResponseData.error || language_obj['Authpage_error_login_failed']}`, 'error');
 			}
 			return apiResponseData;
 		}
@@ -72,7 +72,7 @@ export class AuthComponent {
 
 	// Gestion d'erreur pour l'auth (mdp/signup etc)
 	private static handleAuthError(apiResponseData: any): void {
-		let errorMessage = apiResponseData.error || 'Registration failed';
+		let errorMessage = apiResponseData.error || `${language_obj['Authpage_error_registration_failed']}`;
 
 		if (apiResponseData.details && apiResponseData.details.length > 0) {
 			const validationErrors = apiResponseData.details
@@ -105,7 +105,7 @@ export class AuthComponent {
 			return true;
 		}
 		else {
-			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'language change failed'}`, 'error');
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || language_obj['Language_change_failed']}`, 'error');
 			return false;
 		}
 	}
@@ -114,7 +114,7 @@ export class AuthComponent {
 	static async handle2FASetup() {
 		const data = await AuthService.setup2FA();
 		if (!data.success) {
-			CommonComponent.showMessage(`❌ ${data.error || 'Failed to start 2FA setup'}`, 'error');
+			CommonComponent.showMessage(`❌ ${data.error || language_obj['Auth2FApage_error']}`, 'error');
 			return;
 		}
 
@@ -127,10 +127,10 @@ export class AuthComponent {
 			}
 			const verifyData = await AuthService.verify2FA(code);
 			if (verifyData.success) {
-				CommonComponent.showMessage('✅ 2FA enabled!', 'success');
+				CommonComponent.showMessage(`✅ ${language_obj['Auth2FAPage_enabled']}`, 'success');
 				break;
 			} else {
-				errorMsg = verifyData.error || '❌ Invalid code. Try again.';
+				errorMsg = verifyData.error || `❌ ${language_obj['Auth2FApage_error_invalid_code']}`;
 			}
 		}
 	}
@@ -139,17 +139,17 @@ export class AuthComponent {
 	static async disable2FA(): Promise<boolean> {
 		const apiResponseData = await AuthService.disable2FA();
 		if (apiResponseData.success) {
-			CommonComponent.showMessage('✅ 2FA disabled!', 'success');
+			CommonComponent.showMessage(`✅ ${language_obj['Auth2FAPage_disabled']}`, 'success');
 			return true;
 		} else {
-			CommonComponent.showMessage(`❌ ${apiResponseData.error || 'Failed to disable 2FA'}`, 'error');
+			CommonComponent.showMessage(`❌ ${apiResponseData.error || language_obj['Auth2FApage_disable_error']}`, 'error');
 			return false;
 		}
 	}
 
 	static async signupUserWithDisplayName(email: string, password: string, displayName: string): Promise<boolean> {
 		if (!AuthService.validateInput(email, password)) {
-			CommonComponent.showMessage('❌ Please fill in all fields', 'error');
+			CommonComponent.showMessage(`❌ ${language_obj['Authpage_error_empty_field']}`);
 			return false;
 		}
 
@@ -166,7 +166,7 @@ export class AuthComponent {
 			const data = await response.json();
 
 			if (data.success) {
-				CommonComponent.showMessage(`✅ ${data.message || 'Account created successfully!'}`, 'success');
+				CommonComponent.showMessage(`✅ ${data.message || language_obj['Authpage_account_creation_success']}`, 'success');
 				return true;
 			} else {
 				this.handleAuthError(data);
@@ -174,7 +174,7 @@ export class AuthComponent {
 			}
 		} catch (error) {
 			console.error('Signup with display name error:', error);
-			CommonComponent.showMessage('❌ Failed to create account. Please try again.', 'error');
+			CommonComponent.showMessage(`❌ ${language_obj['Authpage_account_creation_failure']}`, 'error');
 			return false;
 		}
 	}
@@ -214,7 +214,7 @@ export class AuthComponent {
 				return { success: true, userData: updatedUserData };
 			} else {
 				// Show error and retry
-				let errorMessage = updateResult.error || 'Failed to set display name';
+				let errorMessage = updateResult.error || `${language_obj['Display_name_failure']}`;
 
 				// Handle validation errors
 				if (updateResult.details && updateResult.details.length > 0) {

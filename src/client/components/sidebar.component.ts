@@ -3,6 +3,7 @@ import { CommonComponent } from './common.component';
 import { AuthComponent } from './auth.component';
 import { UserSearchComponent } from "./usersearch.component";
 import { UserService } from "../services/user.service";
+import { language_obj } from '../index.ts';
 
 export interface SidebarOptions {
 	userName: string;
@@ -70,7 +71,7 @@ export class SidebarComponent {
 
 		// Welcome title with user's name
 		const pageTitle = document.createElement('h1');
-		pageTitle.textContent = `Welcome ${userName}`;
+		pageTitle.textContent = `${language_obj['Onboardingpage_welcome']} ${userName}`;
 		pageTitle.className = `
 			font-['Canada-big'] uppercase font-bold
 			text-4xl text-center mb-6 mt-2
@@ -84,7 +85,7 @@ export class SidebarComponent {
 
 		// Stat button
 		if (showStats) {
-			const profileBtn = CommonComponent.createStylizedButton('👤 My statistics', 'orange');
+			const profileBtn = CommonComponent.createStylizedButton(`👤 ${language_obj['Sidebar_stats']}`, 'orange');
 			profileBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			profileBtn.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets'));
@@ -99,7 +100,7 @@ export class SidebarComponent {
 			const friendsBtnContainer = document.createElement('div');
 			friendsBtnContainer.className = 'relative w-full';
 
-			const friendsBtn = CommonComponent.createStylizedButton('👥 Friendlist', 'purple');
+			const friendsBtn = CommonComponent.createStylizedButton(`👥 ${language_obj['Sidebar_friendlist']}`, 'purple');
 			friendsBtn.classList.add("w-full", "flex", "justify-center", "whitespace-nowrap", "cursor-pointer");
 			friendsBtn.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets'));
@@ -158,7 +159,7 @@ export class SidebarComponent {
 		bottomContainer.className = 'mt-auto w-full space-y-2';
 		// Back to home button
 		if (showBackHome) {
-			const backButton = CommonComponent.createStylizedButton('🔙 Home', 'purple');
+			const backButton = CommonComponent.createStylizedButton(`🔙 ${language_obj['Sidebar_home']}`, 'purple');
 			backButton.classList.add("w-full", "text-center", "cursor-pointer");
 			backButton.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets')); // exec event des sockets dans app:close
@@ -168,7 +169,7 @@ export class SidebarComponent {
 		}
 		// Settings button
 		if (showSettings) {
-			const settingBtn = CommonComponent.createStylizedButton("⚙️ Settings", "blue");
+			const settingBtn = CommonComponent.createStylizedButton(`⚙️ ${language_obj['Sidebar_settings']}`, "blue");
 			settingBtn.classList.add("w-full", "text-center", "cursor-pointer");
 			settingBtn.onclick = () => {
 				window.dispatchEvent(new Event('app:close-sockets'));
@@ -178,7 +179,7 @@ export class SidebarComponent {
 
 		}
 		// Logout button
-		const logoutBtn = CommonComponent.createStylizedButton("🚪 Logout", "red");
+		const logoutBtn = CommonComponent.createStylizedButton(`🚪 ${language_obj['Onboardingpage_logout_button']}`, "red");
 		logoutBtn.classList.add("w-full", "text-center", "cursor-pointer");
 		logoutBtn.addEventListener("click", async () => {
 			const success = await AuthComponent.logoutUser();

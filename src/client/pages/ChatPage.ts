@@ -5,6 +5,7 @@ import { UserService } from '../services/user.service';
 import { renderNotFoundPage } from './NotFoundPage';
 import { FriendService } from '../services/friend.service';
 import { FriendsRender } from '../renders/friends.render';
+import { language_obj } from '../index.ts';
 let		g_edit_box: boolean = false;
 let		g_last_fetch_date: Date;
 
@@ -70,7 +71,7 @@ export async function renderChatPage() {
 
 	const	friendship_status = await UserService.getFriendshipStatus(receiver.id);
 
-	const	block_button = CommonComponent.createStylizedButton("Block", 'red');
+	const	block_button = CommonComponent.createStylizedButton(`${language_obj['Block']}`, 'red');
 	block_button.title = 'block_button',
 	block_button.style.marginRight = '5px';
 	block_button.style.textWrap = 'nowrap';
@@ -79,7 +80,7 @@ export async function renderChatPage() {
 		location.reload();
 	}
 
-	const	unblock_button = CommonComponent.createStylizedButton("unblock", 'red');
+	const	unblock_button = CommonComponent.createStylizedButton(`${language_obj['Unblock']}`, 'red');
 	unblock_button.title = 'unblock_button',
 	unblock_button.style.marginRight = '5px';
 	unblock_button.style.textWrap = 'nowrap';
@@ -96,13 +97,13 @@ export async function renderChatPage() {
 		friend_button.style.marginRight = '5px';
 		friend_button.style.textWrap = 'nowrap';
 		if (friendship_status.status === 'none') {
-			friend_button.textContent = 'Add Friend';
+			friend_button.textContent = `${language_obj['Add_friend']}`;
 			friend_button.onclick = async () => {
 				await FriendService.sendFriendRequest(receiver.id);
 				location.reload();
 			};
 		} else if (friendship_status.status === 'pending') {
-			friend_button.textContent = 'Cancel Request';
+			friend_button.textContent = `${language_obj['Cancel_request']}`;
 			friend_button.onclick = async () => {
 				if (friendship_status.requestId) {
 					await FriendService.rejectFriendRequest(friendship_status.requestId);
@@ -110,14 +111,14 @@ export async function renderChatPage() {
 				}
 			};
 		} else if (friendship_status.status === 'incoming') {
-			friend_button.textContent = 'Accept Request';
+			friend_button.textContent = `${language_obj['Accept_request']}`;
 			friend_button.onclick = async () => {
 				if (friendship_status.requestId) {
 					await FriendService.acceptFriendRequest(friendship_status.requestId);
 					location.reload();
 				}
 			};
-			const	reject_button = CommonComponent.createStylizedButton('Reject Request', 'gray');
+			const	reject_button = CommonComponent.createStylizedButton(`${language_obj['Reject_request']}`, 'gray');
 			reject_button.style.marginRight = '5px';
 			reject_button.style.textWrap = 'nowrap';
 			reject_button.onclick = async () => {
@@ -128,7 +129,7 @@ export async function renderChatPage() {
 			};
 			title_box.appendChild(reject_button);
 		} else if (friendship_status.status === 'friends') {
-			friend_button.textContent = 'Remove Friend';
+			friend_button.textContent = `${language_obj['Remove_friend']}`;
 			friend_button.onclick = async () => {
 				await UserService.removeFriend(receiver.id);
 				location.reload();
@@ -152,7 +153,7 @@ export async function renderChatPage() {
 		}
 
 		if (!hasPendingGameInvite) {
-			const inviteBtn = CommonComponent.createStylizedButton('Invite to Game', 'purple');
+			const inviteBtn = CommonComponent.createStylizedButton(`${language_obj['Invite_to_game']}`, 'purple');
 			inviteBtn.style.marginRight = '5px';
 			inviteBtn.style.textWrap = 'nowrap';
 			inviteBtn.onclick = async () => {
@@ -160,7 +161,7 @@ export async function renderChatPage() {
 			};
 			title_box.appendChild(inviteBtn);
 		} else {
-			const pendingInviteBtn = CommonComponent.createStylizedButton('Invite Pending', 'gray');
+			const pendingInviteBtn = CommonComponent.createStylizedButton(`${language_obj['Invite_pending']}`, 'gray');
 			pendingInviteBtn.style.marginRight = '5px';
 			pendingInviteBtn.style.textWrap = 'nowrap';
 			pendingInviteBtn.disabled = true;
@@ -169,12 +170,12 @@ export async function renderChatPage() {
 	}
 
 	if (friendship_status.status === 'blocked') {
-		messages_box.textContent = `User ${ receiver.displayName } is blocked`;
+		messages_box.textContent = `${language_obj['User']} ${ receiver.displayName } ${language_obj['Is_blocked']}`;
 		messages_box.style.justifyContent = 'center';
 		messages_box.style.alignItems = 'center';
 		document.body.appendChild(mainContainer);
 	} else if (friendship_status.status === 'blocked_by') {
-		messages_box.textContent = `User ${ receiver.displayName } blocked you`;
+		messages_box.textContent = `${language_obj['User']} ${ receiver.displayName } ${language_obj['Blocked_you']}`;
 		messages_box.style.justifyContent = 'center';
 		messages_box.style.alignItems = 'center';
 		document.body.appendChild(mainContainer);
@@ -210,7 +211,7 @@ export async function renderChatPage() {
 		disabled:opacity-50 disabled:cursor-not-allowed
 		resize-none
 		`.replace(/\s+/g, ' ').trim()
-		prompt_area.placeholder = 'Type Message here...';
+		prompt_area.placeholder = `${language_obj['Type_here']}`;
 
 		prompt_area.onkeydown = async (event) => {
 			if (event.key === "Enter" && prompt_area.value) {
@@ -254,7 +255,7 @@ async function getAllMessages(receiver_id: string, messages_box: any) {
 						message_box.firstElementChild.firstElementChild.textContent = `\n${message.content} `;
 					} else {
 						message_box.firstElementChild.firstElementChild.style.fontStyle = 'italic';
-						message_box.firstElementChild.firstElementChild.textContent = '\nDELETED';
+						message_box.firstElementChild.firstElementChild.textContent = `\n${language_obj['Deleted']}`;
 					}
 				}
 			}
@@ -304,7 +305,7 @@ function makeMsgBox(content_box: Element, message: any, received: boolean) {
 		box_text.textContent = `\n${message.content}`;
 	} else {
 		box_text.style.fontStyle = 'italic';
-		box_text.textContent = '\nDELETED';
+		box_text.textContent = `\n${language_obj['Deleted']}`;
 	}
 	box_text.style.paddingBottom = '2px';
 
@@ -390,7 +391,7 @@ function	makeMsgButtons(message: any, buttons_box: Element, box_text: Element, b
 	  `.replace(/\s+/g, ' ').trim();
 		edit_button.style.fontSize = '12px';
 		edit_button.style.userSelect = 'none';
-		edit_button.textContent = 'edit';
+		edit_button.textContent = `${language_obj['Edit']}`;
 		edit_button.style.justifyContent = 'center';
 		edit_button.style.alignItems = 'center'
 
@@ -417,7 +418,7 @@ function	makeMsgButtons(message: any, buttons_box: Element, box_text: Element, b
 	  `.replace(/\s+/g, ' ').trim();
 		delete_button.style.fontSize = '12px';
 		delete_button.style.userSelect = 'none';
-		delete_button.textContent = 'delete';
+		delete_button.textContent = `${language_obj['Delete']}`;
 		delete_button.style.justifyContent = 'center';
 		delete_button.style.alignItems = 'center'
 
@@ -447,7 +448,7 @@ function	makeMsgButtons(message: any, buttons_box: Element, box_text: Element, b
 	  `.replace(/\s+/g, ' ').trim();
 		restore_button.style.fontSize = '12px';
 		restore_button.style.userSelect = 'none';
-		restore_button.textContent = 'restore';
+		restore_button.textContent = `${language_obj['Restore']}`;
 		restore_button.style.justifyContent = 'center';
 		restore_button.style.alignItems = 'center'
 
@@ -484,7 +485,7 @@ function	makeEditPromptArea(message: any, box_text: Element) {
     font-['Orbitron']
     text-white font-semibold
   `.trim();
-	prompt_title.textContent = 'Edit message:';
+	prompt_title.textContent = `${language_obj['Edit_message']}`;
 
 	const	prompt_area = document.createElement('textarea');
 	prompt_area.title = 'prompt_area';
@@ -520,7 +521,7 @@ function	makeEditPromptArea(message: any, box_text: Element) {
 	w-full
 	`;
 
-	const	send_button = CommonComponent.createStylizedButton("Send", 'blue');
+	const	send_button = CommonComponent.createStylizedButton(`${language_obj['Send']}`, 'blue');
 	send_button.title = 'send_button';
 	send_button.style.width = 'fit-content';
 	send_button.style.blockSize = 'fit-content';
@@ -534,7 +535,7 @@ function	makeEditPromptArea(message: any, box_text: Element) {
 		}
 	};
 
-	const	close_button = CommonComponent.createStylizedButton("Close", 'red');
+	const	close_button = CommonComponent.createStylizedButton(`${language_obj['Close']}`, 'red');
 	close_button.title = 'close_button';
 	close_button.style.width = 'fit-content';
 	close_button.style.blockSize = 'fit-content';

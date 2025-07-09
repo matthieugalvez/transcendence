@@ -2,6 +2,7 @@ import { router } from '../configs/simplerouter';
 import { FriendService } from '../services/friend.service';
 import { UserService } from '../services/user.service';
 import { CommonComponent } from './common.component';
+import { language_obj } from '../index.ts';
 
 export class UserSearchComponent {
 	static render(container: HTMLElement, onSelect?: (user: { displayName: string, avatar: string, id: string }) => void, opts: { theme?: 'light' | 'dark' } = {}) {
@@ -10,7 +11,7 @@ export class UserSearchComponent {
 
 		const searchInput = document.createElement('input');
 		searchInput.type = 'text';
-		searchInput.placeholder = 'Search users...';
+		searchInput.placeholder = `${language_obj['Searchpage_search']}`;
 		searchInput.className = `
             font-['Orbitron'] ${opts.theme === 'dark' ? 'text-white placeholder-white' : 'text-gray-900'}
             w-full p-3 border-2 border-black rounded-lg
@@ -77,14 +78,14 @@ export class UserSearchComponent {
                 if (onSelect) {
                     // Select button (for tournament selection, etc.)
                     const selectBtn = document.createElement('button');
-                    selectBtn.textContent = 'Select';
+                    selectBtn.textContent = `${language_obj['Select']}`;
                     selectBtn.className = 'px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm';
                     selectBtn.addEventListener('click', () => onSelect(user));
                     buttonContainer.appendChild(selectBtn);
                 } else {
                     // View profile button
                     const viewBtn = document.createElement('button');
-                    viewBtn.textContent = 'View';
+                    viewBtn.textContent = `${language_obj['View']}`;
                     viewBtn.className = 'px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm';
                     viewBtn.addEventListener('click', () => router.navigate(`/profile/${user.displayName}`));
                     buttonContainer.appendChild(viewBtn);
@@ -95,7 +96,7 @@ export class UserSearchComponent {
 
                         if (statusResult.status === 'none') {
                             const addBtn = document.createElement('button');
-                            addBtn.textContent = 'Add Friend';
+                            addBtn.textContent = `${language_obj['Add_friend']}`;
                             addBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm';
                             addBtn.addEventListener('click', async () => {
                                 await this.handleAddFriend(user, addBtn);
@@ -103,13 +104,13 @@ export class UserSearchComponent {
                             buttonContainer.appendChild(addBtn);
                         } else if (statusResult.status === 'pending') {
                             const pendingBtn = document.createElement('button');
-                            pendingBtn.textContent = 'Sent';
+                            pendingBtn.textContent = `${language_obj['Sent']}`;
                             pendingBtn.className = 'px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed text-sm';
                             pendingBtn.disabled = true;
                             buttonContainer.appendChild(pendingBtn);
                         } else if (statusResult.status === 'incoming') {
                             const incomingBtn = document.createElement('button');
-                            incomingBtn.textContent = 'Accept';
+                            incomingBtn.textContent = `${language_obj['Accept']}`;
                             incomingBtn.className = 'px-3 py-1 bg-yellow-500 text-white rounded cursor-not-allowed text-sm';
                             incomingBtn.disabled = true;
                             incomingBtn.addEventListener('click', async () => {
@@ -118,7 +119,7 @@ export class UserSearchComponent {
                             buttonContainer.appendChild(incomingBtn);
                         } else if (statusResult.status === 'friends') {
                             const friendsBtn = document.createElement('button');
-                            friendsBtn.textContent = 'Friends';
+                            friendsBtn.textContent = `${language_obj['Friends']}`;
                             friendsBtn.className = 'px-3 py-1 bg-green-600 text-white rounded cursor-not-allowed text-sm';
                             friendsBtn.disabled = true;
                             buttonContainer.appendChild(friendsBtn);
@@ -133,7 +134,7 @@ export class UserSearchComponent {
             });
             if (filteredUsers.length > limited3Users.length) {
                 const more = document.createElement('p');
-                more.textContent = `… et ${filteredUsers.length - limited3Users.length} résultat(s) de plus`;
+                more.textContent = `… ${language_obj['And']} ${filteredUsers.length - limited3Users.length} ${language_obj['More_results']}`;
                 more.className = 'text-gray-400 italic text-sm mt-1';
                 container.appendChild(more);
             }
@@ -154,7 +155,7 @@ export class UserSearchComponent {
         try {
             // Disable button during request
             button.disabled = true;
-            button.textContent = 'Adding...';
+            button.textContent = `${language_obj['Adding']}`;
             button.className = button.className.replace('bg-blue-600 hover:bg-blue-700', 'bg-gray-500');
 
             // Send friend request
@@ -162,11 +163,11 @@ export class UserSearchComponent {
 
             if (result.success) {
                 // Update button to show success
-                button.textContent = 'Request Sent';
+                button.textContent = `${language_obj['Request_sent']}`;
                 button.className = button.className.replace('bg-gray-500', 'bg-green-600');
 
                 // Show success message
-                CommonComponent.showMessage(`Friend request sent to ${user.displayName}!`, 'success');
+                CommonComponent.showMessage(`${language_obj['Sent_to']} ${user.displayName}!`, 'success');
 
                 // Reload page to update friend lists and notifications
                 setTimeout(() => {
@@ -180,7 +181,7 @@ export class UserSearchComponent {
 
             // Reset button on error
             button.disabled = false;
-            button.textContent = 'Add Friend';
+            button.textContent = `${language_obj['Add_friend']}`;
             button.className = button.className.replace('bg-gray-500', 'bg-blue-600 hover:bg-blue-700');
 
             // Show error message

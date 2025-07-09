@@ -57,7 +57,7 @@ function createGameControls(
 
 	controls.appendChild(gameMode);
 
-	const tourBtn = CommonComponent.createStylizedButton('Tournament', 'red');
+	const tourBtn = CommonComponent.createStylizedButton(`${language_obj['Tournament']}`, 'red');
 	tourBtn.classList.add("cursor-pointer");
 	tourBtn.onclick = () => {
 		controls.remove();
@@ -105,8 +105,8 @@ export async function renderPongGamePage() {
 	document.title = 'Pong';
 
 	const user = await UserService.getCurrentUser();
-	const leftPlayer = user.displayName || "Player 1";
-	const rightPlayer = "Player 2";
+	const leftPlayer = user.displayName || `${language_obj['Player']} 1`;
+	const rightPlayer = `${language_obj['Player']} 2`;
 	const matchTitle = `${leftPlayer} vs ${rightPlayer}`;
 
 	// Layout de base
@@ -141,7 +141,7 @@ export async function renderPongGamePage() {
 
 	// Titre initial avant le canvas / preview
 	const initialTitle = document.createElement('h2');
-	initialTitle.textContent = 'Ready to pong?';
+	initialTitle.textContent = `${language_obj['Ready_to_pong']}`;
 	initialTitle.className = 'text-2xl font-["Orbitron"] text-white text-center mb-4';
 	gameContainer.appendChild(initialTitle);
 

@@ -4,6 +4,7 @@ import { safeNavigate } from '../utils/navigation.utils.js';
 import { router } from '../configs/simplerouter.js';
 import { drawBackground } from '../renders/game.render.js';
 import { drawScores } from '../renders/game.render.js';
+import { language_obj } from '../index.js';
 
 let g_game_state: GameState = {
 	paddle1: { x: 20, y: 250, width: 10, height: 100 },
@@ -555,7 +556,7 @@ export function showGameOverOverlay(
 	panel.appendChild(msg);
 
 	if (mode === "local") {
-		const replay = CommonComponent.createStylizedButton('Play again', 'blue');
+		const replay = CommonComponent.createStylizedButton(`${language_obj['Ingamepage_replay_button']}`, 'blue');
 		replay.onclick = () => {
 			window.dispatchEvent(new Event('app:close-sockets'));
 			router.navigate('/game');
@@ -563,7 +564,7 @@ export function showGameOverOverlay(
 		panel.appendChild(replay);
 	} else if (mode === "online") {
 		const info = document.createElement('button');
-		info.textContent = `Go to your stats`;
+		info.textContent = `${language_obj['Ingame_back_to_stats']}`;
 		info.className = `
 			text-lg text-white
 			font-["Orbitron"]

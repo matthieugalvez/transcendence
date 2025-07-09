@@ -1,6 +1,7 @@
 import { AuthComponent } from '../components/auth.component';
 import { router } from "../configs/simplerouter";
 import { BackgroundComponent } from "./background.component";
+import { language_obj } from '../index.ts';
 
 export class CommonComponent {
 	/**
@@ -244,7 +245,7 @@ export class CommonComponent {
 		EnglishButton.addEventListener('click', async () => {
 			const success = await AuthComponent.SetLanguageUser('eng');
 			if (!success) {
-					CommonComponent.showMessage('Failed to change language', 'error');
+					CommonComponent.showMessage(`${language_obj['Language_change_failed']}`, 'error');
 				}
 			location.reload();
 		});
@@ -254,7 +255,7 @@ export class CommonComponent {
 		FrenchButton.addEventListener('click', async () => {
 			const success = await AuthComponent.SetLanguageUser('fr');
 			if (!success) {
-					CommonComponent.showMessage('Failed to change language', 'error');
+					CommonComponent.showMessage(`${language_obj['Language_change_failed']}`, 'error');
 				}
 			location.reload();
 		});
@@ -328,7 +329,7 @@ export class CommonComponent {
 		errorIcon.className = 'text-4xl mb-4';
 
 		const errorTitle = document.createElement('h2');
-		errorTitle.textContent = 'Authentication Required';
+		errorTitle.textContent = `${language_obj['Onboardingpage_error_authrequired']}`;
 		errorTitle.className = `
 			font-['Canada-big'] uppercase font-bold
 			text-2xl text-center mb-2
@@ -337,10 +338,10 @@ export class CommonComponent {
 		`.replace(/\s+/g, ' ').trim();
 
 		const errorText = document.createElement('p');
-		errorText.textContent = 'You need to be logged in to play games.';
+		errorText.textContent = `${language_obj['Gamepage_auth_error']}`;
 		errorText.className = 'text-red-600 font-semibold mb-6';
 
-		const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
+		const loginButton = CommonComponent.createStylizedButton(`${language_obj['Go_to_log_button']}`, 'blue');
 		loginButton.addEventListener('click', () => {
 			router.navigate('/auth');
 		});
@@ -382,7 +383,7 @@ export class CommonComponent {
 		errorModal.appendChild(errorMessage);
 
 		const redirectMessage = document.createElement('p');
-		redirectMessage.textContent = `Redirecting to home in ${delay / 1000} seconds...`;
+		redirectMessage.textContent = `${language_obj['Homepage_redir']} ${delay / 1000} ${language_obj['Seconds']}...`;
 		redirectMessage.className = 'text-gray-600 mb-4';
 		errorModal.appendChild(redirectMessage);
 
@@ -393,7 +394,7 @@ export class CommonComponent {
 		let countdown = delay / 1000;
 		const countdownInterval = setInterval(() => {
 			countdown--;
-			redirectMessage.textContent = `Redirecting to home in ${countdown} seconds...`;
+			redirectMessage.textContent = `${language_obj['Homepage_redir']} ${countdown} ${language_obj['Seconds']}...`;
 
 			if (countdown <= 0) {
 				clearInterval(countdownInterval);

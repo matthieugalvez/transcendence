@@ -259,7 +259,7 @@ export class UserService {
 			}
 
 			const result = await response.json();
-			console.log('Upload result:', result);
+//			console.log('Upload result:', result);
 
 			if (result.success) {
 				// Update avatar preview

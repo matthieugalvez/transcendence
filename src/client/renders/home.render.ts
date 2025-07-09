@@ -4,6 +4,7 @@ import { BackgroundComponent } from '../components/background.component';
 import { UserService } from '../services/user.service';
 import pongImg from '../assets/gameimg/screen-pongGame.png';
 import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
+import { language_obj } from '..';
 
 export class HomeRender {
 	static async renderInto(container: HTMLDivElement): Promise<void> {
@@ -105,13 +106,13 @@ export class HomeRender {
 
 		// Title
 		const title = document.createElement('h3');
-		title.textContent = 'Leaderboard';
+		title.textContent = `${language_obj['Leaderboard']}`;
 		title.className = 'text-white font-bold text-lg mb-3 text-center flex-shrink-0';
 		leaderboardContainer.appendChild(title);
 
 		// Loading placeholder
 		const loadingText = document.createElement('p');
-		loadingText.textContent = 'Loading...';
+		loadingText.textContent = `${language_obj['Onboardingpage_loading']}`;
 		loadingText.className = 'text-white/70 text-center';
 		leaderboardContainer.appendChild(loadingText);
 
@@ -153,7 +154,7 @@ export class HomeRender {
 
 				const avatar = document.createElement('img');
 				avatar.src = player.avatar
-				// console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
+				// //console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
 				avatar.alt = player.displayName;
 				avatar.className = 'w-6 h-6 rounded-full flex-shrink-0';
 
@@ -169,7 +170,7 @@ export class HomeRender {
 
 				const wins = document.createElement('span');
 				const totalWins = (player.oneVOneWins || 0) + (player.tournamentWins || 0);
-				wins.textContent = `${totalWins} Wins`;
+				wins.textContent = `${totalWins} ${language_obj['Ingamepage_winner']}`;
 				wins.className = 'font-semibold text-green-400 flex-shrink-0';
 
 				playerItem.appendChild(leftSide);
@@ -181,7 +182,7 @@ export class HomeRender {
 
 		} catch (error) {
 			console.error('Failed to load leaderboard:', error);
-			loadingElement.textContent = 'Failed to load';
+			loadingElement.textContent = `${language_obj['Failed_to_load']}`;
 			loadingElement.className = 'text-red-400 text-center text-sm';
 		}
 	}
@@ -197,10 +198,10 @@ export class HomeRender {
     `.replace(/\s+/g, ' ').trim();
 
 		const errorText = document.createElement('p');
-		errorText.textContent = 'Authentication required';
+		errorText.textContent = `${language_obj['Onboardingpage_error_authrequired']}`;
 		errorText.className = 'text-red-600 font-semibold mb-4';
 
-		const loginButton = CommonComponent.createStylizedButton('Go to Login', 'blue');
+		const loginButton = CommonComponent.createStylizedButton(`${language_obj['Go_to_log_button']}`, 'blue');
 		loginButton.onclick = () => router.navigate('/auth');
 
 		errorContainer.appendChild(errorText);
