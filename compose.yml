@@ -3,12 +3,12 @@ services:
     build:
       context: .
       dockerfile: configs/Dockerfile
-    # volumes:
-    #   - /var/.env:/app/.env:ro
+    volumes:
+      - /var/.env:/app/.env:ro
     ports:
       - "3000"  # Only expose for internal communication
-    # env_file:
-    #   - /var/.env
+    env_file:
+      - /var/.env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]

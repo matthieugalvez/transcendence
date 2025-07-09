@@ -11,7 +11,7 @@ RUN npm install
 # Copy configuration files
 COPY configs ./configs/
 COPY prisma ./prisma/
-COPY ~/var/.env ./
+# COPY /var/.env ./
 
 # Generate Prisma client
 RUN npm run generate:jwt
