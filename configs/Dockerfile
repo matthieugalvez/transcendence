@@ -14,6 +14,7 @@ COPY prisma ./prisma/
 # COPY /var/.env ./
 
 # Generate Prisma client
+RUN npm run generate:jwt
 RUN npx prisma generate
 
 # Copy source files
