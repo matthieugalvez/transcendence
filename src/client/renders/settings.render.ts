@@ -60,7 +60,7 @@ export class SettingsRender {
 
 		// Welcome title with user's name
 		const pageTitle = document.createElement('h1');
-		pageTitle.textContent = `Settings for ${userName}`;
+		pageTitle.textContent = `${language_obj['Settings_for']} ${userName}`;
 		pageTitle.className = `
 			font-['Canada-big'] uppercase font-bold
 			text-2xl md:text-3xl lg:text-4xl text-center mb-2
@@ -72,7 +72,7 @@ export class SettingsRender {
 
 		// Subtitle
 		const subtitle = document.createElement('p');
-		subtitle.textContent = 'Manage your account settings';
+		subtitle.textContent = `${language_obj['Manage_settings']}`;
 		subtitle.className = `
 			font-['Orbitron'] text-center text-gray-600
 			text-sm font-medium mb-6
@@ -89,13 +89,13 @@ export class SettingsRender {
 			await AuthComponent.handle2FASetup();
 		});
 
-		const Disable2FA = CommonComponent.createStylizedButton('Disable 2FA', 'red');
+		const Disable2FA = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_disable2FA']}`, 'red');
 		Disable2FA.addEventListener('click', async () => {
 			await AuthComponent.disable2FA();
 		});
 
 		// Logout button
-		const logoutButton = CommonComponent.createStylizedButton('Logout', 'red');
+		const logoutButton = CommonComponent.createStylizedButton(`${language_obj['Onboardingpage_logout_button']}`, 'red');
 		logoutButton.addEventListener('click', async () => {
 			const success = await AuthComponent.logoutUser();
 			if (success) {
@@ -105,7 +105,7 @@ export class SettingsRender {
 			}
 		});
 
-		const saveButton = CommonComponent.createStylizedButton('Save', 'purple');
+		const saveButton = CommonComponent.createStylizedButton(`${language_obj['Save']}`, 'purple');
 		saveButton.addEventListener('click', async () => {
 			await UserComponent.saveSettings();
 		});
