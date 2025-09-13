@@ -1,15 +1,15 @@
 # .env
-APP_HOST=
-APP_PORT=
+APP_HOST=0.0.0.0
+APP_PORT=3000
 
 # Database Configuration - Use SQLite file path for production
-DATABASE_URL=
+DATABASE_URL="file:./data/transcendence.db"
 
 # Authentication Settings - Generate proper secrets
 AUTH_SECRET=
-AUTH_SECRET_EXPIRES_IN=
+AUTH_SECRET_EXPIRES_IN=15m
 AUTH_REFRESH_SECRET=
-AUTH_REFRESH_SECRET_EXPIRES_IN=
+AUTH_REFRESH_SECRET_EXPIRES_IN=24h
 
 # Google OAuth
 GOOGLE_CLIENT_ID=
