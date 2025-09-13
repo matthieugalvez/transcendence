@@ -79,8 +79,6 @@ npm run dev:full  # Start both frontend and backend
 
 ## Docker Setup
 
-Pas necessairement correct pour le sujet mais c'etait pour se donner une idee.
-
 ### Run with Docker Compose
 ```bash
 # Build and start the application
