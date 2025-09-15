@@ -45,6 +45,8 @@ http://localhost:3000/api/users
 
 # Transcendence Pong Game
 
+![title](/assets/title.png)
+
 A pong game using TypeScript, Tailwind CSS, Node.js, SQLite and Fastify.
 
 # You need to update NODE on your session before running:
@@ -111,3 +113,12 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data transcendence
 
 - SQLite database persists in `./data/transcendence.db`
 - Database is automatically created on first run
+
+
+# App sample screenshots
+
+![game](/assets/game.png)
+
+![profile](/assets/profile.png)
+
+![settings](/assets/settings.png)
