@@ -78,10 +78,10 @@ npm run dev:full  # Start both frontend and backend
 - **Application**: http://localhost:5173
 ```
 
-
 ## Docker Setup
 
 ### Run with Docker Compose
+
 ```bash
 # Build and start the application
 docker compose up --build
@@ -94,6 +94,7 @@ docker compose down
 ```
 
 ### Manual Docker commands
+
 ```bash
 # Build the image
 docker build -t transcendence .
@@ -113,7 +114,6 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data transcendence
 
 - SQLite database persists in `./data/transcendence.db`
 - Database is automatically created on first run
-
 
 # App sample screenshots
 

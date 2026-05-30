@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyRequest, FastifyReply } from "fastify";
 // // import { TournamentService } from '../services/tournament.service.js';
 // import { ResponseUtils as Send } from '../utils/response.utils.js';
 
@@ -34,3 +34,4 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 //     }
 //   }
 // }
+

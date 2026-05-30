@@ -1,7 +1,7 @@
-import { router } from '../configs/simplerouter';
-import { BackgroundComponent } from '../components/background.component';
-import { AuthComponent } from '../components/auth.component';
-import { CommonComponent } from '../components/common.component';
+import { router } from "../configs/simplerouter";
+import { BackgroundComponent } from "../components/background.component";
+import { AuthComponent } from "../components/auth.component";
+import { CommonComponent } from "../components/common.component";
 
 // export async function googleCompletePage(): Promise<void> {
 //     document.title = 'Transcendence - Completing Sign-In';
@@ -41,3 +41,4 @@ import { CommonComponent } from '../components/common.component';
 //         }, 2000);
 //     }
 // }
+

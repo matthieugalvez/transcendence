@@ -2,7 +2,7 @@
 export type PlayerId = number;
 
 /** Direction possible pour déplacer une raquette */
-export type Direction = 'up' | 'down';
+export type Direction = "up" | "down";
 
 /** Représentation de la position et taille d’un objet rectangulaire */
 export interface Rect {
@@ -30,3 +30,4 @@ export interface GameState {
   isPaused: boolean;
   isFreeze: boolean;
 }
+

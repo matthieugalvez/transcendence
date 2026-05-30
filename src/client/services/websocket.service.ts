@@ -4,7 +4,8 @@ export class WebSocketService {
   private onlineUsers: Set<string> = new Set();
   private reconnectTimer: NodeJS.Timeout | null = null;
   private currentUserId: string | null = null;
-  private statusCallbacks: Set<(userId: string, isOnline: boolean) => void> = new Set();
+  private statusCallbacks: Set<(userId: string, isOnline: boolean) => void> =
+    new Set();
 
   private constructor() {
     // Get current user ID immediately when service starts
@@ -14,11 +15,13 @@ export class WebSocketService {
 
   private async initializeCurrentUser() {
     try {
-      const user = await import('../services/user.service').then(m => m.UserService.getCurrentUser());
+      const user = await import("../services/user.service").then((m) =>
+        m.UserService.getCurrentUser(),
+      );
       this.currentUserId = user.id;
-    //   console.log('WebSocket service initialized with user ID:', this.currentUserId);
+      //   console.log('WebSocket service initialized with user ID:', this.currentUserId);
     } catch (error) {
-      console.error('Failed to get current user for WebSocket:', error);
+      console.error("Failed to get current user for WebSocket:", error);
     }
   }
 
@@ -33,23 +36,23 @@ export class WebSocketService {
     if (this.socket?.readyState === WebSocket.OPEN) return;
 
     try {
-      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
       // Use the same host and port as the current page (goes through Nginx)
-      const port = location.port || (protocol === 'wss' ? '443' : '80');
+      const port = location.port || (protocol === "wss" ? "443" : "80");
       const socketUrl = `${protocol}://${location.hostname}:${port}/ws/status`;
 
-    //   console.log('Connecting to WebSocket:', socketUrl);
+      //   console.log('Connecting to WebSocket:', socketUrl);
       this.socket = new WebSocket(socketUrl);
 
-    //   console.log('Connecting to WebSocket:', socketUrl);
+      //   console.log('Connecting to WebSocket:', socketUrl);
       this.socket = new WebSocket(socketUrl);
 
-      this.socket.addEventListener('open', () => {
+      this.socket.addEventListener("open", () => {
         // console.log('WebSocket connected for online status');
         // Add current user to online set immediately upon connection
         if (this.currentUserId) {
           this.onlineUsers.add(this.currentUserId);
-        //   console.log(`Added current user ${this.currentUserId} to online set`);
+          //   console.log(`Added current user ${this.currentUserId} to online set`);
         }
 
         if (this.reconnectTimer) {
@@ -58,19 +61,19 @@ export class WebSocketService {
         }
       });
 
-      this.socket.addEventListener('message', (event) => {
+      this.socket.addEventListener("message", (event) => {
         try {
           const data = JSON.parse(event.data);
-        //   console.log('WebSocket received:', data);
+          //   console.log('WebSocket received:', data);
 
           // Handle welcome message
-          if (data.type === 'welcome') {
+          if (data.type === "welcome") {
             // console.log('Received welcome message');
             return;
           }
 
           // Handle status updates
-          if (data.type === 'status') {
+          if (data.type === "status") {
             const wasOnline = this.onlineUsers.has(data.userId);
 
             if (data.online) {
@@ -81,15 +84,15 @@ export class WebSocketService {
 
             // Only notify if status actually changed OR if it's the first time we see this user
             if (wasOnline !== data.online) {
-            //   console.log(`User ${data.userId} status changed: ${data.online ? 'online' : 'offline'}`);
-            //   console.log(`Current user: ${this.currentUserId}, Status update for: ${data.userId}`);
+              //   console.log(`User ${data.userId} status changed: ${data.online ? 'online' : 'offline'}`);
+              //   console.log(`Current user: ${this.currentUserId}, Status update for: ${data.userId}`);
 
               // Notify all callbacks
-              this.statusCallbacks.forEach(callback => {
+              this.statusCallbacks.forEach((callback) => {
                 try {
                   callback(data.userId, data.online);
                 } catch (error) {
-                  console.error('Error in status callback:', error);
+                  console.error("Error in status callback:", error);
                 }
               });
 
@@ -98,34 +101,36 @@ export class WebSocketService {
             }
           }
         } catch (error) {
-          console.error('WebSocket message error:', error);
+          console.error("WebSocket message error:", error);
         }
       });
 
-      this.socket.addEventListener('close', (event) => {
+      this.socket.addEventListener("close", (event) => {
         // console.log(`WebSocket disconnected (${event.code}): ${event.reason}`);
         // Clear all users from online list when disconnected
         this.onlineUsers.clear();
         this.reconnectTimer = setTimeout(() => this.connect(), 5000);
       });
 
-      this.socket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
+      this.socket.addEventListener("error", (error) => {
+        console.error("WebSocket error:", error);
       });
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
+      console.error("Failed to connect WebSocket:", error);
       this.reconnectTimer = setTimeout(() => this.connect(), 5000);
     }
   }
 
   private updateStatusIndicators(userId: string, isOnline: boolean) {
-    document.querySelectorAll(`[data-user-status="${userId}"]`).forEach(element => {
-      if (element instanceof HTMLElement) {
-        element.style.background = isOnline ? 'green' : 'red';
-        element.title = isOnline ? 'Online' : 'Offline';
-        // console.log(`Updated status indicator for ${userId}: ${isOnline ? 'online' : 'offline'}`);
-      }
-    });
+    document
+      .querySelectorAll(`[data-user-status="${userId}"]`)
+      .forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.background = isOnline ? "green" : "red";
+          element.title = isOnline ? "Online" : "Offline";
+          // console.log(`Updated status indicator for ${userId}: ${isOnline ? 'online' : 'offline'}`);
+        }
+      });
   }
 
   isUserOnline(userId: string): boolean {
@@ -166,7 +171,9 @@ export class WebSocketService {
       };
 
       if (this.socket) {
-        this.socket.addEventListener('open', () => resolve(true), { once: true });
+        this.socket.addEventListener("open", () => resolve(true), {
+          once: true,
+        });
         checkConnection();
       } else {
         resolve(false);
@@ -174,3 +181,4 @@ export class WebSocketService {
     });
   }
 }
+

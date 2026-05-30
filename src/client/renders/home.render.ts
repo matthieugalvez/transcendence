@@ -1,40 +1,43 @@
-import { router } from '../configs/simplerouter';
-import { CommonComponent } from '../components/common.component';
-import { BackgroundComponent } from '../components/background.component';
-import { UserService } from '../services/user.service';
-import pongImg from '../assets/gameimg/screen-pongGame.png';
-import spaceImg from '../assets/gameimg/spaceinvaders.jpg';
-import { language_obj } from '..';
+import { router } from "../configs/simplerouter";
+import { CommonComponent } from "../components/common.component";
+import { BackgroundComponent } from "../components/background.component";
+import { UserService } from "../services/user.service";
+import pongImg from "../assets/gameimg/screen-pongGame.png";
+import spaceImg from "../assets/gameimg/spaceinvaders.jpg";
+import { language_obj } from "..";
 
 export class HomeRender {
-	static async renderInto(container: HTMLDivElement): Promise<void> {
-		// 1) loading dans container
-		// const loader = this.createLoadingContainer();
-		// container.appendChild(loader);
-		//  BackgroundComponent.applyCenteredGradientLayout();
+  static async renderInto(container: HTMLDivElement): Promise<void> {
+    // 1) loading dans container
+    // const loader = this.createLoadingContainer();
+    // container.appendChild(loader);
+    //  BackgroundComponent.applyCenteredGradientLayout();
 
-		try {
-			const user = await UserService.getCurrentUser();
-			// loader.remove();
-			this.renderMainContent(container, user.displayName);
-		} catch {
-			// loader.remove();
-			this.handleAuthError(container);
-		}
-	}
+    try {
+      const user = await UserService.getCurrentUser();
+      // loader.remove();
+      this.renderMainContent(container, user.displayName);
+    } catch {
+      // loader.remove();
+      this.handleAuthError(container);
+    }
+  }
 
-	private static renderMainContent(container: HTMLDivElement, userName: string): void {
-		// zone de contenu
-		const content = document.createElement('div');
-		content.className = `
+  private static renderMainContent(
+    container: HTMLDivElement,
+    userName: string,
+  ): void {
+    // zone de contenu
+    const content = document.createElement("div");
+    content.className = `
 			w-full h-full
 			flex flex-col items-center justify-center
 			py-4
 		`;
 
-		// Grid de cartes with responsive sizing
-		const grid = document.createElement('div')
-		grid.className = `
+    // Grid de cartes with responsive sizing
+    const grid = document.createElement("div");
+    grid.className = `
 			grid grid-cols-1 gap-8 lg:gap-12
 			relative z-10 mx-auto
 			font-['Orbitron']
@@ -45,53 +48,51 @@ export class HomeRender {
 			py-4
 		`.trim();
 
-		const games = [
-			{ title: 'Pong', route: '/game', img: pongImg }
-		] as const
+    const games = [{ title: "Pong", route: "/game", img: pongImg }] as const;
 
-		games.forEach(({ title, route, img }) => {
-			const card = document.createElement('div')
-			card.className = `
+    games.forEach(({ title, route, img }) => {
+      const card = document.createElement("div");
+      card.className = `
 				flex flex-col items-center p-6 lg:p-8 cursor-pointer
 				hover:scale-105 transition-transform
 				w-[50%] max-w-[80vh]
-			`.trim()
-			card.onclick = () => router.navigate(route)
+			`.trim();
+      card.onclick = () => router.navigate(route);
 
-			// Canvas with responsive sizing
-			const canvas = document.createElement('canvas')
-			canvas.width = 400
-			canvas.height = 250
-			canvas.className = 'border-2 border-gray-300 rounded-lg max-w-full h-auto w-[80%]'
-			const ctx = canvas.getContext('2d')!
-			const image = new Image()
-			image.src = img
-			image.onload = () => {
-				ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-			}
-			card.appendChild(canvas)
+      // Canvas with responsive sizing
+      const canvas = document.createElement("canvas");
+      canvas.width = 400;
+      canvas.height = 250;
+      canvas.className =
+        "border-2 border-gray-300 rounded-lg max-w-full h-auto w-[80%]";
+      const ctx = canvas.getContext("2d")!;
+      const image = new Image();
+      image.src = img;
+      image.onload = () => {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      };
+      card.appendChild(canvas);
 
-			// Titre sous le canvas
-			const label = document.createElement('p')
-			label.textContent = title
-			label.className = 'mt-4 font-bold text-xl text-white'
-			card.appendChild(label)
+      // Titre sous le canvas
+      const label = document.createElement("p");
+      label.textContent = title;
+      label.className = "mt-4 font-bold text-xl text-white";
+      card.appendChild(label);
 
-			grid.appendChild(card)
-		})
+      grid.appendChild(card);
+    });
 
-		// Add leaderboard card with responsive sizing
-		const leaderboardCard = this.createLeaderboardCard();
-		grid.appendChild(leaderboardCard);
+    // Add leaderboard card with responsive sizing
+    const leaderboardCard = this.createLeaderboardCard();
+    grid.appendChild(leaderboardCard);
 
-		content.appendChild(grid);
-		container.appendChild(content);
-	}
+    content.appendChild(grid);
+    container.appendChild(content);
+  }
 
-
-	private static createLeaderboardCard(): HTMLElement {
-		const card = document.createElement('div');
-		card.className = `
+  private static createLeaderboardCard(): HTMLElement {
+    const card = document.createElement("div");
+    card.className = `
         flex flex-col items-center p-6 lg:p-8 cursor-pointer
         hover:scale-105 transition-transform
         bg-white/10 backdrop-blur-md
@@ -100,112 +101,123 @@ export class HomeRender {
         max-h-[300px]
     `.trim();
 
-		// Leaderboard container with responsive height
-		const leaderboardContainer = document.createElement('div');
-		leaderboardContainer.className = 'w-full h-full overflow-hidden flex flex-col';
+    // Leaderboard container with responsive height
+    const leaderboardContainer = document.createElement("div");
+    leaderboardContainer.className =
+      "w-full h-full overflow-hidden flex flex-col";
 
-		// Title
-		const title = document.createElement('h3');
-		title.textContent = `${language_obj['Leaderboard']}`;
-		title.className = 'text-white font-bold text-lg mb-3 text-center flex-shrink-0';
-		leaderboardContainer.appendChild(title);
+    // Title
+    const title = document.createElement("h3");
+    title.textContent = `${language_obj["Leaderboard"]}`;
+    title.className =
+      "text-white font-bold text-lg mb-3 text-center flex-shrink-0";
+    leaderboardContainer.appendChild(title);
 
-		// Loading placeholder
-		const loadingText = document.createElement('p');
-		loadingText.textContent = `${language_obj['Onboardingpage_loading']}`;
-		loadingText.className = 'text-white/70 text-center';
-		leaderboardContainer.appendChild(loadingText);
+    // Loading placeholder
+    const loadingText = document.createElement("p");
+    loadingText.textContent = `${language_obj["Onboardingpage_loading"]}`;
+    loadingText.className = "text-white/70 text-center";
+    leaderboardContainer.appendChild(loadingText);
 
-		// Load leaderboard data
-		this.loadLeaderboardData(leaderboardContainer, loadingText);
+    // Load leaderboard data
+    this.loadLeaderboardData(leaderboardContainer, loadingText);
 
-		card.appendChild(leaderboardContainer);
+    card.appendChild(leaderboardContainer);
 
-		return card;
-	}
+    return card;
+  }
 
-	private static async loadLeaderboardData(container: HTMLElement, loadingElement: HTMLElement): Promise<void> {
-		try {
-			const response = await fetch('/api/leaderboard', {
-				credentials: 'include'
-			});
+  private static async loadLeaderboardData(
+    container: HTMLElement,
+    loadingElement: HTMLElement,
+  ): Promise<void> {
+    try {
+      const response = await fetch("/api/leaderboard", {
+        credentials: "include",
+      });
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch leaderboard');
-			}
+      if (!response.ok) {
+        throw new Error("Failed to fetch leaderboard");
+      }
 
-			const leaderboard = await response.json();
-			loadingElement.remove();
+      const leaderboard = await response.json();
+      loadingElement.remove();
 
-			// Create leaderboard list
-			const list = document.createElement('div');
-			list.className = 'space-y-2';
+      // Create leaderboard list
+      const list = document.createElement("div");
+      list.className = "space-y-2";
 
-			leaderboard.slice(0, 5).forEach((player: any, index: number) => {
-				const playerItem = document.createElement('div');
-				playerItem.className = 'flex items-center justify-between text-white/90 text-sm px-2';
+      leaderboard.slice(0, 5).forEach((player: any, index: number) => {
+        const playerItem = document.createElement("div");
+        playerItem.className =
+          "flex items-center justify-between text-white/90 text-sm px-2";
 
-				const leftSide = document.createElement('div');
-				leftSide.className = 'flex items-center space-x-2 flex-1';
+        const leftSide = document.createElement("div");
+        leftSide.className = "flex items-center space-x-2 flex-1";
 
-				const rank = document.createElement('span');
-				rank.textContent = `${index + 1}.`;
-				rank.className = `font-bold w-6 text-center ${index < 3 ? 'text-yellow-400' : 'text-white/70'}`;
+        const rank = document.createElement("span");
+        rank.textContent = `${index + 1}.`;
+        rank.className = `font-bold w-6 text-center ${index < 3 ? "text-yellow-400" : "text-white/70"}`;
 
-				const avatar = document.createElement('img');
-				avatar.src = player.avatar
-				// //console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
-				avatar.alt = player.displayName;
-				avatar.className = 'w-6 h-6 rounded-full flex-shrink-0';
+        const avatar = document.createElement("img");
+        avatar.src = player.avatar;
+        // //console.log(`Leaderboard avatar URL debug : ${player.avatar}`);
+        avatar.alt = player.displayName;
+        avatar.className = "w-6 h-6 rounded-full flex-shrink-0";
 
+        const name = document.createElement("span");
+        name.textContent = player.displayName;
+        name.className =
+          "truncate max-w-[120px] cursor-pointer hover:text-blue-400 transition-colors";
+        name.onclick = () => router.navigate(`/profile/${player.displayName}`);
 
-				const name = document.createElement('span');
-				name.textContent = player.displayName;
-				name.className = 'truncate max-w-[120px] cursor-pointer hover:text-blue-400 transition-colors';
-				name.onclick = () => router.navigate(`/profile/${player.displayName}`);
+        leftSide.appendChild(rank);
+        leftSide.appendChild(avatar);
+        leftSide.appendChild(name);
 
-				leftSide.appendChild(rank);
-				leftSide.appendChild(avatar);
-				leftSide.appendChild(name);
+        const wins = document.createElement("span");
+        const totalWins =
+          (player.oneVOneWins || 0) + (player.tournamentWins || 0);
+        wins.textContent = `${totalWins} ${language_obj["Homepage_winner"]}`;
+        wins.className = "font-semibold text-green-400 flex-shrink-0";
 
-				const wins = document.createElement('span');
-				const totalWins = (player.oneVOneWins || 0) + (player.tournamentWins || 0);
-				wins.textContent = `${totalWins} ${language_obj['Homepage_winner']}`;
-				wins.className = 'font-semibold text-green-400 flex-shrink-0';
+        playerItem.appendChild(leftSide);
+        playerItem.appendChild(wins);
+        list.appendChild(playerItem);
+      });
 
-				playerItem.appendChild(leftSide);
-				playerItem.appendChild(wins);
-				list.appendChild(playerItem);
-			});
+      container.appendChild(list);
+    } catch (error) {
+      console.error("Failed to load leaderboard:", error);
+      loadingElement.textContent = `${language_obj["Failed_to_load"]}`;
+      loadingElement.className = "text-red-400 text-center text-sm";
+    }
+  }
 
-			container.appendChild(list);
-
-		} catch (error) {
-			console.error('Failed to load leaderboard:', error);
-			loadingElement.textContent = `${language_obj['Failed_to_load']}`;
-			loadingElement.className = 'text-red-400 text-center text-sm';
-		}
-	}
-
-	private static handleAuthError(container: HTMLDivElement): void {
-		// Show error message and redirect to auth
-		const errorContainer = document.createElement('div');
-		errorContainer.className = `
+  private static handleAuthError(container: HTMLDivElement): void {
+    // Show error message and redirect to auth
+    const errorContainer = document.createElement("div");
+    errorContainer.className = `
       bg-white/90 backdrop-blur-md
       border-2 border-red-500
       rounded-xl p-8 shadow-[8.0px_10.0px_0.0px_rgba(0,0,0,0.8)]
       max-w-lg w-full mx-4 text-center
-    `.replace(/\s+/g, ' ').trim();
+    `
+      .replace(/\s+/g, " ")
+      .trim();
 
-		const errorText = document.createElement('p');
-		errorText.textContent = `${language_obj['Onboardingpage_error_authrequired']}`;
-		errorText.className = 'text-red-600 font-semibold mb-4';
+    const errorText = document.createElement("p");
+    errorText.textContent = `${language_obj["Onboardingpage_error_authrequired"]}`;
+    errorText.className = "text-red-600 font-semibold mb-4";
 
-		const loginButton = CommonComponent.createStylizedButton(`${language_obj['Go_to_log_button']}`, 'blue');
-		loginButton.onclick = () => router.navigate('/auth');
+    const loginButton = CommonComponent.createStylizedButton(
+      `${language_obj["Go_to_log_button"]}`,
+      "blue",
+    );
+    loginButton.onclick = () => router.navigate("/auth");
 
-		errorContainer.appendChild(errorText);
-		errorContainer.appendChild(loginButton);
-		container.appendChild(errorContainer);
-	}
+    errorContainer.appendChild(errorText);
+    errorContainer.appendChild(loginButton);
+    container.appendChild(errorContainer);
+  }
 }

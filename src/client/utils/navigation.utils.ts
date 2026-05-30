@@ -1,7 +1,9 @@
-import { router } from '../configs/simplerouter';
+import { router } from "../configs/simplerouter";
 
 declare global {
-  interface Window { __navigatedAlready?: boolean }
+  interface Window {
+    __navigatedAlready?: boolean;
+  }
 }
 
 export function safeNavigate(path: string) {

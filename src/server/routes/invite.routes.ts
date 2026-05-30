@@ -1,27 +1,43 @@
-import { FastifyInstance } from 'fastify';
-import { InviteController } from '../controllers/invite.controller.js';
-import { AuthMiddleware } from '../middlewares/auth.middleware.js';
+import { FastifyInstance } from "fastify";
+import { InviteController } from "../controllers/invite.controller.js";
+import { AuthMiddleware } from "../middlewares/auth.middleware.js";
 
 export async function inviteRoutes(fastify: FastifyInstance) {
-	fastify.post('/invite', {
-		preHandler: AuthMiddleware.authenticateUser
-	},
-		InviteController.createInvite);
-	fastify.post('/invite/:inviteId/accept', {
-		preHandler: AuthMiddleware.authenticateUser
-	},
-		InviteController.acceptInvite);
-	fastify.post('/invite/:inviteId/decline', {
-		preHandler: AuthMiddleware.authenticateUser
-	},
-		InviteController.declineInvite);
-	fastify.get('/invites', {
-		preHandler: AuthMiddleware.authenticateUser
-	},
-		InviteController.getPendingInvites);
+  fastify.post(
+    "/invite",
+    {
+      preHandler: AuthMiddleware.authenticateUser,
+    },
+    InviteController.createInvite,
+  );
+  fastify.post(
+    "/invite/:inviteId/accept",
+    {
+      preHandler: AuthMiddleware.authenticateUser,
+    },
+    InviteController.acceptInvite,
+  );
+  fastify.post(
+    "/invite/:inviteId/decline",
+    {
+      preHandler: AuthMiddleware.authenticateUser,
+    },
+    InviteController.declineInvite,
+  );
+  fastify.get(
+    "/invites",
+    {
+      preHandler: AuthMiddleware.authenticateUser,
+    },
+    InviteController.getPendingInvites,
+  );
 
-	fastify.get('/invites/sent', {
-		preHandler: AuthMiddleware.authenticateUser
-	},
-		InviteController.getSentInvites);
+  fastify.get(
+    "/invites/sent",
+    {
+      preHandler: AuthMiddleware.authenticateUser,
+    },
+    InviteController.getSentInvites,
+  );
 }
+

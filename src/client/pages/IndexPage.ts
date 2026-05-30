@@ -1,24 +1,24 @@
-import '../styles.css';
-import { router } from '../configs/simplerouter';
-import paddleImg from '../assets/logo.png';
-import profil1 from '../assets/profilpic/profilpic1.png';
-import profil2 from '../assets/profilpic/profilpic2.png';
-import profil3 from '../assets/profilpic/proflipic3.png';
-import bgEffect from '../assets/effects/otis-redding.png';
-import { BackgroundComponent } from '../components/background.component';
-import { UserService } from '../services/user.service';
-import { language_obj } from '../index.ts';
+import "../styles.css";
+import { router } from "../configs/simplerouter";
+import paddleImg from "../assets/logo.png";
+import profil1 from "../assets/profilpic/profilpic1.png";
+import profil2 from "../assets/profilpic/profilpic2.png";
+import profil3 from "../assets/profilpic/proflipic3.png";
+import bgEffect from "../assets/effects/otis-redding.png";
+import { BackgroundComponent } from "../components/background.component";
+import { UserService } from "../services/user.service";
+import { language_obj } from "../index.ts";
 
 export function renderIndexPage(): void {
   document.title = "Transcendence - Index";
-  document.body.innerHTML = '';
+  document.body.innerHTML = "";
 
   BackgroundComponent.applyNormalGradientLayout();
 
   // —————————————————————————————————————————
   //  HERO
   // —————————————————————————————————————————
-  const hero = document.createElement('section');
+  const hero = document.createElement("section");
   hero.id = "accueil";
   hero.className = `
     text-center px-[2%] pb-[3%] pt-0
@@ -28,10 +28,10 @@ export function renderIndexPage(): void {
     relative
   `;
   hero.style.backgroundImage = `url(${bgEffect})`;
-  hero.style.backgroundBlendMode = 'multiply';
+  hero.style.backgroundBlendMode = "multiply";
 
-  const h1 = document.createElement('h1');
-  h1.textContent = 'PONG42';
+  const h1 = document.createElement("h1");
+  h1.textContent = "PONG42";
   h1.className = `
     font-['Canada-big'] tracking-[0.07em]
     uppercase font-bold pt-7 mx-auto text-[clamp(2.4rem,12vw,20rem)] leading-[1] w-[90%]
@@ -45,15 +45,15 @@ export function renderIndexPage(): void {
   // —————————————————————————————————————————
   //  BOTTOM PAGE
   // —————————————————————————————————————————
-  const bottomPage = document.createElement('section');
-  bottomPage.className = 'bottom-page w-full relative mt-0 pb-2 min-h-[45vh]';
+  const bottomPage = document.createElement("section");
+  bottomPage.className = "bottom-page w-full relative mt-0 pb-2 min-h-[45vh]";
 
   // —————————————————————————————————————————
   //  RAQUETTE
   // —————————————————————————————————————————
-  const paddle = document.createElement('img');
+  const paddle = document.createElement("img");
   paddle.src = paddleImg;
-  paddle.alt = 'raquette ping pong';
+  paddle.alt = "raquette ping pong";
   paddle.className = `
     absolute z-30 cursor-pointer
     right-[18%] top-[-50%]
@@ -61,14 +61,14 @@ export function renderIndexPage(): void {
     drop-shadow-[0_14px_24px_#63007399]
     transition-transform hover:scale-105
   `;
-  paddle.onclick = () => router.navigate('/auth');
+  paddle.onclick = () => router.navigate("/auth");
   bottomPage.appendChild(paddle);
 
   // —————————————————————————————————————————
   //  STATS USER + KEYWORDS
   // —————————————————————————————————————————
-  const little = document.createElement('section');
-  little.id = 'little';
+  const little = document.createElement("section");
+  little.id = "little";
   little.className = `
     font-['Orbitron']
     flex flex-row justify-between items-center
@@ -79,29 +79,29 @@ export function renderIndexPage(): void {
   // —————————————————————————————————————————
   //  USERS
   // —————————————————————————————————————————
-  const users = document.createElement('div');
-  users.className = 'flex flex-col justify-center items-start mb-5 pl-2';
+  const users = document.createElement("div");
+  users.className = "flex flex-col justify-center items-start mb-5 pl-2";
 
-  const userpic = document.createElement('div');
-  userpic.id = 'userpic';
-  userpic.className = 'flex flex-row items-center mb-1';
+  const userpic = document.createElement("div");
+  userpic.id = "userpic";
+  userpic.className = "flex flex-row items-center mb-1";
 
   [profil1, profil2, profil3].forEach((src, i) => {
-    const img = document.createElement('img');
+    const img = document.createElement("img");
     img.src = src;
-    img.alt = 'profil-pic' + (i + 1);
+    img.alt = "profil-pic" + (i + 1);
     img.className = `
       w-[55px] h-[55px] rounded-full border-4 border-white
       object-cover bg-white shadow-[0_2px_8px_#0002]
       transition-all duration-200
-      ${i === 0 ? '' : 'ml-[-15px]'}
+      ${i === 0 ? "" : "ml-[-15px]"}
     `;
     userpic.appendChild(img);
   });
 
-  const userText = document.createElement('p');
-  userText.textContent = `${language_obj['Homepage_player_count']}`;
-  userText.className = 'text-sm font-medium ml-3';
+  const userText = document.createElement("p");
+  userText.textContent = `${language_obj["Homepage_player_count"]}`;
+  userText.className = "text-sm font-medium ml-3";
 
   users.appendChild(userpic);
   users.appendChild(userText);
@@ -109,12 +109,12 @@ export function renderIndexPage(): void {
   // —————————————————————————————————————————
   //  KEYWORDS/STATS
   // —————————————————————————————————————————
-  const keywords = document.createElement('div');
-  keywords.className = 'flex flex-col items-end text-right';
+  const keywords = document.createElement("div");
+  keywords.className = "flex flex-col items-end text-right";
 
-  const keywordText = document.createElement('p');
+  const keywordText = document.createElement("p");
   keywordText.innerHTML = `
-    <span>${language_obj['Homepage_description']}</span>
+    <span>${language_obj["Homepage_description"]}</span>
   `;
   keywords.appendChild(keywordText);
 
